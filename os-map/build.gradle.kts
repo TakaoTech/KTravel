@@ -80,7 +80,6 @@ kotlin {
 
             implementation(compose.runtime)
             implementation(compose.foundation)
-//            implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -94,15 +93,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
 
-            val mapsForgeVersion = "0.26.1"
-
-            implementation("com.github.mapsforge.mapsforge:mapsforge-core:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map-reader:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-themes:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map-awt:$mapsForgeVersion")
-            implementation("guru.nidi.com.kitfox:svgSalamander:1.1.3")
-            implementation("net.sf.kxml:kxml2:2.3.0")
+            implementation(libs.bundles.osm.jvm)
         }
     }
 }
