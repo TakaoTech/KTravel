@@ -1,4 +1,4 @@
-package com.takaotech.ktravel
+package com.takaotech.os_map
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,11 +18,11 @@ import kotlin.io.path.Path
 
 
 @Composable
-fun MapForge(
-    modifier: Modifier = Modifier,
-    showFps: Boolean = false
+actual fun MapForge(
+    modifier: Modifier,
+    showFps: Boolean
 ) {
-    var uri = File(Res.getUri("files/world.map"))
+//    var uri = File(Res.getUri("files/world.map"))
 
     SwingPanel(
         modifier = modifier,
