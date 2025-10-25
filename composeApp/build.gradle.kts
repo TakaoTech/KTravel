@@ -42,19 +42,20 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
-            implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation("org.jetbrains.compose.material3:material3:1.9.0")
+            implementation(libs.compose.material3)
+            implementation("androidx.navigationevent:navigationevent:1.0.0-beta01")
             implementation(libs.bundles.material.adaptive)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(compose.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.datetime)
             implementation(project(":os-map"))
         }
         commonTest.dependencies {
