@@ -10,6 +10,8 @@ import androidx.compose.ui.window.application
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun main() = application {
+    System.setProperty("compose.interop.blending", "true")
+
     Window(
         onCloseRequest = ::exitApplication,
         title = "ktravel",
