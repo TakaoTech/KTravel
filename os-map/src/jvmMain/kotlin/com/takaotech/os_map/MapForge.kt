@@ -1,13 +1,8 @@
 package com.takaotech.os_map
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.awt.graphics.AwtGraphicFactory
 import org.mapsforge.map.awt.util.AwtUtil
