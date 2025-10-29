@@ -48,7 +48,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(libs.compose.material3)
-            implementation("androidx.navigationevent:navigationevent:1.0.0-beta01")
+            implementation(libs.androidx.navigationevent)
             implementation(libs.bundles.material.adaptive)
             implementation(compose.ui)
             implementation(compose.components.resources)
