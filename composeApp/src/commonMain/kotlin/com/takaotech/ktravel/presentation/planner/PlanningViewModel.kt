@@ -2,10 +2,14 @@ package com.takaotech.ktravel.presentation.planner
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -36,6 +40,14 @@ class PlanningViewModel : ViewModel() {
     fun onPlanDateChanged(start: Long, end: Long) {
         mUiState.update {
             it.setPeriod(start = Instant.fromEpochMilliseconds(start), end = Instant.fromEpochMilliseconds(end))
+        }
+    }
+
+    fun onTStepCreateRequested(day: LocalDate, name: String) {
+        viewModelScope.launch(Dispatchers.Default) {
+            mUiState.update {
+                it.addTravelStep(day, name)
+            }
         }
     }
 
