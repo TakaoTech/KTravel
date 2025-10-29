@@ -17,11 +17,12 @@ kotlin = "2.2.21"
 mapsForgeVersion = "0.26.1"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization-json = "1.9.0"
-kotlinStdlib = "2.2.20"
+kotlinStdlib = "2.2.21"
 material3 = "1.9.0"
 navigationevent = "1.0.0-beta01"
 runner = "1.7.0"
 core = "1.7.0"
+kotest = "6.0.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -49,6 +50,11 @@ compose-material3 = { module = "org.jetbrains.compose.material3:material3", vers
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
+kotest-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+
 mapsforge-core = { module = "com.github.mapsforge.mapsforge:mapsforge-core", version.ref = "mapsForgeVersion" }
 mapsforge-map = { module = "com.github.mapsforge.mapsforge:mapsforge-map", version.ref = "mapsForgeVersion" }
 mapsforge-map-reader = { module = "com.github.mapsforge.mapsforge:mapsforge-map-reader", version.ref = "mapsForgeVersion" }
@@ -66,7 +72,10 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinStdlib" }
+kotest = { id = "io.kotest", version.ref = "kotest" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.0" }
 
 [bundles]
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]
 osm-jvm = ["mapsforge-core", "mapsforge-map", "mapsforge-map-reader", "mapsforge-themes", "mapsforge-map-awt", "mapsforge-svgSalamander", "mapsforge-kxml2"]
+kotest-multiplatform = ["kotest-core", "kotest-property", "kotest-engine"]
