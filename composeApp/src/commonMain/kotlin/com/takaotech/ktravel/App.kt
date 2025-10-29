@@ -14,6 +14,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.takaotech.ktravel.ui.planner.PlanningPage
 import com.takaotech.os_map.MapForge
 import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
@@ -33,7 +35,10 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             scaffoldNavigator = navigator,
             mainPane = {
-                Text("Left Box")
+                PlanningPage(
+                    modifier = Modifier.fillMaxSize(),
+                    viewModel = viewModel()
+                )
             },
             supportPane = {
                 Scaffold(
