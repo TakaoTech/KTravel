@@ -37,6 +37,7 @@ androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle
 androidx-navigationevent = { module = "androidx.navigationevent:navigationevent", version.ref = "navigationevent" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1"
+kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0"
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }

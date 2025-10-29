@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.immutable)
             implementation(project(":os-map"))
         }
         commonTest.dependencies {
