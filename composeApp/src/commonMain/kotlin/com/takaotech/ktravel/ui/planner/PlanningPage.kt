@@ -5,7 +5,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -18,8 +17,7 @@ import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import com.takaotech.ktravel.ui.components.TDaySection
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.LocalDate
 import kotlin.time.ExperimentalTime
 
 @Composable
@@ -41,6 +39,9 @@ fun PlanningPage(
         },
         onPlanDateRangeChanged = { start, end ->
             viewModel.onPlanDateChanged(start, end)
+        },
+        onNewStepAddRequested = { day, name ->
+            viewModel.onTStepCreateRequested(day, name)
         }
     )
 }
@@ -53,6 +54,7 @@ fun PlanningPage(
     modifier: Modifier = Modifier,
     onPlanNameChange: (TextFieldValue) -> Unit,
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
+    onNewStepAddRequested: (LocalDate, String) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -77,9 +79,13 @@ fun PlanningPage(
 
             TDaySection(
                 day = it.toString(),
+                steps = it.steps,
                 isOpen = isOpen,
                 onDayCollapseClicked = {
                     isOpen = !isOpen
+                },
+                onNewStepAddRequested = { location ->
+                    onNewStepAddRequested(it.date, location)
                 }
             )
         }
@@ -96,6 +102,7 @@ private fun PlanningPagePreview() {
         ),
         days = persistentListOf(),
         onPlanNameChange = {},
-        onPlanDateRangeChanged = { start, end -> }
+        onPlanDateRangeChanged = { start, end -> },
+        onNewStepAddRequested = { _day, name -> }
     )
 }

@@ -4,26 +4,26 @@ package com.takaotech.ktravel.presentation.planner
 
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.toLocalDate
-import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 data class PlanningUiState(
     val planHeader: PlanHeader = PlanHeader(),
-    val days: ImmutableList<TravelDay> = persistentListOf()
+    val days: PersistentList<TravelDay> = persistentListOf()
 ) {
     fun setPeriod(
         start: Instant,
         end: Instant
     ): PlanningUiState {
-        //TODO Check if start and end is same
-
-        return (start.toLocalDate()..end.toLocalDate()).map {
-            TravelDay(date = it)
+        return (start.toLocalDate()..end.toLocalDate()).map { newDate ->
+            days.firstOrNull { it.date == newDate } ?: TravelDay(date = newDate)
         }.let {
             copy(
                 planHeader = planHeader.copy(
@@ -32,7 +32,26 @@ data class PlanningUiState(
                         end = end,
                     )
                 ),
-                days = it.toImmutableList()
+                days = it.toPersistentList()
+            )
+        }
+    }
+
+    fun addTravelStep(day: LocalDate, name: String): PlanningUiState {
+        val dayIndex = days.indexOfFirst { it.date == day }
+        return days[dayIndex].let {
+            it.copy(
+                steps = it.steps.add(
+                    TravelDay.Step(
+                        location = name
+                    )
+                )
+            )
+        }.let {
+            days.set(dayIndex, it)
+        }.let {
+            copy(
+                days = it,
             )
         }
     }
@@ -51,5 +70,11 @@ data class PlanHeader(
 }
 
 data class TravelDay(
-    val date: LocalDate
-)
+    val date: LocalDate,
+    val steps: PersistentList<Step> = persistentListOf()
+) {
+    data class Step @OptIn(ExperimentalUuidApi::class) constructor(
+        val id: String = Uuid.random().toString(),
+        val location: String
+    )
+}
