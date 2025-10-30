@@ -2,10 +2,12 @@ package com.takaotech.ktravel.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -21,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun TDaySection(
@@ -59,9 +62,35 @@ fun TDaySection(
                     singleLine = true,
                 )
 
-                for (step in steps) {
-                    Card {
-                        Text(text = step.location)
+                for ((index, step) in steps.withIndex()) {
+                    when (step) {
+                        is TravelDay.Step.Place -> {
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(
+                                        vertical = 12.dp,
+                                    ),
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(16.dp),
+                                    text = step.location
+                                )
+                            }
+
+                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
+                                TextButton(
+                                    onClick = {
+
+                                    }
+                                ) {
+                                    Text("Add")
+                                }
+                            }
+                        }
+
+                        is TravelDay.Step.Transport -> {
+                            Icon(painter = painterResource(step.type.icon), contentDescription = null)
+                        }
                     }
                 }
             }
@@ -80,7 +109,15 @@ private fun TDaySectionPreview() {
         onDayCollapseClicked = {
             isOpen = !isOpen
         },
-        steps = persistentListOf(),
+        steps = persistentListOf(
+            TravelDay.Step.Place(location = "Roma - Colosseo"),
+            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.BUS),
+            TravelDay.Step.Place(location = "Fontana di Trevi"),
+            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.CAR),
+            TravelDay.Step.Place(location = "Pantheon"),
+            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.TRAIN),
+            TravelDay.Step.Place(location = "Piazza Navona")
+        ),
         onNewStepAddRequested = {
 
         }

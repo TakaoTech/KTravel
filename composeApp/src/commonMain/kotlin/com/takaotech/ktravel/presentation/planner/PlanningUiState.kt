@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
 
 package com.takaotech.ktravel.presentation.planner
 
@@ -8,6 +8,12 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.directions_bus
+import ktravel.composeapp.generated.resources.directions_car
+import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.train
+import org.jetbrains.compose.resources.DrawableResource
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -42,7 +48,7 @@ data class PlanningUiState(
         return days[dayIndex].let {
             it.copy(
                 steps = it.steps.add(
-                    TravelDay.Step(
+                    TravelDay.Step.Place(
                         location = name
                     )
                 )
@@ -73,8 +79,22 @@ data class TravelDay(
     val date: LocalDate,
     val steps: PersistentList<Step> = persistentListOf()
 ) {
-    data class Step @OptIn(ExperimentalUuidApi::class) constructor(
-        val id: String = Uuid.random().toString(),
-        val location: String
-    )
+    sealed class Step(open val id: String = Uuid.random().toString()) {
+        data class Place(
+            override val id: String = Uuid.random().toString(),
+            val location: String
+        ) : Step(id)
+
+        data class Transport(
+            override val id: String = Uuid.random().toString(),
+            val type: Type
+        ) : Step(id) {
+            enum class Type(val icon: DrawableResource) {
+                TRAIN(Res.drawable.train),
+                BUS(Res.drawable.directions_bus),
+                CAR(Res.drawable.directions_car),
+                FLIGHT(Res.drawable.flight)
+            }
+        }
+    }
 }

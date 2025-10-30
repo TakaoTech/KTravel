@@ -57,7 +57,7 @@ class PlanningUiStateTest : BehaviorSpec({
                     result.days.size shouldBe 3
                     result.days[0].date shouldBe LocalDate(2021, 1, 2)
                     result.days[0].steps.size shouldBe 1
-                    result.days[0].steps[0].location shouldBe "Existing Location"
+                    (result.days[0].steps[0] as TravelDay.Step.Place).location shouldBe "Existing Location"
                 }
 
                 then("it should create new TravelDay objects for new dates") {
@@ -85,10 +85,10 @@ class PlanningUiStateTest : BehaviorSpec({
                     result.days.size shouldBe 4
                     result.days[0].date shouldBe LocalDate(2021, 1, 2)
                     result.days[0].steps.size shouldBe 1
-                    result.days[0].steps[0].location shouldBe "Location Day 2"
+                    (result.days[0].steps[0] as TravelDay.Step.Place).location shouldBe "Location Day 2"
                     result.days[1].date shouldBe LocalDate(2021, 1, 3)
                     result.days[1].steps.size shouldBe 1
-                    result.days[1].steps[0].location shouldBe "Location Day 3"
+                    (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Location Day 3"
                 }
 
                 then("it should create new TravelDay objects for new dates without steps") {
@@ -113,7 +113,7 @@ class PlanningUiStateTest : BehaviorSpec({
                 result.days.size shouldBe 3
                 result.days[1].date shouldBe LocalDate(2021, 1, 2)
                 result.days[1].steps.size shouldBe 1
-                result.days[1].steps[0].location shouldBe "Rome"
+                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
             }
 
             then("it should generate a unique ID for the step") {
@@ -134,9 +134,9 @@ class PlanningUiStateTest : BehaviorSpec({
 
             then("it should add all steps to the specified day") {
                 result.days[1].steps.size shouldBe 3
-                result.days[1].steps[0].location shouldBe "Rome"
-                result.days[1].steps[1].location shouldBe "Vatican City"
-                result.days[1].steps[2].location shouldBe "Colosseum"
+                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
+                (result.days[1].steps[1] as TravelDay.Step.Place).location shouldBe "Vatican City"
+                (result.days[1].steps[2] as TravelDay.Step.Place).location shouldBe "Colosseum"
             }
 
             then("each step should have a unique ID") {
@@ -153,11 +153,11 @@ class PlanningUiStateTest : BehaviorSpec({
 
             then("it should add steps to each specified day") {
                 result.days[0].steps.size shouldBe 1
-                result.days[0].steps[0].location shouldBe "Paris"
+                (result.days[0].steps[0] as TravelDay.Step.Place).location shouldBe "Paris"
                 result.days[1].steps.size shouldBe 1
-                result.days[1].steps[0].location shouldBe "Rome"
+                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
                 result.days[2].steps.size shouldBe 1
-                result.days[2].steps[0].location shouldBe "Milan"
+                (result.days[2].steps[0] as TravelDay.Step.Place).location shouldBe "Milan"
             }
         }
     }
