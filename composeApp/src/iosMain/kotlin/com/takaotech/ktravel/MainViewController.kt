@@ -1,5 +1,10 @@
 package com.takaotech.ktravel
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.takaotech.ktravel.core.startKTravelKoin
 
-fun MainViewController() = ComposeUIViewController { App() }
+fun MainViewController() = ComposeUIViewController(
+    configure = {
+        startKTravelKoin()
+    },
+) { App() }
