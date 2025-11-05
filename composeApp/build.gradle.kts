@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotest)
+//    alias(libs.plugins.kotzilla)
 }
 
 kotlin {
@@ -70,6 +71,8 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.kotzilla.koin.android)
+//            implementation(libs.kotzilla.sdk.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -85,6 +88,13 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.immutable)
             implementation(project(":os-map"))
+
+            implementation(libs.kotzilla.koin.core)
+            implementation(libs.kotzilla.koin.test)
+
+        }
+        iosMain.dependencies {
+//            implementation(libs.kotzilla.sdk.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -108,8 +118,8 @@ android {
         applicationId = "com.takaotech.ktravel"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = libs.versions.ktravel.code.get().toInt()
+        versionName = libs.versions.ktravel.version.get()
     }
     packaging {
         resources {
@@ -138,7 +148,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.takaotech.ktravel"
-            packageVersion = "1.0.0"
+            packageVersion = libs.versions.ktravel.version.get()
         }
     }
 }
@@ -154,3 +164,9 @@ tasks.named<Test>("jvmTest") {
         isFailOnNoMatchingTests = false
     }
 }
+
+//kotzilla {
+//    versionName = libs.versions.ktravel.version.get()
+//    keyGeneration = KotzillaKeyGeneration.NONE
+//    composeInstrumentation = true
+//}
