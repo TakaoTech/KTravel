@@ -75,14 +75,14 @@ kotlin {
 //            implementation(libs.kotzilla.sdk.compose)
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.androidx.navigationevent)
             implementation(libs.bundles.material.adaptive)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.preview)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
@@ -138,7 +138,7 @@ android {
 }
 
 dependencies {
-    debugImplementation(compose.uiTooling)
+    debugImplementation(libs.compose.tooling)
 }
 
 compose.desktop {
