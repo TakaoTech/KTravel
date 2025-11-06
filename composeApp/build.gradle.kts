@@ -74,24 +74,32 @@ kotlin {
             implementation(libs.kotzilla.koin.android)
 //            implementation(libs.kotzilla.sdk.compose)
         }
-        commonMain.dependencies {
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.androidx.navigationevent)
-            implementation(libs.bundles.material.adaptive)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.resources)
-            implementation(libs.compose.preview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.kotlinx.immutable)
-            implementation(project(":os-map"))
 
-            implementation(libs.kotzilla.koin.core)
-            implementation(libs.kotzilla.koin.test)
-            api(libs.kotzilla.koin.annotation)
+
+        val commonMain by getting {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+            dependencies {
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.material3)
+                implementation(libs.androidx.navigationevent)
+                implementation(libs.bundles.material.adaptive)
+                implementation(libs.compose.ui)
+                implementation(libs.compose.resources)
+                implementation(libs.compose.preview)
+                implementation(libs.androidx.lifecycle.viewmodelCompose)
+                implementation(libs.androidx.lifecycle.runtimeCompose)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.immutable)
+                implementation(project(":os-map"))
+
+                implementation(libs.kotzilla.koin.core)
+                implementation(libs.kotzilla.koin.test)
+                implementation(libs.kotzilla.koin.compose)
+                implementation(libs.kotzilla.koin.compose.viewmodel)
+                implementation(libs.kotzilla.koin.compose.navigation)
+                api(libs.kotzilla.koin.annotation)
+            }
         }
         iosMain.dependencies {
 //            implementation(libs.kotzilla.sdk.compose)
