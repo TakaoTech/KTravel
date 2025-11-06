@@ -91,7 +91,7 @@ kotlin {
 
             implementation(libs.kotzilla.koin.core)
             implementation(libs.kotzilla.koin.test)
-
+            api(libs.kotzilla.koin.annotation)
         }
         iosMain.dependencies {
 //            implementation(libs.kotzilla.sdk.compose)
@@ -139,6 +139,11 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.tooling)
+    add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
+    add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
+    add("kspJvm", libs.kotzilla.koin.annotation.compiler)
+    add("kspIosArm64", libs.kotzilla.koin.annotation.compiler)
+    add("kspIosSimulatorArm64", libs.kotzilla.koin.annotation.compiler)
 }
 
 compose.desktop {
@@ -151,6 +156,15 @@ compose.desktop {
             packageVersion = libs.versions.ktravel.version.get()
         }
     }
+}
+
+ksp {
+    arg("KOIN_CONFIG_CHECK", "true")
+}
+
+// Trigger Common Metadata Generation from Native tasks
+tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }.configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
 }
 
 tasks.withType<Test>().configureEach {
