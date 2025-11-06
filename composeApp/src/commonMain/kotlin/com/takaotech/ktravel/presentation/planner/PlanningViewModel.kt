@@ -10,10 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
+import org.koin.android.annotation.KoinViewModel
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
+@KoinViewModel
 class PlanningViewModel : ViewModel() {
 
     private val mUiState = MutableStateFlow(PlanningUiState())

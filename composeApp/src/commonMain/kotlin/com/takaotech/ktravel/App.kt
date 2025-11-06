@@ -6,7 +6,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -14,55 +13,66 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.takaotech.ktravel.core.platformModules
+import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.ui.planner.PlanningPage
 import com.takaotech.os_map.MapForge
 import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.KoinMultiplatformApplication
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.dsl.KoinConfiguration
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class, KoinExperimentalAPI::class)
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        val coroutine = rememberCoroutineScope()
-        val navigator = rememberListDetailPaneScaffoldNavigator()
+    KoinMultiplatformApplication(
+        config = KoinConfiguration {
+            modules(appModule())
+            platformModules()
+        }
+    ) {
+        MaterialTheme {
+            val coroutine = rememberCoroutineScope()
+            val navigator = rememberListDetailPaneScaffoldNavigator()
 
-
-        PanelHorizontalDivided(
-            modifier = Modifier.fillMaxSize(),
-            scaffoldNavigator = navigator,
-            mainPane = {
-                PlanningPage(
-                    modifier = Modifier.fillMaxSize(),
-                    viewModel = viewModel()
-                )
-            },
-            supportPane = {
-                Scaffold(
-                    topBar = {
-                        IconButton(
-                            modifier = Modifier,
-                            onClick = {
-                                coroutine.launch {
-                                    navigator.navigateBack()
-                                }
-                            }
-                        ) {
-                            Icon(painter = painterResource(Res.drawable.arrow_back), contentDescription = null)
-                        }
-                    }
-                ) {
-                    MapForge(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(it),
-                        showFps = true
+            PanelHorizontalDivided(
+                modifier = Modifier.fillMaxSize(),
+                scaffoldNavigator = navigator,
+                mainPane = {
+                    PlanningPage(
+                        modifier = Modifier.fillMaxSize(),
+                        viewModel = koinViewModel()
                     )
+                },
+                supportPane = {
+                    Scaffold(
+                        topBar = {
+                            IconButton(
+                                modifier = Modifier,
+                                onClick = {
+                                    coroutine.launch {
+                                        navigator.navigateBack()
+                                    }
+                                }
+                            ) {
+                                Icon(painter = painterResource(Res.drawable.arrow_back), contentDescription = null)
+                            }
+                        }
+                    ) {
+                        MapForge(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(it),
+                            showFps = true
+                        )
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
