@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotest)
+    alias(libs.plugins.kotlinx.serialization)
 //    alias(libs.plugins.kotzilla)
 }
 
@@ -98,6 +99,9 @@ kotlin {
                 implementation(libs.kotzilla.koin.compose)
                 implementation(libs.kotzilla.koin.compose.viewmodel)
                 implementation(libs.kotzilla.koin.compose.navigation)
+                implementation("org.jetbrains.compose.ui:ui-backhandler:1.9.3")
+
+                implementation(libs.platformtools.core)
                 api(libs.kotzilla.koin.annotation)
             }
         }

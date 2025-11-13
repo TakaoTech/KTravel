@@ -11,4 +11,5 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.kotest) apply false
     alias(libs.plugins.kotzilla) apply false
+    alias(libs.plugins.kotlinx.serialization) apply false
 }
