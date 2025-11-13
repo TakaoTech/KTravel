@@ -22,13 +22,14 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun TDaySection(
     day: String,
-    steps: List<TravelDay.Step>,
+    steps: ImmutableList<TravelDay.Step>,
     modifier: Modifier = Modifier,
     isOpen: Boolean,
     onDayCollapseClicked: () -> Unit,
@@ -44,54 +45,68 @@ fun TDaySection(
         }
 
         AnimatedVisibility(visible = isOpen) {
-            Column(modifier = Modifier.padding(start = 32.dp)) {
-                var locationField by remember { mutableStateOf(TextFieldValue("")) }
+            TDayPage(
+                modifier = Modifier
+                    .padding(start = 32.dp),
+                steps = steps,
+                onNewStepAddRequested = onNewStepAddRequested
+            )
+        }
+    }
+}
 
-                TextField(
-                    value = locationField,
-                    onValueChange = { locationField = it },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            onNewStepAddRequested(locationField.text)
-                            locationField = TextFieldValue("")
-                        }
-                    ),
-                    singleLine = true,
-                )
+@Composable
+fun TDayPage(
+    steps: ImmutableList<TravelDay.Step>,
+    modifier: Modifier = Modifier,
+    onNewStepAddRequested: (String) -> Unit,
+) {
+    Column(modifier = modifier) {
+        var locationField by remember { mutableStateOf(TextFieldValue("")) }
 
-                for ((index, step) in steps.withIndex()) {
-                    when (step) {
-                        is TravelDay.Step.Place -> {
-                            Card(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(
-                                        vertical = 12.dp,
-                                    ),
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(16.dp),
-                                    text = step.location
-                                )
+        TextField(
+            value = locationField,
+            onValueChange = { locationField = it },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onNewStepAddRequested(locationField.text)
+                    locationField = TextFieldValue("")
+                }
+            ),
+            singleLine = true,
+        )
+
+        for ((index, step) in steps.withIndex()) {
+            when (step) {
+                is TravelDay.Step.Place -> {
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(
+                                vertical = 12.dp,
+                            ),
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(16.dp),
+                            text = step.location
+                        )
+                    }
+
+                    if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
+                        TextButton(
+                            onClick = {
+
                             }
-
-                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
-                                TextButton(
-                                    onClick = {
-
-                                    }
-                                ) {
-                                    Text("Add")
-                                }
-                            }
-                        }
-
-                        is TravelDay.Step.Transport -> {
-                            Icon(painter = painterResource(step.type.icon), contentDescription = null)
+                        ) {
+                            Text("Add")
                         }
                     }
+                }
+
+                is TravelDay.Step.Transport -> {
+                    Icon(painter = painterResource(step.type.icon), contentDescription = null)
                 }
             }
         }
