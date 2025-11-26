@@ -1,9 +1,9 @@
-package com.takaotech.ktravel.ui.components
+package com.takaotech.ktravel.ui.planner
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -24,62 +24,42 @@ import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.painterResource
 
+@Serializable
+data class PlanningDetailPage(val id: String)
+
 @Composable
-fun TDaySection(
-    day: String,
+fun PlanningDetailPage(
     steps: ImmutableList<TravelDay.Step>,
     modifier: Modifier = Modifier,
-    isOpen: Boolean,
-    onDayCollapseClicked: () -> Unit,
     onNewStepAddRequested: (String) -> Unit,
 ) {
-    Column(
-        modifier = modifier
-    ) {
-        TextButton(
-            onClick = onDayCollapseClicked,
-        ) {
-            Text(text = day)
-        }
+    LazyColumn(modifier = modifier) {
+        item {
+            var locationField by remember { mutableStateOf(TextFieldValue("")) }
 
-        AnimatedVisibility(visible = isOpen) {
-            TDayPage(
-                modifier = Modifier
-                    .padding(start = 32.dp),
-                steps = steps,
-                onNewStepAddRequested = onNewStepAddRequested
+            TextField(
+                label = {
+                    Text("Insert location")
+                },
+                value = locationField,
+                onValueChange = { locationField = it },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onNewStepAddRequested(locationField.text)
+                        locationField = TextFieldValue("")
+                    }
+                ),
+                singleLine = true,
             )
         }
-    }
-}
 
-@Composable
-fun TDayPage(
-    steps: ImmutableList<TravelDay.Step>,
-    modifier: Modifier = Modifier,
-    onNewStepAddRequested: (String) -> Unit,
-) {
-    Column(modifier = modifier) {
-        var locationField by remember { mutableStateOf(TextFieldValue("")) }
-
-        TextField(
-            value = locationField,
-            onValueChange = { locationField = it },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onNewStepAddRequested(locationField.text)
-                    locationField = TextFieldValue("")
-                }
-            ),
-            singleLine = true,
-        )
-
-        for ((index, step) in steps.withIndex()) {
+        itemsIndexed(steps) { index, step ->
             when (step) {
                 is TravelDay.Step.Place -> {
                     Card(
@@ -100,7 +80,7 @@ fun TDayPage(
 
                             }
                         ) {
-                            Text("Add")
+                            Text("Add Transport")
                         }
                     }
                 }
@@ -115,15 +95,8 @@ fun TDayPage(
 
 @Preview(showBackground = true)
 @Composable
-private fun TDaySectionPreview() {
-    var isOpen by remember { mutableStateOf(true) }
-
-    TDaySection(
-        day = "21 giugno 2025",
-        isOpen = isOpen,
-        onDayCollapseClicked = {
-            isOpen = !isOpen
-        },
+private fun PlanningDetailPagereview() {
+    PlanningDetailPage(
         steps = persistentListOf(
             TravelDay.Step.Place(location = "Roma - Colosseo"),
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.BUS),
@@ -131,7 +104,8 @@ private fun TDaySectionPreview() {
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.CAR),
             TravelDay.Step.Place(location = "Pantheon"),
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.TRAIN),
-            TravelDay.Step.Place(location = "Piazza Navona")
+            TravelDay.Step.Place(location = "Piazza Navona"),
+            TravelDay.Step.Place(location = "Piazza Navona"),
         ),
         onNewStepAddRequested = {
 
