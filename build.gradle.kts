@@ -12,4 +12,5 @@ plugins {
     alias(libs.plugins.kotest) apply false
     alias(libs.plugins.kotzilla) apply false
     alias(libs.plugins.kotlinx.serialization) apply false
+    alias(libs.plugins.stability.analyzer) apply false
 }
