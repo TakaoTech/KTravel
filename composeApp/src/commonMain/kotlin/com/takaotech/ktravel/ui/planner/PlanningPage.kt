@@ -2,13 +2,12 @@ package com.takaotech.ktravel.ui.planner
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,15 +16,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
-import com.takaotech.ktravel.ui.components.TDaySection
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format.DayOfWeekNames
+import kotlinx.datetime.format.char
+import kotlinx.serialization.Serializable
 import kotlin.time.ExperimentalTime
+
+@Serializable
+object PlanningPage
 
 @Composable
 fun PlanningPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
+    onDateClicked: (id: String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -42,9 +48,7 @@ fun PlanningPage(
         onPlanDateRangeChanged = { start, end ->
             viewModel.onPlanDateChanged(start, end)
         },
-        onNewStepAddRequested = { day, name ->
-            viewModel.onTStepCreateRequested(day, name)
-        }
+        onDateClicked = onDateClicked
     )
 }
 
@@ -52,11 +56,12 @@ fun PlanningPage(
 @Composable
 fun PlanningPage(
     planHeader: PlanHeader,
-    days: List<TravelDay>,
+    days: ImmutableList<TravelDay>,
     modifier: Modifier = Modifier,
     onPlanNameChange: (TextFieldValue) -> Unit,
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
-    onNewStepAddRequested: (LocalDate, String) -> Unit,
+
+    onDateClicked: (id: String) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -76,25 +81,25 @@ fun PlanningPage(
             key = { _: Int, it: TravelDay ->
                 it.date.toEpochDays()
             }
-        ) { index, it ->
-            var isOpen by rememberSaveable { mutableStateOf(true) }
+        ) { _, it ->
             val day by remember(it.date) {
                 derivedStateOf {
-                    LocalDate.Formats.ISO.format(it.date)
+                    LocalDate.Format {
+                        //TODO Add support for other languages
+                        dayOfWeek(DayOfWeekNames.ENGLISH_FULL); char(' '); day(); char('-'); monthNumber(); char('-'); year();
+                    }.format(
+                        it.date,
+                    )
                 }
             }
 
-            TDaySection(
-                day = day,
-                steps = it.steps,
-                isOpen = isOpen,
-                onDayCollapseClicked = {
-                    isOpen = !isOpen
+            TextButton(
+                onClick = {
+                    onDateClicked(it.id)
                 },
-                onNewStepAddRequested = { location ->
-                    onNewStepAddRequested(it.date, location)
-                }
-            )
+            ) {
+                Text(text = day)
+            }
         }
     }
 }
@@ -136,6 +141,6 @@ private fun PlanningPagePreview() {
         ),
         onPlanNameChange = {},
         onPlanDateRangeChanged = { start, end -> },
-        onNewStepAddRequested = { _day, name -> }
+        onDateClicked = {},
     )
 }

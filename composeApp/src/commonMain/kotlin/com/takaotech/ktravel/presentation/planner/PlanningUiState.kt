@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.presentation.planner
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.toLocalDate
 import kotlinx.collections.immutable.PersistentList
@@ -20,6 +21,7 @@ import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@Stable
 data class PlanningUiState(
     val planHeader: PlanHeader = PlanHeader(),
     val days: PersistentList<TravelDay> = persistentListOf()
@@ -63,28 +65,34 @@ data class PlanningUiState(
     }
 }
 
+@Stable
 data class PlanHeader(
     val name: TextFieldValue = TextFieldValue(""),
     private val mPeriod: Period = Period()
 ) {
     val period: Period = mPeriod
 
+    @Stable
     data class Period(
         val start: Instant = Clock.System.now(),
         val end: Instant = start
     )
 }
 
+@Stable
 data class TravelDay(
+    val id: String = Uuid.random().toString(),
     val date: LocalDate,
     val steps: PersistentList<Step> = persistentListOf()
 ) {
     sealed class Step(open val id: String = Uuid.random().toString()) {
+        @Stable
         data class Place(
             override val id: String = Uuid.random().toString(),
             val location: String
         ) : Step(id)
 
+        @Stable
         data class Transport(
             override val id: String = Uuid.random().toString(),
             val type: Type
