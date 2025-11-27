@@ -80,6 +80,8 @@ The project follows **Clean Architecture** principles:
 - Ensure tests pass before submitting changes
 - Write tests for new features and bug fixes
 - Use the Features as the source of truth for expected behavior
+- Write test names in english
+- Use "Given When Then" pattern
 
 ## Build Instructions
 
