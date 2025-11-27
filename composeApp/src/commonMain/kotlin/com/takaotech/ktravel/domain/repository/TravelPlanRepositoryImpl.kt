@@ -1,0 +1,107 @@
+package com.takaotech.ktravel.domain.repository
+
+import com.takaotech.ktravel.presentation.planner.PlanningUiState
+import com.takaotech.ktravel.presentation.planner.TravelDay
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import org.koin.core.annotation.Single
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+
+@OptIn(ExperimentalTime::class)
+@Single
+class TravelPlanRepositoryImpl : TravelPlanRepository {
+
+    private val _planningState = MutableStateFlow(PlanningUiState())
+    override val planningState: StateFlow<PlanningUiState> = _planningState.asStateFlow()
+
+    init {
+        // Inizializza con il periodo di default
+        with(_planningState.value) {
+            val start = planHeader.period.start.toEpochMilliseconds()
+            val end = planHeader.period.end.toEpochMilliseconds()
+            _planningState.value = setPeriod(
+                start = Instant.fromEpochMilliseconds(start),
+                end = Instant.fromEpochMilliseconds(end)
+            )
+        }
+    }
+
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDay?> {
+        return planningState.map { state ->
+            state.days.firstOrNull { it.id == dayId }
+        }
+    }
+
+    override suspend fun updatePeriod(startMillis: Long, endMillis: Long) {
+        _planningState.value = _planningState.value.setPeriod(
+            start = Instant.fromEpochMilliseconds(startMillis),
+            end = Instant.fromEpochMilliseconds(endMillis)
+        )
+    }
+
+    override suspend fun addStepToDay(dayId: String, step: TravelDay.Step) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val updatedDay = day.copy(
+            steps = day.steps.add(step)
+        )
+
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun removeStepFromDay(dayId: String, stepId: String) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+
+        val stepForRemoveIndex = day.steps.indexOfFirst { it.id == stepId }
+
+        val newSteps = day.steps.getOrNull(stepForRemoveIndex + 1).let {
+            if (it is TravelDay.Step.Transport) {
+                day.steps.remove(it)
+            } else {
+                day.steps
+            }
+        }.removeAt(stepForRemoveIndex)
+
+        val updatedDay = day.copy(steps = newSteps.toPersistentList())
+
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: TravelDay.Step) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+
+        if (stepIndex == -1) return
+
+        val updatedDay = day.copy(
+            steps = day.steps.set(stepIndex, updatedStep)
+        )
+
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+}
