@@ -1,6 +1,6 @@
 package com.takaotech.ktravel.ui.planner
 
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -25,16 +26,19 @@ import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.delete
 import org.jetbrains.compose.resources.painterResource
 
 @Serializable
-data class PlanningDetailPage(val id: String)
+data class PlanningDetailPageNavigation(val id: String)
 
 @Composable
 fun PlanningDetailPage(
     steps: ImmutableList<TravelDay.Step>,
     modifier: Modifier = Modifier,
     onNewStepAddRequested: (String) -> Unit,
+    onStepDeleteClicked: (String) -> Unit,
 ) {
     LazyColumn(modifier = modifier) {
         item {
@@ -62,16 +66,31 @@ fun PlanningDetailPage(
         itemsIndexed(steps) { index, step ->
             when (step) {
                 is TravelDay.Step.Place -> {
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(
-                                vertical = 12.dp,
-                            ),
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(16.dp),
-                            text = step.location
-                        )
+                    Row {
+                        Card(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(
+                                    vertical = 12.dp,
+                                ),
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(16.dp),
+                                text = step.location
+                            )
+                        }
+
+                        IconButton(
+                            modifier = Modifier.padding(top = 8.dp),
+                            onClick = {
+                                onStepDeleteClicked(step.id)
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.delete),
+                                contentDescription = null,
+                            )
+                        }
                     }
 
                     if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
@@ -107,8 +126,7 @@ private fun PlanningDetailPagereview() {
             TravelDay.Step.Place(location = "Piazza Navona"),
             TravelDay.Step.Place(location = "Piazza Navona"),
         ),
-        onNewStepAddRequested = {
-
-        }
+        onNewStepAddRequested = {},
+        onStepDeleteClicked = {}
     )
 }

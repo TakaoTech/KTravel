@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.ExperimentalTime
 
 @Serializable
-object PlanningPage
+object PlanningPageNavigation
 
 @Composable
 fun PlanningPage(

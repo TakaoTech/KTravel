@@ -7,24 +7,35 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
+import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.ui.planner.PlanningDetailPage
+import com.takaotech.ktravel.ui.planner.PlanningDetailPageNavigation
 import com.takaotech.ktravel.ui.planner.PlanningPage
+import com.takaotech.ktravel.ui.planner.PlanningPageNavigation
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
-import org.koin.compose.viewmodel.sharedKoinViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.KoinConfiguration
 
 
@@ -54,34 +65,46 @@ fun App() {
                 val coroutine = rememberCoroutineScope()
                 val navigator = rememberSupportingPaneScaffoldNavigator()
 
-                NavHost(navController = navController, startDestination = PlanningPage) {
+                NavHost(navController = navController, startDestination = Intro) {
                     composable<Intro> {
                         TextButton(onClick = {
-                            navController.navigate(PlanningPage)
+                            navController.navigate(PlanningNavigation)
                         }) {
                             Text("Navigate to Planning")
                         }
                     }
 
-                    navigation<PlanningNavigation>(startDestination = PlanningPage) {
-                        composable<PlanningPage> {
-                            val viewModel = it.sharedKoinViewModel<PlanningViewModel>(navController)
+                    navigation<PlanningNavigation>(startDestination = PlanningPageNavigation) {
+                        composable<PlanningPageNavigation> {
+                            val viewModel = it.sharedKoinViewModel2<PlanningViewModel>(navController)
 
                             PlanningPage(
                                 viewModel = viewModel,
                                 onDateClicked = {
-                                    navController.navigate(PlanningDetailPage(it))
+                                    navController.navigate(PlanningDetailPageNavigation(it))
                                 }
                             )
                         }
 
-                        composable<PlanningDetailPage> {
-                            val viewModel = it.sharedKoinViewModel<PlanningViewModel>(navController).let {
-
+                        composable<PlanningDetailPageNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
+                            val viewModel = koinViewModel<PlanningDetailViewModel> {
+                                parametersOf(args.id)
                             }
 
+                            val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
 
-//                            PlanningDetailPage()
+                            travelDay?.let { day ->
+                                PlanningDetailPage(
+                                    steps = day.steps,
+                                    onNewStepAddRequested = { location ->
+                                        viewModel.onNewStepAddRequested(location)
+                                    },
+                                    onStepDeleteClicked = {
+                                        viewModel.onStepRemoveRequested(it)
+                                    }
+                                )
+                            }
                         }
                     }
 
@@ -167,4 +190,22 @@ fun App() {
             }
         }
     }
+}
+
+@Composable
+inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
+    navController: NavController,
+    navGraphRoute: Any? = this.destination.parent?.route,
+): VM {
+    val navGraphRoute = navGraphRoute ?: return koinViewModel<VM>()
+    val parentEntry = remember(this) {
+        if (navGraphRoute is String) {
+            navController.getBackStackEntry(navGraphRoute)
+        } else {
+            navController.getBackStackEntry(navGraphRoute)
+        }
+    }
+    return koinViewModel(
+        viewModelStoreOwner = parentEntry
+    )
 }
