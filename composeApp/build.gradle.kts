@@ -1,3 +1,4 @@
+import dev.detekt.gradle.Detekt
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -11,6 +12,7 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.stability.analyzer)
+    alias(libs.plugins.detekt)
 //    alias(libs.plugins.kotzilla)
 }
 
@@ -100,10 +102,11 @@ kotlin {
                 implementation(libs.kotzilla.koin.compose)
                 implementation(libs.kotzilla.koin.compose.viewmodel)
                 implementation(libs.kotzilla.koin.compose.navigation)
-                implementation("org.jetbrains.compose.ui:ui-backhandler:1.9.3")
+                implementation("org.jetbrains.compose.ui:ui-backhandler:1.10.0")
 
                 implementation(libs.platformtools.core)
                 api(libs.kotzilla.koin.annotation)
+
             }
         }
         iosMain.dependencies {
@@ -197,3 +200,22 @@ tasks.named<Test>("jvmTest") {
 //    keyGeneration = KotzillaKeyGeneration.NONE
 //    composeInstrumentation = true
 //}
+
+detekt {
+    source.setFrom(
+        "composeApp/src/main/kotlin",
+    )
+
+//    config.setFrom("$rootDir/detekt.yml")
+    ignoreFailures = true
+}
+
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        exclude("org/koin/ksp/generated")
+
+        html.required.set(true)
+        html.outputLocation.set(file("$rootDir/detekt.html"))
+    }
+}
