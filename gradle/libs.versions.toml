@@ -1,5 +1,6 @@
 [versions]
 
+ktor-client = "3.1.3"
 ktravel-version = "1.0.0"
 ktravel-code = "1"
 
@@ -46,6 +47,7 @@ androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecyc
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-navigationevent = { module = "androidx.navigationevent:navigationevent", version.ref = "navigationevent" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1"
 kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0"
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
@@ -62,6 +64,13 @@ compose-resources = { module = "org.jetbrains.compose.components:components-reso
 compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-client" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-client" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-client" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-client" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor-client" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
@@ -88,6 +97,8 @@ mapsforge-map-awt = { module = "com.github.mapsforge.mapsforge:mapsforge-map-awt
 mapsforge-svgSalamander = "guru.nidi.com.kitfox:svgSalamander:1.1.3"
 mapsforge-kxml2 = "net.sf.kxml:kxml2:2.3.0"
 
+kmp-locale = "com.vanniktech:multiplatform-locale:0.9.0"
+
 platformtools-core = { module = "io.github.kdroidfilter:platformtools.core", version.ref = "platformtoolsCore" }
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -104,7 +115,7 @@ kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", vers
 kotest = { id = "io.kotest", version.ref = "kotest" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.0" }
 kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla-sdk" }
-stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.5.3" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.6.6" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 
 [bundles]
