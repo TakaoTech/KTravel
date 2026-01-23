@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,10 +9,8 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -130,7 +128,7 @@ fun PlanningHeader(
 }
 
 @OptIn(ExperimentalTime::class)
-@Preview(showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 private fun PlannerHeaderPreview() {
     val loremIpsum = LoremIpsum(10).values.first()
@@ -140,18 +138,14 @@ private fun PlannerHeaderPreview() {
         mutableStateOf(time to time + 1.days.toLong(DurationUnit.MILLISECONDS))
     }
 
-    MaterialTheme {
-        Scaffold {
-            PlanningHeader(
-                name = TextFieldValue(loremIpsum),
-                startDateMillis = pickedDate.first,
-                endDateMillis = pickedDate.second,
-                modifier = Modifier.fillMaxWidth(),
-                onNameChange = {},
-                onPlanDateRangeChanged = { start, end ->
+    PlanningHeader(
+        name = TextFieldValue(loremIpsum),
+        startDateMillis = pickedDate.first,
+        endDateMillis = pickedDate.second,
+        modifier = Modifier.fillMaxWidth(),
+        onNameChange = {},
+        onPlanDateRangeChanged = { start, end ->
 
-                }
-            )
         }
-    }
+    )
 }

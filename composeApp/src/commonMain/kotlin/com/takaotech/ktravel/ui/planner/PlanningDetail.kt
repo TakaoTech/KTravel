@@ -33,6 +33,7 @@ import org.jetbrains.compose.resources.painterResource
 @Serializable
 data class PlanningDetailPageNavigation(val id: String)
 
+@Deprecated("Deprecated")
 @Composable
 fun PlanningDetailPage(
     steps: ImmutableList<TravelDay.Step>,

@@ -1,27 +1,31 @@
 package com.takaotech.ktravel.ui.planner
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.ui.planning.PlanningHeader
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format.DayOfWeekNames
-import kotlinx.datetime.format.char
 import kotlinx.serialization.Serializable
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.edit
+import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
@@ -31,6 +35,7 @@ object PlanningPageNavigation
 fun PlanningPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
+    onAddPlaceClicked: () -> Unit,
     onDateClicked: (id: String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +53,7 @@ fun PlanningPage(
         onPlanDateRangeChanged = { start, end ->
             viewModel.onPlanDateChanged(start, end)
         },
+        onAddPlaceClicked = onAddPlaceClicked,
         onDateClicked = onDateClicked
     )
 }
@@ -60,6 +66,8 @@ fun PlanningPage(
     modifier: Modifier = Modifier,
     onPlanNameChange: (TextFieldValue) -> Unit,
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
+
+    onAddPlaceClicked: () -> Unit,
 
     onDateClicked: (id: String) -> Unit,
 ) {
@@ -76,30 +84,39 @@ fun PlanningPage(
             )
         }
 
+        item {
+            TextButton(
+                onClick = onAddPlaceClicked
+            ) {
+                //TODO Change icon with add
+                Icon(
+                    painter = painterResource(Res.drawable.edit),
+                    contentDescription = null
+                )
+                Text("Add place")
+            }
+        }
+
+        item {
+            Text(
+                modifier = Modifier.padding(16.dp),
+                text = "Itinerario",
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+
         itemsIndexed(
             items = days,
             key = { _: Int, it: TravelDay ->
                 it.date.toEpochDays()
             }
         ) { _, it ->
-            val day by remember(it.date) {
-                derivedStateOf {
-                    LocalDate.Format {
-                        //TODO Add support for other languages
-                        dayOfWeek(DayOfWeekNames.ENGLISH_FULL); char(' '); day(); char('-'); monthNumber(); char('-'); year();
-                    }.format(
-                        it.date,
-                    )
-                }
-            }
-
-            TextButton(
-                onClick = {
+            PlanDayItem(
+                day = it.date,
+                onDateClicked = {
                     onDateClicked(it.id)
-                },
-            ) {
-                Text(text = day)
-            }
+                }
+            )
         }
     }
 }
@@ -107,7 +124,7 @@ fun PlanningPage(
 @Preview(showBackground = true)
 @Composable
 private fun PlanningPagePreview() {
-    val loremIpsum = LoremIpsum(10).values.first()
+    LoremIpsum(10).values.first()
     PlanningPage(
         planHeader = PlanHeader(
             name = TextFieldValue("Viaggio in Italia"),
@@ -141,6 +158,7 @@ private fun PlanningPagePreview() {
         ),
         onPlanNameChange = {},
         onPlanDateRangeChanged = { start, end -> },
+        onAddPlaceClicked = {},
         onDateClicked = {},
     )
 }
