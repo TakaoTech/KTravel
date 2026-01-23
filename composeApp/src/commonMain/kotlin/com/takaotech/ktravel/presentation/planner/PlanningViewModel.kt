@@ -17,7 +17,7 @@ class PlanningViewModel(
     val uiState: StateFlow<PlanningUiState> = repository.planningState
 
     fun onPlanNameChanged(name: TextFieldValue) {
-        // TODO: Implementa l'aggiornamento del nome nel repository se necessario
+        repository.updatePlanName(name)
     }
 
     fun onPlanDateChanged(start: Long, end: Long) {
