@@ -26,6 +26,8 @@ import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
+import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
+import com.takaotech.ktravel.ui.place.PlaceInsertPage
 import com.takaotech.ktravel.ui.planner.PlanningDetailPage
 import com.takaotech.ktravel.ui.planner.PlanningDetailPageNavigation
 import com.takaotech.ktravel.ui.planner.PlanningPage
@@ -62,8 +64,8 @@ fun App() {
         ) {
             MaterialTheme {
                 val navController = rememberNavController()
-                val coroutine = rememberCoroutineScope()
-                val navigator = rememberSupportingPaneScaffoldNavigator()
+                rememberCoroutineScope()
+                rememberSupportingPaneScaffoldNavigator()
 
                 NavHost(navController = navController, startDestination = Intro) {
                     composable<Intro> {
@@ -80,6 +82,9 @@ fun App() {
 
                             PlanningPage(
                                 viewModel = viewModel,
+                                onAddPlaceClicked = {
+                                    navController.navigate(PlaceInsertNavigation)
+                                },
                                 onDateClicked = {
                                     navController.navigate(PlanningDetailPageNavigation(it))
                                 }
@@ -106,6 +111,17 @@ fun App() {
                                 )
                             }
                         }
+                    }
+
+                    composable<PlaceInsertNavigation> {
+                        PlaceInsertPage(
+                            onExit = {
+                                navController.navigateUp()
+                            },
+                            onSaveClicked = {
+                                navController.navigateUp()
+                            }
+                        )
                     }
 
 //                    composable<PlanningPage> {
@@ -192,6 +208,7 @@ fun App() {
     }
 }
 
+@Deprecated("https://github.com/InsertKoinIO/koin/pull/2293 is merged in 4.2.0-beta3, wait for 4.2.0 release")
 @Composable
 inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
     navController: NavController,

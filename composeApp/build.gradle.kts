@@ -76,6 +76,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
             implementation(libs.kotzilla.koin.android)
+            implementation(libs.ktor.client.okhttp)
 //            implementation(libs.kotzilla.sdk.compose)
         }
 
@@ -91,6 +92,8 @@ kotlin {
                 implementation(libs.compose.ui)
                 implementation(libs.compose.resources)
                 implementation(libs.compose.preview)
+                implementation(libs.compose.constraintlayout)
+                implementation(libs.compose.coil)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
                 implementation(libs.kotlinx.datetime)
@@ -104,6 +107,8 @@ kotlin {
                 implementation(libs.kotzilla.koin.compose.navigation)
                 implementation("org.jetbrains.compose.ui:ui-backhandler:1.10.0")
 
+                implementation(libs.ktor.client.core)
+
                 implementation(libs.platformtools.core)
                 api(libs.kotzilla.koin.annotation)
 
@@ -111,6 +116,7 @@ kotlin {
         }
         iosMain.dependencies {
 //            implementation(libs.kotzilla.sdk.compose)
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -119,6 +125,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.okhttp)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
