@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.repository
 
+import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.presentation.planner.PlanningUiState
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.collections.immutable.toPersistentList
@@ -102,6 +103,13 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
 
         _planningState.value = currentState.copy(
             days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override fun updatePlanName(name: TextFieldValue) {
+        val currentState = _planningState.value
+        _planningState.value = currentState.copy(
+            planHeader = currentState.planHeader.copy(name = name)
         )
     }
 }
