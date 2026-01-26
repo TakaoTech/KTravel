@@ -27,8 +27,8 @@ import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
 import com.takaotech.ktravel.ui.planner.PlanningDetailPage
 import com.takaotech.ktravel.ui.planner.PlanningDetailPageNavigation
-import com.takaotech.ktravel.ui.planner.PlanningPage
-import com.takaotech.ktravel.ui.planner.PlanningPageNavigation
+import com.takaotech.ktravel.ui.planner.PlanningTripPage
+import com.takaotech.ktravel.ui.planner.PlanningTripPageNavigation
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
@@ -73,11 +73,11 @@ fun App() {
                         }
                     }
 
-                    navigation<PlanningNavigation>(startDestination = PlanningPageNavigation) {
-                        composable<PlanningPageNavigation> {
+                    navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation) {
+                        composable<PlanningTripPageNavigation> {
                             val viewModel = it.sharedKoinViewModel2<PlanningViewModel>(navController)
 
-                            PlanningPage(
+                            PlanningTripPage(
                                 viewModel = viewModel,
                                 onAddPlaceClicked = {
                                     navController.navigate(PlaceInsertNavigation)
