@@ -15,11 +15,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planning.PlanningHeader
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
@@ -29,10 +32,10 @@ import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
-object PlanningPageNavigation
+object PlanningTripPageNavigation
 
 @Composable
-fun PlanningPage(
+fun PlanningTripPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
     onAddPlaceClicked: () -> Unit,
@@ -43,9 +46,10 @@ fun PlanningPage(
     val planHeader = uiState.planHeader
     val days = uiState.days
 
-    PlanningPage(
+    PlanningTripPage(
         modifier = modifier,
         planHeader = planHeader,
+        places = uiState.places,
         days = days,
         onPlanNameChange = {
             viewModel.onPlanNameChanged(it)
@@ -60,8 +64,9 @@ fun PlanningPage(
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun PlanningPage(
+private fun PlanningTripPage(
     planHeader: PlanHeader,
+    places: PersistentList<Place>,
     days: ImmutableList<TravelDay>,
     modifier: Modifier = Modifier,
     onPlanNameChange: (TextFieldValue) -> Unit,
@@ -81,6 +86,21 @@ fun PlanningPage(
                 startDateMillis = planHeader.period.start.toEpochMilliseconds(),
                 endDateMillis = planHeader.period.end.toEpochMilliseconds(),
                 onPlanDateRangeChanged = onPlanDateRangeChanged
+            )
+        }
+
+        itemsIndexed(
+            items = places,
+            key = { _, place ->
+                place.id
+            }
+        ) { _, place ->
+            PlaceItem(
+                modifier = Modifier.padding(16.dp),
+                name = place.name,
+                onDeleteClicked = {
+
+                }
             )
         }
 
@@ -107,14 +127,14 @@ fun PlanningPage(
 
         itemsIndexed(
             items = days,
-            key = { _: Int, it: TravelDay ->
-                it.date.toEpochDays()
+            key = { _: Int, day: TravelDay ->
+                day.date.toEpochDays()
             }
-        ) { _, it ->
+        ) { _, day ->
             PlanDayItem(
-                day = it.date,
+                day = day.date,
                 onDateClicked = {
-                    onDateClicked(it.id)
+                    onDateClicked(day.id)
                 }
             )
         }
@@ -125,10 +145,11 @@ fun PlanningPage(
 @Composable
 private fun PlanningPagePreview() {
     LoremIpsum(10).values.first()
-    PlanningPage(
+    PlanningTripPage(
         planHeader = PlanHeader(
             name = TextFieldValue("Viaggio in Italia"),
         ),
+        places = persistentListOf(),
         days = persistentListOf(
             TravelDay(
                 date = LocalDate(2024, 6, 15),

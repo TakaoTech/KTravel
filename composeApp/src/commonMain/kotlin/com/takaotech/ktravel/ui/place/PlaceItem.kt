@@ -1,7 +1,10 @@
 package com.takaotech.ktravel.ui.place
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -14,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import coil3.compose.AsyncImage
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.delete
+import org.jetbrains.compose.resources.painterResource
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -21,11 +27,12 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @Composable
 fun PlaceItem(
     //TODO
-    hour: String,
     name: String,
+    hour: String? = null,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     image: String? = null,
+    onDeleteClicked: () -> Unit
 ) {
     val showImage by remember(expanded, image) {
         derivedStateOf {
@@ -38,7 +45,7 @@ fun PlaceItem(
     }
 
     ConstraintLayout(modifier = modifier) {
-        val (imageRef, nameRef, hourRef) = createRefs()
+        val (imageRef, nameRef, hourRef, actionsRef) = createRefs()
 
         Text(
             modifier = Modifier.constrainAs(hourRef) {
@@ -46,7 +53,7 @@ fun PlaceItem(
                 top.linkTo(parent.top)
                 bottom.linkTo(parent.bottom)
             },
-            text = hour,
+            text = hour.orEmpty(),
         )
 
         if (showImage) {
@@ -76,7 +83,7 @@ fun PlaceItem(
             Modifier.constrainAs(nameRef) {
                 top.linkTo(hourRef.top)
                 start.linkTo(hourRef.end, margin = 16.dp)
-                end.linkTo(parent.end)
+//                end.linkTo(parent.end)
             }
         }
 
@@ -89,6 +96,23 @@ fun PlaceItem(
                 ),
             text = name
         )
+
+        Row(
+            modifier = Modifier.constrainAs(actionsRef) {
+                start.linkTo(nameRef.end, margin = 16.dp)
+                top.linkTo(nameRef.top)
+                bottom.linkTo(nameRef.bottom)
+            }
+        ) {
+            IconButton(
+                onClick = onDeleteClicked
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = null
+                )
+            }
+        }
     }
 }
 
@@ -100,6 +124,7 @@ private fun PlaceItemPreview() {
 
         hour = "10:00",
         name = "Test",
-        image = null
+        image = null,
+        onDeleteClicked = {}
     )
 }
