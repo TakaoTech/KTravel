@@ -4,30 +4,33 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDialog
-import androidx.compose.material3.TimePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.takaotech.ktravel.presentation.place.PlaceInputMode
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LatLngPlaceInsert(
+fun PlaceInsert(
     placeName: TextFieldValue,
+
+    inputMode: PlaceInputMode,
+    onInputModeChanged: (PlaceInputMode) -> Unit,
+
     placeLat: TextFieldValue,
     placeLng: TextFieldValue,
+
+    searchQuery: TextFieldValue,
+
     timePickerState: TimePickerState? = null,
 
     onPlaceNameChange: (TextFieldValue) -> Unit,
@@ -60,18 +63,75 @@ fun LatLngPlaceInsert(
 //            }
         }
 
-        Row {
-            OutlinedTextField(
-                label = { Text("Lat") },
-                value = placeLat,
-                onValueChange = onPlaceLatChange
-            )
+        val options = PlaceInputMode.entries
+        var expanded by remember { mutableStateOf(false) }
+        val textFieldState = rememberTextFieldState(stringResource(options[0].label))
 
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
-                label = { Text("Lng") },
-                value = placeLng,
-                onValueChange = onPlaceLngChange
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                state = textFieldState,
+                readOnly = true,
+                lineLimits = TextFieldLineLimits.SingleLine,
+                label = { Text("Label") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
             )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEachIndexed { index, option ->
+                    val text = stringResource(option.label)
+
+                    DropdownMenuItem(
+                        text = {
+                            Text(text, style = MaterialTheme.typography.bodyLarge)
+                        },
+                        onClick = {
+                            expanded = false
+                            textFieldState.setTextAndPlaceCursorAtEnd(text)
+                            onInputModeChanged(option)
+                        },
+                    )
+                }
+            }
+        }
+
+
+
+        when (inputMode) {
+            PlaceInputMode.LAT_LNG -> {
+                Row {
+                    OutlinedTextField(
+                        label = { Text("Lat") },
+                        value = placeLat,
+                        onValueChange = onPlaceLatChange,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+
+                    OutlinedTextField(
+                        label = { Text("Lng") },
+                        value = placeLng,
+                        onValueChange = onPlaceLngChange,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+
+                    )
+                }
+            }
+
+            PlaceInputMode.SEARCH -> {
+                SearchPlaceInsert(
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = {
+
+                    },
+                    onPlaceSelected = { name, lat, lng ->
+
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         if (timePickerState != null) {
@@ -117,17 +177,49 @@ fun LatLngPlaceInsert(
     }
 }
 
+@Composable
+fun SearchPlaceInsert(
+    searchQuery: TextFieldValue,
+    onSearchQueryChange: (TextFieldValue) -> Unit,
+    onPlaceSelected: (name: String, lat: Double, lng: Double) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            label = { Text("Cerca luogo") },
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // TODO: Implementare lista risultati ricerca
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview(showBackground = true)
-private fun LatLngPlaceInsertPreview() {
-    LatLngPlaceInsert(
+private fun PlaceInsertPreview() {
+    PlaceInsert(
         placeName = TextFieldValue(),
         placeLat = TextFieldValue(),
         placeLng = TextFieldValue(),
+        searchQuery = TextFieldValue(),
         timePickerState = rememberTimePickerState(),
         onPlaceNameChange = { },
         onPlaceLatChange = { },
         onPlaceLngChange = { },
+        inputMode = PlaceInputMode.LAT_LNG,
+        onInputModeChanged = {}
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun SearchPlaceInsertPreview() {
+    SearchPlaceInsert(
+        searchQuery = TextFieldValue(),
+        onSearchQueryChange = { },
+        onPlaceSelected = { _, _, _ -> },
     )
 }

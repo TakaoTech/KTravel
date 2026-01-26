@@ -1,14 +1,11 @@
 package com.takaotech.ktravel.domain.repository
 
 import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanningUiState
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import org.koin.core.annotation.Single
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -110,6 +107,13 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         val currentState = _planningState.value
         _planningState.value = currentState.copy(
             planHeader = currentState.planHeader.copy(name = name)
+        )
+    }
+
+    override suspend fun savePlace(place: Place) {
+        val currentState = _planningState.value
+        _planningState.value = currentState.copy(
+            places = currentState.places.add(place)
         )
     }
 }

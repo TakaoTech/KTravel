@@ -9,11 +9,8 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
-import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.directions_bus
-import ktravel.composeapp.generated.resources.directions_car
-import ktravel.composeapp.generated.resources.flight
-import ktravel.composeapp.generated.resources.train
+import kotlinx.datetime.LocalTime
+import ktravel.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -24,7 +21,8 @@ import kotlin.uuid.Uuid
 @Stable
 data class PlanningUiState(
     val planHeader: PlanHeader = PlanHeader(),
-    val days: PersistentList<TravelDay> = persistentListOf()
+    val days: PersistentList<TravelDay> = persistentListOf(),
+    val places: PersistentList<Place> = persistentListOf()
 ) {
     fun setPeriod(
         start: Instant,
@@ -106,3 +104,18 @@ data class TravelDay(
         }
     }
 }
+
+@Stable
+data class VisitSchedule(
+    val date: LocalDate? = null,
+    val time: LocalTime
+)
+
+@Stable
+data class Place(
+    val id: String = Uuid.random().toString(),
+    val name: String,
+    val lat: Double,
+    val lng: Double,
+    val schedule: VisitSchedule? = null
+)

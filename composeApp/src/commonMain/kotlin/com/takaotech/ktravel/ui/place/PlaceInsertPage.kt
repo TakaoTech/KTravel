@@ -2,22 +2,12 @@ package com.takaotech.ktravel.ui.place
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.close
@@ -29,13 +19,11 @@ object PlaceInsertNavigation
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceInsertPage(
+    viewModel: PlaceInsertViewModel,
     onExit: () -> Unit,
     onSaveClicked: () -> Unit
 ) {
-    var placeName by remember { mutableStateOf(TextFieldValue()) }
-    var placeLat by remember { mutableStateOf(TextFieldValue()) }
-    var placeLng by remember { mutableStateOf(TextFieldValue()) }
-    val timePickerState = rememberTimePickerState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     //TODO Adapt Layout cross devices
 
@@ -56,30 +44,35 @@ fun PlaceInsertPage(
             BottomAppBar {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onSaveClicked
+                    onClick = {
+                        viewModel.savePlace()
+                        onSaveClicked()
+                    }
                 ) {
                     Text("Save")
                 }
             }
         }
     ) {
-        LatLngPlaceInsert(
-            placeName = placeName,
-            placeLat = placeLat,
-            placeLng = placeLng,
-            timePickerState = timePickerState,
+        PlaceInsert(
+            placeName = uiState.placeName,
+            placeLat = uiState.placeLat,
+            placeLng = uiState.placeLng,
             onPlaceNameChange = {
-                placeName = it
+                viewModel.onPlaceNameChanged(it)
             },
             onPlaceLatChange = {
-                placeLat = it
+                viewModel.onPlaceLatChanged(it)
             },
             onPlaceLngChange = {
-                placeLng = it
+                viewModel.onPlaceLngChanged(it)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(it)
+                .padding(it),
+            inputMode = uiState.inputMode,
+            onInputModeChanged = { viewModel.onInputModeChanged(it) },
+            searchQuery = uiState.searchQuery
         )
     }
 }
