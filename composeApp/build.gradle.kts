@@ -80,6 +80,9 @@ kotlin {
 //            implementation(libs.kotzilla.sdk.compose)
         }
 
+        androidUnitTest.dependencies {
+            implementation(libs.bundles.mockk.android)
+        }
 
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
@@ -129,6 +132,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
+            implementation(libs.bundles.mockk)
         }
     }
 }

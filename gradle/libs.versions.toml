@@ -28,6 +28,7 @@ platformtoolsCore = "0.7.4"
 runner = "1.7.0"
 core = "1.7.0"
 kotest = "6.0.5"
+mockk = "1.14.7"
 kotzilla-sdk = "1.4.0"
 kotzilla-koin = "4.1.1"
 kotzilla-koin-annotation = "2.3.1"
@@ -90,6 +91,12 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-bdd = { module = "io.mockk:mockk-bdd", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockk-android-bdd = { module = "io.mockk:mockk-bdd-android", version.ref = "mockk" }
+mockk-android-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
+
 mapsforge-core = { module = "com.github.mapsforge.mapsforge:mapsforge-core", version.ref = "mapsForgeVersion" }
 mapsforge-map = { module = "com.github.mapsforge.mapsforge:mapsforge-map", version.ref = "mapsForgeVersion" }
 mapsforge-map-reader = { module = "com.github.mapsforge.mapsforge:mapsforge-map-reader", version.ref = "mapsForgeVersion" }
@@ -125,3 +132,5 @@ detekt = { id = "dev.detekt", version.ref = "detekt" }
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]
 osm-jvm = ["mapsforge-core", "mapsforge-map", "mapsforge-map-reader", "mapsforge-themes", "mapsforge-map-awt", "mapsforge-svgSalamander", "mapsforge-kxml2"]
 kotest-multiplatform = ["kotest-core", "kotest-property", "kotest-engine"]
+mockk = ["mockk", "mockk-bdd"]
+mockk-android = ["mockk-android", "mockk-bdd", "mockk-android-agent"]
