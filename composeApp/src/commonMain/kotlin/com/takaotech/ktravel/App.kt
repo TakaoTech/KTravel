@@ -5,11 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
@@ -24,6 +20,7 @@ import androidx.navigation.toRoute
 import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
+import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
@@ -114,7 +111,9 @@ fun App() {
                     }
 
                     composable<PlaceInsertNavigation> {
+                        val viewModel = koinViewModel<PlaceInsertViewModel>()
                         PlaceInsertPage(
+                            viewModel = viewModel,
                             onExit = {
                                 navController.navigateUp()
                             },

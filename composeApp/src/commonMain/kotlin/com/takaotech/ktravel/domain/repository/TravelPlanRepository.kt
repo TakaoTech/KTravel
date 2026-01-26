@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.domain.repository
 
 import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanningUiState
 import com.takaotech.ktravel.presentation.planner.TravelDay
 import kotlinx.coroutines.flow.Flow
@@ -41,4 +42,9 @@ interface TravelPlanRepository {
      * Aggiorna il nome del piano di viaggio
      */
     fun updatePlanName(name: TextFieldValue)
+
+    /**
+     * Salva un nuovo Place
+     */
+    suspend fun savePlace(place: Place)
 }
