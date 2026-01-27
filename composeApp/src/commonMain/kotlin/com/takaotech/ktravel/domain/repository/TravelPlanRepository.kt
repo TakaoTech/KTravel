@@ -22,12 +22,6 @@ interface TravelPlanRepository {
      * Aggiorna il periodo del viaggio
      */
     suspend fun updatePeriod(startMillis: Long, endMillis: Long)
-
-    /**
-     * Aggiunge uno step a un giorno specifico
-     */
-    suspend fun addStepToDay(dayId: String, step: TravelDay.Step)
-
     /**
      * Rimuove uno step da un giorno
      */
@@ -47,4 +41,9 @@ interface TravelPlanRepository {
      * Salva un nuovo Place
      */
     suspend fun savePlace(place: Place)
+
+    /**
+     * Sposta un Place dalla lista generale a un TravelDay
+     */
+    suspend fun movePlaceToDay(placeId: String, dayId: String)
 }

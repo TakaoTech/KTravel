@@ -15,6 +15,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mohamedrejeb.compose.dnd.DragAndDropContainer
+import com.mohamedrejeb.compose.dnd.drag.DraggableItem
+import com.mohamedrejeb.compose.dnd.drop.dropTarget
+import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
@@ -58,7 +62,10 @@ fun PlanningTripPage(
             viewModel.onPlanDateChanged(start, end)
         },
         onAddPlaceClicked = onAddPlaceClicked,
-        onDateClicked = onDateClicked
+        onDateClicked = onDateClicked,
+        onPlaceMovedToDay = { placeId, dayId ->
+            viewModel.onPlaceMovedToDate(placeId, dayId)
+        }
     )
 }
 
@@ -75,68 +82,90 @@ private fun PlanningTripPage(
     onAddPlaceClicked: () -> Unit,
 
     onDateClicked: (id: String) -> Unit,
+    onPlaceMovedToDay: (placeId: String, dayId: String) -> Unit,
 ) {
-    LazyColumn(
-        modifier = modifier,
+    val dragAndDropState = rememberDragAndDropState<Place>()
+
+    DragAndDropContainer(
+        state = dragAndDropState,
     ) {
-        item {
-            PlanningHeader(
-                name = planHeader.name,
-                onNameChange = onPlanNameChange,
-                startDateMillis = planHeader.period.start.toEpochMilliseconds(),
-                endDateMillis = planHeader.period.end.toEpochMilliseconds(),
-                onPlanDateRangeChanged = onPlanDateRangeChanged
-            )
-        }
-
-        itemsIndexed(
-            items = places,
-            key = { _, place ->
-                place.id
-            }
-        ) { _, place ->
-            PlaceItem(
-                modifier = Modifier.padding(16.dp),
-                name = place.name,
-                onDeleteClicked = {
-
-                }
-            )
-        }
-
-        item {
-            TextButton(
-                onClick = onAddPlaceClicked
-            ) {
-                //TODO Change icon with add
-                Icon(
-                    painter = painterResource(Res.drawable.edit),
-                    contentDescription = null
+        LazyColumn(
+            modifier = modifier,
+        ) {
+            item {
+                PlanningHeader(
+                    name = planHeader.name,
+                    onNameChange = onPlanNameChange,
+                    startDateMillis = planHeader.period.start.toEpochMilliseconds(),
+                    endDateMillis = planHeader.period.end.toEpochMilliseconds(),
+                    onPlanDateRangeChanged = onPlanDateRangeChanged
                 )
-                Text("Add place")
             }
-        }
 
-        item {
-            Text(
-                modifier = Modifier.padding(16.dp),
-                text = "Itinerario",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        itemsIndexed(
-            items = days,
-            key = { _: Int, day: TravelDay ->
-                day.date.toEpochDays()
-            }
-        ) { _, day ->
-            PlanDayItem(
-                day = day.date,
-                onDateClicked = {
-                    onDateClicked(day.id)
+            itemsIndexed(
+                items = places,
+                key = { _, place ->
+                    place.id
                 }
-            )
+            ) { _, place ->
+                DraggableItem(
+                    state = dragAndDropState,
+                    key = place.id, // Unique key for each draggable item
+                    data = place,
+                ) {
+                    PlaceItem(
+                        modifier = Modifier.padding(16.dp),
+                        name = place.name,
+                        onDeleteClicked = {
+
+                        }
+                    )
+                }
+            }
+
+            item {
+                TextButton(
+                    onClick = onAddPlaceClicked
+                ) {
+                    // TODO Change icon with add
+                    Icon(
+                        painter = painterResource(Res.drawable.edit),
+                        contentDescription = null
+                    )
+                    Text("Add place")
+                }
+            }
+
+            item {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = "Itinerario",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+
+            itemsIndexed(
+                items = days,
+                key = { _: Int, day: TravelDay ->
+                    day.date.toEpochDays()
+                }
+            ) { _, day ->
+                PlanDayItem(
+                    modifier = Modifier.dropTarget(
+                        state = dragAndDropState,
+                        key = day.id,
+                        onDrop = { state ->
+                            val place = state.data
+                            onPlaceMovedToDay(place.id, day.id)
+                            place
+                        }
+                    ),
+                    day = day.date,
+                    onDateClicked = {
+                        onDateClicked(day.id)
+                    }
+                )
+            }
         }
     }
 }
@@ -181,5 +210,6 @@ private fun PlanningPagePreview() {
         onPlanDateRangeChanged = { start, end -> },
         onAddPlaceClicked = {},
         onDateClicked = {},
+        onPlaceMovedToDay = { _, _ -> },
     )
 }

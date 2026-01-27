@@ -3,27 +3,22 @@ package com.takaotech.ktravel.ui.planner
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.ui.place.PlaceItem
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
@@ -37,6 +32,7 @@ data class PlanningDetailPageNavigation(val id: String)
 @Composable
 fun PlanningDetailPage(
     steps: ImmutableList<TravelDay.Step>,
+    places: PersistentList<Place>,
     modifier: Modifier = Modifier,
     onNewStepAddRequested: (String) -> Unit,
     onStepDeleteClicked: (String) -> Unit,
@@ -61,6 +57,19 @@ fun PlanningDetailPage(
                     }
                 ),
                 singleLine = true,
+            )
+        }
+
+        items(places) { place ->
+            // TODO Add Hours
+            // TODO Add image
+            PlaceItem(
+                modifier = Modifier.padding(16.dp),
+                name = place.name,
+                onDeleteClicked = {
+                    // TODO Function for remove place
+                    //  Move to all place list or permanent delete?
+                }
             )
         }
 
@@ -128,6 +137,7 @@ private fun PlanningDetailPagereview() {
             TravelDay.Step.Place(location = "Piazza Navona"),
         ),
         onNewStepAddRequested = {},
-        onStepDeleteClicked = {}
+        onStepDeleteClicked = {},
+        places = persistentListOf()
     )
 }

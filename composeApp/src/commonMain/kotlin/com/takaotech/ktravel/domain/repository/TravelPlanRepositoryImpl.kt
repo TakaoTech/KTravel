@@ -42,22 +42,6 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         )
     }
 
-    override suspend fun addStepToDay(dayId: String, step: TravelDay.Step) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val updatedDay = day.copy(
-            steps = day.steps.add(step)
-        )
-
-        _planningState.value = currentState.copy(
-            days = currentState.days.set(dayIndex, updatedDay)
-        )
-    }
-
     override suspend fun removeStepFromDay(dayId: String, stepId: String) {
         val currentState = _planningState.value
         val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
@@ -114,6 +98,32 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         val currentState = _planningState.value
         _planningState.value = currentState.copy(
             places = currentState.places.add(place)
+        )
+    }
+
+    override suspend fun movePlaceToDay(placeId: String, dayId: String) {
+        val currentState = _planningState.value
+
+        // Trova il Place nella lista generale
+        val place = currentState.places.firstOrNull { it.id == placeId } ?: return
+
+        // Trova l'indice del giorno
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        // Rimuovi il Place dalla lista generale
+        val updatedPlaces = currentState.places.remove(place)
+
+        // Aggiungi il Place al TravelDay
+        val day = currentState.days[dayIndex]
+        val updatedDay = day.copy(
+            places = day.places.add(place)
+        )
+
+        // Aggiorna lo stato
+        _planningState.value = currentState.copy(
+            places = updatedPlaces,
+            days = currentState.days.set(dayIndex, updatedDay)
         )
     }
 }
