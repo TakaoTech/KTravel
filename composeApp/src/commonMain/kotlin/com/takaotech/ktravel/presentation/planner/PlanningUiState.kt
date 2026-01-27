@@ -81,7 +81,8 @@ data class PlanHeader(
 data class TravelDay(
     val id: String = Uuid.random().toString(),
     val date: LocalDate,
-    val steps: PersistentList<Step> = persistentListOf()
+    val steps: PersistentList<Step> = persistentListOf(),
+    val places: PersistentList<Place> = persistentListOf()
 ) {
     sealed class Step(open val id: String = Uuid.random().toString()) {
         @Stable

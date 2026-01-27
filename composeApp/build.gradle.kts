@@ -113,6 +113,7 @@ kotlin {
                 implementation(libs.ktor.client.core)
 
                 implementation(libs.platformtools.core)
+                implementation(libs.dnd)
                 api(libs.kotzilla.koin.annotation)
 
             }

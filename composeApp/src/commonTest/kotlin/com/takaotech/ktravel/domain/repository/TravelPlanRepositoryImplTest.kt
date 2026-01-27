@@ -1,9 +1,11 @@
 package com.takaotech.ktravel.domain.repository
 
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planner.Place
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -93,7 +95,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
 
-    given("a repository with a specific day to add a single step") {
+    given("a repository with places in the general list") {
         val repository = TravelPlanRepositoryImpl()
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
@@ -103,43 +105,55 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        `when`("addStepToDay is called with a valid dayId") {
+        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+
+        repository.savePlace(place1)
+        repository.savePlace(place2)
+
+        `when`("movePlaceToDay is called with valid placeId and dayId") {
             val state = repository.planningState.value
             val dayId = state.days[1].id
-            val step = TravelDay.Step.Place(location = "Roma")
 
-            repository.addStepToDay(dayId, step)
+            repository.movePlaceToDay("place1", dayId)
 
-            then("should add the step to the specified day") {
+            then("should remove the place from the general list") {
+                val updatedState = repository.planningState.value
+                updatedState.places shouldHaveSize 1
+                updatedState.places shouldNotContain place1
+                updatedState.places shouldContain place2
+            }
+
+            then("should add the place to the specified day") {
                 val updatedState = repository.planningState.value
                 val day = updatedState.days[1]
-                day.steps shouldHaveSize 1
-                (day.steps[0] as TravelDay.Step.Place).location shouldBe "Roma"
+                day.places shouldHaveSize 1
+                day.places shouldContain place1
             }
 
             then("should not modify other days") {
                 val updatedState = repository.planningState.value
-                updatedState.days[0].steps.shouldBeEmpty()
-                updatedState.days[2].steps.shouldBeEmpty()
+                updatedState.days[0].places.shouldBeEmpty()
+                updatedState.days[2].places.shouldBeEmpty()
             }
         }
-    }
 
-    given("a repository with a specific day to test invalid dayId") {
-        val repository = TravelPlanRepositoryImpl()
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("addStepToDay is called with an invalid dayId") {
+        `when`("movePlaceToDay is called with an invalid placeId") {
             val initialState = repository.planningState.value
-            val step = TravelDay.Step.Place(location = "Milano")
+            val dayId = initialState.days[1].id
 
-            repository.addStepToDay("invalid-day-id", step)
+            repository.movePlaceToDay("invalid-place-id", dayId)
+
+            then("should not modify the state") {
+                val updatedState = repository.planningState.value
+                updatedState shouldBe initialState
+            }
+        }
+
+        `when`("movePlaceToDay is called with an invalid dayId") {
+            val initialState = repository.planningState.value
+
+            repository.movePlaceToDay("place1", "invalid-day-id")
 
             then("should not modify the state") {
                 val updatedState = repository.planningState.value
@@ -148,7 +162,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
 
-    given("a repository with a specific day to add multiple steps") {
+    given("a repository with multiple places to move to the same day") {
         val repository = TravelPlanRepositoryImpl()
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
@@ -158,29 +172,38 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        `when`("addStepToDay is called multiple times on the same day") {
+        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
+
+        repository.savePlace(place1)
+        repository.savePlace(place2)
+        repository.savePlace(place3)
+
+        `when`("multiple places are moved to the same day") {
             val state = repository.planningState.value
             val dayId = state.days[1].id
-            val step1 = TravelDay.Step.Place(location = "Roma")
-            val step2 = TravelDay.Step.Place(location = "Vaticano")
-            val step3 = TravelDay.Step.Place(location = "Colosseo")
 
-            repository.addStepToDay(dayId, step1)
-            repository.addStepToDay(dayId, step2)
-            repository.addStepToDay(dayId, step3)
+            repository.movePlaceToDay("place1", dayId)
+            repository.movePlaceToDay("place2", dayId)
 
-            then("should add all steps in order") {
+            then("should add all places to the day in order") {
                 val updatedState = repository.planningState.value
                 val day = updatedState.days[1]
-                day.steps shouldHaveSize 3
-                (day.steps[0] as TravelDay.Step.Place).location shouldBe "Roma"
-                (day.steps[1] as TravelDay.Step.Place).location shouldBe "Vaticano"
-                (day.steps[2] as TravelDay.Step.Place).location shouldBe "Colosseo"
+                day.places shouldHaveSize 2
+                day.places[0] shouldBe place1
+                day.places[1] shouldBe place2
+            }
+
+            then("should keep remaining places in the general list") {
+                val updatedState = repository.planningState.value
+                updatedState.places shouldHaveSize 1
+                updatedState.places shouldContain place3
             }
         }
     }
 
-    given("a repository with a day containing steps") {
+    given("a repository with multiple places to move to different days") {
         val repository = TravelPlanRepositoryImpl()
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
@@ -190,148 +213,35 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-        val step1 = TravelDay.Step.Place(id = "step1", location = "Roma")
-        val step2 = TravelDay.Step.Place(id = "step2", location = "Milano")
+        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
-        repository.addStepToDay(dayId, step1)
-        repository.addStepToDay(dayId, step2)
+        repository.savePlace(place1)
+        repository.savePlace(place2)
+        repository.savePlace(place3)
 
-        `when`("removeStepFromDay is called with a valid stepId") {
-            repository.removeStepFromDay(dayId, "step1")
-
-            then("should remove the specified step") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.steps shouldHaveSize 1
-                (day.steps[0] as TravelDay.Step.Place).location shouldBe "Milano"
-            }
-        }
-
-        `when`("removeStepFromDay is called with an invalid dayId") {
-            val initialState = repository.planningState.value
-
-            repository.removeStepFromDay("invalid-day-id", "step1")
-
-            then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
-            }
-        }
-    }
-
-    given("a repository with a step followed by transport") {
-        val repository = TravelPlanRepositoryImpl()
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-        val place = TravelDay.Step.Place(id = "place1", location = "Roma")
-        val transport = TravelDay.Step.Transport(id = "transport1", type = TravelDay.Step.Transport.Type.TRAIN)
-        val place2 = TravelDay.Step.Place(id = "place2", location = "Milano")
-
-        repository.addStepToDay(dayId, place)
-        repository.addStepToDay(dayId, transport)
-        repository.addStepToDay(dayId, place2)
-
-        `when`("removeStepFromDay is called on a step followed by transport") {
-            repository.removeStepFromDay(dayId, "place1")
-
-            then("should remove both the step and the following transport") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.steps shouldHaveSize 1
-                (day.steps[0] as TravelDay.Step.Place).location shouldBe "Milano"
-            }
-        }
-    }
-
-    given("a repository with steps to update") {
-        val repository = TravelPlanRepositoryImpl()
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-        val step1 = TravelDay.Step.Place(id = "step1", location = "Roma")
-        val step2 = TravelDay.Step.Place(id = "step2", location = "Milano")
-
-        repository.addStepToDay(dayId, step1)
-        repository.addStepToDay(dayId, step2)
-
-        `when`("updateStep is called with valid parameters") {
-            val updatedStep = TravelDay.Step.Place(id = "step1", location = "Firenze")
-            repository.updateStep(dayId, "step1", updatedStep)
-
-            then("should update the specified step") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.steps shouldHaveSize 2
-                (day.steps[0] as TravelDay.Step.Place).location shouldBe "Firenze"
-                (day.steps[1] as TravelDay.Step.Place).location shouldBe "Milano"
-            }
-        }
-
-        `when`("updateStep is called with an invalid dayId") {
-            val initialState = repository.planningState.value
-            val updatedStep = TravelDay.Step.Place(id = "step1", location = "Firenze")
-
-            repository.updateStep("invalid-day-id", "step1", updatedStep)
-
-            then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
-            }
-        }
-
-        `when`("updateStep is called with an invalid stepId") {
-            val initialState = repository.planningState.value
-            val updatedStep = TravelDay.Step.Place(id = "invalid-step", location = "Firenze")
-
-            repository.updateStep(dayId, "invalid-step-id", updatedStep)
-
-            then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
-            }
-        }
-    }
-
-    given("a repository to test reactive flow") {
-        val repository = TravelPlanRepositoryImpl()
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("observing a day and adding a step") {
+        `when`("places are moved to different days") {
             val state = repository.planningState.value
-            val dayId = state.days[1].id
-            val dayFlow = repository.getTravelDayFlow(dayId)
+            val day1Id = state.days[0].id
+            val day2Id = state.days[1].id
 
-            val step = TravelDay.Step.Place(location = "Roma")
-            repository.addStepToDay(dayId, step)
+            repository.movePlaceToDay("place1", day1Id)
+            repository.movePlaceToDay("place2", day2Id)
 
-            then("the flow should emit the updated day") {
-                val updatedDay = dayFlow.first()
-                updatedDay.shouldNotBeNull()
-                updatedDay.steps shouldHaveSize 1
-                (updatedDay.steps[0] as TravelDay.Step.Place).location shouldBe "Roma"
+            then("should distribute places correctly across days") {
+                val updatedState = repository.planningState.value
+                updatedState.days[0].places shouldHaveSize 1
+                updatedState.days[0].places shouldContain place1
+                updatedState.days[1].places shouldHaveSize 1
+                updatedState.days[1].places shouldContain place2
+                updatedState.days[2].places.shouldBeEmpty()
+            }
+
+            then("should keep remaining places in the general list") {
+                val updatedState = repository.planningState.value
+                updatedState.places shouldHaveSize 1
+                updatedState.places shouldContain place3
             }
         }
     }

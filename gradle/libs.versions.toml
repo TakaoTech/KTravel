@@ -111,6 +111,8 @@ kmp-locale = "com.vanniktech:multiplatform-locale:0.9.0"
 
 platformtools-core = { module = "io.github.kdroidfilter:platformtools.core", version.ref = "platformtoolsCore" }
 
+dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version = "0.3.0" }
+
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 #detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.1")
 

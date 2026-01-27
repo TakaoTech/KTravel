@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
@@ -26,13 +25,9 @@ class PlanningViewModel(
         }
     }
 
-    fun onTStepCreateRequested(day: LocalDate, name: String) {
+    fun onPlaceMovedToDate(placeId: String, dayId: String) {
         viewModelScope.launch {
-            val dayId = uiState.value.days.firstOrNull { it.date == day }?.id ?: return@launch
-            repository.addStepToDay(
-                dayId = dayId,
-                step = TravelDay.Step.Place(location = name)
-            )
+            repository.movePlaceToDay(placeId, dayId)
         }
     }
 }

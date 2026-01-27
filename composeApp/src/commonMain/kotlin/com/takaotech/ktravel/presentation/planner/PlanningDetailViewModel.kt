@@ -28,27 +28,9 @@ class PlanningDetailViewModel(
             initialValue = null
         )
 
-    fun onNewStepAddRequested(location: String) {
-        viewModelScope.launch {
-            repository.addStepToDay(
-                dayId = dayId,
-                step = TravelDay.Step.Place(location = location)
-            )
-        }
-    }
-
     fun onStepRemoveRequested(stepId: String) {
         viewModelScope.launch {
             repository.removeStepFromDay(dayId, stepId)
-        }
-    }
-
-    fun onTransportAddRequested(transportType: TravelDay.Step.Transport.Type) {
-        viewModelScope.launch {
-            repository.addStepToDay(
-                dayId = dayId,
-                step = TravelDay.Step.Transport(type = transportType)
-            )
         }
     }
 }

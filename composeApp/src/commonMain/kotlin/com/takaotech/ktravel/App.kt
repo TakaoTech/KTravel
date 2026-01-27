@@ -99,8 +99,9 @@ fun App() {
                             travelDay?.let { day ->
                                 PlanningDetailPage(
                                     steps = day.steps,
+                                    places = day.places,
                                     onNewStepAddRequested = { location ->
-                                        viewModel.onNewStepAddRequested(location)
+
                                     },
                                     onStepDeleteClicked = {
                                         viewModel.onStepRemoveRequested(it)
