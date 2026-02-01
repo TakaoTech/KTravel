@@ -1,4 +1,4 @@
-import dev.detekt.gradle.Detekt
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -52,8 +52,8 @@ kotlin {
 //            testTask {
 //                useKarma {
 //                    useFirefox()
-////                    useFirefoxHeadless()
-////                    useChromeHeadless()
+// //                    useFirefoxHeadless()
+// //                    useChromeHeadless()
 //                }
 //            }
 //            val rootDirPath = project.rootDir.path
@@ -70,7 +70,6 @@ kotlin {
 //        }
 //        binaries.executable()
 //    }
-
 
     sourceSets {
         androidMain.dependencies {
@@ -115,7 +114,6 @@ kotlin {
                 implementation(libs.platformtools.core)
                 implementation(libs.dnd)
                 api(libs.kotzilla.koin.annotation)
-
             }
         }
         iosMain.dependencies {
@@ -172,6 +170,9 @@ dependencies {
     add("kspJvm", libs.kotzilla.koin.annotation.compiler)
     add("kspIosArm64", libs.kotzilla.koin.annotation.compiler)
     add("kspIosSimulatorArm64", libs.kotzilla.koin.annotation.compiler)
+
+    detektPlugins(libs.detekt.composerules)
+    detektPlugins(libs.detekt.formatting)
 }
 
 compose.desktop {
@@ -191,7 +192,9 @@ ksp {
 }
 
 // Trigger Common Metadata Generation from Native tasks
-tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }.configureEach {
+tasks.matching {
+    it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata"
+}.configureEach {
     dependsOn("kspCommonMainKotlinMetadata")
 }
 
@@ -207,27 +210,34 @@ tasks.named<Test>("jvmTest") {
     }
 }
 
-//kotzilla {
+// kotzilla {
 //    versionName = libs.versions.ktravel.version.get()
 //    keyGeneration = KotzillaKeyGeneration.NONE
 //    composeInstrumentation = true
-//}
+// }
 
 detekt {
-    source.setFrom(
-        "composeApp/src/main/kotlin",
-    )
-
-//    config.setFrom("$rootDir/detekt.yml")
+//    buildUponDefaultConfig = true
     ignoreFailures = true
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+
+    arrayOf(
+        "androidMain",
+        "commonMain",
+        "jvmMain",
+        "iosMain"
+    ).map {
+        "src/$it/kotlin"
+    }.let {
+        source.setFrom(it)
+    }
 }
 
-
 tasks.withType<Detekt>().configureEach {
+    exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
-        exclude("org/koin/ksp/generated")
-
-        html.required.set(true)
-        html.outputLocation.set(file("$rootDir/detekt.html"))
+        md.required.set(true)
+        xml.required.set(true)
+//        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }
