@@ -71,7 +71,7 @@ fun PlaceInsertPage(
                 .fillMaxWidth()
                 .padding(it),
             inputMode = uiState.inputMode,
-            onInputModeChanged = { viewModel.onInputModeChanged(it) },
+            onInputModeChange = { viewModel.onInputModeChanged(it) },
             searchQuery = uiState.searchQuery
         )
     }
