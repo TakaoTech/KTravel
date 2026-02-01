@@ -56,7 +56,7 @@ workflow(
         uses(
             name = "Upload SARIF file",
             action = CodeqlActionUploadSarif(
-                sarifFile = "build/reports/detekt/detekt.sarif"
+                sarifFile = "./build/reports/detekt/detekt.sarif"
             )
         )
     }
