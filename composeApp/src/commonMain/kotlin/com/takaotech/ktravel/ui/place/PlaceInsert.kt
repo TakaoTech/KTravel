@@ -24,20 +24,19 @@ fun PlaceInsert(
     placeName: TextFieldValue,
 
     inputMode: PlaceInputMode,
-    onInputModeChanged: (PlaceInputMode) -> Unit,
 
     placeLat: TextFieldValue,
     placeLng: TextFieldValue,
 
     searchQuery: TextFieldValue,
 
-    timePickerState: TimePickerState? = null,
-
     onPlaceNameChange: (TextFieldValue) -> Unit,
+    onInputModeChange: (PlaceInputMode) -> Unit,
     onPlaceLatChange: (TextFieldValue) -> Unit,
     onPlaceLngChange: (TextFieldValue) -> Unit,
 
     modifier: Modifier = Modifier,
+    timePickerState: TimePickerState? = null,
 ) {
 
     var showTimePicker by remember { mutableStateOf(false) }
@@ -91,7 +90,7 @@ fun PlaceInsert(
                         onClick = {
                             expanded = false
                             textFieldState.setTextAndPlaceCursorAtEnd(text)
-                            onInputModeChanged(option)
+                            onInputModeChange(option)
                         },
                     )
                 }
@@ -210,7 +209,7 @@ private fun PlaceInsertPreview() {
         onPlaceLatChange = { },
         onPlaceLngChange = { },
         inputMode = PlaceInputMode.LAT_LNG,
-        onInputModeChanged = {}
+        onInputModeChange = {}
     )
 }
 
