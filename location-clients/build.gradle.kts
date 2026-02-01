@@ -1,7 +1,10 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -58,5 +61,36 @@ kotlin {
             // Ktor Engine for iOS
             implementation(libs.ktor.client.darwin)
         }
+    }
+}
+
+dependencies {
+    detektPlugins(libs.detekt.composerules)
+    detektPlugins(libs.detekt.formatting)
+}
+
+detekt {
+//    buildUponDefaultConfig = true
+    ignoreFailures = true
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+
+    arrayOf(
+        "androidMain",
+        "commonMain",
+        "jvmMain",
+        "iosMain"
+    ).map {
+        "src/$it/kotlin"
+    }.let {
+        source.setFrom(it)
+    }
+}
+
+tasks.withType<Detekt>().configureEach {
+    exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
+    reports {
+        md.required.set(true)
+        xml.required.set(true)
+//        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }

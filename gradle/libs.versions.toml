@@ -33,7 +33,7 @@ kotzilla-sdk = "1.4.0"
 kotzilla-koin = "4.1.1"
 kotzilla-koin-annotation = "2.3.1"
 
-detekt = "2.0.0-alpha.1"
+detekt = "1.23.8"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -114,6 +114,7 @@ platformtools-core = { module = "io.github.kdroidfilter:platformtools.core", ver
 dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version = "0.3.0" }
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.4.23" }
 #detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.1")
 
 [plugins]
@@ -128,7 +129,7 @@ kotest = { id = "io.kotest", version.ref = "kotest" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.0" }
 kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla-sdk" }
 stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.6.6" }
-detekt = { id = "dev.detekt", version.ref = "detekt" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
 [bundles]
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]
