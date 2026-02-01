@@ -1,5 +1,4 @@
 import io.gitlab.arturbosch.detekt.Detekt
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -18,14 +17,14 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
         compileSdk = libs.versions.android.targetSdk.get().toInt()
 
-        withHostTestBuilder {
-        }
-
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }.configure {
-            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        }
+//        withHostTestBuilder {
+//        }
+//
+//        withDeviceTestBuilder {
+//            sourceSetTreeName = "test"
+//        }.configure {
+//            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        }
 
         androidResources.enable = true
     }
@@ -39,36 +38,28 @@ kotlin {
     // https://developer.android.com/kotlin/multiplatform/migrate
     val xcfName = "os-mapKit"
 
-    iosX64 {
-        binaries.framework {
-            baseName = xcfName
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "os-mapKit"
+            isStatic = true
         }
     }
-
-    iosArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
     jvm()
 
-    js {
-        browser()
-        binaries.executable()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
+//    js {
+//        browser()
+//        binaries.executable()
+//    }
+//
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        browser()
+//        binaries.executable()
+//    }
 
     sourceSets {
         androidMain.dependencies {

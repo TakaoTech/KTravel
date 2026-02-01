@@ -240,4 +240,7 @@ tasks.withType<Detekt>().configureEach {
         xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
+
+    // Ensure detekt tasks run after KSP generates code
+    mustRunAfter(tasks.matching { it.name == "kspCommonMainKotlinMetadata" })
 }
