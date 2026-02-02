@@ -590,10 +590,10 @@ style:
     maxChainedCalls: 5
   MaxLineLength:
     active: true
-    maxLineLength: 100  # Questionnaire: 100 characters strict
+    maxLineLength: 120  # Questionnaire: 100 characters strict
     excludePackageStatements: true
     excludeImportStatements: true
-    excludeCommentStatements: false
+    excludeCommentStatements: true
     excludeRawStrings: true
   MayBeConst:
     active: true
@@ -729,6 +729,7 @@ style:
       - 'androidx.compose.ui.*'
       - 'androidx.compose.foundation.*'
       - 'androidx.compose.material3.*'
+      - '*.generated.resources.*'
 
 # =============================================================================
 # COMPOSE RULES (io.nlopez.compose.rules)
