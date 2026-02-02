@@ -3,15 +3,15 @@ package com.takaotech.ktravel.presentation.place
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.core.FieldValidationState
+import com.takaotech.ktravel.core.toTextPayload
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planner.Place
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import ktravel.composeapp.generated.resources.*
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
@@ -30,29 +30,57 @@ class PlaceInsertViewModel(
     }
 
     fun onPlaceNameChanged(name: TextFieldValue) {
-        _uiState.update { it.copy(placeName = name) }
+        _uiState.update {
+            it.copy(
+                placeName = it.placeName.copy(
+                    value = name,
+                    validationState = FieldValidationState.None
+                )
+            )
+        }
     }
 
     fun onPlaceLatChanged(lat: TextFieldValue) {
-        _uiState.update { it.copy(placeLat = lat) }
+        _uiState.update {
+            it.copy(
+                placeLat = it.placeLat.copy(
+                    value = lat,
+                    validationState = FieldValidationState.None
+                )
+            )
+        }
     }
 
     fun onPlaceLngChanged(lng: TextFieldValue) {
-        _uiState.update { it.copy(placeLng = lng) }
+        _uiState.update {
+            it.copy(
+                placeLng = it.placeLng.copy(
+                    value = lng,
+                    validationState = FieldValidationState.None
+                )
+            )
+        }
     }
 
     fun onSearchQueryChanged(query: TextFieldValue) {
-        _uiState.update { it.copy(searchQuery = query) }
+        _uiState.update {
+            it.copy(
+                searchQuery = it.searchQuery.copy(
+                    value = query,
+                    validationState = FieldValidationState.None
+                )
+            )
+        }
     }
 
     fun onPlaceSelected(name: String, lat: Double, lng: Double) {
-        _uiState.update {
-            it.copy(
-                placeName = TextFieldValue(name),
-                placeLat = TextFieldValue(lat.toString()),
-                placeLng = TextFieldValue(lng.toString())
-            )
-        }
+//        _uiState.update {
+//            it.copy(
+//                placeName = TextFieldValue(name),
+//                placeLat = TextFieldValue(lat.toString()),
+//                placeLng = TextFieldValue(lng.toString())
+//            )
+//        }
     }
 
     fun searchPlaces(query: String) {
@@ -71,18 +99,66 @@ class PlaceInsertViewModel(
 
     fun savePlace() {
         viewModelScope.launch {
-            // TODO Validate Inputs
-            //  name cannot be empty
-            //  lat lng if selected can not be empty
-            //  validate lat lng
+            // Update state with errors
+            val newUiState = _uiState.updateAndGet {
+                it.copy(
+                    placeName = with(it.placeName) {
+                        copy(
+                            validationState = if (value.text.isBlank()) {
+                                FieldValidationState.BaseNotValid(
+                                    Res.string.place_insert_error_name_empty.toTextPayload()
+                                )
+                            } else {
+                                FieldValidationState.Valid
+                            }
+                        )
+                    },
+                    placeLat = with(it.placeLat) {
+                        copy(
+                            validationState = if (value.text.isBlank()) {
+                                FieldValidationState.BaseNotValid(
+                                    Res.string.place_insert_error_lat_empty.toTextPayload()
+                                )
+                            } else if (!latRegex.matches(value.text)) {
+                                FieldValidationState.BaseNotValid(
+                                    Res.string.place_insert_error_lat_invalid_format.toTextPayload()
+                                )
+                            } else {
+                                FieldValidationState.Valid
+                            }
+                        )
+                    },
+                    placeLng = with(it.placeLng) {
+                        copy(
+                            validationState = if (value.text.isBlank()) {
+                                FieldValidationState.BaseNotValid(
+                                    Res.string.place_insert_error_lng_empty.toTextPayload()
+                                )
+                            } else if (!lngRegex.matches(value.text)) {
+                                FieldValidationState.BaseNotValid(
+                                    Res.string.place_insert_error_lng_invalid_format.toTextPayload()
+                                )
+                            } else {
+                                FieldValidationState.Valid
+                            }
+                        )
+                    },
+                )
+            }
 
-            val currentState = _uiState.value
-            val place = Place(
-                name = currentState.placeName.text,
-                lat = currentState.placeLat.text.toDoubleOrNull() ?: 0.0,
-                lng = currentState.placeLng.text.toDoubleOrNull() ?: 0.0,
-            )
-            repository.savePlace(place)
+            val name = newUiState.placeName.takeIf { it.validationState is FieldValidationState.Valid }
+            val lat = newUiState.placeLat.takeIf { it.validationState is FieldValidationState.Valid }
+            val lng = newUiState.placeLng.takeIf { it.validationState is FieldValidationState.Valid }
+
+            // Only save if there are no errors
+            if (name != null && lat != null && lng != null) {
+                val place = Place(
+                    name = name.value.text,
+                    lat = lat.value.text.toDoubleOrNull() ?: 0.0,
+                    lng = lng.value.text.toDoubleOrNull() ?: 0.0,
+                )
+                repository.savePlace(place)
+            }
         }
     }
 }

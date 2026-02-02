@@ -72,7 +72,7 @@ fun PlaceInsertPage(
                 .padding(it),
             inputMode = uiState.inputMode,
             onInputModeChange = { viewModel.onInputModeChanged(it) },
-            searchQuery = uiState.searchQuery
+            searchQuery = uiState.searchQuery.value
         )
     }
 }

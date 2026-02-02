@@ -15,18 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import com.takaotech.ktravel.core.FieldValidationState
+import com.takaotech.ktravel.core.KFieldState
 import com.takaotech.ktravel.presentation.place.PlaceInputMode
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaceInsert(
-    placeName: TextFieldValue,
+    placeName: KFieldState,
 
     inputMode: PlaceInputMode,
 
-    placeLat: TextFieldValue,
-    placeLng: TextFieldValue,
+    placeLat: KFieldState,
+    placeLng: KFieldState,
 
     searchQuery: TextFieldValue,
 
@@ -47,8 +49,9 @@ fun PlaceInsert(
         Row {
             OutlinedTextField(
                 label = { Text("Place name") },
-                value = placeName,
-                onValueChange = onPlaceNameChange
+                value = placeName.value,
+                onValueChange = onPlaceNameChange,
+                isError = placeName.validationState is FieldValidationState.BaseNotValid
             )
 
             //TODO Image load
@@ -104,15 +107,17 @@ fun PlaceInsert(
                 Row {
                     OutlinedTextField(
                         label = { Text("Lat") },
-                        value = placeLat,
+                        value = placeLat.value,
                         onValueChange = onPlaceLatChange,
+                        isError = placeLat.validationState is FieldValidationState.BaseNotValid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
 
                     OutlinedTextField(
                         label = { Text("Lng") },
-                        value = placeLng,
+                        value = placeLng.value,
                         onValueChange = onPlaceLngChange,
+                        isError = placeLng.validationState is FieldValidationState.BaseNotValid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
 
                     )
@@ -200,9 +205,9 @@ fun SearchPlaceInsert(
 @Preview(showBackground = true)
 private fun PlaceInsertPreview() {
     PlaceInsert(
-        placeName = TextFieldValue(),
-        placeLat = TextFieldValue(),
-        placeLng = TextFieldValue(),
+        placeName = KFieldState(),
+        placeLat = KFieldState(),
+        placeLng = KFieldState(),
         searchQuery = TextFieldValue(),
         timePickerState = rememberTimePickerState(),
         onPlaceNameChange = { },

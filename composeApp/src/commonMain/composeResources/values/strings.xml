@@ -3,4 +3,10 @@
 
     <string name="place_insert_latlng_label">Lat - Lng</string>
     <string name="place_insert_search_label">Search</string>
+
+    <string name="place_insert_error_name_empty">Name cannot be empty</string>
+    <string name="place_insert_error_lat_empty">Latitude cannot be empty</string>
+    <string name="place_insert_error_lng_empty">Longitude cannot be empty</string>
+    <string name="place_insert_error_lat_invalid_format">Invalid latitude format</string>
+    <string name="place_insert_error_lng_invalid_format">Invalid longitude format</string>
 </resources>

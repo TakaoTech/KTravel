@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.core.KFieldState
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
@@ -17,10 +17,10 @@ enum class PlaceInputMode(val label: StringResource) {
 @Stable
 data class PlaceInsertUiState(
     val inputMode: PlaceInputMode = PlaceInputMode.LAT_LNG,
-    val placeName: TextFieldValue = TextFieldValue(),
-    val placeLat: TextFieldValue = TextFieldValue(),
-    val placeLng: TextFieldValue = TextFieldValue(),
-    val searchQuery: TextFieldValue = TextFieldValue(),
+    val placeName: KFieldState = KFieldState(),
+    val placeLat: KFieldState = KFieldState(),
+    val placeLng: KFieldState = KFieldState(),
+    val searchQuery: KFieldState = KFieldState(),
     val selectedDate: LocalDate? = null,
-    val selectedTime: LocalTime = LocalTime(0, 0)
+    val selectedTime: LocalTime = LocalTime(0, 0),
 )
