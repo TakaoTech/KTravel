@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanningUiState
@@ -8,12 +9,14 @@ import com.takaotech.ktravel.presentation.planner.TravelDay
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import ktravel.composeapp.generated.resources.*
 import kotlin.time.Duration.Companion.seconds
 
 class PlaceInsertViewModelTest : BehaviorSpec({
@@ -27,19 +30,19 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         then("should have empty place name") {
-            viewModel.uiState.value.placeName.text shouldBe ""
+            viewModel.uiState.value.placeName.value.text shouldBe ""
         }
 
         then("should have empty place lat") {
-            viewModel.uiState.value.placeLat.text shouldBe ""
+            viewModel.uiState.value.placeLat.value.text shouldBe ""
         }
 
         then("should have empty place lng") {
-            viewModel.uiState.value.placeLng.text shouldBe ""
+            viewModel.uiState.value.placeLng.value.text shouldBe ""
         }
 
         then("should have empty search query") {
-            viewModel.uiState.value.searchQuery.text shouldBe ""
+            viewModel.uiState.value.searchQuery.value.text shouldBe ""
         }
 
         then("should have null selected date") {
@@ -85,7 +88,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceNameChanged(newName)
 
             then("should update place name") {
-                viewModel.uiState.value.placeName shouldBe newName
+                viewModel.uiState.value.placeName.value shouldBe newName
             }
         }
     }
@@ -99,7 +102,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLatChanged(validLat)
 
             then("should update place lat") {
-                viewModel.uiState.value.placeLat shouldBe validLat
+                viewModel.uiState.value.placeLat.value shouldBe validLat
             }
         }
 
@@ -111,7 +114,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLatChanged(validLat)
 
             then("should update place lat") {
-                viewModel.uiState.value.placeLat shouldBe validLat
+                viewModel.uiState.value.placeLat.value shouldBe validLat
             }
         }
 
@@ -123,7 +126,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLatChanged(validLat)
 
             then("should update place lat") {
-                viewModel.uiState.value.placeLat shouldBe validLat
+                viewModel.uiState.value.placeLat.value shouldBe validLat
             }
         }
 
@@ -135,7 +138,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLatChanged(validLat)
 
             then("should update place lat") {
-                viewModel.uiState.value.placeLat shouldBe validLat
+                viewModel.uiState.value.placeLat.value shouldBe validLat
             }
         }
 
@@ -147,43 +150,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLatChanged(validLat)
 
             then("should update place lat") {
-                viewModel.uiState.value.placeLat shouldBe validLat
-            }
-        }
-
-        `when`("onPlaceLatChanged is called with invalid latitude 91") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLat = TextFieldValue("91")
-
-            viewModel.onPlaceLatChanged(invalidLat)
-
-            then("should not update place lat") {
-                viewModel.uiState.value.placeLat.text shouldBe ""
-            }
-        }
-
-        `when`("onPlaceLatChanged is called with invalid latitude -91") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLat = TextFieldValue("-91")
-
-            viewModel.onPlaceLatChanged(invalidLat)
-
-            then("should not update place lat") {
-                viewModel.uiState.value.placeLat.text shouldBe ""
-            }
-        }
-
-        `when`("onPlaceLatChanged is called with invalid text") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLat = TextFieldValue("abc")
-
-            viewModel.onPlaceLatChanged(invalidLat)
-
-            then("should not update place lat") {
-                viewModel.uiState.value.placeLat.text shouldBe ""
+                viewModel.uiState.value.placeLat.value shouldBe validLat
             }
         }
     }
@@ -197,19 +164,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLngChanged(validLng)
 
             then("should update place lng") {
-                viewModel.uiState.value.placeLng shouldBe validLng
-            }
-        }
-
-        `when`("onPlaceLngChanged is called with valid longitude 180") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val validLng = TextFieldValue("180")
-
-            viewModel.onPlaceLngChanged(validLng)
-
-            then("should update place lng") {
-                viewModel.uiState.value.placeLng shouldBe validLng
+                viewModel.uiState.value.placeLng.value shouldBe validLng
             }
         }
 
@@ -221,7 +176,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLngChanged(validLng)
 
             then("should update place lng") {
-                viewModel.uiState.value.placeLng shouldBe validLng
+                viewModel.uiState.value.placeLng.value shouldBe validLng
             }
         }
 
@@ -233,7 +188,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLngChanged(validLng)
 
             then("should update place lng") {
-                viewModel.uiState.value.placeLng shouldBe validLng
+                viewModel.uiState.value.placeLng.value shouldBe validLng
             }
         }
 
@@ -245,43 +200,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onPlaceLngChanged(validLng)
 
             then("should update place lng") {
-                viewModel.uiState.value.placeLng shouldBe validLng
-            }
-        }
-
-        `when`("onPlaceLngChanged is called with invalid longitude 181") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLng = TextFieldValue("181")
-
-            viewModel.onPlaceLngChanged(invalidLng)
-
-            then("should not update place lng") {
-                viewModel.uiState.value.placeLng.text shouldBe ""
-            }
-        }
-
-        `when`("onPlaceLngChanged is called with invalid longitude -181") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLng = TextFieldValue("-181")
-
-            viewModel.onPlaceLngChanged(invalidLng)
-
-            then("should not update place lng") {
-                viewModel.uiState.value.placeLng.text shouldBe ""
-            }
-        }
-
-        `when`("onPlaceLngChanged is called with invalid text") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-            val invalidLng = TextFieldValue("xyz")
-
-            viewModel.onPlaceLngChanged(invalidLng)
-
-            then("should not update place lng") {
-                viewModel.uiState.value.placeLng.text shouldBe ""
+                viewModel.uiState.value.placeLng.value shouldBe validLng
             }
         }
     }
@@ -295,28 +214,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
             viewModel.onSearchQueryChanged(query)
 
             then("should update search query") {
-                viewModel.uiState.value.searchQuery shouldBe query
-            }
-        }
-    }
-
-    given("a PlaceInsertViewModel for place selection") {
-        `when`("onPlaceSelected is called with name, lat and lng") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(fakeRepository)
-
-            viewModel.onPlaceSelected("Colosseo", 41.890251, 12.492373)
-
-            then("should update place name") {
-                viewModel.uiState.value.placeName.text shouldBe "Colosseo"
-            }
-
-            then("should update place lat") {
-                viewModel.uiState.value.placeLat.text shouldBe "41.890251"
-            }
-
-            then("should update place lng") {
-                viewModel.uiState.value.placeLng.text shouldBe "12.492373"
+                viewModel.uiState.value.searchQuery.value shouldBe query
             }
         }
     }
@@ -378,22 +276,233 @@ class PlaceInsertViewModelTest : BehaviorSpec({
                     fakeRepository.savedPlace?.lng shouldBe 12.492373
                 }
             }
+
+            then("should not have any errors") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.validationState shouldBe FieldValidationState.Valid
+                    viewModel.uiState.value.placeLat.validationState shouldBe FieldValidationState.Valid
+                    viewModel.uiState.value.placeLng.validationState shouldBe FieldValidationState.Valid
+                }
+            }
         }
 
-        `when`("savePlace is called with invalid lat/lng") {
+        `when`("savePlace is called with empty name") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            viewModel.savePlace()
+
+            then("should set name error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeName.validationState.errorText?.text shouldBe Res.string.place_insert_error_name_empty
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with empty latitude in LAT_LNG mode") {
             val fakeRepository = FakeTravelPlanRepository()
             val viewModel = PlaceInsertViewModel(fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
 
             viewModel.savePlace()
 
-            then("should use default values for lat and lng") {
+            then("should set lat error") {
                 eventually(duration = 1.seconds) {
-                    fakeRepository.savedPlace?.name shouldBe "Test Place"
-                    fakeRepository.savedPlace?.lat shouldBe 0.0
-                    fakeRepository.savedPlace?.lng shouldBe 0.0
+                    viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_empty
                 }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with empty longitude in LAT_LNG mode") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+
+            viewModel.savePlace()
+
+            then("should set lng error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_empty
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with invalid latitude format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLatChanged(TextFieldValue("invalid"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            viewModel.savePlace()
+
+            then("should set lat error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_invalid_format
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with invalid longitude format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("invalid"))
+
+            viewModel.savePlace()
+
+            then("should set lng error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_invalid_format
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with latitude out of range") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLatChanged(TextFieldValue("91"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            viewModel.savePlace()
+
+            then("should set lat error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_invalid_format
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+        `when`("savePlace is called with longitude out of range") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("181"))
+
+            viewModel.savePlace()
+
+            then("should set lng error") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                    viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_invalid_format
+                }
+            }
+
+            then("should not save place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+        }
+
+    }
+
+    given("a PlaceInsertViewModel for error clearing") {
+        `when`("onPlaceNameChanged is called after name error") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.savePlace()
+            eventually(duration = 1.seconds) {
+                viewModel.uiState.value.placeName.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+            }
+
+            viewModel.onPlaceNameChanged(TextFieldValue("New Name"))
+
+            then("should clear name error") {
+                viewModel.uiState.value.placeName.validationState shouldBe FieldValidationState.None
+            }
+        }
+
+        `when`("onPlaceLatChanged is called after lat error") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.0"))
+            viewModel.savePlace()
+            eventually(duration = 1.seconds) {
+                viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+            }
+
+            viewModel.onPlaceLatChanged(TextFieldValue("41.0"))
+
+            then("should clear lat error") {
+                viewModel.uiState.value.placeLat.validationState shouldBe FieldValidationState.None
+            }
+        }
+
+        `when`("onPlaceLngChanged is called after lng error") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(fakeRepository)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Test"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.0"))
+            viewModel.savePlace()
+            eventually(duration = 1.seconds) {
+                viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+            }
+
+            viewModel.onPlaceLngChanged(TextFieldValue("12.0"))
+
+            then("should clear lng error") {
+                viewModel.uiState.value.placeLng.validationState shouldBe FieldValidationState.None
             }
         }
     }
