@@ -9,12 +9,12 @@
 @file:DependsOn("actions:checkout:v4")
 @file:DependsOn("actions:setup-java:v4")
 @file:DependsOn("gradle:actions__setup-gradle:v4")
-@file:DependsOn("github:codeql-action__upload-sarif:v3")
+@file:DependsOn("github:codeql-action__upload-sarif:v4")
 
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
 import io.github.typesafegithub.workflows.actions.actions.SetupJava
-import io.github.typesafegithub.workflows.actions.github.CodeqlActionUploadSarif
+//import io.github.typesafegithub.workflows.actions.github.CodeqlActionUploadSarif
 import io.github.typesafegithub.workflows.actions.gradle.ActionsSetupGradle
 import io.github.typesafegithub.workflows.domain.RunnerType
 import io.github.typesafegithub.workflows.domain.triggers.Push
@@ -53,11 +53,11 @@ workflow(
         )
 
         run(name = "Run detektAll", command = "./gradlew detektAll")
-        uses(
-            name = "Upload SARIF file",
-            action = CodeqlActionUploadSarif(
-                sarifFile = "./build/reports/detekt/detekt.sarif"
-            )
-        )
+//        uses(
+//            name = "Upload SARIF file",
+//            action = CodeqlActionUploadSarif(
+//                sarifFile = "./build/reports/detekt/detekt.sarif"
+//            )
+//        )
     }
 }
