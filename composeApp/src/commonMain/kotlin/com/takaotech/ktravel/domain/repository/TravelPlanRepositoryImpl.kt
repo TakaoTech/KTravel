@@ -147,4 +147,61 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
             days = currentState.days.set(dayIndex, updatedDay)
         )
     }
+
+    override suspend fun movePlaceToGeneral(placeId: String, dayId: String) {
+        val currentState = _planningState.value
+
+        // Trova l'indice del giorno
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        // Trova il Place nel giorno specificato
+        val day = currentState.days[dayIndex]
+        val place = day.places.firstOrNull { it.id == placeId } ?: return
+
+        // Rimuovi il Place dal giorno
+        val updatedDay = day.copy(
+            places = day.places.remove(place)
+        )
+
+        // Aggiungi il Place alla lista generale
+        val updatedPlaces = currentState.places.add(place)
+
+        // Aggiorna lo stato
+        _planningState.value = currentState.copy(
+            places = updatedPlaces,
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun deletePlace(placeId: String, dayId: String?) {
+        val currentState = _planningState.value
+
+        if (dayId != null) {
+            // Trova l'indice del giorno
+            val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+            if (dayIndex == -1) return
+
+            // Trova il Place nel giorno specificato
+            val day = currentState.days[dayIndex]
+            val place = day.places.firstOrNull { it.id == placeId } ?: return
+
+            // Rimuovi il Place dal giorno
+            val updatedDay = day.copy(
+                places = day.places.remove(place)
+            )
+
+            // Aggiorna lo stato
+            _planningState.value = currentState.copy(
+                days = currentState.days.set(dayIndex, updatedDay)
+            )
+        } else {
+            // Rimuovi dalla lista generale
+            val place = currentState.places.firstOrNull { it.id == placeId } ?: return
+
+            _planningState.value = currentState.copy(
+                places = currentState.places.remove(place)
+            )
+        }
+    }
 }

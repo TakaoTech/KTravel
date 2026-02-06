@@ -33,4 +33,16 @@ class PlanningDetailViewModel(
             repository.removeStepFromDay(dayId, stepId)
         }
     }
+
+    fun movePlaceToGeneral(placeId: String) {
+        viewModelScope.launch {
+            repository.movePlaceToGeneral(placeId, dayId)
+        }
+    }
+
+    fun deletePlace(placeId: String) {
+        viewModelScope.launch {
+            repository.deletePlace(placeId, dayId)
+        }
+    }
 }

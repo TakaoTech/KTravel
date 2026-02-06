@@ -1,15 +1,11 @@
 package com.takaotech.ktravel.ui.place
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,7 +15,11 @@ import androidx.constraintlayout.compose.Dimension
 import coil3.compose.AsyncImage
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.place_delete
+import ktravel.composeapp.generated.resources.place_delete_permanent
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -32,7 +32,8 @@ fun PlaceItem(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     image: String? = null,
-    onDeleteClicked: () -> Unit
+    onDeleteClick: (() -> Unit)? = null,
+    onPermanentDeleteClick: () -> Unit
 ) {
     val showImage by remember(expanded, image) {
         derivedStateOf {
@@ -104,16 +105,57 @@ fun PlaceItem(
                 bottom.linkTo(nameRef.bottom)
             }
         ) {
-            IconButton(
-                onClick = onDeleteClicked
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.delete),
-                    contentDescription = null
-                )
+            Box {
+                var expanded by remember { mutableStateOf(false) }
+                IconButton(
+                    onClick = {
+                        if (onDeleteClick == null) {
+                            onPermanentDeleteClick()
+                        } else {
+                            expanded = true
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.delete),
+                        contentDescription = null
+                    )
+                }
+
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DeleteMode.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(option.text),
+                                    color = if (option == DeleteMode.PERMANENT) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        Color.Unspecified
+                                    }
+                                )
+                            },
+                            onClick = {
+                                when (option) {
+                                    DeleteMode.GENERAL -> onDeleteClick?.invoke()
+                                    DeleteMode.PERMANENT -> onPermanentDeleteClick()
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+enum class DeleteMode(val text: StringResource) {
+    GENERAL(Res.string.place_delete),
+    PERMANENT(Res.string.place_delete_permanent),
 }
 
 @Preview(showBackground = true)
@@ -125,6 +167,7 @@ private fun PlaceItemPreview() {
         hour = "10:00",
         name = "Test",
         image = null,
-        onDeleteClicked = {}
+        onDeleteClick = {},
+        onPermanentDeleteClick = {}
     )
 }

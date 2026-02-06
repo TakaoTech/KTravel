@@ -30,4 +30,10 @@ class PlanningViewModel(
             repository.movePlaceToDay(placeId, dayId)
         }
     }
+
+    fun deletePlace(placeId: String) {
+        viewModelScope.launch {
+            repository.deletePlace(placeId, null)
+        }
+    }
 }
