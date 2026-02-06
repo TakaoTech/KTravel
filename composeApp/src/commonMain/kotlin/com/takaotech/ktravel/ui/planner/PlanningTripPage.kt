@@ -3,6 +3,7 @@ package com.takaotech.ktravel.ui.planner
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,8 @@ import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.ui.common.PermanentDeleteDialog
+import com.takaotech.ktravel.ui.common.rememberPermanentDeleteDialogState
 import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planning.PlanningHeader
 import kotlinx.collections.immutable.ImmutableList
@@ -33,6 +36,7 @@ import kotlin.time.ExperimentalTime
 @Serializable
 object PlanningTripPageNavigation
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanningTripPage(
     viewModel: PlanningViewModel,
@@ -44,6 +48,14 @@ fun PlanningTripPage(
 
     val planHeader = uiState.planHeader
     val days = uiState.days
+
+    val deleteDialogState = rememberPermanentDeleteDialogState<String> { placeId ->
+        viewModel.deletePlace(placeId)
+    }
+
+    PermanentDeleteDialog(
+        state = deleteDialogState
+    )
 
     PlanningTripPage(
         modifier = modifier,
@@ -57,6 +69,9 @@ fun PlanningTripPage(
             viewModel.onPlanDateChanged(start, end)
         },
         onAddPlaceClicked = onAddPlaceClicked,
+        onDeletePermanentPlaceClick = {
+            deleteDialogState.show(it)
+        },
         onDateClicked = onDateClicked,
         onPlaceMovedToDay = { placeId, dayId ->
             viewModel.onPlaceMovedToDate(placeId, dayId)
@@ -75,6 +90,7 @@ private fun PlanningTripPage(
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
 
     onAddPlaceClicked: () -> Unit,
+    onDeletePermanentPlaceClick: (String) -> Unit,
 
     onDateClicked: (id: String) -> Unit,
     onPlaceMovedToDay: (placeId: String, dayId: String) -> Unit,
@@ -111,8 +127,8 @@ private fun PlanningTripPage(
                     PlaceItem(
                         modifier = Modifier.padding(16.dp),
                         name = place.name,
-                        onDeleteClicked = {
-
+                        onPermanentDeleteClick = {
+                            onDeletePermanentPlaceClick(place.id)
                         }
                     )
                 }
@@ -195,6 +211,7 @@ private fun PlanningPagePreview() {
             )
         ),
         onPlanNameChange = {},
+        onDeletePermanentPlaceClick = {},
         onPlanDateRangeChanged = { start, end -> },
         onAddPlaceClicked = {},
         onDateClicked = {},

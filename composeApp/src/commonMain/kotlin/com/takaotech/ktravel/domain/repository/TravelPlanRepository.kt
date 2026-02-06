@@ -48,4 +48,14 @@ interface TravelPlanRepository {
      * Sposta un Place dalla lista generale a un TravelDay
      */
     suspend fun movePlaceToDay(placeId: String, dayId: String)
+
+    /**
+     * Sposta un Place da un TravelDay alla lista generale
+     */
+    suspend fun movePlaceToGeneral(placeId: String, dayId: String)
+
+    /**
+     * Elimina un Place dal piano di viaggio
+     */
+    suspend fun deletePlace(placeId: String, dayId: String? = null)
 }

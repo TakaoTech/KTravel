@@ -9,4 +9,15 @@
     <string name="place_insert_error_lng_empty">Longitude cannot be empty</string>
     <string name="place_insert_error_lat_invalid_format">Invalid latitude format</string>
     <string name="place_insert_error_lng_invalid_format">Invalid longitude format</string>
+
+
+    <string name="place_delete">Delete</string>
+    <string name="place_delete_permanent">Permanent Delete</string>
+
+    <string name="permanent_delete_dialog_title">Permanent Delete</string>
+    <string name="permanent_delete_dialog_message">Are you sure you want to permanently delete this item? This action
+        cannot be undone.
+    </string>
+    <string name="permanent_delete_dialog_confirm">Delete</string>
+    <string name="permanent_delete_dialog_cancel">Cancel</string>
 </resources>

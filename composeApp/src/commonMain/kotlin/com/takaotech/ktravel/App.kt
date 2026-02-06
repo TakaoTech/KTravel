@@ -102,6 +102,12 @@ fun App() {
                                 onAddPlaceClick = {
                                     navController.navigate(PlaceInsertNavigation(travelDay.id))
                                 },
+                                onDeletePlaceClick = {
+                                    viewModel.movePlaceToGeneral(it)
+                                },
+                                onDelePermanentPlaceClick = {
+                                    viewModel.deletePlace(it)
+                                },
                                 onStepDeleteClicked = {
                                     viewModel.onStepRemoveRequested(it)
                                 }

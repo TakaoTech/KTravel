@@ -6,12 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.ui.common.PermanentDeleteDialog
+import com.takaotech.ktravel.ui.common.rememberPermanentDeleteDialogState
 import com.takaotech.ktravel.ui.place.PlaceItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
@@ -31,8 +33,20 @@ fun PlanningDetailPage(
     places: PersistentList<Place>,
     modifier: Modifier = Modifier,
     onAddPlaceClick: () -> Unit,
+    onDeletePlaceClick: (String) -> Unit,
+    onDelePermanentPlaceClick: (String) -> Unit,
     onStepDeleteClicked: (String) -> Unit,
 ) {
+    var isPlaceExpanded by remember { mutableStateOf(true) }
+
+    val deleteDialogState = rememberPermanentDeleteDialogState<String> { placeId ->
+        onDelePermanentPlaceClick(placeId)
+    }
+
+    PermanentDeleteDialog(
+        state = deleteDialogState
+    )
+
     LazyColumn(modifier = modifier) {
         item {
             AddPlaceButton(
@@ -40,18 +54,39 @@ fun PlanningDetailPage(
             )
         }
 
-        items(places) { place ->
-            // TODO Add Hours
-            // TODO Add image
-            PlaceItem(
-                modifier = Modifier.padding(16.dp),
-                name = place.name,
-                onDeleteClicked = {
-                    // TODO Function for remove place
-                    //  Move to all place list or permanent delete?
-                }
-            )
+        item {
+            TextButton(
+                onClick = { isPlaceExpanded = !isPlaceExpanded }
+            ) {
+                Text("Places")
+            }
         }
+
+        if (isPlaceExpanded) {
+            items(places) { place ->
+                // TODO Add Hours
+                // TODO Add image
+                PlaceItem(
+                    modifier = Modifier
+                        .animateItem()
+                        .padding(16.dp),
+                    name = place.name,
+                    onDeleteClick = {
+                        onDeletePlaceClick(place.id)
+                        // TODO Function for remove place
+                        //  Move to all place list or permanent delete?
+                    },
+                    onPermanentDeleteClick = {
+                        deleteDialogState.show(place.id)
+                    }
+                )
+            }
+        }
+
+        item {
+            HorizontalDivider()
+        }
+
 
         itemsIndexed(steps) { index, step ->
             when (step) {
@@ -118,6 +153,8 @@ private fun PlanningDetailPagereview() {
         ),
         onAddPlaceClick = {},
         onStepDeleteClicked = {},
+        onDeletePlaceClick = {},
+        onDelePermanentPlaceClick = {},
         places = persistentListOf()
     )
 }
