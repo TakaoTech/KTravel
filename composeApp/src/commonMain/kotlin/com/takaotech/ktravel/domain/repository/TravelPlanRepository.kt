@@ -16,7 +16,7 @@ interface TravelPlanRepository {
     /**
      * Ottiene un Flow per un giorno specifico
      */
-    fun getTravelDayFlow(dayId: String): Flow<TravelDay?>
+    fun getTravelDayFlow(dayId: String): Flow<TravelDay>
 
     /**
      * Aggiorna il periodo del viaggio
@@ -39,8 +39,10 @@ interface TravelPlanRepository {
 
     /**
      * Salva un nuovo Place
+     * @param place il Place da salvare
+     * @param dayId se impostato, aggiunge il Place direttamente al TravelDay con questo id
      */
-    suspend fun savePlace(place: Place)
+    suspend fun savePlace(place: Place, dayId: String? = null)
 
     /**
      * Sposta un Place dalla lista generale a un TravelDay

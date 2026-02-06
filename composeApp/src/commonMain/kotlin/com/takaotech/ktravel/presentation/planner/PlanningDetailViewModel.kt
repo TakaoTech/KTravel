@@ -21,11 +21,11 @@ class PlanningDetailViewModel(
     /**
      * Stato del giorno corrente, sincronizzato automaticamente con il repository
      */
-    val travelDay: StateFlow<TravelDay?> = repository.getTravelDayFlow(dayId)
+    val travelDay: StateFlow<TravelDay> = repository.getTravelDayFlow(dayId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
+            initialValue = TravelDay.EMPTY
         )
 
     fun onStepRemoveRequested(stepId: String) {

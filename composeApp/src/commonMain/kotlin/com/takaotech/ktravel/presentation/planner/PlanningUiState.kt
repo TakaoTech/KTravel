@@ -84,6 +84,13 @@ data class TravelDay(
     val steps: PersistentList<Step> = persistentListOf(),
     val places: PersistentList<Place> = persistentListOf()
 ) {
+    companion object {
+        val EMPTY = TravelDay(
+            id = "",
+            date = LocalDate.fromEpochDays(0)
+        )
+    }
+
     sealed class Step(open val id: String = Uuid.random().toString()) {
         @Stable
         data class Place(

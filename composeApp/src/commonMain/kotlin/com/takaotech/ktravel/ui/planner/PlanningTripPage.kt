@@ -3,10 +3,8 @@ package com.takaotech.ktravel.ui.planner
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -30,9 +28,6 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
-import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.edit
-import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
@@ -124,16 +119,9 @@ private fun PlanningTripPage(
             }
 
             item {
-                TextButton(
+                AddPlaceButton(
                     onClick = onAddPlaceClicked
-                ) {
-                    // TODO Change icon with add
-                    Icon(
-                        painter = painterResource(Res.drawable.edit),
-                        contentDescription = null
-                    )
-                    Text("Add place")
-                }
+                )
             }
 
             item {
