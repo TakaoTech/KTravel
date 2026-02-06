@@ -51,7 +51,8 @@ fun PlaceInsert(
                 label = { Text("Place name") },
                 value = placeName.value,
                 onValueChange = onPlaceNameChange,
-                isError = placeName.validationState is FieldValidationState.BaseNotValid
+                isError = placeName.validationState is FieldValidationState.BaseNotValid,
+                singleLine = true
             )
 
             //TODO Image load
@@ -110,7 +111,8 @@ fun PlaceInsert(
                         value = placeLat.value,
                         onValueChange = onPlaceLatChange,
                         isError = placeLat.validationState is FieldValidationState.BaseNotValid,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true
                     )
 
                     OutlinedTextField(
@@ -118,7 +120,8 @@ fun PlaceInsert(
                         value = placeLng.value,
                         onValueChange = onPlaceLngChange,
                         isError = placeLng.validationState is FieldValidationState.BaseNotValid,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true
 
                     )
                 }
