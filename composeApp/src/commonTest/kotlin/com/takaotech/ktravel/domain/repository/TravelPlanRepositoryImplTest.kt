@@ -1,12 +1,12 @@
 package com.takaotech.ktravel.domain.repository
 
 import com.takaotech.ktravel.presentation.planner.Place
+import com.takaotech.ktravel.presentation.planner.TravelDay
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -88,9 +88,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         `when`("getTravelDayFlow is called with a non-existing dayId") {
             val dayFlow = repository.getTravelDayFlow("non-existing-id")
 
-            then("should return null") {
+            then("should return TravelDay.EMPTY") {
                 val day = dayFlow.first()
-                day.shouldBeNull()
+                day shouldBe TravelDay.EMPTY
             }
         }
     }
@@ -242,6 +242,173 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
                 val updatedState = repository.planningState.value
                 updatedState.places shouldHaveSize 1
                 updatedState.places shouldContain place3
+            }
+        }
+    }
+
+    given("a repository for savePlace with dayId parameter") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        `when`("savePlace is called with null dayId") {
+            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+
+            repository.savePlace(place, null)
+
+            then("should add the place to the general list") {
+                val state = repository.planningState.value
+                state.places shouldHaveSize 1
+                state.places shouldContain place
+            }
+
+            then("should not add the place to any day") {
+                val state = repository.planningState.value
+                state.days.forEach { day ->
+                    day.places.shouldBeEmpty()
+                }
+            }
+        }
+    }
+
+    given("a repository for savePlace with valid dayId") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        `when`("savePlace is called with a valid dayId") {
+            val state = repository.planningState.value
+            val dayId = state.days[1].id
+            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+
+            repository.savePlace(place, dayId)
+
+            then("should add the place directly to the specified day") {
+                val updatedState = repository.planningState.value
+                val day = updatedState.days[1]
+                day.places shouldHaveSize 1
+                day.places shouldContain place
+            }
+
+            then("should not add the place to the general list") {
+                val updatedState = repository.planningState.value
+                updatedState.places.shouldBeEmpty()
+            }
+
+            then("should not modify other days") {
+                val updatedState = repository.planningState.value
+                updatedState.days[0].places.shouldBeEmpty()
+                updatedState.days[2].places.shouldBeEmpty()
+            }
+        }
+    }
+
+    given("a repository for savePlace with invalid dayId") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        `when`("savePlace is called with a non-existing dayId") {
+            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+
+            repository.savePlace(place, "non-existing-day-id")
+
+            then("should not add the place to the general list") {
+                val state = repository.planningState.value
+                state.places.shouldBeEmpty()
+            }
+
+            then("should not add the place to any day") {
+                val state = repository.planningState.value
+                state.days.forEach { day ->
+                    day.places.shouldBeEmpty()
+                }
+            }
+        }
+    }
+
+    given("a repository for savePlace with multiple places to the same day") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        `when`("multiple places are saved directly to the same day") {
+            val state = repository.planningState.value
+            val dayId = state.days[1].id
+            val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+
+            repository.savePlace(place1, dayId)
+            repository.savePlace(place2, dayId)
+
+            then("should add all places to the day in order") {
+                val updatedState = repository.planningState.value
+                val day = updatedState.days[1]
+                day.places shouldHaveSize 2
+                day.places[0] shouldBe place1
+                day.places[1] shouldBe place2
+            }
+
+            then("should not add any place to the general list") {
+                val updatedState = repository.planningState.value
+                updatedState.places.shouldBeEmpty()
+            }
+        }
+    }
+
+    given("a repository for savePlace mixing general list and day-specific places") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        `when`("places are saved both to general list and to specific days") {
+            val state = repository.planningState.value
+            val dayId = state.days[1].id
+            val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+            val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
+
+            repository.savePlace(place1, null)
+            repository.savePlace(place2, dayId)
+            repository.savePlace(place3, null)
+
+            then("should add places to the general list when dayId is null") {
+                val updatedState = repository.planningState.value
+                updatedState.places shouldHaveSize 2
+                updatedState.places shouldContain place1
+                updatedState.places shouldContain place3
+            }
+
+            then("should add places to the specified day when dayId is provided") {
+                val updatedState = repository.planningState.value
+                val day = updatedState.days[1]
+                day.places shouldHaveSize 1
+                day.places shouldContain place2
             }
         }
     }

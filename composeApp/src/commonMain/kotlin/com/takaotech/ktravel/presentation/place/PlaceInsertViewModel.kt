@@ -13,9 +13,11 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.*
 import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.InjectedParam
 
 @KoinViewModel
 class PlaceInsertViewModel(
+    @InjectedParam private val dayId: String?,
     private val repository: TravelPlanRepository
 ) : ViewModel() {
     private val latRegex = Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
@@ -157,7 +159,7 @@ class PlaceInsertViewModel(
                     lat = lat.value.text.toDoubleOrNull() ?: 0.0,
                     lng = lng.value.text.toDoubleOrNull() ?: 0.0,
                 )
-                repository.savePlace(place)
+                repository.savePlace(place, dayId)
             }
         }
     }

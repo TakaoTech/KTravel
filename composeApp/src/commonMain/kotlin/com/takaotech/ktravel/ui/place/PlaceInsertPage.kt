@@ -13,8 +13,16 @@ import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.close
 import org.jetbrains.compose.resources.painterResource
 
+/**
+ *  Class for navigate to PlaceInsertPage
+ *
+ * @property dayId The identifier of the day where the place is to be inserted.
+ * Pass null for insert place to root.
+ */
 @Serializable
-object PlaceInsertNavigation
+data class PlaceInsertNavigation(
+    val dayId: String? = null
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

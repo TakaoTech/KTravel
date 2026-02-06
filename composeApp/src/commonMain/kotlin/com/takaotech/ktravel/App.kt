@@ -80,7 +80,7 @@ fun App() {
                             PlanningTripPage(
                                 viewModel = viewModel,
                                 onAddPlaceClicked = {
-                                    navController.navigate(PlaceInsertNavigation)
+                                    navController.navigate(PlaceInsertNavigation())
                                 },
                                 onDateClicked = {
                                     navController.navigate(PlanningDetailPageNavigation(it))
@@ -96,23 +96,26 @@ fun App() {
 
                             val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
 
-                            travelDay?.let { day ->
-                                PlanningDetailPage(
-                                    steps = day.steps,
-                                    places = day.places,
-                                    onNewStepAddRequested = { location ->
-
-                                    },
-                                    onStepDeleteClicked = {
-                                        viewModel.onStepRemoveRequested(it)
-                                    }
-                                )
-                            }
+                            PlanningDetailPage(
+                                steps = travelDay.steps,
+                                places = travelDay.places,
+                                onAddPlaceClick = {
+                                    navController.navigate(PlaceInsertNavigation(travelDay.id))
+                                },
+                                onStepDeleteClicked = {
+                                    viewModel.onStepRemoveRequested(it)
+                                }
+                            )
                         }
                     }
 
-                    composable<PlaceInsertNavigation> {
-                        val viewModel = koinViewModel<PlaceInsertViewModel>()
+                    composable<PlaceInsertNavigation> { backStackEntry ->
+                        val args = backStackEntry.toRoute<PlaceInsertNavigation>()
+
+                        val viewModel = koinViewModel<PlaceInsertViewModel> {
+                            parametersOf(args.dayId)
+                        }
+
                         PlaceInsertPage(
                             viewModel = viewModel,
                             onExit = {

@@ -29,9 +29,9 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         }
     }
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDay?> {
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDay> {
         return planningState.map { state ->
-            state.days.firstOrNull { it.id == dayId }
+            state.days.firstOrNull { it.id == dayId } ?: TravelDay.EMPTY
         }
     }
 
@@ -94,11 +94,32 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         )
     }
 
-    override suspend fun savePlace(place: Place) {
+    override suspend fun savePlace(place: Place, dayId: String?) {
         val currentState = _planningState.value
-        _planningState.value = currentState.copy(
-            places = currentState.places.add(place)
-        )
+
+        if (dayId != null) {
+            // Trova l'indice del giorno
+            val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+            if (dayIndex == -1) {
+                // TODO Log this?
+                return
+            }
+
+            // Aggiungi il Place al TravelDay
+            val day = currentState.days[dayIndex]
+            val updatedDay = day.copy(
+                places = day.places.add(place)
+            )
+
+            _planningState.value = currentState.copy(
+                days = currentState.days.set(dayIndex, updatedDay)
+            )
+        } else {
+            // Aggiungi alla lista generale
+            _planningState.value = currentState.copy(
+                places = currentState.places.add(place)
+            )
+        }
     }
 
     override suspend fun movePlaceToDay(placeId: String, dayId: String) {
