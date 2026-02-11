@@ -142,7 +142,10 @@ fun PlaceItem(
                             onClick = {
                                 when (option) {
                                     DeleteMode.GENERAL -> onDeleteClick?.invoke()
-                                    DeleteMode.PERMANENT -> onPermanentDeleteClick()
+                                    DeleteMode.PERMANENT -> {
+                                        expanded = false
+                                        onPermanentDeleteClick()
+                                    }
                                 }
                             }
                         )
