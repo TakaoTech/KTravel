@@ -22,29 +22,28 @@ fun PanelHorizontalDivided(
     scaffoldNavigator: ThreePaneScaffoldNavigator<Any> = rememberSupportingPaneScaffoldNavigator(),
     paneExpansionState: PaneExpansionState = rememberPaneExpansionState(keyProvider = scaffoldNavigator.scaffoldValue),
 
+    extraPane: (@Composable ThreePaneScaffoldPaneScope.() -> Unit)? = null,
     mainPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
-    supportPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
-    extraPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
+    supportingPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
 ) {
     SupportingPaneScaffold(
         modifier = modifier,
         directive = scaffoldNavigator.scaffoldDirective,
         scaffoldState = scaffoldNavigator.scaffoldState,
         mainPane = mainPane,
-        supportingPane = supportPane,
+        supportingPane = supportingPane,
         extraPane = extraPane,
         paneExpansionState = paneExpansionState,
         paneExpansionDragHandle = { state ->
             val interactionSource = remember { MutableInteractionSource() }
             VerticalDragHandle(
-                modifier =
-                    Modifier
-                        .zIndex(10f)
-                        .paneExpansionDraggable(
-                            state,
-                            LocalMinimumInteractiveComponentSize.current,
-                            interactionSource
-                        ),
+                modifier = Modifier
+                    .zIndex(10f)
+                    .paneExpansionDraggable(
+                        state,
+                        LocalMinimumInteractiveComponentSize.current,
+                        interactionSource
+                    ),
                 interactionSource = interactionSource
             )
         }

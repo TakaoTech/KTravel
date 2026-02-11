@@ -22,8 +22,8 @@ import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanHeader
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.presentation.planner.TravelDay
-import com.takaotech.ktravel.ui.common.PermanentDeleteDialog
-import com.takaotech.ktravel.ui.common.rememberPermanentDeleteDialogState
+import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
+import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planning.PlanningHeader
 import kotlinx.collections.immutable.ImmutableList
@@ -49,11 +49,11 @@ fun PlanningTripPage(
     val planHeader = uiState.planHeader
     val days = uiState.days
 
-    val deleteDialogState = rememberPermanentDeleteDialogState<String> { placeId ->
+    val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
         viewModel.deletePlace(placeId)
     }
 
-    PermanentDeleteDialog(
+    DisruptiveOperationDialog(
         state = deleteDialogState
     )
 
