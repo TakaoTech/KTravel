@@ -70,7 +70,8 @@ The project follows **Clean Architecture** principles:
 
 ### Test Framework Usage
 
-- Use **Kotest**, **JUnit**, or **Kotlin-Test** as test runners
+- Use **Kotest** for shared tests as test runners
+- Use **JUnit**, or **Kotlin-Test** as test runners for android tests
 - Write tests in `/src/commonTest/kotlin` for shared logic
 - Platform-specific tests go in respective test source sets
 
