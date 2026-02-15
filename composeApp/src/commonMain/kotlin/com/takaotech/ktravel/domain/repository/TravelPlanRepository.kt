@@ -63,6 +63,16 @@ interface TravelPlanRepository {
     suspend fun moveStepToPlace(stepId: String, dayId: String)
 
     /**
+     * Sposta uno step verso l'alto nella lista
+     */
+    suspend fun moveTravelStepUp(stepId: String, dayId: String)
+
+    /**
+     * Sposta uno step verso il basso nella lista
+     */
+    suspend fun moveTravelStepDown(stepId: String, dayId: String)
+
+    /**
      * Elimina un Place dal piano di viaggio
      */
     suspend fun deletePlace(placeId: String, dayId: String? = null)

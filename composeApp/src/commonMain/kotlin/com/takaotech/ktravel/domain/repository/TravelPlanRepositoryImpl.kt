@@ -201,6 +201,52 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         )
     }
 
+    override suspend fun moveTravelStepUp(stepId: String, dayId: String) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+        if (stepIndex <= 0) return // Già in cima o non trovato
+
+        val steps = day.steps
+        val step = steps[stepIndex]
+        val prevStep = steps[stepIndex - 1]
+
+        val updatedSteps = steps
+            .set(stepIndex - 1, step)
+            .set(stepIndex, prevStep)
+
+        val updatedDay = day.copy(steps = updatedSteps)
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun moveTravelStepDown(stepId: String, dayId: String) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+        if (stepIndex == -1 || stepIndex >= day.steps.size - 1) return // Già in fondo o non trovato
+
+        val steps = day.steps
+        val step = steps[stepIndex]
+        val nextStep = steps[stepIndex + 1]
+
+        val updatedSteps = steps
+            .set(stepIndex + 1, step)
+            .set(stepIndex, nextStep)
+
+        val updatedDay = day.copy(steps = updatedSteps)
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
     override suspend fun deletePlace(placeId: String, dayId: String?) {
         val currentState = _planningState.value
 
