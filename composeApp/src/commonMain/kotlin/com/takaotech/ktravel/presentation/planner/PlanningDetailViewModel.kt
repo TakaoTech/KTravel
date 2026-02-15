@@ -28,12 +28,6 @@ class PlanningDetailViewModel(
             initialValue = TravelDay.EMPTY
         )
 
-    fun onStepRemoveRequested(stepId: String) {
-        viewModelScope.launch {
-            repository.removeStepFromDay(dayId, stepId)
-        }
-    }
-
     fun movePlaceToGeneral(placeId: String) {
         viewModelScope.launch {
             repository.movePlaceToGeneral(placeId, dayId)
@@ -43,6 +37,18 @@ class PlanningDetailViewModel(
     fun deletePlace(placeId: String) {
         viewModelScope.launch {
             repository.deletePlace(placeId, dayId)
+        }
+    }
+
+    fun movePlaceToStep(placeId: String) {
+        viewModelScope.launch {
+            repository.movePlaceToStep(placeId, dayId)
+        }
+    }
+
+    fun moveStepToPlace(stepId: String) {
+        viewModelScope.launch {
+            repository.moveStepToPlace(stepId, dayId)
         }
     }
 }

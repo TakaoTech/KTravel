@@ -25,7 +25,7 @@ import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
-import com.takaotech.ktravel.ui.planner.PlanningDetail2
+import com.takaotech.ktravel.ui.planner.PlanningDetailPage
 import com.takaotech.ktravel.ui.planner.PlanningDetailPageNavigation
 import com.takaotech.ktravel.ui.planner.PlanningTripPage
 import com.takaotech.ktravel.ui.planner.PlanningTripPageNavigation
@@ -96,7 +96,7 @@ fun App() {
 
                             val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
 
-                            PlanningDetail2(
+                            PlanningDetailPage(
                                 steps = travelDay.steps,
                                 places = travelDay.places,
                                 onAddPlaceClick = {
@@ -109,10 +109,19 @@ fun App() {
                                     viewModel.deletePlace(it)
                                 },
                                 onStepDeleteClicked = {
-                                    viewModel.onStepRemoveRequested(it)
+                                    viewModel.moveStepToPlace(it)
                                 },
                                 onNavigationBackClick = {
                                     navController.navigateUp()
+                                },
+                                onMovePlaceToList = {
+                                    viewModel.movePlaceToStep(it)
+                                },
+                                onStepMoveDown = {
+
+                                },
+                                onStepMoveUp = {
+
                                 }
                             )
                         }

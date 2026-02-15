@@ -3,8 +3,8 @@ package com.takaotech.ktravel.domain.repository
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.presentation.planner.Place
 import com.takaotech.ktravel.presentation.planner.PlanningUiState
+import com.takaotech.ktravel.presentation.planner.StepPlaceMapper
 import com.takaotech.ktravel.presentation.planner.TravelDay
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.*
 import org.koin.core.annotation.Single
 import kotlin.time.ExperimentalTime
@@ -39,31 +39,6 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         _planningState.value = _planningState.value.setPeriod(
             start = Instant.fromEpochMilliseconds(startMillis),
             end = Instant.fromEpochMilliseconds(endMillis)
-        )
-    }
-
-    override suspend fun removeStepFromDay(dayId: String, stepId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-
-        val stepForRemoveIndex = day.steps.indexOfFirst { it.id == stepId }
-
-        val newSteps = day.steps.getOrNull(stepForRemoveIndex + 1).let {
-            if (it is TravelDay.Step.Transport) {
-                day.steps.remove(it)
-            } else {
-                day.steps
-            }
-        }.removeAt(stepForRemoveIndex)
-
-        val updatedDay = day.copy(steps = newSteps.toPersistentList())
-
-        _planningState.value = currentState.copy(
-            days = currentState.days.set(dayIndex, updatedDay)
         )
     }
 
@@ -170,6 +145,58 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         // Aggiorna lo stato
         _planningState.value = currentState.copy(
             places = updatedPlaces,
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun movePlaceToStep(placeId: String, dayId: String) {
+        val currentState = _planningState.value
+
+        // Trova l'indice del giorno
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        // Trova il Place nel giorno specificato
+        val day = currentState.days[dayIndex]
+        val place = day.places.firstOrNull { it.id == placeId } ?: return
+
+        // Converte il Place in Step.Place
+        val stepPlace = StepPlaceMapper.placeToStep(place)
+
+        // Rimuove il Place dalla lista places e aggiunge lo Step nella lista steps
+        val updatedDay = day.copy(
+            places = day.places.remove(place),
+            steps = day.steps.add(stepPlace)
+        )
+
+        // Aggiorna lo stato
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
+    override suspend fun moveStepToPlace(stepId: String, dayId: String) {
+        val currentState = _planningState.value
+
+        // Trova l'indice del giorno
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        // Trova lo Step.Place nel giorno specificato
+        val day = currentState.days[dayIndex]
+        val step = day.steps.firstOrNull { it.id == stepId } as? TravelDay.Step.Place ?: return
+
+        // Converte lo Step.Place in Place
+        val place = StepPlaceMapper.stepToPlace(step)
+
+        // Rimuove lo Step dalla lista steps e aggiunge il Place nella lista places
+        val updatedDay = day.copy(
+            steps = day.steps.remove(step),
+            places = day.places.add(place)
+        )
+
+        // Aggiorna lo stato
+        _planningState.value = currentState.copy(
             days = currentState.days.set(dayIndex, updatedDay)
         )
     }
