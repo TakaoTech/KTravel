@@ -636,5 +636,9 @@ private class FakeTravelPlanRepository : TravelPlanRepository {
 
     override suspend fun moveStepToPlace(stepId: String, dayId: String) = Unit
 
+    override suspend fun moveTravelStepUp(stepId: String, dayId: String) = Unit
+
+    override suspend fun moveTravelStepDown(stepId: String, dayId: String) = Unit
+
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
 }

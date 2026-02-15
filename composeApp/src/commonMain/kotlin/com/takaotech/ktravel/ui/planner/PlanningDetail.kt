@@ -201,7 +201,9 @@ private fun SupportingPaneContent(
         )
 
         Column {
-            IconButton(onClick = onCloseClick) {
+            IconButton(
+                onClick = onCloseClick
+            ) {
                 Icon(painter = painterResource(Res.drawable.close), contentDescription = null)
             }
 
@@ -209,6 +211,7 @@ private fun SupportingPaneContent(
                 text = "Places Overview",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
+                    .padding(horizontal = 8.dp)
             )
 
             AddPlaceButton(
@@ -218,7 +221,7 @@ private fun SupportingPaneContent(
             LazyColumn(
                 contentPadding = PaddingValues(8.dp),
             ) {
-                items(places) { place ->
+                items(items = places, key = { it.id }) { place ->
                     // TODO Add Hours
                     // TODO Add image
                     PlaceItem(

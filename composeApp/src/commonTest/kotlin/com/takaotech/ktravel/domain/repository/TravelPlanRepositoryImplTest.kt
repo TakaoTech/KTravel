@@ -891,4 +891,73 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
 
+    given("a repository with steps in a TravelDay to move up and down") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        val state = repository.planningState.value
+        val dayId = state.days[1].id
+
+        val place1 = Place(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+        val place2 = Place(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+        val place3 = Place(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
+
+        repository.savePlace(place1, dayId)
+        repository.savePlace(place2, dayId)
+        repository.savePlace(place3, dayId)
+
+        repository.movePlaceToStep("p1", dayId)
+        repository.movePlaceToStep("p2", dayId)
+        repository.movePlaceToStep("p3", dayId)
+
+        // Initial order: P1, P2, P3
+
+        `when`("moveStepUp is called on the second step") {
+            repository.moveTravelStepUp("p2", dayId)
+
+            then("should swap it with the first step") {
+                val day = repository.planningState.value.days[1]
+                day.steps[0].id shouldBe "p2"
+                day.steps[1].id shouldBe "p1"
+                day.steps[2].id shouldBe "p3"
+            }
+        }
+
+        `when`("moveStepUp is called on the first step") {
+            val snapshot = repository.planningState.value
+            repository.moveTravelStepUp("p2", dayId) // p2 is now at index 0
+
+            then("should not change the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+
+        `when`("moveStepDown is called on the second step") {
+            // Current order: P2, P1, P3. P1 is at index 1
+            repository.moveTravelStepDown("p1", dayId)
+
+            then("should swap it with the third step") {
+                val day = repository.planningState.value.days[1]
+                day.steps[0].id shouldBe "p2"
+                day.steps[1].id shouldBe "p3"
+                day.steps[2].id shouldBe "p1"
+            }
+        }
+
+        `when`("moveStepDown is called on the last step") {
+            val snapshot = repository.planningState.value
+            repository.moveTravelStepDown("p1", dayId) // p1 is at index 2
+
+            then("should not change the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+    }
+
 })

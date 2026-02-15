@@ -118,10 +118,10 @@ fun App() {
                                     viewModel.movePlaceToStep(it)
                                 },
                                 onStepMoveDown = {
-
+                                    viewModel.moveStepDown(it)
                                 },
                                 onStepMoveUp = {
-
+                                    viewModel.moveStepUp(it)
                                 }
                             )
                         }

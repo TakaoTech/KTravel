@@ -51,4 +51,16 @@ class PlanningDetailViewModel(
             repository.moveStepToPlace(stepId, dayId)
         }
     }
+
+    fun moveStepUp(stepId: String) {
+        viewModelScope.launch {
+            repository.moveTravelStepUp(stepId, dayId)
+        }
+    }
+
+    fun moveStepDown(stepId: String) {
+        viewModelScope.launch {
+            repository.moveTravelStepDown(stepId, dayId)
+        }
+    }
 }
