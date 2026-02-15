@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.ui.place
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -32,6 +32,7 @@ fun PlaceItem(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     image: String? = null,
+    actions: @Composable () -> Unit = {},
     onDeleteClick: (() -> Unit)? = null,
     onPermanentDeleteClick: () -> Unit
 ) {
@@ -47,6 +48,8 @@ fun PlaceItem(
 
     ConstraintLayout(modifier = modifier) {
         val (imageRef, nameRef, hourRef, actionsRef) = createRefs()
+
+        //TODO Remove Hour
 
         Text(
             modifier = Modifier.constrainAs(hourRef) {
@@ -103,53 +106,57 @@ fun PlaceItem(
                 start.linkTo(nameRef.end, margin = 16.dp)
                 top.linkTo(nameRef.top)
                 bottom.linkTo(nameRef.bottom)
-            }
+                end.linkTo(parent.end)
+                width = Dimension.fillToConstraints
+            },
+            horizontalArrangement = Arrangement.End
         ) {
-            Box {
-                var expanded by remember { mutableStateOf(false) }
-                IconButton(
-                    onClick = {
-                        if (onDeleteClick == null) {
-                            onPermanentDeleteClick()
-                        } else {
-                            expanded = true
-                        }
+            // TODO Modificare layout per avere la compressione delle azioni
+            var expanded by remember { mutableStateOf(false) }
+            IconButton(
+                onClick = {
+                    if (onDeleteClick == null) {
+                        onPermanentDeleteClick()
+                    } else {
+                        expanded = true
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.delete),
-                        contentDescription = null
-                    )
                 }
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = null
+                )
+            }
+
+            actions()
 
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DeleteMode.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = stringResource(option.text),
-                                    color = if (option == DeleteMode.PERMANENT) {
-                                        MaterialTheme.colorScheme.error
-                                    } else {
-                                        Color.Unspecified
-                                    }
-                                )
-                            },
-                            onClick = {
-                                when (option) {
-                                    DeleteMode.GENERAL -> onDeleteClick?.invoke()
-                                    DeleteMode.PERMANENT -> {
-                                        expanded = false
-                                        onPermanentDeleteClick()
-                                    }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DeleteMode.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(option.text),
+                                color = if (option == DeleteMode.PERMANENT) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    Color.Unspecified
+                                }
+                            )
+                        },
+                        onClick = {
+                            when (option) {
+                                DeleteMode.GENERAL -> onDeleteClick?.invoke()
+                                DeleteMode.PERMANENT -> {
+                                    expanded = false
+                                    onPermanentDeleteClick()
                                 }
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }

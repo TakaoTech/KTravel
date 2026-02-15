@@ -767,4 +767,128 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             }
         }
     }
+    given("a repository with a place in a TravelDay to move to steps") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+
+        val state = repository.planningState.value
+        val dayId = state.days[1].id
+
+        repository.savePlace(place1, dayId)
+
+        `when`("movePlaceToStep is called with valid placeId and dayId") {
+            repository.movePlaceToStep("place1", dayId)
+
+            then("should remove the place from places and add a Step.Place to steps with same id and name") {
+                val updated = repository.planningState.value
+                val day = updated.days[1]
+                day.places.shouldBeEmpty()
+                day.steps shouldHaveSize 1
+                val step = day.steps[0] as TravelDay.Step.Place
+                step.id shouldBe "place1"
+                step.location shouldBe place1.name
+            }
+
+            then("should not affect other days or general places list") {
+                val updated = repository.planningState.value
+                updated.days[0].places.shouldBeEmpty()
+                updated.days[0].steps.shouldBeEmpty()
+                updated.days[2].places.shouldBeEmpty()
+                updated.days[2].steps.shouldBeEmpty()
+                updated.places.shouldBeEmpty()
+            }
+        }
+
+        `when`("movePlaceToStep is called with an invalid placeId") {
+            val snapshot = repository.planningState.value
+            repository.movePlaceToStep("invalid-place-id", dayId)
+
+            then("should not modify the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+
+        `when`("movePlaceToStep is called with an invalid dayId") {
+            val snapshot = repository.planningState.value
+            repository.movePlaceToStep("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+    }
+
+    given("a repository with a Step.Place in a TravelDay to move back to places") {
+        val repository = TravelPlanRepositoryImpl()
+        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
+        val endInstant = startInstant + 2.days // 2021-01-03
+
+        repository.updatePeriod(
+            startMillis = startInstant.toEpochMilliseconds(),
+            endMillis = endInstant.toEpochMilliseconds()
+        )
+
+        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+
+        val state = repository.planningState.value
+        val dayId = state.days[1].id
+
+        // Crea uno Step.Place partendo da un Place
+        repository.savePlace(place1, dayId)
+        repository.movePlaceToStep("place1", dayId)
+
+        `when`("moveStepToPlace is called with valid stepId and dayId") {
+            // Lo step creato ha lo stesso id del place
+            repository.moveStepToPlace("place1", dayId)
+
+            then("should remove the step from steps and add a Place to places with same id and name") {
+                val updated = repository.planningState.value
+                val day = updated.days[1]
+                day.steps.shouldBeEmpty()
+                day.places shouldHaveSize 1
+                val backPlace = day.places[0]
+                backPlace.id shouldBe "place1"
+                backPlace.name shouldBe place1.name
+                // Il mapper usa lat/lng di default 0.0
+                backPlace.lat shouldBe 0.0
+                backPlace.lng shouldBe 0.0
+            }
+
+            then("should not affect other days or general places list") {
+                val updated = repository.planningState.value
+                updated.days[0].places.shouldBeEmpty()
+                updated.days[0].steps.shouldBeEmpty()
+                updated.days[2].places.shouldBeEmpty()
+                updated.days[2].steps.shouldBeEmpty()
+                updated.places.shouldBeEmpty()
+            }
+        }
+
+        `when`("moveStepToPlace is called with an invalid stepId") {
+            val snapshot = repository.planningState.value
+            repository.moveStepToPlace("invalid-step-id", dayId)
+
+            then("should not modify the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+
+        `when`("moveStepToPlace is called with an invalid dayId") {
+            val snapshot = repository.planningState.value
+            repository.moveStepToPlace("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repository.planningState.value shouldBe snapshot
+            }
+        }
+    }
+
 })

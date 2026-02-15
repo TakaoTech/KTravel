@@ -619,8 +619,6 @@ private class FakeTravelPlanRepository : TravelPlanRepository {
 
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
 
-    override suspend fun removeStepFromDay(dayId: String, stepId: String) = Unit
-
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: TravelDay.Step) = Unit
 
     override fun updatePlanName(name: TextFieldValue) = Unit
@@ -633,6 +631,10 @@ private class FakeTravelPlanRepository : TravelPlanRepository {
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = Unit
 
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) = Unit
+
+    override suspend fun movePlaceToStep(placeId: String, dayId: String) = Unit
+
+    override suspend fun moveStepToPlace(stepId: String, dayId: String) = Unit
 
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
 }
