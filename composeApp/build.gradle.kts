@@ -101,13 +101,15 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.immutable)
                 implementation(project(":os-map"))
+                implementation(project(":location-clients"))
 
                 implementation(libs.kotzilla.koin.core)
                 implementation(libs.kotzilla.koin.test)
                 implementation(libs.kotzilla.koin.compose)
                 implementation(libs.kotzilla.koin.compose.viewmodel)
                 implementation(libs.kotzilla.koin.compose.navigation)
-                implementation("org.jetbrains.compose.ui:ui-backhandler:1.10.0")
+
+                implementation(libs.ktor.client.logging)
 
                 implementation(libs.ktor.client.core)
 
@@ -128,6 +130,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.logback.classic)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
