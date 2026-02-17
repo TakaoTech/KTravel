@@ -1,5 +1,6 @@
 package com.takaotech.navigation.routing.dto.request
 
+import com.takaotech.navigation.routing.model.Units
 import com.vanniktech.locale.Locale
 import com.vanniktech.locale.Locales
 
@@ -53,7 +54,7 @@ data class RoutesRequest(
     val alternatives: Int? = null,
     val departureTime: DepartureTime? = null,
     val arrivalTime: String? = null,
-    val units: com.takaotech.navigation.routing.model.Units? = null,
+    val units: Units = Units.METRIC,
     val lang: Locale? = Locale.from(Locales.currentLocaleString()),
     val returnAttributes: List<ReturnAttribute>? = null
 ) {
@@ -79,7 +80,7 @@ data class RoutesRequest(
         alternatives: Int? = null,
         departureTime: DepartureTime? = null,
         arrivalTime: String? = null,
-        units: com.takaotech.navigation.routing.model.Units? = null,
+        units: Units = Units.METRIC,
         lang: Locale? = null,
         returnAttributes: List<ReturnAttribute>? = null
     ) : this(

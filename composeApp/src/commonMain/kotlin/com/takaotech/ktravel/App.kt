@@ -1,5 +1,6 @@
 package com.takaotech.ktravel
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,13 +23,14 @@ import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
+import com.takaotech.ktravel.presentation.planner.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
+import com.takaotech.ktravel.presentation.settings.SettingsViewModel
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
-import com.takaotech.ktravel.ui.planner.PlanningDetailPage
-import com.takaotech.ktravel.ui.planner.PlanningDetailPageNavigation
-import com.takaotech.ktravel.ui.planner.PlanningTripPage
-import com.takaotech.ktravel.ui.planner.PlanningTripPageNavigation
+import com.takaotech.ktravel.ui.planner.*
+import com.takaotech.ktravel.ui.settings.SettingsNavigation
+import com.takaotech.ktravel.ui.settings.SettingsPage
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
@@ -66,10 +68,18 @@ fun App() {
 
                 NavHost(navController = navController, startDestination = Intro) {
                     composable<Intro> {
-                        TextButton(onClick = {
-                            navController.navigate(PlanningNavigation)
-                        }) {
-                            Text("Navigate to Planning")
+                        Column {
+                            TextButton(onClick = {
+                                navController.navigate(PlanningNavigation)
+                            }) {
+                                Text("Navigate to Planning")
+                            }
+
+                            TextButton(onClick = {
+                                navController.navigate(SettingsNavigation)
+                            }) {
+                                Text("Settings")
+                            }
                         }
                     }
 
@@ -125,6 +135,19 @@ fun App() {
                                 }
                             )
                         }
+
+                        composable<PlanningTransportPageNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
+                            koinViewModel<PlanningTransportViewModel> {
+                                parametersOf(args.dayId)
+                            }
+
+                            PlanningTransportPage(
+                                onNavigationBackClick = {
+                                    navController.navigateUp()
+                                }
+                            )
+                        }
                     }
 
                     composable<PlaceInsertNavigation> { backStackEntry ->
@@ -140,6 +163,17 @@ fun App() {
                                 navController.navigateUp()
                             },
                             onSaveClicked = {
+                                navController.navigateUp()
+                            }
+                        )
+                    }
+
+                    composable<SettingsNavigation> {
+                        val viewModel = koinViewModel<SettingsViewModel>()
+
+                        SettingsPage(
+                            viewModel = viewModel,
+                            onNavigationBackClick = {
                                 navController.navigateUp()
                             }
                         )

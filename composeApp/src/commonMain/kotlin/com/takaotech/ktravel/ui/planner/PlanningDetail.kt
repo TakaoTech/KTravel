@@ -286,6 +286,6 @@ private fun PlanningDetailPagereview() {
         onDeletePermanentPlaceClick = {},
         onMovePlaceToList = {},
         onStepMoveDown = {},
-        onStepMoveUp = {}
+        onStepMoveUp = {},
     )
 }
