@@ -74,12 +74,6 @@ fun App() {
                             }) {
                                 Text("Navigate to Planning")
                             }
-
-                            TextButton(onClick = {
-                                navController.navigate(SettingsNavigation)
-                            }) {
-                                Text("Settings")
-                            }
                         }
                     }
 
@@ -94,6 +88,9 @@ fun App() {
                                 },
                                 onDateClicked = {
                                     navController.navigate(PlanningDetailPageNavigation(it))
+                                },
+                                onSettingClicked = {
+                                    navController.navigate(SettingsNavigation)
                                 }
                             )
                         }

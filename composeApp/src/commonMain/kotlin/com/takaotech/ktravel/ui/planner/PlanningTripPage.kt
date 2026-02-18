@@ -1,11 +1,10 @@
 package com.takaotech.ktravel.ui.planner
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -31,6 +30,9 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.settings
+import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
@@ -41,6 +43,7 @@ object PlanningTripPageNavigation
 fun PlanningTripPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
+    onSettingClicked: () -> Unit,
     onAddPlaceClicked: () -> Unit,
     onDateClicked: (id: String) -> Unit,
 ) {
@@ -75,17 +78,21 @@ fun PlanningTripPage(
         onDateClicked = onDateClicked,
         onPlaceMovedToDay = { placeId, dayId ->
             viewModel.onPlaceMovedToDate(placeId, dayId)
-        }
+        },
+        onSettingClicked = onSettingClicked
     )
 }
 
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun PlanningTripPage(
     planHeader: PlanHeader,
     places: PersistentList<Place>,
     days: ImmutableList<TravelDay>,
     modifier: Modifier = Modifier,
+
+    onSettingClicked: () -> Unit,
+
     onPlanNameChange: (TextFieldValue) -> Unit,
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
 
@@ -95,80 +102,95 @@ private fun PlanningTripPage(
     onDateClicked: (id: String) -> Unit,
     onPlaceMovedToDay: (placeId: String, dayId: String) -> Unit,
 ) {
-    val dragAndDropState = rememberDragAndDropState<Place>()
-
-    DragAndDropContainer(
-        state = dragAndDropState,
-    ) {
-        LazyColumn(
-            modifier = modifier,
-        ) {
-            item {
-                PlanningHeader(
-                    name = planHeader.name,
-                    onNameChange = onPlanNameChange,
-                    startDateMillis = planHeader.period.start.toEpochMilliseconds(),
-                    endDateMillis = planHeader.period.end.toEpochMilliseconds(),
-                    onPlanDateRangeChanged = onPlanDateRangeChanged
-                )
-            }
-
-            itemsIndexed(
-                items = places,
-                key = { _, place ->
-                    place.id
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { },
+                actions = {
+                    IconButton(onClick = onSettingClicked) {
+                        Icon(painter = painterResource(Res.drawable.settings), contentDescription = null)
+                    }
                 }
-            ) { _, place ->
-                DraggableItem(
-                    state = dragAndDropState,
-                    key = place.id, // Unique key for each draggable item
-                    data = place,
-                ) {
-                    PlaceItem(
+            )
+        }
+    ) {
+        val dragAndDropState = rememberDragAndDropState<Place>()
+
+        DragAndDropContainer(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it),
+            state = dragAndDropState,
+        ) {
+            LazyColumn {
+                item {
+                    PlanningHeader(
+                        name = planHeader.name,
+                        onNameChange = onPlanNameChange,
+                        startDateMillis = planHeader.period.start.toEpochMilliseconds(),
+                        endDateMillis = planHeader.period.end.toEpochMilliseconds(),
+                        onPlanDateRangeChanged = onPlanDateRangeChanged
+                    )
+                }
+
+                itemsIndexed(
+                    items = places,
+                    key = { _, place ->
+                        place.id
+                    }
+                ) { _, place ->
+                    DraggableItem(
+                        state = dragAndDropState,
+                        key = place.id, // Unique key for each draggable item
+                        data = place,
+                    ) {
+                        PlaceItem(
+                            modifier = Modifier.padding(16.dp),
+                            name = place.name,
+                            onPermanentDeleteClick = {
+                                onDeletePermanentPlaceClick(place.id)
+                            }
+                        )
+                    }
+                }
+
+                item {
+                    AddPlaceButton(
+                        onClick = onAddPlaceClicked
+                    )
+                }
+
+                item {
+                    Text(
                         modifier = Modifier.padding(16.dp),
-                        name = place.name,
-                        onPermanentDeleteClick = {
-                            onDeletePermanentPlaceClick(place.id)
+                        text = "Itinerario",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+
+                itemsIndexed(
+                    items = days,
+                    key = { _: Int, day: TravelDay ->
+                        day.date.toEpochDays()
+                    }
+                ) { _, day ->
+                    PlanDayItem(
+                        modifier = Modifier.dropTarget(
+                            state = dragAndDropState,
+                            key = day.id,
+                            onDrop = { state ->
+                                val place = state.data
+                                onPlaceMovedToDay(place.id, day.id)
+                                place
+                            }
+                        ),
+                        day = day.date,
+                        onDateClicked = {
+                            onDateClicked(day.id)
                         }
                     )
                 }
-            }
-
-            item {
-                AddPlaceButton(
-                    onClick = onAddPlaceClicked
-                )
-            }
-
-            item {
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = "Itinerario",
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-
-            itemsIndexed(
-                items = days,
-                key = { _: Int, day: TravelDay ->
-                    day.date.toEpochDays()
-                }
-            ) { _, day ->
-                PlanDayItem(
-                    modifier = Modifier.dropTarget(
-                        state = dragAndDropState,
-                        key = day.id,
-                        onDrop = { state ->
-                            val place = state.data
-                            onPlaceMovedToDay(place.id, day.id)
-                            place
-                        }
-                    ),
-                    day = day.date,
-                    onDateClicked = {
-                        onDateClicked(day.id)
-                    }
-                )
             }
         }
     }
@@ -216,5 +238,6 @@ private fun PlanningPagePreview() {
         onAddPlaceClicked = {},
         onDateClicked = {},
         onPlaceMovedToDay = { _, _ -> },
+        onSettingClicked = {}
     )
 }
