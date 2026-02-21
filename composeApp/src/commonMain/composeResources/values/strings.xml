@@ -20,4 +20,8 @@
     </string>
     <string name="permanent_delete_dialog_confirm">Delete</string>
     <string name="permanent_delete_dialog_cancel">Cancel</string>
+
+    <string name="planning_transport_provider_name_local">Local</string>
+    <string name="planning_transport_provider_name_here">Here</string>
+    <string name="planning_transport_provider_name_gmaps">Google Maps</string>
 </resources>

@@ -22,6 +22,7 @@ import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planner.component.TravelStepPlace
+import com.takaotech.ktravel.ui.planner.component.TravelTransportStepAdd
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -49,6 +50,8 @@ fun PlanningDetailPage(
 
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit,
+
+    onTransportAddClick: (startId: String, endId: String) -> Unit,
 ) {
     val coroutine = rememberCoroutineScope()
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
@@ -63,7 +66,6 @@ fun PlanningDetailPage(
 //    val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
     val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
     val paneExpansionState: PaneExpansionState = rememberPaneExpansionState(keyProvider = navigator.scaffoldValue)
-
 
     val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
         onDeletePermanentPlaceClick(placeId)
@@ -92,10 +94,9 @@ fun PlanningDetailPage(
                         },
                         onStepMoveUp = onStepMoveUp,
                         onStepMoveDown = onStepMoveDown,
+                        onTransportAddClick = onTransportAddClick,
                     )
                 }
-
-
             },
             supportingPane = {
                 AnimatedPane {
@@ -127,6 +128,7 @@ private fun MainPaneContent(
     onPlaceMenuClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit,
+    onTransportAddClick: (startId: String, endId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -134,7 +136,6 @@ private fun MainPaneContent(
         topBar = {
             TopAppBar(
                 title = {
-
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigationBackClick) {
@@ -149,7 +150,6 @@ private fun MainPaneContent(
             )
         }
     ) {
-
         if (steps.isEmpty()) {
             // TODO Add empty view
         } else {
@@ -163,6 +163,15 @@ private fun MainPaneContent(
                                 onStepMoveUp = onStepMoveUp,
                                 onStepMoveDown = onStepMoveDown
                             )
+
+                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
+                                TravelTransportStepAdd(onClick = {
+                                    onTransportAddClick(
+                                        step.id,
+                                        steps.get(index + 1).id
+                                    )
+                                })
+                            }
                         }
 
                         is TravelDay.Step.Transport -> {
@@ -172,8 +181,6 @@ private fun MainPaneContent(
                 }
             }
         }
-
-
     }
 }
 
@@ -279,13 +286,12 @@ private fun PlanningDetailPagereview() {
         onAddPlaceClick = {},
         onStepDeleteClicked = {},
         onDeletePlaceClick = {},
-        places = persistentListOf(
-
-        ),
+        places = persistentListOf(),
         onNavigationBackClick = {},
         onDeletePermanentPlaceClick = {},
         onMovePlaceToList = {},
         onStepMoveDown = {},
         onStepMoveUp = {},
+        onTransportAddClick = { _, _ -> }
     )
 }
