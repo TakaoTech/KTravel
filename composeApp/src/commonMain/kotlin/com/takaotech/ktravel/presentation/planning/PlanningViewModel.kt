@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.presentation.planner
+package com.takaotech.ktravel.presentation.planning
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel

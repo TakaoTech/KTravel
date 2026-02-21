@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.presentation.planner
+package com.takaotech.ktravel.presentation.planning
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe

@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.presentation.planner
+package com.takaotech.ktravel.presentation.planning
 
 /**
  * Mapper per convertire tra [Place] e [TravelDay.Step.Place].

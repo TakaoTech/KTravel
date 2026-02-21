@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,13 +16,12 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.PanelHorizontalDivided
-import com.takaotech.ktravel.presentation.planner.Place
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.Place
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
-import com.takaotech.ktravel.ui.planner.component.TravelStepPlace
-import com.takaotech.ktravel.ui.planner.component.TravelTransportStepAdd
+import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf

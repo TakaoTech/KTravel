@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning.trip
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -17,14 +17,14 @@ import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
-import com.takaotech.ktravel.presentation.planner.Place
-import com.takaotech.ktravel.presentation.planner.PlanHeader
-import com.takaotech.ktravel.presentation.planner.PlanningViewModel
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.Place
+import com.takaotech.ktravel.presentation.planning.PlanHeader
+import com.takaotech.ktravel.presentation.planning.PlanningViewModel
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
-import com.takaotech.ktravel.ui.planning.PlanningHeader
+import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -196,7 +196,7 @@ private fun PlanningTripPage(
     }
 }
 
-@Preview(showBackground = true)
+@PreviewScreenSizes
 @Composable
 private fun PlanningPagePreview() {
     LoremIpsum(10).values.first()

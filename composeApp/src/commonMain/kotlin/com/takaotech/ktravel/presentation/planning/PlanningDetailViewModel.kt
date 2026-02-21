@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.presentation.planner
+package com.takaotech.ktravel.presentation.planning
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

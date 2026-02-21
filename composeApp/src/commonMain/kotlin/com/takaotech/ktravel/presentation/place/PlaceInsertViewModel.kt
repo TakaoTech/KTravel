@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.core.toTextPayload
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.presentation.planner.Place
+import com.takaotech.ktravel.presentation.planning.Place
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate

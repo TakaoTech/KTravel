@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
 
-package com.takaotech.ktravel.presentation.planner
+package com.takaotech.ktravel.presentation.planning
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue

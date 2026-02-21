@@ -3,9 +3,9 @@ package com.takaotech.ktravel.presentation.place
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.presentation.planner.Place
-import com.takaotech.ktravel.presentation.planner.PlanningUiState
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.Place
+import com.takaotech.ktravel.presentation.planning.PlanningUiState
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe

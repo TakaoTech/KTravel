@@ -1,8 +1,8 @@
-package com.takaotech.ktravel.presentation.planner.transport
+package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.compose.runtime.Stable
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 

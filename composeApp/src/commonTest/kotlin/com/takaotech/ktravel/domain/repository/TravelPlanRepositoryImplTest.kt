@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.domain.repository
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.presentation.planner.Place
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.Place
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain

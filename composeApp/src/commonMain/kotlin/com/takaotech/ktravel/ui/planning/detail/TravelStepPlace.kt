@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner.component
+package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_downward
 import ktravel.composeapp.generated.resources.arrow_upward
