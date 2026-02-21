@@ -1,11 +1,11 @@
-package com.takaotech.ktravel.presentation.planner.transport
+package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
-import com.takaotech.ktravel.presentation.planner.TravelDay
+import com.takaotech.ktravel.presentation.planning.TravelDay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel

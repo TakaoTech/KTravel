@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning.common
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text

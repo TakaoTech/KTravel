@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.core.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.takaotech.ktravel.presentation.planner.Place
+import com.takaotech.ktravel.presentation.planning.Place
 
 open class PlacePreviewParams(val items: Int) : PreviewParameterProvider<Place> {
 

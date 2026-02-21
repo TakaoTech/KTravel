@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning.trip
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton

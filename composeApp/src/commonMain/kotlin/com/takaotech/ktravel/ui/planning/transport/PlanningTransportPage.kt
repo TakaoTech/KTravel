@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planner
+package com.takaotech.ktravel.ui.planning.transport
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -10,9 +10,9 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
-import com.takaotech.ktravel.presentation.planner.TravelDay
-import com.takaotech.ktravel.presentation.planner.transport.PlanningTransportUiState
-import com.takaotech.ktravel.presentation.planner.transport.PlanningTransportViewModel
+import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportUiState
+import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
