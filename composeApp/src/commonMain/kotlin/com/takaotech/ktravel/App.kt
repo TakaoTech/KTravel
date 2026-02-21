@@ -23,8 +23,8 @@ import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningDetailViewModel
-import com.takaotech.ktravel.presentation.planner.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.planner.PlanningViewModel
+import com.takaotech.ktravel.presentation.planner.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
@@ -129,17 +129,23 @@ fun App() {
                                 },
                                 onStepMoveUp = {
                                     viewModel.moveStepUp(it)
+                                },
+                                onTransportAddClick = { startId, endId ->
+                                    navController.navigate(
+                                        PlanningTransportPageNavigation(travelDay.id, startId, endId)
+                                    )
                                 }
                             )
                         }
 
                         composable<PlanningTransportPageNavigation> { backStackEntry ->
                             val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
-                            koinViewModel<PlanningTransportViewModel> {
-                                parametersOf(args.dayId)
+                            val viewModel = koinViewModel<PlanningTransportViewModel> {
+                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                             }
 
                             PlanningTransportPage(
+                                viewModel = viewModel,
                                 onNavigationBackClick = {
                                     navController.navigateUp()
                                 }

@@ -3,10 +3,7 @@ package com.takaotech.ktravel.ui.planner.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,14 +90,14 @@ private fun TravelStepPlacePreview() {
 }
 
 @Composable
-fun TravelTransportStepAdd() {
-//    if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
-//        TextButton(
-//            onClick = {
-//                // TODO: Add transport action
-//            }
-//        ) {
-//            Text("Add Transport")
-//        }
-//    }
+fun TravelTransportStepAdd(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    TextButton(
+        modifier = modifier,
+        onClick = onClick
+    ) {
+        Text("Add Transport")
+    }
 }

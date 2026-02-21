@@ -103,6 +103,9 @@ kotlin {
                 implementation(project(":os-map"))
                 implementation(project(":location-clients"))
 
+                implementation(libs.compottie)
+//                implementation(libs.compottie.resources)
+
                 implementation(libs.kotzilla.koin.core)
                 implementation(libs.kotzilla.koin.test)
                 implementation(libs.kotzilla.koin.compose)
