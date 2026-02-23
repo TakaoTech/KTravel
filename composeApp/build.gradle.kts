@@ -106,6 +106,7 @@ kotlin {
                 implementation(libs.compottie)
 //                implementation(libs.compottie.resources)
 
+                implementation(libs.kotzilla.sdk.compose)
                 implementation(libs.kotzilla.koin.core)
                 implementation(libs.kotzilla.koin.test)
                 implementation(libs.kotzilla.koin.compose)
@@ -119,6 +120,7 @@ kotlin {
                 implementation(libs.platformtools.core)
                 implementation(libs.dnd)
                 api(libs.kotzilla.koin.annotation)
+
             }
         }
         iosMain.dependencies {

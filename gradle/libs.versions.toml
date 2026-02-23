@@ -30,7 +30,7 @@ runner = "1.7.0"
 core = "1.7.0"
 kotest = "6.0.5"
 mockk = "1.14.7"
-kotzilla-sdk = "1.4.0"
+kotzilla-sdk = "2.0.6"
 kotzilla-koin = "4.1.1"
 kotzilla-koin-annotation = "2.3.1"
 
