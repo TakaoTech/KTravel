@@ -9,10 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportUiState
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
+import com.takaotech.ktravel.ui.planning.transport.settings.GMapsProviderSettings
+import com.takaotech.ktravel.ui.planning.transport.settings.HereProviderSettings
+import com.takaotech.ktravel.ui.planning.transport.settings.LocalProviderSettings
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -34,23 +38,31 @@ fun PlanningTransportPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PlanningTransporPage(
+    PlanningTransportPage(
         modifier = modifier,
         uiState = uiState,
         onNavigationBackClick = onNavigationBackClick,
         onProviderChange = {
             viewModel.selectProvider(it)
+        },
+        onProviderSettingsChange = {
+            viewModel.updateProviderSettings(it)
+        },
+        onCalculateClick = {
+            viewModel.calculateTransport()
         }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlanningTransporPage(
+private fun PlanningTransportPage(
     modifier: Modifier = Modifier,
     uiState: PlanningTransportUiState,
     onNavigationBackClick: () -> Unit,
-    onProviderChange: (RoutingProviderType) -> Unit
+    onCalculateClick: () -> Unit,
+    onProviderChange: (RoutingProviderType) -> Unit,
+    onProviderSettingsChange: (RoutingProviderSettings) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -68,6 +80,23 @@ private fun PlanningTransporPage(
                     }
                 }
             )
+        },
+        bottomBar = {
+            BottomAppBar {
+                Button(
+                    onClick = onCalculateClick
+                ) {
+                    Text("Calculate")
+                }
+
+                Button(
+                    onClick = {
+
+                    }
+                ) {
+                    Text("Save")
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -160,6 +189,23 @@ private fun PlanningTransporPage(
                     }
                 }
             }
+
+            when (val settings = uiState.providerSettings) {
+                is RoutingProviderSettings.Local -> LocalProviderSettings(
+                    settings = settings,
+                    onSettingsChange = { onProviderSettingsChange(it) }
+                )
+
+                is RoutingProviderSettings.Here -> HereProviderSettings(
+                    settings = settings,
+                    onSettingsChange = { onProviderSettingsChange(it) }
+                )
+
+                is RoutingProviderSettings.GMaps -> GMapsProviderSettings(
+                    settings = settings,
+                    onSettingsChange = { onProviderSettingsChange(it) }
+                )
+            }
         }
     }
 }
@@ -194,13 +240,15 @@ private fun PlaceDestination(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningTransporPagePreview() {
-    PlanningTransporPage(
+private fun PlanningTransportPagePreview() {
+    PlanningTransportPage(
         uiState = PlanningTransportUiState(
-            startPlace = TravelDay.Step.Place(location = "P.za del Colosseo, 1, 00184 Roma RM"),
-            endPlace = TravelDay.Step.Place(location = "Piazza di Trevi, 00187 Roma RM")
+            startPlace = TravelDay.Step.Place(location = "P.za del Colosseo, 1, 00184 Roma RM", lat = 0.0, lng = 0.0),
+            endPlace = TravelDay.Step.Place(location = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0)
         ),
         onNavigationBackClick = {},
-        onProviderChange = {}
+        onCalculateClick = {},
+        onProviderChange = {},
+        onProviderSettingsChange = {}
     )
 }

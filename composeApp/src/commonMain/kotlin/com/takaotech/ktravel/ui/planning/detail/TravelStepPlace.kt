@@ -81,7 +81,9 @@ internal fun TravelStepPlace(
 private fun TravelStepPlacePreview() {
     TravelStepPlace(
         step = TravelDay.Step.Place(
-            location = "Tokyo Tower"
+            location = "Tokyo Tower",
+            lat = 0.0,
+            lng = 0.0
         ),
         onStepDeleteClicked = {},
         onStepMoveDown = {},

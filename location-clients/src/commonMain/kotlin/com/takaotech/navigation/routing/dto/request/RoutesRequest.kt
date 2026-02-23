@@ -52,7 +52,7 @@ data class RoutesRequest(
     val via: List<Waypoint>? = null,
     val routingMode: com.takaotech.navigation.routing.model.RoutingMode? = null,
     val alternatives: Int? = null,
-    val departureTime: DepartureTime? = null,
+    val departureTime: DepartureTime? = DepartureTime.any(),
     val arrivalTime: String? = null,
     val units: Units = Units.METRIC,
     val lang: Locale? = Locale.from(Locales.currentLocaleString()),

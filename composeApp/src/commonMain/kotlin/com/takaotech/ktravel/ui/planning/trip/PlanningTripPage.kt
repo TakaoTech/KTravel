@@ -209,26 +209,26 @@ private fun PlanningPagePreview() {
             TravelDay(
                 date = LocalDate(2024, 6, 15),
                 steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Roma - Colosseo"),
-                    TravelDay.Step.Place(location = "Fontana di Trevi"),
-                    TravelDay.Step.Place(location = "Pantheon")
+                    TravelDay.Step.Place(location = "Roma - Colosseo", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Fontana di Trevi", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Pantheon", lat = 0.0, lng = 0.0)
                 )
             ),
             TravelDay(
                 date = LocalDate(2024, 6, 16),
                 steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Musei Vaticani"),
-                    TravelDay.Step.Place(location = "Cappella Sistina"),
-                    TravelDay.Step.Place(location = "Piazza San Pietro")
+                    TravelDay.Step.Place(location = "Musei Vaticani", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Cappella Sistina", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Piazza San Pietro", lat = 0.0, lng = 0.0)
                 )
             ),
             TravelDay(
                 date = LocalDate(2024, 6, 17),
                 steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Firenze - Duomo"),
-                    TravelDay.Step.Place(location = "Galleria degli Uffizi"),
-                    TravelDay.Step.Place(location = "Ponte Vecchio"),
-                    TravelDay.Step.Place(location = "Piazzale Michelangelo")
+                    TravelDay.Step.Place(location = "Firenze - Duomo", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Galleria degli Uffizi", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Ponte Vecchio", lat = 0.0, lng = 0.0),
+                    TravelDay.Step.Place(location = "Piazzale Michelangelo", lat = 0.0, lng = 0.0)
                 )
             )
         ),

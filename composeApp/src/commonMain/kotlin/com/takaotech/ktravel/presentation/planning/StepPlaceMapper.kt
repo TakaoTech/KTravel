@@ -11,7 +11,9 @@ object StepPlaceMapper {
     fun placeToStep(place: Place): TravelDay.Step.Place =
         TravelDay.Step.Place(
             id = place.id,
-            location = place.name
+            location = place.name,
+            lat = place.lat,
+            lng = place.lng,
         )
 
     /**
