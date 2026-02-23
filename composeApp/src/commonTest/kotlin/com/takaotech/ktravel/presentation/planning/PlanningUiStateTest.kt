@@ -2,6 +2,7 @@ package com.takaotech.ktravel.presentation.planning
 
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalDate
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
@@ -45,8 +46,16 @@ class PlanningUiStateTest : BehaviorSpec({
         `when`("setPeriod is called on a state with existing TravelDay objects") {
             val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
             val endInstant = startInstant + 2.days // 2021-01-03
-            val stateWithDays = initialState.setPeriod(startInstant, endInstant)
-                .addTravelStep(LocalDate(2021, 1, 2), "Existing Location")
+            val stateWithDays = initialState.setPeriod(startInstant, endInstant).let { state ->
+                val dayIndex = state.days.indexOfFirst { it.date == LocalDate(2021, 1, 2) }
+                val day = state.days[dayIndex]
+                val updatedDay = day.copy(
+                    steps = persistentListOf(
+                        TravelDay.Step.Place(location = "Existing Location", lat = 0.0, lng = 0.0)
+                    )
+                )
+                state.copy(days = state.days.set(dayIndex, updatedDay))
+            }
 
             and("the new period overlaps with existing days") {
                 val newStartInstant = startInstant + 1.days // 2021-01-02
@@ -72,9 +81,25 @@ class PlanningUiStateTest : BehaviorSpec({
         `when`("setPeriod is called and 2 dates from old range have steps") {
             val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
             val endInstant = startInstant + 3.days // 2021-01-04
-            val stateWithSteps = initialState.setPeriod(startInstant, endInstant)
-                .addTravelStep(LocalDate(2021, 1, 2), "Location Day 2")
-                .addTravelStep(LocalDate(2021, 1, 3), "Location Day 3")
+            val stateWithSteps = initialState.setPeriod(startInstant, endInstant).let { state ->
+                val dayIndex2 = state.days.indexOfFirst { it.date == LocalDate(2021, 1, 2) }
+                val day2 = state.days[dayIndex2]
+                val updatedDay2 = day2.copy(
+                    steps = persistentListOf(
+                        TravelDay.Step.Place(location = "Location Day 2", lat = 0.0, lng = 0.0)
+                    )
+                )
+                val days1 = state.days.set(dayIndex2, updatedDay2)
+
+                val dayIndex3 = days1.indexOfFirst { it.date == LocalDate(2021, 1, 3) }
+                val day3 = days1[dayIndex3]
+                val updatedDay3 = day3.copy(
+                    steps = persistentListOf(
+                        TravelDay.Step.Place(location = "Location Day 3", lat = 0.0, lng = 0.0)
+                    )
+                )
+                state.copy(days = days1.set(dayIndex3, updatedDay3))
+            }
 
             and("the new period includes those 2 dates") {
                 val newStartInstant = startInstant + 1.days // 2021-01-02
@@ -97,67 +122,6 @@ class PlanningUiStateTest : BehaviorSpec({
                     result.days[3].date shouldBe LocalDate(2021, 1, 5)
                     result.days[3].steps.size shouldBe 0
                 }
-            }
-        }
-    }
-
-    given("a PlanningUiState with days") {
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-        val stateWithDays = PlanningUiState().setPeriod(startInstant, endInstant)
-
-        `when`("addTravelStep is called with a valid day and location") {
-            val result = stateWithDays.addTravelStep(LocalDate(2021, 1, 2), "Rome")
-
-            then("it should add a step to the specified day") {
-                result.days.size shouldBe 3
-                result.days[1].date shouldBe LocalDate(2021, 1, 2)
-                result.days[1].steps.size shouldBe 1
-                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
-            }
-
-            then("it should generate a unique ID for the step") {
-                result.days[1].steps[0].id.isNotEmpty() shouldBe true
-            }
-
-            then("it should not affect other days") {
-                result.days[0].steps.size shouldBe 0
-                result.days[2].steps.size shouldBe 0
-            }
-        }
-
-        `when`("addTravelStep is called multiple times on the same day") {
-            val result = stateWithDays
-                .addTravelStep(LocalDate(2021, 1, 2), "Rome")
-                .addTravelStep(LocalDate(2021, 1, 2), "Vatican City")
-                .addTravelStep(LocalDate(2021, 1, 2), "Colosseum")
-
-            then("it should add all steps to the specified day") {
-                result.days[1].steps.size shouldBe 3
-                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
-                (result.days[1].steps[1] as TravelDay.Step.Place).location shouldBe "Vatican City"
-                (result.days[1].steps[2] as TravelDay.Step.Place).location shouldBe "Colosseum"
-            }
-
-            then("each step should have a unique ID") {
-                val ids = result.days[1].steps.map { it.id }
-                ids.size shouldBe ids.toSet().size
-            }
-        }
-
-        `when`("addTravelStep is called on different days") {
-            val result = stateWithDays
-                .addTravelStep(LocalDate(2021, 1, 1), "Paris")
-                .addTravelStep(LocalDate(2021, 1, 2), "Rome")
-                .addTravelStep(LocalDate(2021, 1, 3), "Milan")
-
-            then("it should add steps to each specified day") {
-                result.days[0].steps.size shouldBe 1
-                (result.days[0].steps[0] as TravelDay.Step.Place).location shouldBe "Paris"
-                result.days[1].steps.size shouldBe 1
-                (result.days[1].steps[0] as TravelDay.Step.Place).location shouldBe "Rome"
-                result.days[2].steps.size shouldBe 1
-                (result.days[2].steps[0] as TravelDay.Step.Place).location shouldBe "Milan"
             }
         }
     }

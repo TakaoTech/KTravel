@@ -42,25 +42,6 @@ data class PlanningUiState(
             )
         }
     }
-
-    fun addTravelStep(day: LocalDate, name: String): PlanningUiState {
-        val dayIndex = days.indexOfFirst { it.date == day }
-        return days[dayIndex].let {
-            it.copy(
-                steps = it.steps.add(
-                    TravelDay.Step.Place(
-                        location = name
-                    )
-                )
-            )
-        }.let {
-            days.set(dayIndex, it)
-        }.let {
-            copy(
-                days = it,
-            )
-        }
-    }
 }
 
 @Stable
@@ -95,7 +76,9 @@ data class TravelDay(
         @Stable
         data class Place(
             override val id: String = Uuid.random().toString(),
-            val location: String
+            val location: String,
+            val lat: Double,
+            val lng: Double
         ) : Step(id)
 
         @Stable

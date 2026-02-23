@@ -6,7 +6,13 @@ import ktravel.composeapp.generated.resources.planning_transport_provider_name_h
 import ktravel.composeapp.generated.resources.planning_transport_provider_name_local
 import org.jetbrains.compose.resources.StringResource
 
-interface RoutingProvider
+interface RoutingProvider {
+    suspend fun getRoutes(
+        origin: String,
+        destination: String,
+        settings: RoutingProviderSettings
+    )
+}
 
 enum class RoutingProviderType(val stringName: StringResource) {
     LOCAL(Res.string.planning_transport_provider_name_local),

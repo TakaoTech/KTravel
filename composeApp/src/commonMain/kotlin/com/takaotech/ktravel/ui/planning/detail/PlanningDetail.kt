@@ -273,14 +273,14 @@ private fun SupportingPaneContent(
 private fun PlanningDetailPagereview() {
     PlanningDetailPage(
         steps = persistentListOf(
-            TravelDay.Step.Place(location = "Roma - Colosseo"),
+            TravelDay.Step.Place(location = "Roma - Colosseo", lat = 0.0, lng = 0.0),
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.BUS),
-            TravelDay.Step.Place(location = "Fontana di Trevi"),
+            TravelDay.Step.Place(location = "Fontana di Trevi", lat = 0.0, lng = 0.0),
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.CAR),
-            TravelDay.Step.Place(location = "Pantheon"),
+            TravelDay.Step.Place(location = "Pantheon", lat = 0.0, lng = 0.0),
             TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.TRAIN),
-            TravelDay.Step.Place(location = "Piazza Navona"),
-            TravelDay.Step.Place(location = "Piazza Navona"),
+            TravelDay.Step.Place(location = "Piazza Navona", lat = 0.0, lng = 0.0),
+            TravelDay.Step.Place(location = "Piazza Navona", lat = 0.0, lng = 0.0),
         ),
         onAddPlaceClick = {},
         onStepDeleteClicked = {},

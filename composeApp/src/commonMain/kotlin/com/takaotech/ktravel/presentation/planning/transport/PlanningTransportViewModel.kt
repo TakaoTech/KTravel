@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProvider
+import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import kotlinx.coroutines.flow.*
@@ -44,11 +45,37 @@ class PlanningTransportViewModel(
 
 
     fun selectProvider(providerType: RoutingProviderType) {
+        val defaultSettings = when (providerType) {
+            RoutingProviderType.LOCAL -> RoutingProviderSettings.Local()
+            RoutingProviderType.HERE -> RoutingProviderSettings.Here()
+            RoutingProviderType.GMAPS -> RoutingProviderSettings.GMaps()
+        }
         val newProvider = mUiState.updateAndGet {
             it.copy(
-                selectedProvider = providerType
+                selectedProvider = providerType,
+                providerSettings = defaultSettings
             )
         }.selectedProvider
         providersMap = get<RoutingProvider>(named(newProvider))
+    }
+
+    fun updateProviderSettings(settings: RoutingProviderSettings) {
+        mUiState.update {
+            it.copy(providerSettings = settings)
+        }
+    }
+
+    fun calculateTransport() {
+        viewModelScope.launch {
+            //TODO Change to a common LatLng
+            with(mUiState.value) {
+                providersMap.getRoutes(
+                    origin = "${startPlace!!.lat},${startPlace.lng}",
+                    destination = "${endPlace!!.lat},${endPlace.lng}",
+                    settings = mUiState.value.providerSettings
+                )
+            }
+
+        }
     }
 }
