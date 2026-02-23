@@ -164,6 +164,7 @@ Open `/iosApp` directory in Xcode and run from there.
 - Use state hoisting for reusable components
 - Follow Compose best practices for performance
 - Keep composables focused and composable
+- Place new label strings in `strings.xml` and use id for string references
 
 ## Development Workflow
 
