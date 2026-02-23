@@ -1,20 +1,23 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration debug="true">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>
-                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
-            </Pattern>
-        </layout>
+<configuration>
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
+    <import class="ch.qos.logback.core.ConsoleAppender"/>
+
+    <!-- L'appender si chiama STDOUT -->
+    <appender name="STDOUT" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
+        </encoder>
     </appender>
 
-    <logger level="debug" additivity="false">
-        <appender-ref ref="CONSOLE"/>
+    <logger name="io.ktor.client.HttpClient" level="TRACE" additivity="false">
+        <!-- Corretto: Fai riferimento a STDOUT invece che a CONSOLE -->
+        <appender-ref ref="STDOUT"/>
     </logger>
 
-    <root level="error">
-        <appender-ref ref="CONSOLE"/>
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
     </root>
-
 </configuration>
