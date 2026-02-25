@@ -3,10 +3,10 @@ package com.takaotech.navigation.routing.dto.response
 import kotlinx.serialization.Serializable
 
 /**
- * Response from the HERE Routing API /routes endpoint.
+ * A response containing zero or more routes.
  *
- * @property routes List of calculated routes
- * @property notices List of notices/warnings for the entire response
+ * @property routes An array of routes.
+ * @property notices Contains a list of issues related to this request. Notices must be carefully evaluated and, if deemed necessary, the response should be discarded accordingly.
  */
 @Serializable
 data class RouterRouteResponse(

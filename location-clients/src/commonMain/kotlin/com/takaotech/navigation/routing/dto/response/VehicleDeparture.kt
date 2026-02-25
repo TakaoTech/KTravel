@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 /**
  * Describes a departure or arrival location and time.
  *
- * @property place The location of departure/arrival
- * @property time Expected time in RFC 3339 format (optional)
- * @property charge Vehicle battery charge in kWh (optional, for EVs)
+ * @property place The location of departure or arrival.
+ * @property time Expected time of departure or arrival in RFC 3339 format.
+ * @property charge Estimated vehicle battery charge in kWh.
  */
 @Serializable
 data class VehicleDeparture(
