@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 /**
  * Total value of key attributes for a route section.
  *
- * @property duration Duration in seconds
- * @property length Length in meters
- * @property baseDuration Duration without traffic information (seconds)
- * @property typicalDuration Duration under typical traffic conditions (seconds)
- * @property consumption Estimated energy/fuel consumption
+ * @property duration Estimated duration (in seconds).
+ * @property length Estimated length (in meters).
+ * @property baseDuration Estimated duration (in seconds) without traffic information.
+ * @property typicalDuration Estimated duration (in seconds) under typical traffic conditions.
+ * @property consumption Estimated energy or fuel consumption.
  */
 @Serializable
 data class VehicleSummary(

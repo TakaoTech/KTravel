@@ -3,9 +3,9 @@ package com.takaotech.navigation.routing.dto.response
 import kotlinx.serialization.Serializable
 
 /**
- * Information about the transport mode used in a vehicle section.
+ * Transport mode of the vehicle.
  *
- * @property mode The transport mode
+ * @property mode Transport mode of the vehicle.
  */
 @Serializable
 data class VehicleTransport(

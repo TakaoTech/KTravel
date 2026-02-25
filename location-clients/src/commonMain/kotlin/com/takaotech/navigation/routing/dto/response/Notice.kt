@@ -4,9 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Notice about issues encountered during route processing.
+ * A notice contains important notifications.
  *
- * @property title Human-readable title
+ * @property title Human-readable notice description.
  * @property code Machine-readable code
  * @property severity Severity level (critical, info, warning)
  */
