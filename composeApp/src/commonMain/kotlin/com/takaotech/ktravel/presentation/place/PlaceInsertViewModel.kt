@@ -4,6 +4,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.FieldValidationState
+import com.takaotech.ktravel.core.KFieldState
 import com.takaotech.ktravel.core.toTextPayload
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planning.Place
@@ -43,6 +44,7 @@ class PlaceInsertViewModel(
     }
 
     fun onPlaceLatChanged(lat: TextFieldValue) {
+        if (tryParseAndSetLatLng(lat.text)) return
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
@@ -54,6 +56,7 @@ class PlaceInsertViewModel(
     }
 
     fun onPlaceLngChanged(lng: TextFieldValue) {
+        if (tryParseAndSetLatLng(lng.text)) return
         _uiState.update {
             it.copy(
                 placeLng = it.placeLng.copy(
@@ -62,6 +65,36 @@ class PlaceInsertViewModel(
                 )
             )
         }
+    }
+
+    private fun tryParseAndSetLatLng(text: String): Boolean {
+        val parsed = parseLatLng(text) ?: return false
+        val (lat, lng) = parsed
+        _uiState.update {
+            it.copy(
+                placeLat = it.placeLat.copy(
+                    value = TextFieldValue(lat),
+                    validationState = FieldValidationState.None
+                ),
+                placeLng = it.placeLng.copy(
+                    value = TextFieldValue(lng),
+                    validationState = FieldValidationState.None
+                )
+            )
+        }
+        return true
+    }
+
+    private fun parseLatLng(text: String): Pair<String, String>? {
+        val coordinatePattern = Regex("""[+-]?[0-9]+(?:\.[0-9]+)?""")
+        val parts = coordinatePattern.findAll(text.trim()).map { it.value }.toList()
+        if (parts.size < 2) return null
+
+        // Verifica che il testo contenga un separatore (virgola o spazio) tra due numeri
+        val separatorPattern = Regex("""^[+-]?[0-9]+(?:\.[0-9]+)?[\s,]+[+-]?[0-9]+(?:\.[0-9]+)?$""")
+        if (!separatorPattern.matches(text.trim())) return null
+
+        return Pair(parts[0], parts[1])
     }
 
     fun onSearchQueryChanged(query: TextFieldValue) {
@@ -97,6 +130,10 @@ class PlaceInsertViewModel(
 
     fun onDateSelected(date: LocalDate?) {
         _uiState.update { it.copy(selectedDate = date) }
+    }
+
+    fun onBulkChanged(isBulk: Boolean) {
+        _uiState.update { it.copy(isBulk = isBulk) }
     }
 
     fun savePlace() {
@@ -160,6 +197,17 @@ class PlaceInsertViewModel(
                     lng = lng.value.text.toDoubleOrNull() ?: 0.0,
                 )
                 repository.savePlace(place, dayId)
+
+                if (newUiState.isBulk) {
+                    _uiState.update {
+                        it.copy(
+                            placeName = KFieldState(),
+                            placeLat = KFieldState(),
+                            placeLng = KFieldState(),
+                            searchQuery = KFieldState()
+                        )
+                    }
+                }
             }
         }
     }

@@ -54,7 +54,9 @@ fun PlaceInsertPage(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         viewModel.savePlace()
-                        onSaveClicked()
+                        if (!uiState.isBulk) {
+                            onSaveClicked()
+                        }
                     }
                 ) {
                     Text("Save")
@@ -80,7 +82,9 @@ fun PlaceInsertPage(
                 .padding(it),
             inputMode = uiState.inputMode,
             onInputModeChange = { viewModel.onInputModeChanged(it) },
-            searchQuery = uiState.searchQuery.value
+            searchQuery = uiState.searchQuery.value,
+            isBulk = uiState.isBulk,
+            onBulkChanged = { isBulk -> viewModel.onBulkChanged(isBulk) }
         )
     }
 }

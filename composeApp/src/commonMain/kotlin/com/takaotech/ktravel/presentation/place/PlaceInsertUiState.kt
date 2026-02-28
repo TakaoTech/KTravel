@@ -23,4 +23,5 @@ data class PlaceInsertUiState(
     val searchQuery: KFieldState = KFieldState(),
     val selectedDate: LocalDate? = null,
     val selectedTime: LocalTime = LocalTime(0, 0),
+    val isBulk: Boolean = false,
 )

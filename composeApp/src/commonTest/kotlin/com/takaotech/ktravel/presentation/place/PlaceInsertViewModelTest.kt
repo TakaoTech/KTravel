@@ -553,6 +553,261 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
     }
 
+    given("a PlaceInsertViewModel for lat/lng paste detection") {
+        `when`("onPlaceLatChanged is called with 'lat, lng' format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251, 12.492373"))
+
+            then("should split and set both lat and lng fields") {
+                viewModel.uiState.value.placeLat.value.text shouldBe "41.890251"
+                viewModel.uiState.value.placeLng.value.text shouldBe "12.492373"
+            }
+        }
+
+        `when`("onPlaceLngChanged is called with 'lat, lng' format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLngChanged(TextFieldValue("41.890251, 12.492373"))
+
+            then("should split and set both lat and lng fields") {
+                viewModel.uiState.value.placeLat.value.text shouldBe "41.890251"
+                viewModel.uiState.value.placeLng.value.text shouldBe "12.492373"
+            }
+        }
+
+        `when`("onPlaceLatChanged is called with 'lat lng' space-separated format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251 12.492373"))
+
+            then("should split and set both lat and lng fields") {
+                viewModel.uiState.value.placeLat.value.text shouldBe "41.890251"
+                viewModel.uiState.value.placeLng.value.text shouldBe "12.492373"
+            }
+        }
+
+        `when`("onPlaceLatChanged is called with a single lat value") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+
+            then("should update only lat field") {
+                viewModel.uiState.value.placeLat.value.text shouldBe "41.890251"
+                viewModel.uiState.value.placeLng.value.text shouldBe ""
+            }
+        }
+
+        `when`("onPlaceLngChanged is called with a single lng value") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            then("should update only lng field") {
+                viewModel.uiState.value.placeLat.value.text shouldBe ""
+                viewModel.uiState.value.placeLng.value.text shouldBe "12.492373"
+            }
+        }
+
+        `when`("onPlaceLatChanged is called with negative coordinates 'lat, lng' format") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onPlaceLatChanged(TextFieldValue("-33.865143, 151.209900"))
+
+            then("should split and set both lat and lng fields") {
+                viewModel.uiState.value.placeLat.value.text shouldBe "-33.865143"
+                viewModel.uiState.value.placeLng.value.text shouldBe "151.209900"
+            }
+        }
+    }
+
+    given("a PlaceInsertViewModel with isBulk enabled") {
+        `when`("savePlace is called with valid data and isBulk is true") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(true)
+            viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            viewModel.savePlace()
+
+            then("should save the place to the repository") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace?.name shouldBe "Colosseo"
+                }
+            }
+
+            then("should reset placeName field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.value.text shouldBe ""
+                }
+            }
+
+            then("should reset placeLat field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLat.value.text shouldBe ""
+                }
+            }
+
+            then("should reset placeLng field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLng.value.text shouldBe ""
+                }
+            }
+
+            then("should reset searchQuery field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.searchQuery.value.text shouldBe ""
+                }
+            }
+
+            then("should keep isBulk as true after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.isBulk shouldBe true
+                }
+            }
+        }
+
+        `when`("savePlace is called multiple times with isBulk true") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(true)
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+            viewModel.savePlace()
+
+            eventually(duration = 1.seconds) {
+                viewModel.uiState.value.placeName.value.text shouldBe ""
+            }
+
+            viewModel.onPlaceNameChanged(TextFieldValue("Pantheon"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.898614"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.476869"))
+            viewModel.savePlace()
+
+            then("should save the second place to the repository") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace?.name shouldBe "Pantheon"
+                }
+            }
+
+            then("should reset fields after second save") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.value.text shouldBe ""
+                    viewModel.uiState.value.placeLat.value.text shouldBe ""
+                    viewModel.uiState.value.placeLng.value.text shouldBe ""
+                }
+            }
+        }
+
+        `when`("savePlace is called with invalid data and isBulk is true") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(true)
+            // Leave all fields empty
+
+            viewModel.savePlace()
+
+            then("should not save the place") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace shouldBe null
+                }
+            }
+
+            then("should not reset fields when save fails") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
+                }
+            }
+        }
+    }
+
+    given("a PlaceInsertViewModel with isBulk disabled") {
+        `when`("savePlace is called with valid data and isBulk is false") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(false)
+            viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
+            viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
+            viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
+
+            viewModel.savePlace()
+
+            then("should save the place to the repository") {
+                eventually(duration = 1.seconds) {
+                    fakeRepository.savedPlace?.name shouldBe "Colosseo"
+                }
+            }
+
+            then("should not reset placeName field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeName.value.text shouldBe "Colosseo"
+                }
+            }
+
+            then("should not reset placeLat field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLat.value.text shouldBe "41.890251"
+                }
+            }
+
+            then("should not reset placeLng field after saving") {
+                eventually(duration = 1.seconds) {
+                    viewModel.uiState.value.placeLng.value.text shouldBe "12.492373"
+                }
+            }
+        }
+    }
+
+    given("a PlaceInsertViewModel for isBulk state management") {
+        `when`("onBulkChanged is called with true") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(true)
+
+            then("should set isBulk to true") {
+                viewModel.uiState.value.isBulk shouldBe true
+            }
+        }
+
+        `when`("onBulkChanged is called with false") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(false)
+
+            then("should set isBulk to false") {
+                viewModel.uiState.value.isBulk shouldBe false
+            }
+        }
+
+        `when`("onBulkChanged is toggled from true to false") {
+            val fakeRepository = FakeTravelPlanRepository()
+            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+
+            viewModel.onBulkChanged(true)
+            viewModel.onBulkChanged(false)
+
+            then("should set isBulk to false") {
+                viewModel.uiState.value.isBulk shouldBe false
+            }
+        }
+    }
+
     given("a PlaceInsertViewModel for error clearing") {
         `when`("onPlaceNameChanged is called after name error") {
             val fakeRepository = FakeTravelPlanRepository()
