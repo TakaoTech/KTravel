@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.ui.place
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -31,11 +33,13 @@ fun PlaceInsert(
     placeLng: KFieldState,
 
     searchQuery: TextFieldValue,
+    isBulk: Boolean,
 
     onPlaceNameChange: (TextFieldValue) -> Unit,
     onInputModeChange: (PlaceInputMode) -> Unit,
     onPlaceLatChange: (TextFieldValue) -> Unit,
     onPlaceLngChange: (TextFieldValue) -> Unit,
+    onBulkChanged: (Boolean) -> Unit,
 
     modifier: Modifier = Modifier,
     timePickerState: TimePickerState? = null,
@@ -46,6 +50,22 @@ fun PlaceInsert(
     Column(
         modifier = modifier
     ) {
+        val bulkInteractionSource = MutableInteractionSource()
+
+        Row(
+            modifier = Modifier.clickable(interactionSource = bulkInteractionSource) {
+                onBulkChanged(!isBulk)
+            },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = isBulk,
+                onCheckedChange = onBulkChanged,
+                interactionSource = bulkInteractionSource
+            )
+            Text("Inserimento Multiplo")
+        }
+
         Row {
             OutlinedTextField(
                 label = { Text("Place name") },
@@ -180,7 +200,6 @@ fun PlaceInsert(
                 )
             }
         }
-
     }
 }
 
@@ -213,11 +232,13 @@ private fun PlaceInsertPreview() {
         placeLng = KFieldState(),
         searchQuery = TextFieldValue(),
         timePickerState = rememberTimePickerState(),
+        isBulk = false,
         onPlaceNameChange = { },
         onPlaceLatChange = { },
         onPlaceLngChange = { },
         inputMode = PlaceInputMode.LAT_LNG,
-        onInputModeChange = {}
+        onInputModeChange = {},
+        onBulkChanged = {}
     )
 }
 
