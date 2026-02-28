@@ -123,7 +123,7 @@ private fun PlanningTripPage(
                 .padding(it),
             state = dragAndDropState,
         ) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     PlanningHeader(
                         name = planHeader.name,
