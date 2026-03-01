@@ -121,6 +121,9 @@ kotlin {
                 implementation(libs.dnd)
                 api(libs.kotzilla.koin.annotation)
 
+                implementation(libs.kotlinx.measure)
+                implementation(libs.kotlinx.money)
+
             }
         }
         iosMain.dependencies {
