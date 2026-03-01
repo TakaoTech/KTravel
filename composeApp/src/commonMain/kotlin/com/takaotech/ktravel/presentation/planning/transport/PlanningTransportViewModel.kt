@@ -7,6 +7,8 @@ import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelDay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
@@ -25,6 +27,9 @@ class PlanningTransportViewModel(
 
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
     val uiState = mUiState.asStateFlow()
+
+    private val _navigationEvent = Channel<PlanningTransportNavigationEvent>(Channel.BUFFERED)
+    val navigationEvent = _navigationEvent.receiveAsFlow()
 
     private var providersMap = get<RoutingProvider>(named(mUiState.value.selectedProvider))
 
@@ -66,16 +71,21 @@ class PlanningTransportViewModel(
     }
 
     fun calculateTransport() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             //TODO Change to a common LatLng
             with(mUiState.value) {
-                providersMap.getRoutes(
+                val routes = providersMap.getRoutes(
                     origin = "${startPlace!!.lat},${startPlace.lng}",
                     destination = "${endPlace!!.lat},${endPlace.lng}",
                     settings = mUiState.value.providerSettings
                 )
+                mUiState.update { it.copy(routes = routes, selectedRouteIndex = 0) }
+                _navigationEvent.send(PlanningTransportNavigationEvent.NavigateToRoutePreview)
             }
-
         }
+    }
+
+    fun selectRoute(index: Int) {
+        mUiState.update { it.copy(selectedRouteIndex = index) }
     }
 }

@@ -24,14 +24,14 @@ import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
+import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPageNavigation
-import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPage
-import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPageNavigation
+import com.takaotech.ktravel.ui.planning.transport.*
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
@@ -41,6 +41,7 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.KoinConfiguration
 
@@ -143,18 +144,57 @@ fun App() {
                             )
                         }
 
-                        composable<PlanningTransportPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
-                            val viewModel = koinViewModel<PlanningTransportViewModel> {
-                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                        navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
+                            composable<PlanningTransportPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
+                                val viewModel =
+                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(navController) {
+                                        parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                                    }
+
+                                LaunchedEffect(viewModel) {
+                                    viewModel.navigationEvent.collect { event ->
+                                        when (event) {
+                                            is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
+                                                navController.navigate(
+                                                    PlanningRoutePreviewPageNavigation(
+                                                        args.dayId,
+                                                        args.startPlaceId,
+                                                        args.endPlaceId
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                PlanningTransportPage(
+                                    viewModel = viewModel,
+                                    onNavigationBackClick = {
+                                        navController.navigateUp()
+                                    }
+                                )
                             }
 
-                            PlanningTransportPage(
-                                viewModel = viewModel,
-                                onNavigationBackClick = {
-                                    navController.navigateUp()
+                            composable<PlanningRoutePreviewPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<PlanningRoutePreviewPageNavigation>()
+                                val viewModel =
+                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(navController) {
+                                        parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                                    }
+                                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                                uiState.routes?.let { routes ->
+                                    PlanningRoutePreviewPage(
+                                        routes = routes,
+                                        selectedRouteIndex = uiState.selectedRouteIndex,
+                                        onRouteConfirm = {
+
+                                        },
+                                        onRouteChange = { viewModel.selectRoute(it) }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
 
@@ -276,6 +316,7 @@ fun App() {
 inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
     navController: NavController,
     navGraphRoute: Any? = this.destination.parent?.route,
+    noinline parameters: ParametersDefinition? = null,
 ): VM {
     val navGraphRoute = navGraphRoute ?: return koinViewModel<VM>()
     val parentEntry = remember(this) {
@@ -286,6 +327,7 @@ inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
         }
     }
     return koinViewModel(
-        viewModelStoreOwner = parentEntry
+        viewModelStoreOwner = parentEntry,
+        parameters = parameters
     )
 }
