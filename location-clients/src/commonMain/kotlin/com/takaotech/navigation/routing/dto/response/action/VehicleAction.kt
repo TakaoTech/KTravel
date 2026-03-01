@@ -38,5 +38,5 @@ data class VehicleAction(
     @SerialName("exitSign") val exitSign: ExitInfo? = null,
     @SerialName("signpost") val signPost: SignpostInfo? = null,
     @SerialName("intersectionName") val intersectionName: List<LocalizedString>? = null,
-    @SerialName("turnAngle") val turnAngle: Int? = null
+    @SerialName("turnAngle") val turnAngle: Double? = null
 )
