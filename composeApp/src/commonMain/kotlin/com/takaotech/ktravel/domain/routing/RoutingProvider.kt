@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.routing
 
+import com.takaotech.ktravel.domain.routing.model.Routes
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.planning_transport_provider_name_gmaps
 import ktravel.composeapp.generated.resources.planning_transport_provider_name_here
@@ -11,7 +12,7 @@ interface RoutingProvider {
         origin: String,
         destination: String,
         settings: RoutingProviderSettings
-    )
+    ): Routes
 }
 
 enum class RoutingProviderType(val stringName: StringResource) {

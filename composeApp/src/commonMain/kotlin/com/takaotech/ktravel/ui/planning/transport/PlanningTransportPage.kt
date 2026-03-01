@@ -28,7 +28,13 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Serializable
+object PlanningTransportNavigation
+
+@Serializable
 data class PlanningTransportPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
+
+@Serializable
+class PlanningRoutePreviewPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
 
 @Composable
 fun PlanningTransportPage(
