@@ -5,6 +5,7 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.toLocalDate
+import com.takaotech.ktravel.domain.routing.model.Route
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -84,7 +85,8 @@ data class TravelDay(
         @Stable
         data class Transport(
             override val id: String = Uuid.random().toString(),
-            val type: Type
+            val type: Type,
+            val route: Route
         ) : Step(id) {
             enum class Type(val icon: DrawableResource) {
                 TRAIN(Res.drawable.train),

@@ -73,6 +73,11 @@ interface TravelPlanRepository {
     suspend fun moveTravelStepDown(stepId: String, dayId: String)
 
     /**
+     * Inserisce uno step nella posizione successiva a un altro step
+     */
+    suspend fun addTransportStep(dayId: String, afterStepId: String, step: TravelDay.Step)
+
+    /**
      * Elimina un Place dal piano di viaggio
      */
     suspend fun deletePlace(placeId: String, dayId: String? = null)

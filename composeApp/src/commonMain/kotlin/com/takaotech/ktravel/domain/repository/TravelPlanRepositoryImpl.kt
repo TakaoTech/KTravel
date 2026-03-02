@@ -247,6 +247,22 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
         )
     }
 
+    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: TravelDay.Step) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
+        if (afterIndex == -1) return
+
+        val updatedSteps = day.steps.add(afterIndex + 1, step)
+        val updatedDay = day.copy(steps = updatedSteps)
+        _planningState.value = currentState.copy(
+            days = currentState.days.set(dayIndex, updatedDay)
+        )
+    }
+
     override suspend fun deletePlace(placeId: String, dayId: String?) {
         val currentState = _planningState.value
 

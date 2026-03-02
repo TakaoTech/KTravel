@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlanningRoutePreviewPage(
+fun PlanningTransportRoutePreviewPage(
     routes: Routes,
     selectedRouteIndex: Int,
     onRouteChange: (Int) -> Unit,
@@ -189,7 +189,7 @@ private fun PlanningRoutePreviewPagePreview() {
             modifier = Modifier
                 .padding(it)
         ) {
-            PlanningRoutePreviewPage(
+            PlanningTransportRoutePreviewPage(
                 selectedRouteIndex = 0,
                 onRouteChange = {},
                 onRouteConfirm = {},

@@ -7,10 +7,9 @@ import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelDay
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.component.KoinComponent
@@ -70,22 +69,66 @@ class PlanningTransportViewModel(
         }
     }
 
+    private var calculateTransportJob: Job? = null
+
     fun calculateTransport() {
-        viewModelScope.launch(Dispatchers.Default) {
-            //TODO Change to a common LatLng
-            with(mUiState.value) {
-                val routes = providersMap.getRoutes(
-                    origin = "${startPlace!!.lat},${startPlace.lng}",
-                    destination = "${endPlace!!.lat},${endPlace.lng}",
-                    settings = mUiState.value.providerSettings
+        if (calculateTransportJob?.isActive == true) return
+        calculateTransportJob = viewModelScope.launch(Dispatchers.Default) {
+            // TODO Change to a common LatLng
+
+            mUiState.update {
+                it.copy(
+                    isLoading = true,
+                    routes = null,
                 )
-                mUiState.update { it.copy(routes = routes, selectedRouteIndex = 0) }
-                _navigationEvent.send(PlanningTransportNavigationEvent.NavigateToRoutePreview)
             }
+
+            val routes = with(mUiState.value) {
+                withContext(Dispatchers.IO) {
+                    providersMap.getRoutes(
+                        origin = "${startPlace!!.lat},${startPlace.lng}",
+                        destination = "${endPlace!!.lat},${endPlace.lng}",
+                        settings = mUiState.value.providerSettings
+                    )
+                }
+            }
+
+            mUiState.update {
+                it.copy(
+                    isLoading = false,
+                    routes = routes,
+                    selectedRouteIndex = 0,
+                )
+            }
+
+            // TODO change this
+            _navigationEvent.send(PlanningTransportNavigationEvent.NavigateToRoutePreview)
         }
     }
 
     fun selectRoute(index: Int) {
         mUiState.update { it.copy(selectedRouteIndex = index) }
+    }
+
+    fun saveSelectedRoute() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val state = mUiState.value
+            val selectedRoute = state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
+
+            // TODO Change this transformation
+            val transportType = when (selectedRoute.sections.firstOrNull()?.transport?.mode?.uppercase()) {
+                "TRAIN" -> TravelDay.Step.Transport.Type.TRAIN
+                "BUS" -> TravelDay.Step.Transport.Type.BUS
+                "FLIGHT" -> TravelDay.Step.Transport.Type.FLIGHT
+                else -> TravelDay.Step.Transport.Type.CAR
+            }
+            val transportStep = TravelDay.Step.Transport(
+                type = transportType,
+                route = selectedRoute
+            )
+
+
+            repository.addTransportStep(dayId, startPlaceId, transportStep)
+        }
     }
 }

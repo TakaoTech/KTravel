@@ -157,7 +157,7 @@ fun App() {
                                         when (event) {
                                             is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
                                                 navController.navigate(
-                                                    PlanningRoutePreviewPageNavigation(
+                                                    PlanningTransportRoutePreviewPageNavigation(
                                                         args.dayId,
                                                         args.startPlaceId,
                                                         args.endPlaceId
@@ -176,8 +176,8 @@ fun App() {
                                 )
                             }
 
-                            composable<PlanningRoutePreviewPageNavigation> { backStackEntry ->
-                                val args = backStackEntry.toRoute<PlanningRoutePreviewPageNavigation>()
+                            composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
                                 val viewModel =
                                     backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(navController) {
                                         parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
@@ -185,11 +185,12 @@ fun App() {
                                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                                 uiState.routes?.let { routes ->
-                                    PlanningRoutePreviewPage(
+                                    PlanningTransportRoutePreviewPage(
                                         routes = routes,
                                         selectedRouteIndex = uiState.selectedRouteIndex,
                                         onRouteConfirm = {
-
+                                            viewModel.saveSelectedRoute()
+                                            navController.popBackStack<PlanningDetailPageNavigation>(inclusive = false)
                                         },
                                         onRouteChange = { viewModel.selectRoute(it) }
                                     )
