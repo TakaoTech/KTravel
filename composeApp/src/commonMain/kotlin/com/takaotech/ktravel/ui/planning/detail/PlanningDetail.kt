@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.PanelHorizontalDivided
+import com.takaotech.ktravel.core.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.Place
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
@@ -270,18 +271,9 @@ private fun SupportingPaneContent(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningDetailPagereview() {
+private fun PlanningDetailPagePreview() {
     PlanningDetailPage(
-        steps = persistentListOf(
-            TravelDay.Step.Place(location = "Roma - Colosseo", lat = 0.0, lng = 0.0),
-            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.BUS),
-            TravelDay.Step.Place(location = "Fontana di Trevi", lat = 0.0, lng = 0.0),
-            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.CAR),
-            TravelDay.Step.Place(location = "Pantheon", lat = 0.0, lng = 0.0),
-            TravelDay.Step.Transport(type = TravelDay.Step.Transport.Type.TRAIN),
-            TravelDay.Step.Place(location = "Piazza Navona", lat = 0.0, lng = 0.0),
-            TravelDay.Step.Place(location = "Piazza Navona", lat = 0.0, lng = 0.0),
-        ),
+        steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList(),
         onAddPlaceClick = {},
         onStepDeleteClicked = {},
         onDeletePlaceClick = {},

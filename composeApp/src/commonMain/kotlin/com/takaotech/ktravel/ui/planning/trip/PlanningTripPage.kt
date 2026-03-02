@@ -17,6 +17,7 @@ import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
+import com.takaotech.ktravel.core.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.Place
 import com.takaotech.ktravel.presentation.planning.PlanHeader
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
@@ -28,6 +29,7 @@ import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
@@ -208,28 +210,7 @@ private fun PlanningPagePreview() {
         days = persistentListOf(
             TravelDay(
                 date = LocalDate(2024, 6, 15),
-                steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Roma - Colosseo", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Fontana di Trevi", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Pantheon", lat = 0.0, lng = 0.0)
-                )
-            ),
-            TravelDay(
-                date = LocalDate(2024, 6, 16),
-                steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Musei Vaticani", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Cappella Sistina", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Piazza San Pietro", lat = 0.0, lng = 0.0)
-                )
-            ),
-            TravelDay(
-                date = LocalDate(2024, 6, 17),
-                steps = persistentListOf(
-                    TravelDay.Step.Place(location = "Firenze - Duomo", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Galleria degli Uffizi", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Ponte Vecchio", lat = 0.0, lng = 0.0),
-                    TravelDay.Step.Place(location = "Piazzale Michelangelo", lat = 0.0, lng = 0.0)
-                )
+                steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList()
             )
         ),
         onPlanNameChange = {},
