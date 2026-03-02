@@ -1,0 +1,61 @@
+package com.takaotech.ktravel.ui.planning.detail
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.takaotech.ktravel.presentation.planning.TravelDay
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.delete
+import org.jetbrains.compose.resources.painterResource
+import kotlin.time.Duration.Companion.seconds
+
+@Composable
+fun TravelStepTransport(
+    step: TravelDay.Step.Transport,
+    onStepDeleteClicked: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(painter = painterResource(step.type.icon), contentDescription = null)
+        val totalDuration by remember(step.route) {
+            derivedStateOf {
+                var wholeDuration = 0.seconds
+
+                for (section in step.route.sections) {
+                    wholeDuration += section.summary.durationSeconds
+                }
+
+                wholeDuration.toString()
+            }
+        }
+
+        Text("Duration $totalDuration")
+
+        Spacer(Modifier.weight(1f))
+
+        IconButton(
+            modifier = Modifier.padding(top = 8.dp),
+            onClick = {
+                onStepDeleteClicked(step.id)
+            }
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.delete),
+                contentDescription = null,
+            )
+        }
+    }
+}

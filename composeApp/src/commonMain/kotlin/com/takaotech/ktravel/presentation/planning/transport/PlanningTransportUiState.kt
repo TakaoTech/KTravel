@@ -14,6 +14,8 @@ sealed interface PlanningTransportNavigationEvent {
 
 @Stable
 data class PlanningTransportUiState(
+    val isLoading: Boolean = false,
+
     val availableProviders: PersistentList<RoutingProviderType> = RoutingProviderType.entries.toPersistentList(),
     val selectedProvider: RoutingProviderType = RoutingProviderType.LOCAL,
     val providerSettings: RoutingProviderSettings = RoutingProviderSettings.Local(),

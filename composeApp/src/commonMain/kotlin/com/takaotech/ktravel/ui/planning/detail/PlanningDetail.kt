@@ -26,6 +26,7 @@ import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.*
@@ -175,7 +176,11 @@ private fun MainPaneContent(
                         }
 
                         is TravelDay.Step.Transport -> {
-                            Icon(painter = painterResource(step.type.icon), contentDescription = null)
+                            TravelStepTransport(
+                                modifier = Modifier.fillMaxWidth(),
+                                step = step,
+                                onStepDeleteClicked = onStepDeleteClicked,
+                            )
                         }
                     }
                 }

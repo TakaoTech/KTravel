@@ -34,7 +34,7 @@ object PlanningTransportNavigation
 data class PlanningTransportPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
 
 @Serializable
-class PlanningRoutePreviewPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
+class PlanningTransportRoutePreviewPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
 
 @Composable
 fun PlanningTransportPage(
@@ -90,17 +90,10 @@ private fun PlanningTransportPage(
         bottomBar = {
             BottomAppBar {
                 Button(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = onCalculateClick
                 ) {
                     Text("Calculate")
-                }
-
-                Button(
-                    onClick = {
-
-                    }
-                ) {
-                    Text("Save")
                 }
             }
         }
