@@ -33,6 +33,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.save
 import ktravel.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
@@ -45,6 +46,7 @@ object PlanningTripPageNavigation
 fun PlanningTripPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
+    onSaveClick: () -> Unit,
     onSettingClicked: () -> Unit,
     onAddPlaceClicked: () -> Unit,
     onDateClicked: (id: String) -> Unit,
@@ -67,6 +69,7 @@ fun PlanningTripPage(
         planHeader = planHeader,
         places = uiState.places,
         days = days,
+        onSaveClick = onSaveClick,
         onPlanNameChange = {
             viewModel.onPlanNameChanged(it)
         },
@@ -93,6 +96,8 @@ private fun PlanningTripPage(
     days: ImmutableList<TravelDay>,
     modifier: Modifier = Modifier,
 
+    onSaveClick: () -> Unit,
+
     onSettingClicked: () -> Unit,
 
     onPlanNameChange: (TextFieldValue) -> Unit,
@@ -115,6 +120,16 @@ private fun PlanningTripPage(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onSaveClick
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.save),
+                    contentDescription = null
+                )
+            }
         }
     ) {
         val dragAndDropState = rememberDragAndDropState<Place>()
@@ -219,6 +234,7 @@ private fun PlanningPagePreview() {
         onAddPlaceClicked = {},
         onDateClicked = {},
         onPlaceMovedToDay = { _, _ -> },
-        onSettingClicked = {}
+        onSettingClicked = {},
+        onSaveClick = {}
     )
 }

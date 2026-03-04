@@ -124,6 +124,10 @@ kotlin {
                 implementation(libs.kotlinx.measure)
                 implementation(libs.kotlinx.money)
 
+                implementation(libs.filekit.core)
+                implementation(libs.filekit.dialogs)
+                implementation(libs.filekit.dialogs.compose)
+
             }
         }
         iosMain.dependencies {
