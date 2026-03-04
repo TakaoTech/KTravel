@@ -37,6 +37,9 @@ import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
 import io.github.kdroidfilter.platformtools.getOperatingSystem
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
 import org.koin.compose.viewmodel.koinViewModel
@@ -86,6 +89,13 @@ fun App() {
                     navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation) {
                         composable<PlanningTripPageNavigation> {
                             val viewModel = it.sharedKoinViewModel2<PlanningViewModel>(navController)
+                            val coroutine = rememberCoroutineScope()
+
+                            val launcher = rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
+                                // Write your data to the file
+
+                            }
+
 
                             PlanningTripPage(
                                 viewModel = viewModel,
@@ -97,6 +107,11 @@ fun App() {
                                 },
                                 onSettingClicked = {
                                     navController.navigate(SettingsNavigation)
+                                },
+                                onSaveClick = {
+                                    coroutine.launch {
+                                        launcher.launch(viewModel.uiState.value.planHeader.name.text, "json")
+                                    }
                                 }
                             )
                         }
