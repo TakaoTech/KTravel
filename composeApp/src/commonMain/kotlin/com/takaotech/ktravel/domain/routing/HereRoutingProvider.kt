@@ -18,8 +18,12 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format.DateTimeComponents
+import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Named
 import kotlin.time.Duration.Companion.seconds
 
+@Factory
+@Named("HERE")
 class HereRoutingProvider(
     private val settingsRepository: SettingsRepository
 ) : RoutingProvider {
