@@ -9,7 +9,7 @@ import kotlin.time.Instant
 @OptIn(ExperimentalTime::class)
 fun Instant.toLocalDate(
     timeZone: TimeZone = TimeZone.UTC,
-): LocalDate = toLocalDateTime(TimeZone.UTC)
+): LocalDate = toLocalDateTime(timeZone)
     .date
 
 @OptIn(ExperimentalTime::class)
