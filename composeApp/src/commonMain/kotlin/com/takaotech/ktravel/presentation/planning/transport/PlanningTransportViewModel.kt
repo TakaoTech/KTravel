@@ -3,18 +3,14 @@ package com.takaotech.ktravel.presentation.planning.transport
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.domain.routing.RoutingProvider
+import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.qualifier.named
 
 @KoinViewModel
 class PlanningTransportViewModel(
@@ -22,15 +18,16 @@ class PlanningTransportViewModel(
     @InjectedParam private val startPlaceId: String,
     @InjectedParam private val endPlaceId: String,
     private val repository: TravelPlanRepository,
-) : ViewModel(), KoinComponent {
+    private val providerFactory: RoutingProviderFactory,
+) : ViewModel() {
 
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
     val uiState = mUiState.asStateFlow()
 
-    private val _navigationEvent = Channel<PlanningTransportNavigationEvent>(Channel.BUFFERED)
-    val navigationEvent = _navigationEvent.receiveAsFlow()
+    private val _navigationEvent = MutableSharedFlow<PlanningTransportNavigationEvent>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
 
-    private var providersMap = get<RoutingProvider>(named(mUiState.value.selectedProvider))
+    private var currentProvider = providerFactory.getProvider(mUiState.value.selectedProvider)
 
     init {
         viewModelScope.launch {
@@ -60,7 +57,7 @@ class PlanningTransportViewModel(
                 providerSettings = defaultSettings
             )
         }.selectedProvider
-        providersMap = get<RoutingProvider>(named(newProvider))
+        currentProvider = providerFactory.getProvider(newProvider)
     }
 
     fun updateProviderSettings(settings: RoutingProviderSettings) {
@@ -85,7 +82,7 @@ class PlanningTransportViewModel(
 
             val routes = with(mUiState.value) {
                 withContext(Dispatchers.IO) {
-                    providersMap.getRoutes(
+                    currentProvider.getRoutes(
                         origin = "${startPlace!!.lat},${startPlace.lng}",
                         destination = "${endPlace!!.lat},${endPlace.lng}",
                         settings = mUiState.value.providerSettings
@@ -102,7 +99,7 @@ class PlanningTransportViewModel(
             }
 
             // TODO change this
-            _navigationEvent.send(PlanningTransportNavigationEvent.NavigateToRoutePreview)
+            _navigationEvent.emit(PlanningTransportNavigationEvent.NavigateToRoutePreview)
         }
     }
 
