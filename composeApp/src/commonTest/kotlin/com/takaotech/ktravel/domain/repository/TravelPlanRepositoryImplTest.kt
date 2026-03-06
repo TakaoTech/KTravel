@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.repository
 
+import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain

@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.core.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.routing.model.*
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import kotlin.time.Duration.Companion.minutes
@@ -21,7 +22,7 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
     }
 
     private fun generateTransportStep(index: Int): TravelDay.Step.Transport {
-        val type = TravelDay.Step.Transport.Type.entries[index % TravelDay.Step.Transport.Type.entries.size]
+        val type = TransportType.entries[index % TransportType.entries.size]
         val route = Route(
             sections = listOf(
                 RouteSection(

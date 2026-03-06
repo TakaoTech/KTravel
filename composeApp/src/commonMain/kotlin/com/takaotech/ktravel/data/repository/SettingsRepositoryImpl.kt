@@ -1,5 +1,6 @@
-package com.takaotech.ktravel.domain.repository
+package com.takaotech.ktravel.data.repository
 
+import com.takaotech.ktravel.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

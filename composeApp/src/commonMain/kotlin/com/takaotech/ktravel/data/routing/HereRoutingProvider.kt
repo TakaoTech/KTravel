@@ -1,6 +1,8 @@
-package com.takaotech.ktravel.domain.routing
+package com.takaotech.ktravel.data.routing
 
 import com.takaotech.ktravel.domain.repository.SettingsRepository
+import com.takaotech.ktravel.domain.routing.RoutingProvider
+import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.model.*
 import com.takaotech.navigation.routing.client.HereRoutingClient
 import com.takaotech.navigation.routing.dto.request.DepartureTime

@@ -1,9 +1,10 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.takaotech.ktravel.domain.repository
+package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.domain.model.*
+import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.*
 import org.koin.core.annotation.Single
 import kotlin.time.ExperimentalTime
@@ -16,9 +17,8 @@ class TravelPlanRepositoryImpl : TravelPlanRepository {
     override val planningState: StateFlow<TravelPlan> = _planningState.asStateFlow()
 
     init {
-        val start = Instant.fromEpochMilliseconds(_planningState.value.periodStart)
-        val end = Instant.fromEpochMilliseconds(_planningState.value.periodEnd)
-        _planningState.value = _planningState.value.setPeriod(start = start, end = end)
+        val now = kotlin.time.Clock.System.now()
+        _planningState.value = _planningState.value.setPeriod(start = now, end = now)
     }
 
     private fun TravelPlan.setPeriod(start: Instant, end: Instant): TravelPlan {

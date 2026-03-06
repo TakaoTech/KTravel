@@ -2,19 +2,11 @@ package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.FieldValidationState
-import com.takaotech.ktravel.domain.model.PlaceDomain
-import com.takaotech.ktravel.domain.model.StepDomain
-import com.takaotech.ktravel.domain.model.TravelDayDomain
-import com.takaotech.ktravel.domain.model.TravelPlan
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.*
@@ -23,8 +15,8 @@ import kotlin.time.Duration.Companion.seconds
 class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel with initial state") {
-        val fakeRepository = FakeTravelPlanRepository()
-        val viewModel = PlaceInsertViewModel(null, fakeRepository)
+        val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+        val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
 
         then("should have default input mode as LAT_LNG") {
             viewModel.uiState.value.inputMode shouldBe PlaceInputMode.LAT_LNG
@@ -57,8 +49,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel") {
         `when`("onInputModeChanged is called with SEARCH mode") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
 
             viewModel.onInputModeChanged(PlaceInputMode.SEARCH)
 
@@ -68,8 +60,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onInputModeChanged is called with LAT_LNG mode") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
             viewModel.onInputModeChanged(PlaceInputMode.SEARCH)
 
             viewModel.onInputModeChanged(PlaceInputMode.LAT_LNG)
@@ -82,8 +74,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for place name changes") {
         `when`("onPlaceNameChanged is called with a name") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
             val newName = TextFieldValue("Colosseo")
 
             viewModel.onPlaceNameChanged(newName)
@@ -96,8 +88,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for latitude validation") {
         `when`("onPlaceLatChanged is called with valid latitude 45.0") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
             val validLat = TextFieldValue("45.0")
 
             viewModel.onPlaceLatChanged(validLat)
@@ -108,8 +100,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with valid latitude 90") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
             val validLat = TextFieldValue("90")
 
             viewModel.onPlaceLatChanged(validLat)
@@ -120,8 +112,8 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with valid latitude -90") {
-            val fakeRepository = FakeTravelPlanRepository()
-            val viewModel = PlaceInsertViewModel(null, fakeRepository)
+            val fakeSavePlaceUseCase = FakeSavePlaceUseCase()
+            val viewModel = PlaceInsertViewModel(null, fakeSavePlaceUseCase)
             val validLat = TextFieldValue("-90")
 
             viewModel.onPlaceLatChanged(validLat)
@@ -132,7 +124,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with valid latitude 0") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLat = TextFieldValue("0")
 
@@ -144,7 +136,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with valid latitude with decimals") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLat = TextFieldValue("41.890251")
 
@@ -158,7 +150,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for longitude validation") {
         `when`("onPlaceLngChanged is called with valid longitude 45.0") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLng = TextFieldValue("45.0")
 
@@ -170,7 +162,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called with valid longitude -180") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLng = TextFieldValue("-180")
 
@@ -182,7 +174,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called with valid longitude 0") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLng = TextFieldValue("0")
 
@@ -194,7 +186,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called with valid longitude with decimals") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val validLng = TextFieldValue("12.492373")
 
@@ -208,7 +200,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for search query changes") {
         `when`("onSearchQueryChanged is called with a query") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val query = TextFieldValue("Roma")
 
@@ -222,7 +214,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for time selection") {
         `when`("onTimeSelected is called with hour and minute") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onTimeSelected(14, 30)
@@ -235,7 +227,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for date selection") {
         `when`("onDateSelected is called with a date") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             val date = LocalDate(2024, 6, 15)
 
@@ -247,7 +239,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onDateSelected is called with null") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
             viewModel.onDateSelected(LocalDate(2024, 6, 15))
 
@@ -261,7 +253,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for saving a place") {
         `when`("savePlace is called with valid data") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
@@ -288,7 +280,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with empty name") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -311,7 +303,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with empty latitude in LAT_LNG mode") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -334,7 +326,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with empty longitude in LAT_LNG mode") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -357,7 +349,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with invalid latitude format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -381,7 +373,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with invalid longitude format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -405,7 +397,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with latitude out of range") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -429,7 +421,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with longitude out of range") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
@@ -456,7 +448,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel with dayId passed") {
         `when`("savePlace is called with valid data and dayId is provided") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val testDayId = "day-123"
             val viewModel = PlaceInsertViewModel(testDayId, fakeRepository)
 
@@ -482,7 +474,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with valid data and dayId is null") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Fontana di Trevi"))
@@ -507,12 +499,12 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with different dayIds") {
-            val fakeRepository1 = FakeTravelPlanRepository()
-            val fakeRepository2 = FakeTravelPlanRepository()
+            val fakeSavePlaceUseCase1 = FakeSavePlaceUseCase()
+            val fakeSavePlaceUseCase2 = FakeSavePlaceUseCase()
             val dayId1 = "day-abc"
             val dayId2 = "day-xyz"
-            val viewModel1 = PlaceInsertViewModel(dayId1, fakeRepository1)
-            val viewModel2 = PlaceInsertViewModel(dayId2, fakeRepository2)
+            val viewModel1 = PlaceInsertViewModel(dayId1, fakeSavePlaceUseCase1)
+            val viewModel2 = PlaceInsertViewModel(dayId2, fakeSavePlaceUseCase2)
 
             viewModel1.onPlaceNameChanged(TextFieldValue("Place 1"))
             viewModel1.onPlaceLatChanged(TextFieldValue("45.0"))
@@ -526,14 +518,14 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
             then("should pass correct dayId to each repository") {
                 eventually(duration = 1.seconds) {
-                    fakeRepository1.savedDayId shouldBe dayId1
-                    fakeRepository2.savedDayId shouldBe dayId2
+                    fakeSavePlaceUseCase1.savedDayId shouldBe dayId1
+                    fakeSavePlaceUseCase2.savedDayId shouldBe dayId2
                 }
             }
         }
 
         `when`("savePlace is called with invalid data and dayId is provided") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val testDayId = "day-456"
             val viewModel = PlaceInsertViewModel(testDayId, fakeRepository)
 
@@ -556,7 +548,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for lat/lng paste detection") {
         `when`("onPlaceLatChanged is called with 'lat, lng' format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLatChanged(TextFieldValue("41.890251, 12.492373"))
@@ -568,7 +560,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called with 'lat, lng' format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLngChanged(TextFieldValue("41.890251, 12.492373"))
@@ -580,7 +572,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with 'lat lng' space-separated format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLatChanged(TextFieldValue("41.890251 12.492373"))
@@ -592,7 +584,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with a single lat value") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -604,7 +596,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called with a single lng value") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
@@ -616,7 +608,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called with negative coordinates 'lat, lng' format") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceLatChanged(TextFieldValue("-33.865143, 151.209900"))
@@ -630,7 +622,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel with isBulk enabled") {
         `when`("savePlace is called with valid data and isBulk is true") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(true)
@@ -678,7 +670,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called multiple times with isBulk true") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(true)
@@ -713,7 +705,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("savePlace is called with invalid data and isBulk is true") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(true)
@@ -737,7 +729,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel with isBulk disabled") {
         `when`("savePlace is called with valid data and isBulk is false") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(false)
@@ -775,7 +767,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for isBulk state management") {
         `when`("onBulkChanged is called with true") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(true)
@@ -786,7 +778,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onBulkChanged is called with false") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(false)
@@ -797,7 +789,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onBulkChanged is toggled from true to false") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onBulkChanged(true)
@@ -811,7 +803,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 
     given("a PlaceInsertViewModel for error clearing") {
         `when`("onPlaceNameChanged is called after name error") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.savePlace()
@@ -827,7 +819,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLatChanged is called after lat error") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test"))
@@ -845,7 +837,7 @@ class PlaceInsertViewModelTest : BehaviorSpec({
         }
 
         `when`("onPlaceLngChanged is called after lng error") {
-            val fakeRepository = FakeTravelPlanRepository()
+            val fakeRepository = FakeSavePlaceUseCase()
             val viewModel = PlaceInsertViewModel(null, fakeRepository)
 
             viewModel.onPlaceNameChanged(TextFieldValue("Test"))
@@ -864,39 +856,51 @@ class PlaceInsertViewModelTest : BehaviorSpec({
     }
 })
 
-private class FakeTravelPlanRepository : TravelPlanRepository {
-    var savedPlace: PlaceDomain? = null
+private class FakeSavePlaceUseCase : SavePlaceUseCase(FakeRepositoryForSavePlaceUseCase()) {
+    var savedName: String? = null
+    var savedLat: Double? = null
+    var savedLng: Double? = null
     var savedDayId: String? = null
 
-    private val _planningState = MutableStateFlow(TravelPlan())
-    override val planningState: StateFlow<TravelPlan> = _planningState
+    val savedPlace: SavedPlace?
+        get() = if (savedName != null) SavedPlace(savedName!!, savedLat!!, savedLng!!) else null
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(TravelDayDomain.EMPTY)
-
-    override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
-
-    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
-
-    override fun updatePlanName(name: String) = Unit
-
-    override suspend fun savePlace(place: PlaceDomain, dayId: String?) {
-        savedPlace = place
+    override suspend fun invoke(name: String, lat: Double, lng: Double, dayId: String?) {
+        savedName = name
+        savedLat = lat
+        savedLng = lng
         savedDayId = dayId
     }
 
+    data class SavedPlace(val name: String, val lat: Double, val lng: Double)
+}
+
+private class FakeRepositoryForSavePlaceUseCase : com.takaotech.ktravel.domain.repository.TravelPlanRepository {
+    private val _planningState =
+        kotlinx.coroutines.flow.MutableStateFlow(com.takaotech.ktravel.domain.model.TravelPlan())
+    override val planningState: kotlinx.coroutines.flow.StateFlow<com.takaotech.ktravel.domain.model.TravelPlan> =
+        _planningState
+
+    override fun getTravelDayFlow(dayId: String): kotlinx.coroutines.flow.Flow<com.takaotech.ktravel.domain.model.TravelDayDomain> =
+        kotlinx.coroutines.flow.flowOf(com.takaotech.ktravel.domain.model.TravelDayDomain.EMPTY)
+    override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
+    override suspend fun updateStep(
+        dayId: String,
+        stepId: String,
+        updatedStep: com.takaotech.ktravel.domain.model.StepDomain
+    ) = Unit
+    override fun updatePlanName(name: String) = Unit
+    override suspend fun savePlace(place: com.takaotech.ktravel.domain.model.PlaceDomain, dayId: String?) = Unit
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = Unit
-
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) = Unit
-
     override suspend fun movePlaceToStep(placeId: String, dayId: String) = Unit
-
     override suspend fun moveStepToPlace(stepId: String, dayId: String) = Unit
-
     override suspend fun moveTravelStepUp(stepId: String, dayId: String) = Unit
-
     override suspend fun moveTravelStepDown(stepId: String, dayId: String) = Unit
-
-    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) = Unit
-
+    override suspend fun addTransportStep(
+        dayId: String,
+        afterStepId: String,
+        step: com.takaotech.ktravel.domain.model.StepDomain
+    ) = Unit
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
 }
