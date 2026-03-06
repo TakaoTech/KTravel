@@ -1,6 +1,5 @@
 package com.takaotech.ktravel.domain.routing.model
 
-import androidx.compose.runtime.Stable
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.Measure
 import kotlinx.datetime.format.DateTimeComponents
@@ -80,7 +79,6 @@ data class RouteSection(
 /**
  * A navigation action within a route section.
  */
-@Stable
 data class RouteAction(
     val action: String,
     val durationSeconds: Duration,

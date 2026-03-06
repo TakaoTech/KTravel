@@ -2,10 +2,11 @@ package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.FieldValidationState
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlan
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.presentation.planning.Place
-import com.takaotech.ktravel.presentation.planning.PlanningUiState
-import com.takaotech.ktravel.presentation.planning.TravelDay
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -864,21 +865,21 @@ class PlaceInsertViewModelTest : BehaviorSpec({
 })
 
 private class FakeTravelPlanRepository : TravelPlanRepository {
-    var savedPlace: Place? = null
+    var savedPlace: PlaceDomain? = null
     var savedDayId: String? = null
 
-    private val _planningState = MutableStateFlow(PlanningUiState())
-    override val planningState: StateFlow<PlanningUiState> = _planningState
+    private val _planningState = MutableStateFlow(TravelPlan())
+    override val planningState: StateFlow<TravelPlan> = _planningState
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDay> = flowOf(TravelDay.EMPTY)
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(TravelDayDomain.EMPTY)
 
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
 
-    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: TravelDay.Step) = Unit
+    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
 
-    override fun updatePlanName(name: TextFieldValue) = Unit
+    override fun updatePlanName(name: String) = Unit
 
-    override suspend fun savePlace(place: Place, dayId: String?) {
+    override suspend fun savePlace(place: PlaceDomain, dayId: String?) {
         savedPlace = place
         savedDayId = dayId
     }
@@ -894,11 +895,8 @@ private class FakeTravelPlanRepository : TravelPlanRepository {
     override suspend fun moveTravelStepUp(stepId: String, dayId: String) = Unit
 
     override suspend fun moveTravelStepDown(stepId: String, dayId: String) = Unit
-    override suspend fun addTransportStep(
-        dayId: String,
-        afterStepId: String,
-        step: TravelDay.Step
-    ) = Unit
+
+    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) = Unit
 
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
 }

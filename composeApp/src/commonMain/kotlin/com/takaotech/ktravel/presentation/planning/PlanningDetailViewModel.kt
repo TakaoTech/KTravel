@@ -6,6 +6,7 @@ import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
@@ -22,6 +23,7 @@ class PlanningDetailViewModel(
      * Stato del giorno corrente, sincronizzato automaticamente con il repository
      */
     val travelDay: StateFlow<TravelDay> = repository.getTravelDayFlow(dayId)
+        .map { with(TravelPlanUiMapper) { it.toUiDay() } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

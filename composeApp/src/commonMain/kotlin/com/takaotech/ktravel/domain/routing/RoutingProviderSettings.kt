@@ -1,6 +1,5 @@
 package com.takaotech.ktravel.domain.routing
 
-import androidx.compose.runtime.Stable
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -10,7 +9,6 @@ sealed interface RoutingProviderSettings {
         val transportMode: LocalTransportMode = LocalTransportMode.CAR
     ) : RoutingProviderSettings
 
-    @Stable
     data class Here(
         val transportMode: HereTransportMode = HereTransportMode.CAR,
         val routingMode: HereRoutingMode = HereRoutingMode.FAST,
