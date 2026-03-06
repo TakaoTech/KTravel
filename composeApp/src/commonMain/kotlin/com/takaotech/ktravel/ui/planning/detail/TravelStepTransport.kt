@@ -13,17 +13,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import ktravel.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Duration.Companion.seconds
 
-fun TravelDay.Step.Transport.Type.toIcon(): DrawableResource = when (this) {
-    TravelDay.Step.Transport.Type.TRAIN -> Res.drawable.train
-    TravelDay.Step.Transport.Type.BUS -> Res.drawable.directions_bus
-    TravelDay.Step.Transport.Type.CAR -> Res.drawable.directions_car
-    TravelDay.Step.Transport.Type.FLIGHT -> Res.drawable.flight
+fun TransportType.toIcon(): DrawableResource = when (this) {
+    TransportType.TRAIN -> Res.drawable.train
+    TransportType.BUS -> Res.drawable.directions_bus
+    TransportType.CAR -> Res.drawable.directions_car
+    TransportType.FLIGHT -> Res.drawable.flight
 }
 
 @Composable

@@ -1,5 +1,8 @@
-package com.takaotech.ktravel.domain.routing
+package com.takaotech.ktravel.data.routing
 
+import com.takaotech.ktravel.domain.routing.RoutingProvider
+import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
+import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import org.koin.core.annotation.Factory
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
