@@ -1,12 +1,14 @@
-package com.takaotech.ktravel.domain.routing
+package com.takaotech.ktravel.data.routing
 
+import com.takaotech.ktravel.domain.routing.RoutingProvider
+import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.model.Routes
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Named
 
 @Factory
-@Named("LOCAL")
-class LocalRoutingProvider : RoutingProvider {
+@Named("GMAPS")
+class GoogleMapsRoutingProvider : RoutingProvider {
     override suspend fun getRoutes(
         origin: String,
         destination: String,

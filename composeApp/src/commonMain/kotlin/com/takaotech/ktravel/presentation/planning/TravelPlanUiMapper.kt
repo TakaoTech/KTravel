@@ -52,24 +52,11 @@ object TravelPlanUiMapper {
 
         is StepDomain.Transport -> TravelDay.Step.Transport(
             id = id,
-            type = type.toUiTransportType(),
+            type = type,
             route = route
         )
     }
 
-    fun TransportType.toUiTransportType(): TravelDay.Step.Transport.Type = when (this) {
-        TransportType.TRAIN -> TravelDay.Step.Transport.Type.TRAIN
-        TransportType.BUS -> TravelDay.Step.Transport.Type.BUS
-        TransportType.CAR -> TravelDay.Step.Transport.Type.CAR
-        TransportType.FLIGHT -> TravelDay.Step.Transport.Type.FLIGHT
-    }
-
-    fun TravelDay.Step.Transport.Type.toDomain(): TransportType = when (this) {
-        TravelDay.Step.Transport.Type.TRAIN -> TransportType.TRAIN
-        TravelDay.Step.Transport.Type.BUS -> TransportType.BUS
-        TravelDay.Step.Transport.Type.CAR -> TransportType.CAR
-        TravelDay.Step.Transport.Type.FLIGHT -> TransportType.FLIGHT
-    }
 
     fun Place.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
@@ -83,7 +70,20 @@ object TravelPlanUiMapper {
 
     fun TravelDay.Step.Transport.toDomainStep(): StepDomain.Transport = StepDomain.Transport(
         id = id,
-        type = type.toDomain(),
+        type = type,
         route = route
+    )
+
+    fun StepDomain.Place.toUiStepPlace(): TravelDay.Step.Place = TravelDay.Step.Place(
+        id = id,
+        location = location,
+        lat = lat,
+        lng = lng
+    )
+
+    fun uiFieldsToDomain(name: String, lat: Double, lng: Double): PlaceDomain = PlaceDomain(
+        name = name,
+        lat = lat,
+        lng = lng
     )
 }

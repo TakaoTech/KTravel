@@ -6,8 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.core.KFieldState
 import com.takaotech.ktravel.core.toTextPayload
-import com.takaotech.ktravel.domain.model.PlaceDomain
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -19,7 +18,7 @@ import org.koin.core.annotation.InjectedParam
 @KoinViewModel
 class PlaceInsertViewModel(
     @InjectedParam private val dayId: String?,
-    private val repository: TravelPlanRepository
+    private val savePlaceUseCase: SavePlaceUseCase
 ) : ViewModel() {
     private val latRegex = Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
     private val lngRegex =
@@ -191,12 +190,12 @@ class PlaceInsertViewModel(
 
             // Only save if there are no errors
             if (name != null && lat != null && lng != null) {
-                val place = PlaceDomain(
+                savePlaceUseCase(
                     name = name.value.text,
                     lat = lat.value.text.toDoubleOrNull() ?: 0.0,
                     lng = lng.value.text.toDoubleOrNull() ?: 0.0,
+                    dayId = dayId
                 )
-                repository.savePlace(place, dayId)
 
                 if (newUiState.isBulk) {
                     _uiState.update {

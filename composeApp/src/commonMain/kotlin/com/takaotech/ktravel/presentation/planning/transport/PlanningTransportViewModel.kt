@@ -3,12 +3,12 @@ package com.takaotech.ktravel.presentation.planning.transport
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.domain.model.StepDomain
-import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
+import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.koin.android.annotation.KoinViewModel
@@ -21,6 +21,7 @@ class PlanningTransportViewModel(
     @InjectedParam private val endPlaceId: String,
     private val repository: TravelPlanRepository,
     private val providerFactory: RoutingProviderFactory,
+    private val saveTransportStepUseCase: SaveTransportStepUseCase,
 ) : ViewModel() {
 
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
@@ -37,10 +38,10 @@ class PlanningTransportViewModel(
                 it.steps.first { it.id == startPlaceId } to it.steps.first { it.id == endPlaceId }
             }.collect { (startStep, endStep) ->
                 val startUi = (startStep as? StepDomain.Place)?.let {
-                    TravelDay.Step.Place(id = it.id, location = it.location, lat = it.lat, lng = it.lng)
+                    with(TravelPlanUiMapper) { it.toUiStepPlace() }
                 }
                 val endUi = (endStep as? StepDomain.Place)?.let {
-                    TravelDay.Step.Place(id = it.id, location = it.location, lat = it.lat, lng = it.lng)
+                    with(TravelPlanUiMapper) { it.toUiStepPlace() }
                 }
                 mUiState.update {
                     it.copy(
@@ -119,20 +120,7 @@ class PlanningTransportViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             val state = mUiState.value
             val selectedRoute = state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
-
-            // TODO Change this transformation
-            val transportType = when (selectedRoute.sections.firstOrNull()?.transport?.mode?.uppercase()) {
-                "TRAIN" -> TransportType.TRAIN
-                "BUS" -> TransportType.BUS
-                "FLIGHT" -> TransportType.FLIGHT
-                else -> TransportType.CAR
-            }
-            val transportStep = StepDomain.Transport(
-                type = transportType,
-                route = selectedRoute
-            )
-
-            repository.addTransportStep(dayId, startPlaceId, transportStep)
+            saveTransportStepUseCase(dayId, startPlaceId, selectedRoute)
         }
     }
 }
