@@ -20,7 +20,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.core.KFieldState
 import com.takaotech.ktravel.presentation.place.PlaceInputMode
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.place_insert_latlng_label
+import ktravel.composeapp.generated.resources.place_insert_search_label
 import org.jetbrains.compose.resources.stringResource
+
+@Composable
+fun PlaceInputMode.label(): String = when (this) {
+    PlaceInputMode.LAT_LNG -> stringResource(Res.string.place_insert_latlng_label)
+    PlaceInputMode.SEARCH -> stringResource(Res.string.place_insert_search_label)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +97,7 @@ fun PlaceInsert(
 
         val options = PlaceInputMode.entries
         var expanded by remember { mutableStateOf(false) }
-        val textFieldState = rememberTextFieldState(stringResource(options[0].label))
+        val textFieldState = rememberTextFieldState(options[0].label())
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
@@ -105,7 +114,7 @@ fun PlaceInsert(
                 onDismissRequest = { expanded = false },
             ) {
                 options.forEachIndexed { index, option ->
-                    val text = stringResource(option.label)
+                    val text = option.label()
 
                     DropdownMenuItem(
                         text = {

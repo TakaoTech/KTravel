@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.domain.repository
 
-import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.presentation.planning.Place
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TravelDayDomain
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -26,8 +26,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         then("should initialize planningState with a default period") {
             val state = repository.planningState.value
             state shouldNotBe null
-            state.planHeader.period.start shouldNotBe null
-            state.planHeader.period.end shouldNotBe null
+            Instant.fromEpochMilliseconds(state.periodStart) shouldNotBe null
+            Instant.fromEpochMilliseconds(state.periodEnd) shouldNotBe null
         }
 
         then("should have at least one day in the default period") {
@@ -49,8 +49,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
 
             then("should update the period in planningState") {
                 val state = repository.planningState.value
-                state.planHeader.period.start shouldBe startInstant
-                state.planHeader.period.end shouldBe endInstant
+                Instant.fromEpochMilliseconds(state.periodStart) shouldBe startInstant
+                Instant.fromEpochMilliseconds(state.periodEnd) shouldBe endInstant
             }
 
             then("should create days for the specified period") {
@@ -89,9 +89,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         `when`("getTravelDayFlow is called with a non-existing dayId") {
             val dayFlow = repository.getTravelDayFlow("non-existing-id")
 
-            then("should return TravelDay.EMPTY") {
+            then("should return TravelDayDomain.EMPTY") {
                 val day = dayFlow.first()
-                day shouldBe TravelDay.EMPTY
+                day shouldBe TravelDayDomain.EMPTY
             }
         }
     }
@@ -106,8 +106,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         repository.savePlace(place1)
         repository.savePlace(place2)
@@ -173,9 +173,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-        val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
         repository.savePlace(place1)
         repository.savePlace(place2)
@@ -214,9 +214,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-        val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
         repository.savePlace(place1)
         repository.savePlace(place2)
@@ -258,7 +258,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         `when`("savePlace is called with null dayId") {
-            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
             repository.savePlace(place, null)
 
@@ -290,7 +290,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         `when`("savePlace is called with a valid dayId") {
             val state = repository.planningState.value
             val dayId = state.days[1].id
-            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
             repository.savePlace(place, dayId)
 
@@ -325,7 +325,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         `when`("savePlace is called with a non-existing dayId") {
-            val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
             repository.savePlace(place, "non-existing-day-id")
 
@@ -356,8 +356,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         `when`("multiple places are saved directly to the same day") {
             val state = repository.planningState.value
             val dayId = state.days[1].id
-            val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+            val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
             repository.savePlace(place1, dayId)
             repository.savePlace(place2, dayId)
@@ -390,9 +390,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         `when`("places are saved both to general list and to specific days") {
             val state = repository.planningState.value
             val dayId = state.days[1].id
-            val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-            val place3 = Place(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
+            val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+            val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+            val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
             repository.savePlace(place1, null)
             repository.savePlace(place2, dayId)
@@ -424,8 +424,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -468,7 +468,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -497,7 +497,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -526,8 +526,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         repository.savePlace(place1, null)
         repository.savePlace(place2, null)
@@ -561,8 +561,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = Place(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -604,7 +604,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         repository.savePlace(place1, null)
 
@@ -630,7 +630,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -659,7 +659,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -682,13 +682,13 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         val repository = TravelPlanRepositoryImpl()
 
         `when`("updatePlanName is called with a new name") {
-            val newName = TextFieldValue("Viaggio a Roma")
+            val newName = "Viaggio a Roma"
 
             repository.updatePlanName(newName)
 
             then("should update the plan name in planningState") {
                 val updatedState = repository.planningState.value
-                updatedState.planHeader.name shouldBe newName
+                updatedState.name shouldBe newName
             }
         }
     }
@@ -697,13 +697,13 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         val repository = TravelPlanRepositoryImpl()
 
         `when`("updatePlanName is called with an empty name") {
-            val emptyName = TextFieldValue("")
+            val emptyName = ""
 
             repository.updatePlanName(emptyName)
 
             then("should update the plan name to empty") {
                 val updatedState = repository.planningState.value
-                updatedState.planHeader.name shouldBe emptyName
+                updatedState.name shouldBe emptyName
             }
         }
     }
@@ -712,15 +712,15 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         val repository = TravelPlanRepositoryImpl()
 
         `when`("updatePlanName is called multiple times") {
-            val firstName = TextFieldValue("Primo Nome")
-            val secondName = TextFieldValue("Secondo Nome")
+            val firstName = "Primo Nome"
+            val secondName = "Secondo Nome"
 
             repository.updatePlanName(firstName)
             repository.updatePlanName(secondName)
 
             then("should keep only the last name") {
                 val updatedState = repository.planningState.value
-                updatedState.planHeader.name shouldBe secondName
+                updatedState.name shouldBe secondName
             }
         }
     }
@@ -735,24 +735,28 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
         repository.savePlace(place, null)
 
         `when`("updatePlanName is called") {
             val initialState = repository.planningState.value
-            val newName = TextFieldValue("Viaggio a Roma")
+            val newName = "Viaggio a Roma"
 
             repository.updatePlanName(newName)
 
             then("should update only the plan name") {
                 val updatedState = repository.planningState.value
-                updatedState.planHeader.name shouldBe newName
+                updatedState.name shouldBe newName
             }
 
             then("should preserve the period") {
                 val updatedState = repository.planningState.value
-                updatedState.planHeader.period.start shouldBe initialState.planHeader.period.start
-                updatedState.planHeader.period.end shouldBe initialState.planHeader.period.end
+                Instant.fromEpochMilliseconds(updatedState.periodStart) shouldBe Instant.fromEpochMilliseconds(
+                    initialState.periodStart
+                )
+                Instant.fromEpochMilliseconds(updatedState.periodEnd) shouldBe Instant.fromEpochMilliseconds(
+                    initialState.periodEnd
+                )
             }
 
             then("should preserve the days") {
@@ -777,7 +781,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -792,7 +796,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
                 val day = updated.days[1]
                 day.places.shouldBeEmpty()
                 day.steps shouldHaveSize 1
-                val step = day.steps[0] as TravelDay.Step.Place
+                val step = day.steps[0] as StepDomain.Place
                 step.id shouldBe "place1"
                 step.location shouldBe place1.name
             }
@@ -836,7 +840,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             endMillis = endInstant.toEpochMilliseconds()
         )
 
-        val place1 = Place(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -857,9 +861,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
                 val backPlace = day.places[0]
                 backPlace.id shouldBe "place1"
                 backPlace.name shouldBe place1.name
-                // Il mapper usa lat/lng di default 0.0
-                backPlace.lat shouldBe 0.0
-                backPlace.lng shouldBe 0.0
+                backPlace.lat shouldBe place1.lat
+                backPlace.lng shouldBe place1.lng
             }
 
             then("should not affect other days or general places list") {
@@ -904,9 +907,9 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         val state = repository.planningState.value
         val dayId = state.days[1].id
 
-        val place1 = Place(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
-        val place2 = Place(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
-        val place3 = Place(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
+        val place1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+        val place2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+        val place3 = PlaceDomain(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
 
         repository.savePlace(place1, dayId)
         repository.savePlace(place2, dayId)

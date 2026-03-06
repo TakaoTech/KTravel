@@ -11,8 +11,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import ktravel.composeapp.generated.resources.*
-import org.jetbrains.compose.resources.DrawableResource
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -88,12 +86,7 @@ data class TravelDay(
             val type: Type,
             val route: Route
         ) : Step(id) {
-            enum class Type(val icon: DrawableResource) {
-                TRAIN(Res.drawable.train),
-                BUS(Res.drawable.directions_bus),
-                CAR(Res.drawable.directions_car),
-                FLIGHT(Res.drawable.flight)
-            }
+            enum class Type { TRAIN, BUS, CAR, FLIGHT }
         }
     }
 }

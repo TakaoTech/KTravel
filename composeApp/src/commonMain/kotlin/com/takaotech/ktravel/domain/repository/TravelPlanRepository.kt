@@ -1,9 +1,9 @@
 package com.takaotech.ktravel.domain.repository
 
-import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.presentation.planning.Place
-import com.takaotech.ktravel.presentation.planning.PlanningUiState
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -11,12 +11,12 @@ interface TravelPlanRepository {
     /**
      * Stato completo del piano di viaggio
      */
-    val planningState: StateFlow<PlanningUiState>
+    val planningState: StateFlow<TravelPlan>
 
     /**
      * Ottiene un Flow per un giorno specifico
      */
-    fun getTravelDayFlow(dayId: String): Flow<TravelDay>
+    fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain>
 
     /**
      * Aggiorna il periodo del viaggio
@@ -26,19 +26,19 @@ interface TravelPlanRepository {
     /**
      * Aggiorna uno step esistente
      */
-    suspend fun updateStep(dayId: String, stepId: String, updatedStep: TravelDay.Step)
+    suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain)
 
     /**
      * Aggiorna il nome del piano di viaggio
      */
-    fun updatePlanName(name: TextFieldValue)
+    fun updatePlanName(name: String)
 
     /**
      * Salva un nuovo Place
      * @param place il Place da salvare
      * @param dayId se impostato, aggiunge il Place direttamente al TravelDay con questo id
      */
-    suspend fun savePlace(place: Place, dayId: String? = null)
+    suspend fun savePlace(place: PlaceDomain, dayId: String? = null)
 
     /**
      * Sposta un Place dalla lista generale a un TravelDay
@@ -75,7 +75,7 @@ interface TravelPlanRepository {
     /**
      * Inserisce uno step nella posizione successiva a un altro step
      */
-    suspend fun addTransportStep(dayId: String, afterStepId: String, step: TravelDay.Step)
+    suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain)
 
     /**
      * Elimina un Place dal piano di viaggio

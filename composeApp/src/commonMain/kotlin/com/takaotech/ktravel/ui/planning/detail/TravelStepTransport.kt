@@ -14,10 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planning.TravelDay
-import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Duration.Companion.seconds
+
+fun TravelDay.Step.Transport.Type.toIcon(): DrawableResource = when (this) {
+    TravelDay.Step.Transport.Type.TRAIN -> Res.drawable.train
+    TravelDay.Step.Transport.Type.BUS -> Res.drawable.directions_bus
+    TravelDay.Step.Transport.Type.CAR -> Res.drawable.directions_car
+    TravelDay.Step.Transport.Type.FLIGHT -> Res.drawable.flight
+}
 
 @Composable
 fun TravelStepTransport(
@@ -29,7 +36,7 @@ fun TravelStepTransport(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painter = painterResource(step.type.icon), contentDescription = null)
+        Icon(painter = painterResource(step.type.toIcon()), contentDescription = null)
         val totalDuration by remember(step.route) {
             derivedStateOf {
                 var wholeDuration = 0.seconds
