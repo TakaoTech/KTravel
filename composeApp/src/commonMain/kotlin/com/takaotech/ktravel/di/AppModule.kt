@@ -17,7 +17,5 @@ class DomainModule
 class PresentationModule
 
 fun appModule() = listOf(
-    DataModule().module,
-    DomainModule().module,
     PresentationModule().module
 )
