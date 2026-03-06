@@ -2,6 +2,8 @@ package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
@@ -34,10 +36,16 @@ class PlanningTransportViewModel(
             repository.getTravelDayFlow(dayId).map {
                 it.steps.first { it.id == startPlaceId } to it.steps.first { it.id == endPlaceId }
             }.collect { (startStep, endStep) ->
+                val startUi = (startStep as? StepDomain.Place)?.let {
+                    TravelDay.Step.Place(id = it.id, location = it.location, lat = it.lat, lng = it.lng)
+                }
+                val endUi = (endStep as? StepDomain.Place)?.let {
+                    TravelDay.Step.Place(id = it.id, location = it.location, lat = it.lat, lng = it.lng)
+                }
                 mUiState.update {
                     it.copy(
-                        startPlace = startStep as TravelDay.Step.Place,
-                        endPlace = endStep as TravelDay.Step.Place
+                        startPlace = startUi,
+                        endPlace = endUi
                     )
                 }
             }
@@ -114,16 +122,15 @@ class PlanningTransportViewModel(
 
             // TODO Change this transformation
             val transportType = when (selectedRoute.sections.firstOrNull()?.transport?.mode?.uppercase()) {
-                "TRAIN" -> TravelDay.Step.Transport.Type.TRAIN
-                "BUS" -> TravelDay.Step.Transport.Type.BUS
-                "FLIGHT" -> TravelDay.Step.Transport.Type.FLIGHT
-                else -> TravelDay.Step.Transport.Type.CAR
+                "TRAIN" -> TransportType.TRAIN
+                "BUS" -> TransportType.BUS
+                "FLIGHT" -> TransportType.FLIGHT
+                else -> TransportType.CAR
             }
-            val transportStep = TravelDay.Step.Transport(
+            val transportStep = StepDomain.Transport(
                 type = transportType,
                 route = selectedRoute
             )
-
 
             repository.addTransportStep(dayId, startPlaceId, transportStep)
         }

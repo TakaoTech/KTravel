@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.FieldValidationState
 import com.takaotech.ktravel.core.KFieldState
 import com.takaotech.ktravel.core.toTextPayload
+import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.presentation.planning.Place
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -191,7 +191,7 @@ class PlaceInsertViewModel(
 
             // Only save if there are no errors
             if (name != null && lat != null && lng != null) {
-                val place = Place(
+                val place = PlaceDomain(
                     name = name.value.text,
                     lat = lat.value.text.toDoubleOrNull() ?: 0.0,
                     lng = lng.value.text.toDoubleOrNull() ?: 0.0,
