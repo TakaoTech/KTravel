@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.core.preview
+package com.takaotech.ktravel.core.ui.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.Place

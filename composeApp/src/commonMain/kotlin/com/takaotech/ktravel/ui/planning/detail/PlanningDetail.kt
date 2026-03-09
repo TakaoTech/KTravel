@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.PanelHorizontalDivided
-import com.takaotech.ktravel.core.preview.TravelDayStepPreviewParameterProvider
+import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.Place
 import com.takaotech.ktravel.presentation.planning.TravelDay
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog

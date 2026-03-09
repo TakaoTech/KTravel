@@ -3,9 +3,9 @@ package com.takaotech.ktravel.presentation.place
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.core.FieldValidationState
-import com.takaotech.ktravel.core.KFieldState
-import com.takaotech.ktravel.core.toTextPayload
+import com.takaotech.ktravel.core.ui.FieldValidationState
+import com.takaotech.ktravel.core.ui.KFieldState
+import com.takaotech.ktravel.core.ui.toTextPayload
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

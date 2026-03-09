@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.core
+package com.takaotech.ktravel.core.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
