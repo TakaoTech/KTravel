@@ -17,7 +17,7 @@ import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
-import com.takaotech.ktravel.core.preview.TravelDayStepPreviewParameterProvider
+import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.Place
 import com.takaotech.ktravel.presentation.planning.PlanHeader
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel

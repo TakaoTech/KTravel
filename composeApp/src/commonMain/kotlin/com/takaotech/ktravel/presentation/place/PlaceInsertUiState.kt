@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.runtime.Stable
-import com.takaotech.ktravel.core.KFieldState
+import com.takaotech.ktravel.core.ui.KFieldState
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 

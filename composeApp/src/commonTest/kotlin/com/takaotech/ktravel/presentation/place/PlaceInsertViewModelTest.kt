@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.core.FieldValidationState
+import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
