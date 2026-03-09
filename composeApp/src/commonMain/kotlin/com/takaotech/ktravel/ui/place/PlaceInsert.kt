@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.takaotech.ktravel.core.FieldValidationState
-import com.takaotech.ktravel.core.KFieldState
+import com.takaotech.ktravel.core.ui.FieldValidationState
+import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.presentation.place.PlaceInputMode
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.place_insert_latlng_label
