@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.stability.analyzer)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.mokkery)
 //    alias(libs.plugins.kotzilla)
 }
 
@@ -127,6 +128,10 @@ kotlin {
                 implementation(libs.filekit.core)
                 implementation(libs.filekit.dialogs)
                 implementation(libs.filekit.dialogs.compose)
+
+                implementation(libs.couchbase.lite)
+
+                implementation(libs.kotlinx.serialization.json)
 
             }
         }
