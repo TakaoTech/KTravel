@@ -34,8 +34,8 @@ data class PlanningUiState(
             copy(
                 planHeader = planHeader.copy(
                     mPeriod = PlanHeader.Period(
-                        start = start,
-                        end = end,
+                        start = start.toEpochMilliseconds(),
+                        end = end.toEpochMilliseconds(),
                     )
                 ),
                 days = it.toPersistentList()
@@ -53,8 +53,8 @@ data class PlanHeader(
 
     @Stable
     data class Period(
-        val start: Instant = Clock.System.now(),
-        val end: Instant = start
+        val start: Long = Clock.System.now().toEpochMilliseconds(),
+        val end: Long = start
     )
 }
 

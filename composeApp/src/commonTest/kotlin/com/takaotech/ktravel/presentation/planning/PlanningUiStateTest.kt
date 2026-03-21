@@ -20,8 +20,8 @@ class PlanningUiStateTest : BehaviorSpec({
             val result = initialState.setPeriod(startInstant, endInstant)
 
             then("it should update the period in planHeader") {
-                result.planHeader.period.start shouldBe startInstant
-                result.planHeader.period.end shouldBe endInstant
+                result.planHeader.period.start shouldBe startInstant.toEpochMilliseconds()
+                result.planHeader.period.end shouldBe endInstant.toEpochMilliseconds()
             }
 
             then("it should create TravelDay objects for each date in the range") {

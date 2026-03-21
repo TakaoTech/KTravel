@@ -9,10 +9,18 @@ import kotlin.uuid.Uuid
 
 private fun newId(): String = Uuid.random().toString()
 
+data class TravelPlanSummary(
+    val id: String,
+    val name: String,
+    val periodStart: LocalDate,
+    val periodEnd: LocalDate
+)
+
 data class TravelPlan(
+    val id: String = newId(),
     val name: String = "",
-    val periodStart: Long = 0L,
-    val periodEnd: Long = 0L,
+    val periodStart: LocalDate = LocalDate.fromEpochDays(0),
+    val periodEnd: LocalDate = LocalDate.fromEpochDays(0),
     val days: List<TravelDayDomain> = emptyList(),
     val places: List<PlaceDomain> = emptyList()
 )
