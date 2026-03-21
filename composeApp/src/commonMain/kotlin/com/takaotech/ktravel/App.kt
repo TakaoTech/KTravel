@@ -1,11 +1,7 @@
 package com.takaotech.ktravel
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +23,7 @@ import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
+import com.takaotech.ktravel.ui.intro.TravelSelectionPage
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPage
@@ -50,9 +47,6 @@ import org.koin.dsl.KoinConfiguration
 
 
 @Serializable
-object Intro
-
-@Serializable
 object PlanningNavigation
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class, KoinExperimentalAPI::class)
@@ -72,18 +66,10 @@ fun App() {
         ) {
             MaterialTheme {
                 val navController = rememberNavController()
-                rememberCoroutineScope()
-                rememberSupportingPaneScaffoldNavigator()
 
-                NavHost(navController = navController, startDestination = Intro) {
-                    composable<Intro> {
-                        Column {
-                            TextButton(onClick = {
-                                navController.navigate(PlanningNavigation)
-                            }) {
-                                Text("Navigate to Planning")
-                            }
-                        }
+                NavHost(navController = navController, startDestination = TravelSelectionPage) {
+                    composable<TravelSelectionPage> {
+                        TravelSelectionPage()
                     }
 
                     navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation) {
