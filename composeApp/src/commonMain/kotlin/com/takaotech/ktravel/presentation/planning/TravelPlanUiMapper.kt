@@ -5,8 +5,9 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.domain.model.*
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 object TravelPlanUiMapper {
 
@@ -14,8 +15,8 @@ object TravelPlanUiMapper {
         planHeader = PlanHeader(
             name = TextFieldValue(name),
             mPeriod = PlanHeader.Period(
-                start = Instant.fromEpochMilliseconds(periodStart),
-                end = Instant.fromEpochMilliseconds(periodEnd)
+                start = periodStart.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
+                end = periodEnd.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
             )
         ),
         days = days.map { it.toUiDay() }.toPersistentList(),
