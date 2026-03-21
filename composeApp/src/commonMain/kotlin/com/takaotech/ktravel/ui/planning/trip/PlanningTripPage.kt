@@ -145,8 +145,8 @@ private fun PlanningTripPage(
                     PlanningHeader(
                         name = planHeader.name,
                         onNameChange = onPlanNameChange,
-                        startDateMillis = planHeader.period.start.toEpochMilliseconds(),
-                        endDateMillis = planHeader.period.end.toEpochMilliseconds(),
+                        startDateMillis = planHeader.period.start,
+                        endDateMillis = planHeader.period.end,
                         onPlanDateRangeChanged = onPlanDateRangeChanged
                     )
                 }
