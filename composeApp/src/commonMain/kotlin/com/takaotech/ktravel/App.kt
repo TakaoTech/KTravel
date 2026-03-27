@@ -23,6 +23,7 @@ import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
+import com.takaotech.ktravel.ui.intro.TravelCreationPage
 import com.takaotech.ktravel.ui.intro.TravelSelectionPage
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
@@ -47,7 +48,7 @@ import org.koin.dsl.KoinConfiguration
 
 
 @Serializable
-object PlanningNavigation
+data class PlanningNavigation(val travelId: String)
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class, KoinExperimentalAPI::class)
 @Composable
@@ -69,12 +70,32 @@ fun App() {
 
                 NavHost(navController = navController, startDestination = TravelSelectionPage) {
                     composable<TravelSelectionPage> {
-                        TravelSelectionPage()
+                        TravelSelectionPage(
+                            onNewTravelClick = {
+                                navController.navigate(TravelCreationPage)
+                            }
+                        )
                     }
 
-                    navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation) {
-                        composable<PlanningTripPageNavigation> {
-                            val viewModel = it.sharedKoinViewModel2<PlanningViewModel>(navController)
+                    composable<TravelCreationPage> {
+                        TravelCreationPage(
+                            onBackClick = {
+                                navController.navigateUp()
+                            },
+                            onNavigateToPlanning = { id ->
+                                navController.navigate(PlanningNavigation(id)) {
+                                    popUpTo(TravelSelectionPage) { inclusive = false }
+                                }
+                            }
+                        )
+                    }
+
+                    navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
+                        composable<PlanningTripPageNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
+                            val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(navController) {
+                                parametersOf(args.travelId)
+                            }
                             val coroutine = rememberCoroutineScope()
 
                             val launcher = rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->

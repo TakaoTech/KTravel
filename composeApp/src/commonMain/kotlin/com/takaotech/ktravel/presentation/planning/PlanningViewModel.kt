@@ -7,11 +7,18 @@ import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.parameter.parametersOf
 
 @KoinViewModel
 class PlanningViewModel(
-    private val repository: TravelPlanRepository
-) : ViewModel() {
+    @InjectedParam val travelPlanId: String,
+) : ViewModel(), KoinComponent {
+
+    private val repository: TravelPlanRepository = get { parametersOf(travelPlanId) }
+
 
     private val _uiState = MutableStateFlow(PlanningUiState())
     val uiState: StateFlow<PlanningUiState> = _uiState.asStateFlow()

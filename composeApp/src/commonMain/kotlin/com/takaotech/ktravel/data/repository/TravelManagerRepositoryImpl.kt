@@ -20,9 +20,11 @@ class TravelManagerRepositoryImpl(
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun createTravelPlan(name: String, periodStart: LocalDate, periodEnd: LocalDate) {
+    override suspend fun createTravelPlan(name: String, periodStart: LocalDate, periodEnd: LocalDate): String {
+        val id = Uuid.random().toString()
+
         val entity = TravelPlanEntity(
-            id = Uuid.random().toString(),
+            id = id,
             name = name,
             periodStart = periodStart,
             periodEnd = periodEnd,
@@ -30,5 +32,7 @@ class TravelManagerRepositoryImpl(
             places = emptyList()
         )
         dataSource.saveTravelPlan(entity)
+
+        return id
     }
 }

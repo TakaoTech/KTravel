@@ -12,7 +12,9 @@ import com.takaotech.ktravel.core.toLocalDate
 import kotlinx.datetime.LocalDate
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.date_range
+import ktravel.composeapp.generated.resources.travel_creation_period_label
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.DurationUnit
@@ -36,25 +38,6 @@ fun PlanningHeader(
         initialSelectedEndDateMillis = endDateMillis
     )
 
-    val dateText by remember(startDateMillis, endDateMillis) {
-        derivedStateOf {
-            buildString {
-                val formatMillis = { millis: Long ->
-                    Instant.fromEpochMilliseconds(millis)
-                        .toLocalDate()
-                        .let { date -> LocalDate.Formats.ISO.format(date) }
-                        .let { append(it) }
-                }
-
-                formatMillis(startDateMillis)
-                if (startDateMillis != endDateMillis) {
-                    append(" - ")
-                    formatMillis(endDateMillis)
-                }
-            }
-        }
-    }
-
     Column(modifier = modifier) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -65,14 +48,69 @@ fun PlanningHeader(
 
         Spacer(Modifier.height(16.dp))
 
+        TravelDateRangePicker(
+            showDateRangePicker = showDateRangePicker,
+            dateRangePickerState = dateRangePickerState,
+            onShowDateRangePicker = {
+                showDateRangePicker = it
+            },
+            onPlanDateRangeChanged = onPlanDateRangeChanged,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TravelDateRangePicker(
+    showDateRangePicker: Boolean,
+    dateRangePickerState: DateRangePickerState,
+    modifier: Modifier = Modifier,
+    onShowDateRangePicker: (Boolean) -> Unit,
+    onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
+) {
+    val startDateMillis = dateRangePickerState.selectedStartDateMillis
+    val endDateMillis = dateRangePickerState.selectedEndDateMillis
+
+    val dateText by remember(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
+        derivedStateOf {
+            buildString {
+                val formatMillis = { millis: Long ->
+                    Instant.fromEpochMilliseconds(millis)
+                        .toLocalDate()
+                        .let { date -> LocalDate.Formats.ISO.format(date) }
+                        .let { append(it) }
+                }
+
+                if (startDateMillis != null) {
+                    formatMillis(startDateMillis)
+                    if (endDateMillis != null) {
+                        if (startDateMillis != endDateMillis) {
+                            append(" - ")
+                            formatMillis(endDateMillis)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier
+    ) {
         OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(
+                    text = stringResource(Res.string.travel_creation_period_label)
+                )
+            },
             value = dateText,
             onValueChange = {},
             readOnly = true,
             trailingIcon = {
                 IconButton(
                     onClick = {
-                        showDateRangePicker = !showDateRangePicker
+                        onShowDateRangePicker(!showDateRangePicker)
                     }
                 ) {
                     Icon(
@@ -82,31 +120,31 @@ fun PlanningHeader(
                 }
             }
         )
-    }
 
-    if (showDateRangePicker) {
-        //TODO Change implementation by platform, use popup for desktop
+        if (showDateRangePicker) {
+            //TODO Change implementation by platform, use popup for desktop
 
-        ModalBottomSheet(
-            onDismissRequest = {
-                showDateRangePicker = false
-                val startDateSelected = dateRangePickerState.selectedStartDateMillis
-                val endDateSelected = dateRangePickerState.selectedEndDateMillis
+            ModalBottomSheet(
+                onDismissRequest = {
+                    onShowDateRangePicker(false)
+                    val startDateSelected = dateRangePickerState.selectedStartDateMillis
+                    val endDateSelected = dateRangePickerState.selectedEndDateMillis
 
-                if (startDateSelected == startDateMillis && endDateSelected == endDateMillis) {
-                    return@ModalBottomSheet
+//                    if (startDateSelected == startDateMillis && endDateSelected == endDateMillis) {
+//                        return@ModalBottomSheet
+//                    }
+
+                    if (startDateSelected != null && endDateSelected != null) {
+                        onPlanDateRangeChanged(startDateSelected, endDateSelected)
+                    }
                 }
-
-                if (startDateSelected != null && endDateSelected != null) {
-                    onPlanDateRangeChanged(startDateSelected, endDateSelected)
-                }
-            }
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
             ) {
-                DateRangePicker(state = dateRangePickerState)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    DateRangePicker(state = dateRangePickerState)
+                }
             }
         }
     }

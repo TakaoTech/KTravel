@@ -12,5 +12,5 @@ interface TravelManagerRepository {
     /**
      * Crea un nuovo piano di viaggio con i dati forniti
      */
-    suspend fun createTravelPlan(name: String, periodStart: LocalDate, periodEnd: LocalDate)
+    suspend fun createTravelPlan(name: String, periodStart: LocalDate, periodEnd: LocalDate): String
 }
