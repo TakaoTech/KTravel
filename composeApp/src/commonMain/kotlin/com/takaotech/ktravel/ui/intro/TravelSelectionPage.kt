@@ -31,19 +31,14 @@ object TravelSelectionPage
 
 @Composable
 fun TravelSelectionPage(
-    viewModel: TravelSelectionViewModel = koinViewModel()
+    viewModel: TravelSelectionViewModel = koinViewModel(),
+    onNewTravelClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     TravelSelectionPage(
         travelList = uiState.travelList,
-        newTravelClick = {
-//            viewModel.createTravelPlan(
-//                name = "",
-//                periodStart = 0L,
-//                periodEnd = 0L
-//            )
-        }
+        newTravelClick = onNewTravelClick
     )
 }
 
