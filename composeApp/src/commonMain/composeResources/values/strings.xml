@@ -24,4 +24,16 @@
     <string name="planning_transport_provider_name_local">Local</string>
     <string name="planning_transport_provider_name_here">Here</string>
     <string name="planning_transport_provider_name_gmaps">Google Maps</string>
+    <string name="travel_creation_title">Crea Nuovo Viaggio</string>
+    <string name="travel_creation_hero_subtitle">INIZIA LA TUA AVVENTURA</string>
+    <string name="travel_creation_hero_title">Dove ti porterà il cuore?</string>
+    <string name="travel_creation_name_label">NOME DEL VIAGGIO</string>
+    <string name="travel_creation_name_placeholder">es. Safari in Kenya o Weekend a Parigi</string>
+    <string name="travel_creation_period_label">PERIODO DEL VIAGGIO</string>
+    <string name="travel_creation_period_start">Inizio</string>
+    <string name="travel_creation_period_end">Fine</string>
+    <string name="travel_creation_destinations_title">Aggiungi destinazioni</string>
+    <string name="travel_creation_destinations_subtitle">Puoi aggiungerle anche più tardi</string>
+    <string name="travel_creation_button">Crea Viaggio</string>
+    <string name="travel_creation_name_empty_error">Il nome del viaggio non può essere vuoto</string>
 </resources>

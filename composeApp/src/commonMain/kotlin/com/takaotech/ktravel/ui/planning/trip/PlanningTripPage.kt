@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.painterResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
-object PlanningTripPageNavigation
+data class PlanningTripPageNavigation(val travelId: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
