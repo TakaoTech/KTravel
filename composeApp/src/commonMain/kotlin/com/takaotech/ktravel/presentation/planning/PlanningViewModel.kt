@@ -3,22 +3,21 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
-import org.koin.core.parameter.parametersOf
+import org.koin.core.annotation.Scope
 
 @KoinViewModel
+@Scope(name = "PlanningScope")
 class PlanningViewModel(
-    @InjectedParam val travelPlanId: String,
-) : ViewModel(), KoinComponent {
+    private val scopeData: PlanningScopeData,
+    private val repository: TravelPlanRepository
+) : ViewModel() {
 
-    private val repository: TravelPlanRepository = get { parametersOf(travelPlanId) }
-
+    val travelPlanId: String = scopeData.travelId
 
     private val _uiState = MutableStateFlow(PlanningUiState())
     val uiState: StateFlow<PlanningUiState> = _uiState.asStateFlow()

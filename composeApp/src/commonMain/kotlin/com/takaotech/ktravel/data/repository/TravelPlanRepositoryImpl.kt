@@ -10,17 +10,17 @@ import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
 import com.takaotech.ktravel.domain.model.*
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.*
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Scope
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@Single
+@Scope(name = "PlanningScope")
 class TravelPlanRepositoryImpl(
-    @InjectedParam travelPlanId: String,
+    private val scopeData: PlanningScopeData,
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelPlanRepository {
 
+    private val travelPlanId: String = scopeData.travelId
     private val _planningState = MutableStateFlow(dataSource.getTravelPlan(travelPlanId).toDomain())
     override val planningState: StateFlow<TravelPlan> = _planningState.asStateFlow()
 

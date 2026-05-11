@@ -14,8 +14,10 @@ import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.*
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.Scope
 
 @KoinViewModel
+@Scope(name = "PlanningScope")
 class PlaceInsertViewModel(
     @InjectedParam private val dayId: String?,
     private val savePlaceUseCase: SavePlaceUseCase
