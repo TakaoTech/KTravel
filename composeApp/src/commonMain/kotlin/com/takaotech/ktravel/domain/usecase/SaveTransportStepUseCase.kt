@@ -4,9 +4,9 @@ import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.model.Route
-import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Scope
 
-@Factory
+@Scope(name = "PlanningScope")
 class SaveTransportStepUseCase(
     private val repository: TravelPlanRepository
 ) {

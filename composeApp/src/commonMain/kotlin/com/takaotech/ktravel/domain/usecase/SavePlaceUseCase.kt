@@ -2,10 +2,10 @@ package com.takaotech.ktravel.domain.usecase
 
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import org.koin.core.annotation.Factory
+import org.koin.core.annotation.Scope
 
-@Factory
-open class SavePlaceUseCase(
+@Scope(name = "PlanningScope")
+class SavePlaceUseCase(
     private val repository: TravelPlanRepository
 ) {
     open suspend operator fun invoke(name: String, lat: Double, lng: Double, dayId: String?) {
