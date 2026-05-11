@@ -2,7 +2,6 @@ package com.takaotech.ktravel.presentation.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
-import kotlin.time.Instant
 
 @KoinViewModel
 class TravelSelectionViewModel(
@@ -23,22 +21,6 @@ class TravelSelectionViewModel(
 
     init {
         loadTravelPlans()
-    }
-
-    fun createTravelPlan(name: String, periodStart: Long, periodEnd: Long) {
-        viewModelScope.launch {
-            runCatching {
-                repository.createTravelPlan(
-                    name,
-                    Instant.fromEpochSeconds(periodStart).toLocalDate(),
-                    Instant.fromEpochSeconds(periodEnd).toLocalDate()
-                )
-            }.onSuccess {
-                loadTravelPlans()
-            }.onFailure { error ->
-                _uiState.update { it.copy(error = error.message) }
-            }
-        }
     }
 
     fun loadTravelPlans() {

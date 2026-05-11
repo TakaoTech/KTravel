@@ -17,6 +17,7 @@ import androidx.navigation.toRoute
 import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.core.platformModules
 import com.takaotech.ktravel.di.appModule
+import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
@@ -40,10 +41,13 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.compose.KoinMultiplatformApplication
+import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.Koin
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.KoinConfiguration
 
 
@@ -93,15 +97,25 @@ fun App() {
                     navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
                         composable<PlanningTripPageNavigation> { backStackEntry ->
                             val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
-                            val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(navController) {
-                                parametersOf(args.travelId)
+                            val koin: Koin = getKoin()
+                            val scope = remember(args.travelId) {
+                                koin.getOrCreateScope(args.travelId, named("PlanningScope")).apply {
+                                    // Ensure PlanningScopeData is created with the travelId parameter once
+                                    get<PlanningScopeData> { parametersOf(args.travelId) }
+                                }
                             }
+
+                            val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(
+                                navController = navController,
+                                scope = scope
+                            )
                             val coroutine = rememberCoroutineScope()
 
-                            val launcher = rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
-                                // Write your data to the file
+                            val launcher =
+                                rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
+                                    // Write your data to the file
 
-                            }
+                                }
 
 
                             PlanningTripPage(
@@ -125,7 +139,16 @@ fun App() {
 
                         composable<PlanningDetailPageNavigation> { backStackEntry ->
                             val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
-                            val viewModel = koinViewModel<PlanningDetailViewModel> {
+                            val parentArgs =
+                                navController.getBackStackEntry<PlanningNavigation>().toRoute<PlanningNavigation>()
+                            val koin: Koin = getKoin()
+                            val scope = remember(parentArgs.travelId) {
+                                koin.getOrCreateScope(
+                                    parentArgs.travelId,
+                                    named("PlanningScope")
+                                )
+                            }
+                            val viewModel = koinViewModel<PlanningDetailViewModel>(scope = scope) {
                                 parametersOf(args.id)
                             }
 
@@ -169,8 +192,21 @@ fun App() {
                         navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
                             composable<PlanningTransportPageNavigation> { backStackEntry ->
                                 val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
+                                val parentArgs =
+                                    navController.getBackStackEntry<PlanningNavigation>()
+                                        .toRoute<PlanningNavigation>()
+                                val koin: Koin = getKoin()
+                                val scope = remember(parentArgs.travelId) {
+                                    koin.getOrCreateScope(
+                                        parentArgs.travelId,
+                                        named("PlanningScope")
+                                    )
+                                }
                                 val viewModel =
-                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(navController) {
+                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
+                                        navController = navController,
+                                        scope = scope
+                                    ) {
                                         parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                                     }
 
@@ -200,8 +236,21 @@ fun App() {
 
                             composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
                                 val args = backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
+                                val parentArgs =
+                                    navController.getBackStackEntry<PlanningNavigation>()
+                                        .toRoute<PlanningNavigation>()
+                                val koin: Koin = getKoin()
+                                val scope = remember(parentArgs.travelId) {
+                                    koin.getOrCreateScope(
+                                        parentArgs.travelId,
+                                        named("PlanningScope")
+                                    )
+                                }
                                 val viewModel =
-                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(navController) {
+                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
+                                        navController = navController,
+                                        scope = scope
+                                    ) {
                                         parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                                     }
                                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -250,84 +299,84 @@ fun App() {
                         )
                     }
 
-//                    composable<PlanningPage> {
-//                        LaunchedEffect(currentValue, directive) {
-//                            when (directive.maxHorizontalPartitions) {
-//                                1 -> {
-//                                    // Schermo piccolo: scegli quale pannello mantenere
-//                                    // Ad esempio, mantieni sempre il mainPane
-//                                    navigator
-//
-//                                    navigator.navigateBack()
-//                                }
-//                                2 -> {
-//                                    // Schermo medio: mostra due pannelli
-//                                    // Personalizza quale combinazione mostrare
-//                                }
-//                                else -> {
-//
-//                                }
-//                            }
-//                        }
+                    //                    composable<PlanningPage> {
+                    //                        LaunchedEffect(currentValue, directive) {
+                    //                            when (directive.maxHorizontalPartitions) {
+                    //                                1 -> {
+                    //                                    // Schermo piccolo: scegli quale pannello mantenere
+                    //                                    // Ad esempio, mantieni sempre il mainPane
+                    //                                    navigator
+                    //
+                    //                                    navigator.navigateBack()
+                    //                                }
+                    //                                2 -> {
+                    //                                    // Schermo medio: mostra due pannelli
+                    //                                    // Personalizza quale combinazione mostrare
+                    //                                }
+                    //                                else -> {
+                    //
+                    //                                }
+                    //                            }
+                    //                        }
 
 
-//                        PanelHorizontalDivided(
-//                            modifier = Modifier.fillMaxSize(),
-//                            scaffoldNavigator = navigator,
-//                            mainPane = {
-//                                AnimatedPane {
-//                                    PlanningPage(
-//                                        modifier = Modifier.fillMaxSize(),
-//                                        viewModel = koinViewModel()
-//                                    )
-//
-//                                    Button(
-//                                        onClick = {
-//                                            coroutine.launch {
-//                                                navigator.navigateTo(ThreePaneScaffoldRole.Secondary)
-//                                            }
-//                                        }
-//                                    ){
-//                                        Text("Secondary")
-//                                    }
-//
-//                                }
-//                            },
-//                            supportPane = {
-//                                AnimatedPane {
-//                                    Text("text")
-//                                }
-//                            },
-//                            extraPane = {
-//                                AnimatedPane {
-//                                    Scaffold(
-//                                        topBar = {
-//                                            IconButton(
-//                                                modifier = Modifier,
-//                                                onClick = {
-//                                                    coroutine.launch {
-//                                                        navigator.navigateBack()
-//                                                    }
-//                                                }
-//                                            ) {
-//                                                Icon(
-//                                                    painter = painterResource(Res.drawable.arrow_back),
-//                                                    contentDescription = null
-//                                                )
-//                                            }
-//                                        }
-//                                    ) {
-////                                    MapForge(
-////                                        modifier = Modifier
-////                                            .fillMaxSize()
-////                                            .padding(it),
-////                                        showFps = true
-////                                    )
-//                                    }
-//                                }
-//                            }
-//                        )
-//                    }
+                    //                        PanelHorizontalDivided(
+                    //                            modifier = Modifier.fillMaxSize(),
+                    //                            scaffoldNavigator = navigator,
+                    //                            mainPane = {
+                    //                                AnimatedPane {
+                    //                                    PlanningPage(
+                    //                                        modifier = Modifier.fillMaxSize(),
+                    //                                        viewModel = koinViewModel()
+                    //                                    )
+                    //
+                    //                                    Button(
+                    //                                        onClick = {
+                    //                                            coroutine.launch {
+                    //                                                navigator.navigateTo(ThreePaneScaffoldRole.Secondary)
+                    //                                            }
+                    //                                        }
+                    //                                    ){
+                    //                                        Text("Secondary")
+                    //                                    }
+                    //
+                    //                                }
+                    //                            },
+                    //                            supportPane = {
+                    //                                AnimatedPane {
+                    //                                    Text("text")
+                    //                                }
+                    //                            },
+                    //                            extraPane = {
+                    //                                AnimatedPane {
+                    //                                    Scaffold(
+                    //                                        topBar = {
+                    //                                            IconButton(
+                    //                                                modifier = Modifier,
+                    //                                                onClick = {
+                    //                                                    coroutine.launch {
+                    //                                                        navigator.navigateBack()
+                    //                                                    }
+                    //                                                }
+                    //                                            ) {
+                    //                                                Icon(
+                    //                                                    painter = painterResource(Res.drawable.arrow_back),
+                    //                                                    contentDescription = null
+                    //                                                )
+                    //                                            }
+                    //                                        }
+                    //                                    ) {
+                    ////                                    MapForge(
+                    ////                                        modifier = Modifier
+                    ////                                            .fillMaxSize()
+                    ////                                            .padding(it),
+                    ////                                        showFps = true
+                    ////                                    )
+                    //                                    }
+                    //                                }
+                    //                            }
+                    //                        )
+                    //                    }
                 }
             }
         }
@@ -339,9 +388,14 @@ fun App() {
 inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
     navController: NavController,
     navGraphRoute: Any? = this.destination.parent?.route,
+    scope: org.koin.core.scope.Scope? = null,
     noinline parameters: ParametersDefinition? = null,
 ): VM {
-    val navGraphRoute = navGraphRoute ?: return koinViewModel<VM>()
+    val navGraphRoute = navGraphRoute ?: return if (scope != null) {
+        koinViewModel<VM>(scope = scope, parameters = parameters)
+    } else {
+        koinViewModel<VM>(parameters = parameters)
+    }
     val parentEntry = remember(this) {
         if (navGraphRoute is String) {
             navController.getBackStackEntry(navGraphRoute)
@@ -349,8 +403,16 @@ inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
             navController.getBackStackEntry(navGraphRoute)
         }
     }
-    return koinViewModel(
-        viewModelStoreOwner = parentEntry,
-        parameters = parameters
-    )
+    return if (scope != null) {
+        koinViewModel(
+            viewModelStoreOwner = parentEntry,
+            scope = scope,
+            parameters = parameters
+        )
+    } else {
+        koinViewModel(
+            viewModelStoreOwner = parentEntry,
+            parameters = parameters
+        )
+    }
 }

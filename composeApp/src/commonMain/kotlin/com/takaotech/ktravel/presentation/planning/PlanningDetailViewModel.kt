@@ -11,9 +11,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.Scope
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @KoinViewModel
+@Scope(name = "PlanningScope")
 class PlanningDetailViewModel(
     @InjectedParam private val dayId: String,
     private val repository: TravelPlanRepository

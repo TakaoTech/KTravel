@@ -13,8 +13,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.Scope
 
 @KoinViewModel
+@Scope(name = "PlanningScope")
 class PlanningTransportViewModel(
     @InjectedParam private val dayId: String,
     @InjectedParam private val startPlaceId: String,
