@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotest)
     alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.stability.analyzer)
+//    alias(libs.plugins.stability.analyzer)
     alias(libs.plugins.detekt)
     alias(libs.plugins.mokkery)
 //    alias(libs.plugins.kotzilla)
@@ -73,16 +73,16 @@ kotlin {
 //    }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.kotzilla.koin.android)
-            implementation(libs.ktor.client.okhttp)
-//            implementation(libs.kotzilla.sdk.compose)
-        }
+//        androidMain.dependencies {
+//            implementation(libs.androidx.activity.compose)
+//            implementation(libs.kotzilla.koin.android)
+//            implementation(libs.ktor.client.okhttp)
+////            implementation(libs.kotzilla.sdk.compose)
+//        }
 
-        androidUnitTest.dependencies {
-            implementation(libs.bundles.mockk.android)
-        }
+//        androidUnitTest.dependencies {
+//            implementation(libs.bundles.mockk.android)
+//        }
 
         val commonMain by getting {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
@@ -161,12 +161,9 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.takaotech.ktravel"
         minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.ktravel.code.get().toInt()
-        versionName = libs.versions.ktravel.version.get()
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -184,7 +181,7 @@ android {
 }
 
 dependencies {
-    debugImplementation(libs.compose.tooling)
+//    debugImplementation(libs.compose.tooling)
     add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
     add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
     add("kspJvm", libs.kotzilla.koin.annotation.compiler)
