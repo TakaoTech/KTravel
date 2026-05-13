@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
@@ -18,9 +18,17 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
+    android {
+        namespace = "com.takaotech.ktravel.compose"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
+        }
+
+        androidResources {
+            enable = true
         }
     }
 
@@ -156,32 +164,8 @@ kotlin {
     }
 }
 
-android {
-    namespace = "com.takaotech.ktravel"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-}
-
 dependencies {
-//    debugImplementation(libs.compose.tooling)
+    androidRuntimeClasspath(libs.compose.tooling)
     add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
     add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
     add("kspJvm", libs.kotzilla.koin.annotation.compiler)
