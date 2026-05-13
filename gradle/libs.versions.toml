@@ -4,7 +4,7 @@ ktor-client = "3.4.0"
 ktravel-version = "1.0.0"
 ktravel-code = "1"
 
-agp = "8.12.3"
+agp = "9.1.0"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
@@ -139,7 +139,6 @@ detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
