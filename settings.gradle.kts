@@ -35,6 +35,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+include(":androidApp")
 include(":composeApp")
 include(":os-map")
 include(":location-clients")
