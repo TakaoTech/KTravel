@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.travel_creation_name_empty_error
-import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.KoinViewModel
 import kotlin.time.Instant
 
 @KoinViewModel
