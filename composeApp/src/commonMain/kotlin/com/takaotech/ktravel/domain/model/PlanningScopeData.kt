@@ -1,7 +1,10 @@
 package com.takaotech.ktravel.domain.model
 
-import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.Scope
+import org.koin.core.annotation.Scoped
 
 @Scope(name = "PlanningScope")
-data class PlanningScopeData(@InjectedParam val travelId: String)
+@Scoped
+class PlanningScopeData {
+    lateinit var travelId: String
+}

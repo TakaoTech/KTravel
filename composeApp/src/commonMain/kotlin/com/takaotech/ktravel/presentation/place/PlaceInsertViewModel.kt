@@ -7,22 +7,31 @@ import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.core.ui.toTextPayload
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import ktravel.composeapp.generated.resources.*
-import org.koin.android.annotation.KoinViewModel
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.place_insert_error_lat_empty
+import ktravel.composeapp.generated.resources.place_insert_error_lat_invalid_format
+import ktravel.composeapp.generated.resources.place_insert_error_lng_empty
+import ktravel.composeapp.generated.resources.place_insert_error_lng_invalid_format
+import ktravel.composeapp.generated.resources.place_insert_error_name_empty
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
 
 @KoinViewModel
 @Scope(name = "PlanningScope")
 class PlaceInsertViewModel(
-    @InjectedParam private val dayId: String?,
-    private val savePlaceUseCase: SavePlaceUseCase
+    @InjectedParam private val dayId: String?, private val savePlaceUseCase: SavePlaceUseCase
 ) : ViewModel() {
-    private val latRegex = Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
+    private val latRegex =
+        Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
     private val lngRegex =
         Regex("^(\\+|-)?(?:180(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\\.[0-9]{1,6})?))\$")
 
@@ -37,8 +46,7 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeName = it.placeName.copy(
-                    value = name,
-                    validationState = FieldValidationState.None
+                    value = name, validationState = FieldValidationState.None
                 )
             )
         }
@@ -49,8 +57,7 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
-                    value = lat,
-                    validationState = FieldValidationState.None
+                    value = lat, validationState = FieldValidationState.None
                 )
             )
         }
@@ -61,8 +68,7 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLng = it.placeLng.copy(
-                    value = lng,
-                    validationState = FieldValidationState.None
+                    value = lng, validationState = FieldValidationState.None
                 )
             )
         }
@@ -74,12 +80,9 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
-                    value = TextFieldValue(lat),
-                    validationState = FieldValidationState.None
-                ),
-                placeLng = it.placeLng.copy(
-                    value = TextFieldValue(lng),
-                    validationState = FieldValidationState.None
+                    value = TextFieldValue(lat), validationState = FieldValidationState.None
+                ), placeLng = it.placeLng.copy(
+                    value = TextFieldValue(lng), validationState = FieldValidationState.None
                 )
             )
         }
@@ -102,8 +105,7 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 searchQuery = it.searchQuery.copy(
-                    value = query,
-                    validationState = FieldValidationState.None
+                    value = query, validationState = FieldValidationState.None
                 )
             )
         }
@@ -186,9 +188,12 @@ class PlaceInsertViewModel(
                 )
             }
 
-            val name = newUiState.placeName.takeIf { it.validationState is FieldValidationState.Valid }
-            val lat = newUiState.placeLat.takeIf { it.validationState is FieldValidationState.Valid }
-            val lng = newUiState.placeLng.takeIf { it.validationState is FieldValidationState.Valid }
+            val name =
+                newUiState.placeName.takeIf { it.validationState is FieldValidationState.Valid }
+            val lat =
+                newUiState.placeLat.takeIf { it.validationState is FieldValidationState.Valid }
+            val lng =
+                newUiState.placeLng.takeIf { it.validationState is FieldValidationState.Valid }
 
             // Only save if there are no errors
             if (name != null && lat != null && lng != null) {
