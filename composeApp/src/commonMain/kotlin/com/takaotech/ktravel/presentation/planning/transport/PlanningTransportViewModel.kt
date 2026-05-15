@@ -9,10 +9,20 @@ import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import org.koin.android.annotation.KoinViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
 
 @KoinViewModel
@@ -121,7 +131,8 @@ class PlanningTransportViewModel(
     fun saveSelectedRoute() {
         viewModelScope.launch(Dispatchers.Default) {
             val state = mUiState.value
-            val selectedRoute = state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
+            val selectedRoute =
+                state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
             saveTransportStepUseCase(dayId, startPlaceId, selectedRoute)
         }
     }

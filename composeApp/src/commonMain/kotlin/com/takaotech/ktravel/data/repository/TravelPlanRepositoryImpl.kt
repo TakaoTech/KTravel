@@ -7,14 +7,26 @@ import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toDomain
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
-import com.takaotech.ktravel.domain.model.*
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.PlanningScopeData
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.StepPlaceMapper
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlan
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import org.koin.core.annotation.Scope
+import org.koin.core.annotation.Scoped
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @Scope(name = "PlanningScope")
+@Scoped(binds = [TravelPlanRepository::class])
 class TravelPlanRepositoryImpl(
     private val scopeData: PlanningScopeData,
     private val dataSource: TravelPlanStorageDataSource

@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.mokkery)
 //    alias(libs.plugins.kotzilla)
+    alias(libs.plugins.kotzilla.koin.compiler)
 }
 
 kotlin {
@@ -117,6 +118,7 @@ kotlin {
 
                 implementation(libs.kotzilla.sdk.compose)
                 implementation(libs.kotzilla.koin.core)
+                implementation(libs.kotzilla.koin.core.viewmodel)
                 implementation(libs.kotzilla.koin.test)
                 implementation(libs.kotzilla.koin.compose)
                 implementation(libs.kotzilla.koin.compose.viewmodel)
@@ -166,11 +168,11 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.tooling)
-    add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
-    add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
-    add("kspJvm", libs.kotzilla.koin.annotation.compiler)
-    add("kspIosArm64", libs.kotzilla.koin.annotation.compiler)
-    add("kspIosSimulatorArm64", libs.kotzilla.koin.annotation.compiler)
+//    add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
+//    add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
+//    add("kspJvm", libs.kotzilla.koin.annotation.compiler)
+//    add("kspIosArm64", libs.kotzilla.koin.annotation.compiler)
+//    add("kspIosSimulatorArm64", libs.kotzilla.koin.annotation.compiler)
 
     detektPlugins(libs.detekt.composerules)
     detektPlugins(libs.detekt.formatting)
@@ -188,15 +190,20 @@ compose.desktop {
     }
 }
 
-ksp {
-    arg("KOIN_CONFIG_CHECK", "true")
-}
+//ksp {
+//    arg("KOIN_CONFIG_CHECK", "true")
+//}
 
 // Trigger Common Metadata Generation from Native tasks
-tasks.matching {
-    it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata"
-}.configureEach {
-    dependsOn("kspCommonMainKotlinMetadata")
+//tasks.matching {
+//    it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata"
+//}.configureEach {
+//    dependsOn("kspCommonMainKotlinMetadata")
+//}
+
+koinCompiler {
+    userLogs = true  // Log component detection
+    debugLogs = true
 }
 
 tasks.withType<Test>().configureEach {

@@ -5,8 +5,10 @@ import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.model.Route
 import org.koin.core.annotation.Scope
+import org.koin.core.annotation.Scoped
 
 @Scope(name = "PlanningScope")
+@Scoped
 class SaveTransportStepUseCase(
     private val repository: TravelPlanRepository
 ) {

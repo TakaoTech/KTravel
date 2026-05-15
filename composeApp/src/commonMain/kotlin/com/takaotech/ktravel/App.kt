@@ -2,7 +2,12 @@ package com.takaotech.ktravel
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
@@ -15,8 +20,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.takaotech.ktravel.core.LocalOperatingSystem
-import com.takaotech.ktravel.core.platformModules
-import com.takaotech.ktravel.di.appModule
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
@@ -30,7 +33,11 @@ import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPageNavigation
-import com.takaotech.ktravel.ui.planning.transport.*
+import com.takaotech.ktravel.ui.planning.transport.PlanningTransportNavigation
+import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPage
+import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPageNavigation
+import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreviewPage
+import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreviewPageNavigation
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
@@ -40,7 +47,6 @@ import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.koin.compose.KoinMultiplatformApplication
 import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.Koin
@@ -48,99 +54,153 @@ import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
-import org.koin.dsl.KoinConfiguration
 
 
 @Serializable
 data class PlanningNavigation(val travelId: String)
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class, KoinExperimentalAPI::class)
+@OptIn(
+    ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalComposeUiApi::class,
+    KoinExperimentalAPI::class
+)
 @Composable
 @Preview
 fun App() {
-    KoinMultiplatformApplication(
-        config = KoinConfiguration {
-            modules(appModule())
-            platformModules()
-        }
+    val currentOs = getOperatingSystem()
+
+    CompositionLocalProvider(
+        LocalOperatingSystem provides currentOs
     ) {
-        val currentOs = getOperatingSystem()
+        MaterialTheme {
+            val navController = rememberNavController()
 
-        CompositionLocalProvider(
-            LocalOperatingSystem provides currentOs
-        ) {
-            MaterialTheme {
-                val navController = rememberNavController()
+            NavHost(navController = navController, startDestination = TravelSelectionPage) {
+                composable<TravelSelectionPage> {
+                    TravelSelectionPage(
+                        onNewTravelClick = {
+                            navController.navigate(TravelCreationPage)
+                        }
+                    )
+                }
 
-                NavHost(navController = navController, startDestination = TravelSelectionPage) {
-                    composable<TravelSelectionPage> {
-                        TravelSelectionPage(
-                            onNewTravelClick = {
-                                navController.navigate(TravelCreationPage)
+                composable<TravelCreationPage> {
+                    TravelCreationPage(
+                        onBackClick = {
+                            navController.navigateUp()
+                        },
+                        onNavigateToPlanning = { id ->
+                            navController.navigate(PlanningNavigation(id)) {
+                                popUpTo(TravelSelectionPage) { inclusive = false }
                             }
-                        )
-                    }
+                        }
+                    )
+                }
 
-                    composable<TravelCreationPage> {
-                        TravelCreationPage(
-                            onBackClick = {
-                                navController.navigateUp()
-                            },
-                            onNavigateToPlanning = { id ->
-                                navController.navigate(PlanningNavigation(id)) {
-                                    popUpTo(TravelSelectionPage) { inclusive = false }
-                                }
-                            }
-                        )
-                    }
+                navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
+                    composable<PlanningTripPageNavigation> { backStackEntry ->
+                        val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
+                        val scope =
+                            getKoin().getOrCreateScope(args.travelId, named("PlanningScope"))
 
-                    navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
-                        composable<PlanningTripPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
-                            val koin: Koin = getKoin()
-                            val scope = remember(args.travelId) {
-                                koin.getOrCreateScope(args.travelId, named("PlanningScope")).apply {
-                                    // Ensure PlanningScopeData is created with the travelId parameter once
-                                    get<PlanningScopeData> { parametersOf(args.travelId) }
-                                }
-                            }
-
-                            val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(
-                                navController = navController,
-                                scope = scope
-                            )
-                            val coroutine = rememberCoroutineScope()
-
-                            val launcher =
-                                rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
-                                    // Write your data to the file
-
-                                }
-
-
-                            PlanningTripPage(
-                                viewModel = viewModel,
-                                onAddPlaceClicked = {
-                                    navController.navigate(PlaceInsertNavigation())
-                                },
-                                onDateClicked = {
-                                    navController.navigate(PlanningDetailPageNavigation(it))
-                                },
-                                onSettingClicked = {
-                                    navController.navigate(SettingsNavigation)
-                                },
-                                onSaveClick = {
-                                    coroutine.launch {
-                                        launcher.launch(viewModel.uiState.value.planHeader.name.text, "json")
-                                    }
-                                }
-                            )
+                        val data = scope.get<PlanningScopeData>().apply {
+                            travelId = args.travelId
                         }
 
-                        composable<PlanningDetailPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
+                        val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(
+                            navController = navController,
+                            scope = scope
+                        )
+                        val coroutine = rememberCoroutineScope()
+
+                        val launcher =
+                            rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
+                                // Write your data to the file
+
+                            }
+
+
+                        PlanningTripPage(
+                            viewModel = viewModel,
+                            onAddPlaceClicked = {
+                                navController.navigate(PlaceInsertNavigation())
+                            },
+                            onDateClicked = {
+                                navController.navigate(PlanningDetailPageNavigation(it))
+                            },
+                            onSettingClicked = {
+                                navController.navigate(SettingsNavigation)
+                            },
+                            onSaveClick = {
+                                coroutine.launch {
+                                    launcher.launch(
+                                        viewModel.uiState.value.planHeader.name.text,
+                                        "json"
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    composable<PlanningDetailPageNavigation> { backStackEntry ->
+                        val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
+                        val parentArgs =
+                            navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>()
+                        val koin: Koin = getKoin()
+                        val scope = remember(parentArgs.travelId) {
+                            koin.getOrCreateScope(
+                                parentArgs.travelId,
+                                named("PlanningScope")
+                            )
+                        }
+                        val viewModel = koinViewModel<PlanningDetailViewModel>(scope = scope) {
+                            parametersOf(args.id)
+                        }
+
+                        val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
+
+                        PlanningDetailPage(
+                            steps = travelDay.steps,
+                            places = travelDay.places,
+                            onAddPlaceClick = {
+                                navController.navigate(PlaceInsertNavigation(travelDay.id))
+                            },
+                            onDeletePlaceClick = {
+                                viewModel.movePlaceToGeneral(it)
+                            },
+                            onDeletePermanentPlaceClick = {
+                                viewModel.deletePlace(it)
+                            },
+                            onStepDeleteClicked = {
+                                viewModel.moveStepToPlace(it)
+                            },
+                            onNavigationBackClick = {
+                                navController.navigateUp()
+                            },
+                            onMovePlaceToList = {
+                                viewModel.movePlaceToStep(it)
+                            },
+                            onStepMoveDown = {
+                                viewModel.moveStepDown(it)
+                            },
+                            onStepMoveUp = {
+                                viewModel.moveStepUp(it)
+                            },
+                            onTransportAddClick = { startId, endId ->
+                                navController.navigate(
+                                    PlanningTransportPageNavigation(travelDay.id, startId, endId)
+                                )
+                            }
+                        )
+                    }
+
+                    navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
+                        composable<PlanningTransportPageNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
                             val parentArgs =
-                                navController.getBackStackEntry<PlanningNavigation>().toRoute<PlanningNavigation>()
+                                navController.getBackStackEntry<PlanningNavigation>()
+                                    .toRoute<PlanningNavigation>()
                             val koin: Koin = getKoin()
                             val scope = remember(parentArgs.travelId) {
                                 koin.getOrCreateScope(
@@ -148,236 +208,184 @@ fun App() {
                                     named("PlanningScope")
                                 )
                             }
-                            val viewModel = koinViewModel<PlanningDetailViewModel>(scope = scope) {
-                                parametersOf(args.id)
+                            val viewModel =
+                                backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
+                                    navController = navController,
+                                    scope = scope
+                                ) {
+                                    parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                                }
+
+                            LaunchedEffect(viewModel) {
+                                viewModel.navigationEvent.collect { event ->
+                                    when (event) {
+                                        is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
+                                            navController.navigate(
+                                                PlanningTransportRoutePreviewPageNavigation(
+                                                    args.dayId,
+                                                    args.startPlaceId,
+                                                    args.endPlaceId
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
                             }
 
-                            val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
-
-                            PlanningDetailPage(
-                                steps = travelDay.steps,
-                                places = travelDay.places,
-                                onAddPlaceClick = {
-                                    navController.navigate(PlaceInsertNavigation(travelDay.id))
-                                },
-                                onDeletePlaceClick = {
-                                    viewModel.movePlaceToGeneral(it)
-                                },
-                                onDeletePermanentPlaceClick = {
-                                    viewModel.deletePlace(it)
-                                },
-                                onStepDeleteClicked = {
-                                    viewModel.moveStepToPlace(it)
-                                },
+                            PlanningTransportPage(
+                                viewModel = viewModel,
                                 onNavigationBackClick = {
                                     navController.navigateUp()
-                                },
-                                onMovePlaceToList = {
-                                    viewModel.movePlaceToStep(it)
-                                },
-                                onStepMoveDown = {
-                                    viewModel.moveStepDown(it)
-                                },
-                                onStepMoveUp = {
-                                    viewModel.moveStepUp(it)
-                                },
-                                onTransportAddClick = { startId, endId ->
-                                    navController.navigate(
-                                        PlanningTransportPageNavigation(travelDay.id, startId, endId)
-                                    )
                                 }
                             )
                         }
 
-                        navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
-                            composable<PlanningTransportPageNavigation> { backStackEntry ->
-                                val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
-                                val parentArgs =
-                                    navController.getBackStackEntry<PlanningNavigation>()
-                                        .toRoute<PlanningNavigation>()
-                                val koin: Koin = getKoin()
-                                val scope = remember(parentArgs.travelId) {
-                                    koin.getOrCreateScope(
-                                        parentArgs.travelId,
-                                        named("PlanningScope")
-                                    )
-                                }
-                                val viewModel =
-                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
-                                        navController = navController,
-                                        scope = scope
-                                    ) {
-                                        parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
-                                    }
-
-                                LaunchedEffect(viewModel) {
-                                    viewModel.navigationEvent.collect { event ->
-                                        when (event) {
-                                            is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
-                                                navController.navigate(
-                                                    PlanningTransportRoutePreviewPageNavigation(
-                                                        args.dayId,
-                                                        args.startPlaceId,
-                                                        args.endPlaceId
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                PlanningTransportPage(
-                                    viewModel = viewModel,
-                                    onNavigationBackClick = {
-                                        navController.navigateUp()
-                                    }
+                        composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
+                            val args =
+                                backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
+                            val parentArgs =
+                                navController.getBackStackEntry<PlanningNavigation>()
+                                    .toRoute<PlanningNavigation>()
+                            val koin: Koin = getKoin()
+                            val scope = remember(parentArgs.travelId) {
+                                koin.getOrCreateScope(
+                                    parentArgs.travelId,
+                                    named("PlanningScope")
                                 )
                             }
-
-                            composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
-                                val args = backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
-                                val parentArgs =
-                                    navController.getBackStackEntry<PlanningNavigation>()
-                                        .toRoute<PlanningNavigation>()
-                                val koin: Koin = getKoin()
-                                val scope = remember(parentArgs.travelId) {
-                                    koin.getOrCreateScope(
-                                        parentArgs.travelId,
-                                        named("PlanningScope")
-                                    )
+                            val viewModel =
+                                backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
+                                    navController = navController,
+                                    scope = scope
+                                ) {
+                                    parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                                 }
-                                val viewModel =
-                                    backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
-                                        navController = navController,
-                                        scope = scope
-                                    ) {
-                                        parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
-                                    }
-                                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-                                uiState.routes?.let { routes ->
-                                    PlanningTransportRoutePreviewPage(
-                                        routes = routes,
-                                        selectedRouteIndex = uiState.selectedRouteIndex,
-                                        onRouteConfirm = {
-                                            viewModel.saveSelectedRoute()
-                                            navController.popBackStack<PlanningDetailPageNavigation>(inclusive = false)
-                                        },
-                                        onRouteChange = { viewModel.selectRoute(it) }
-                                    )
-                                }
+                            uiState.routes?.let { routes ->
+                                PlanningTransportRoutePreviewPage(
+                                    routes = routes,
+                                    selectedRouteIndex = uiState.selectedRouteIndex,
+                                    onRouteConfirm = {
+                                        viewModel.saveSelectedRoute()
+                                        navController.popBackStack<PlanningDetailPageNavigation>(
+                                            inclusive = false
+                                        )
+                                    },
+                                    onRouteChange = { viewModel.selectRoute(it) }
+                                )
                             }
                         }
                     }
-
-                    composable<PlaceInsertNavigation> { backStackEntry ->
-                        val args = backStackEntry.toRoute<PlaceInsertNavigation>()
-
-                        val viewModel = koinViewModel<PlaceInsertViewModel> {
-                            parametersOf(args.dayId)
-                        }
-
-                        PlaceInsertPage(
-                            viewModel = viewModel,
-                            onExit = {
-                                navController.navigateUp()
-                            },
-                            onSaveClicked = {
-                                navController.navigateUp()
-                            }
-                        )
-                    }
-
-                    composable<SettingsNavigation> {
-                        val viewModel = koinViewModel<SettingsViewModel>()
-
-                        SettingsPage(
-                            viewModel = viewModel,
-                            onNavigationBackClick = {
-                                navController.navigateUp()
-                            }
-                        )
-                    }
-
-                    //                    composable<PlanningPage> {
-                    //                        LaunchedEffect(currentValue, directive) {
-                    //                            when (directive.maxHorizontalPartitions) {
-                    //                                1 -> {
-                    //                                    // Schermo piccolo: scegli quale pannello mantenere
-                    //                                    // Ad esempio, mantieni sempre il mainPane
-                    //                                    navigator
-                    //
-                    //                                    navigator.navigateBack()
-                    //                                }
-                    //                                2 -> {
-                    //                                    // Schermo medio: mostra due pannelli
-                    //                                    // Personalizza quale combinazione mostrare
-                    //                                }
-                    //                                else -> {
-                    //
-                    //                                }
-                    //                            }
-                    //                        }
-
-
-                    //                        PanelHorizontalDivided(
-                    //                            modifier = Modifier.fillMaxSize(),
-                    //                            scaffoldNavigator = navigator,
-                    //                            mainPane = {
-                    //                                AnimatedPane {
-                    //                                    PlanningPage(
-                    //                                        modifier = Modifier.fillMaxSize(),
-                    //                                        viewModel = koinViewModel()
-                    //                                    )
-                    //
-                    //                                    Button(
-                    //                                        onClick = {
-                    //                                            coroutine.launch {
-                    //                                                navigator.navigateTo(ThreePaneScaffoldRole.Secondary)
-                    //                                            }
-                    //                                        }
-                    //                                    ){
-                    //                                        Text("Secondary")
-                    //                                    }
-                    //
-                    //                                }
-                    //                            },
-                    //                            supportPane = {
-                    //                                AnimatedPane {
-                    //                                    Text("text")
-                    //                                }
-                    //                            },
-                    //                            extraPane = {
-                    //                                AnimatedPane {
-                    //                                    Scaffold(
-                    //                                        topBar = {
-                    //                                            IconButton(
-                    //                                                modifier = Modifier,
-                    //                                                onClick = {
-                    //                                                    coroutine.launch {
-                    //                                                        navigator.navigateBack()
-                    //                                                    }
-                    //                                                }
-                    //                                            ) {
-                    //                                                Icon(
-                    //                                                    painter = painterResource(Res.drawable.arrow_back),
-                    //                                                    contentDescription = null
-                    //                                                )
-                    //                                            }
-                    //                                        }
-                    //                                    ) {
-                    ////                                    MapForge(
-                    ////                                        modifier = Modifier
-                    ////                                            .fillMaxSize()
-                    ////                                            .padding(it),
-                    ////                                        showFps = true
-                    ////                                    )
-                    //                                    }
-                    //                                }
-                    //                            }
-                    //                        )
-                    //                    }
                 }
+
+                composable<PlaceInsertNavigation> { backStackEntry ->
+                    val args = backStackEntry.toRoute<PlaceInsertNavigation>()
+
+                    val viewModel = koinViewModel<PlaceInsertViewModel> {
+                        parametersOf(args.dayId)
+                    }
+
+                    PlaceInsertPage(
+                        viewModel = viewModel,
+                        onExit = {
+                            navController.navigateUp()
+                        },
+                        onSaveClicked = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+
+                composable<SettingsNavigation> {
+                    val viewModel = koinViewModel<SettingsViewModel>()
+
+                    SettingsPage(
+                        viewModel = viewModel,
+                        onNavigationBackClick = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+
+                //                    composable<PlanningPage> {
+                //                        LaunchedEffect(currentValue, directive) {
+                //                            when (directive.maxHorizontalPartitions) {
+                //                                1 -> {
+                //                                    // Schermo piccolo: scegli quale pannello mantenere
+                //                                    // Ad esempio, mantieni sempre il mainPane
+                //                                    navigator
+                //
+                //                                    navigator.navigateBack()
+                //                                }
+                //                                2 -> {
+                //                                    // Schermo medio: mostra due pannelli
+                //                                    // Personalizza quale combinazione mostrare
+                //                                }
+                //                                else -> {
+                //
+                //                                }
+                //                            }
+                //                        }
+
+
+                //                        PanelHorizontalDivided(
+                //                            modifier = Modifier.fillMaxSize(),
+                //                            scaffoldNavigator = navigator,
+                //                            mainPane = {
+                //                                AnimatedPane {
+                //                                    PlanningPage(
+                //                                        modifier = Modifier.fillMaxSize(),
+                //                                        viewModel = koinViewModel()
+                //                                    )
+                //
+                //                                    Button(
+                //                                        onClick = {
+                //                                            coroutine.launch {
+                //                                                navigator.navigateTo(ThreePaneScaffoldRole.Secondary)
+                //                                            }
+                //                                        }
+                //                                    ){
+                //                                        Text("Secondary")
+                //                                    }
+                //
+                //                                }
+                //                            },
+                //                            supportPane = {
+                //                                AnimatedPane {
+                //                                    Text("text")
+                //                                }
+                //                            },
+                //                            extraPane = {
+                //                                AnimatedPane {
+                //                                    Scaffold(
+                //                                        topBar = {
+                //                                            IconButton(
+                //                                                modifier = Modifier,
+                //                                                onClick = {
+                //                                                    coroutine.launch {
+                //                                                        navigator.navigateBack()
+                //                                                    }
+                //                                                }
+                //                                            ) {
+                //                                                Icon(
+                //                                                    painter = painterResource(Res.drawable.arrow_back),
+                //                                                    contentDescription = null
+                //                                                )
+                //                                            }
+                //                                        }
+                //                                    ) {
+                ////                                    MapForge(
+                ////                                        modifier = Modifier
+                ////                                            .fillMaxSize()
+                ////                                            .padding(it),
+                ////                                        showFps = true
+                ////                                    )
+                //                                    }
+                //                                }
+                //                            }
+                //                        )
+                //                    }
             }
         }
     }

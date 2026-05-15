@@ -10,7 +10,7 @@ import org.koin.core.annotation.Single
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Single
+@Single(binds = [TravelManagerRepository::class])
 class TravelManagerRepositoryImpl(
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelManagerRepository {

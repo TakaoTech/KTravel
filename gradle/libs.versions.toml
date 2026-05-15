@@ -31,8 +31,8 @@ core = "1.7.0"
 kotest = "6.1.4"
 mockk = "1.14.9"
 kotzilla-sdk = "2.0.6"
-kotzilla-koin = "4.1.1"
-kotzilla-koin-annotation = "2.3.1"
+kotzilla-koin = "4.2.1"
+kotzilla-koin-plugin = "1.0.0-RC2"
 
 filekit = "0.13.0"
 kotbase = "3.2.4-1.2.0"
@@ -84,13 +84,13 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 kotzilla-sdk-compose = { group = "io.kotzilla", name = "kotzilla-sdk-compose", version.ref = "kotzilla-sdk" }
 kotzilla-koin-core = { module = "io.insert-koin:koin-core", version.ref = "kotzilla-koin" }
+kotzilla-koin-core-viewmodel = { module = "io.insert-koin:koin-core-viewmodel", version.ref = "kotzilla-koin" }
 kotzilla-koin-test = { module = "io.insert-koin:koin-test", version.ref = "kotzilla-koin" }
 kotzilla-koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "kotzilla-koin" }
 kotzilla-koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "kotzilla-koin" }
 kotzilla-koin-compose-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation ", version.ref = "kotzilla-koin" }
 kotzilla-koin-android = { module = "io.insert-koin:koin-android", version.ref = "kotzilla-koin" }
-kotzilla-koin-annotation = { module = "io.insert-koin:koin-annotations", version.ref = "kotzilla-koin-annotation" }
-kotzilla-koin-annotation-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "kotzilla-koin-annotation" }
+kotzilla-koin-annotation = { module = "io.insert-koin:koin-annotations", version.ref = "kotzilla-koin" }
 
 kotest-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
@@ -142,13 +142,13 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotest = { id = "io.kotest", version.ref = "kotest" }
-ksp = { id = "com.google.devtools.ksp", version = "2.3.2" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.4" }
 kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla-sdk" }
+kotzilla-koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "kotzilla-koin-plugin" }
 stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.7.4" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 mokkery = { id = "dev.mokkery", version = "3.2.0" }
