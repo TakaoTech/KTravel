@@ -20,6 +20,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.takaotech.ktravel.core.LocalOperatingSystem
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
@@ -53,7 +54,6 @@ import org.koin.core.Koin
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
-import org.koin.core.qualifier.named
 
 
 @Serializable
@@ -100,10 +100,9 @@ fun App() {
                 navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
                     composable<PlanningTripPageNavigation> { backStackEntry ->
                         val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
-                        val scope =
-                            getKoin().getOrCreateScope(args.travelId, named("PlanningScope"))
+                        val scope = getKoin().getOrCreateScope<PlanningScope>(args.travelId)
 
-                        val data = scope.get<PlanningScopeData>().apply {
+                        scope.get<PlanningScopeData>().apply {
                             travelId = args.travelId
                         }
 
@@ -149,9 +148,8 @@ fun App() {
                                 .toRoute<PlanningNavigation>()
                         val koin: Koin = getKoin()
                         val scope = remember(parentArgs.travelId) {
-                            koin.getOrCreateScope(
-                                parentArgs.travelId,
-                                named("PlanningScope")
+                            koin.getOrCreateScope<PlanningScope>(
+                                parentArgs.travelId
                             )
                         }
                         val viewModel = koinViewModel<PlanningDetailViewModel>(scope = scope) {
@@ -198,15 +196,11 @@ fun App() {
                     navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
                         composable<PlanningTransportPageNavigation> { backStackEntry ->
                             val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
-                            val parentArgs =
-                                navController.getBackStackEntry<PlanningNavigation>()
-                                    .toRoute<PlanningNavigation>()
+                            val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>()
                             val koin: Koin = getKoin()
                             val scope = remember(parentArgs.travelId) {
-                                koin.getOrCreateScope(
-                                    parentArgs.travelId,
-                                    named("PlanningScope")
-                                )
+                                koin.getOrCreateScope<PlanningScope>(parentArgs.travelId)
                             }
                             val viewModel =
                                 backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
@@ -248,9 +242,8 @@ fun App() {
                                     .toRoute<PlanningNavigation>()
                             val koin: Koin = getKoin()
                             val scope = remember(parentArgs.travelId) {
-                                koin.getOrCreateScope(
-                                    parentArgs.travelId,
-                                    named("PlanningScope")
+                                koin.getOrCreateScope<PlanningScope>(
+                                    parentArgs.travelId
                                 )
                             }
                             val viewModel =
@@ -283,7 +276,12 @@ fun App() {
                     val args = backStackEntry.toRoute<PlaceInsertNavigation>()
 
                     val viewModel = koinViewModel<PlaceInsertViewModel> {
-                        parametersOf(args.dayId)
+                        //TODO Fix this param inject, travelId is injected in dayId when dayId is null
+                        parametersOf(
+                            navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>().travelId,
+                            args.dayId
+                        )
                     }
 
                     PlaceInsertPage(

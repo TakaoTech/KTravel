@@ -2,6 +2,7 @@ package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
@@ -26,7 +27,7 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
 
 @KoinViewModel
-@Scope(name = "PlanningScope")
+@Scope(PlanningScope::class)
 class PlanningTransportViewModel(
     @InjectedParam private val dayId: String,
     @InjectedParam private val startPlaceId: String,

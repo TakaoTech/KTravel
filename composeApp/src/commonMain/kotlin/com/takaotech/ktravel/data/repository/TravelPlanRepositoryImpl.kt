@@ -7,6 +7,7 @@ import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toDomain
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.model.StepDomain
@@ -25,7 +26,7 @@ import org.koin.core.annotation.Scoped
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@Scope(name = "PlanningScope")
+@Scope(PlanningScope::class)
 @Scoped(binds = [TravelPlanRepository::class])
 class TravelPlanRepositoryImpl(
     private val scopeData: PlanningScopeData,
