@@ -3,6 +3,7 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,7 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
 
 @KoinViewModel
-@Scope(name = "PlanningScope")
+@Scope(PlanningScope::class)
 class PlanningViewModel(
     private val scopeData: PlanningScopeData,
     private val repository: TravelPlanRepository

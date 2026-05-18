@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.core.ui.toTextPayload
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,13 +24,14 @@ import ktravel.composeapp.generated.resources.place_insert_error_lng_invalid_for
 import ktravel.composeapp.generated.resources.place_insert_error_name_empty
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
-import org.koin.core.annotation.Scope
+import org.koin.core.component.KoinComponent
 
 @KoinViewModel
-@Scope(name = "PlanningScope")
 class PlaceInsertViewModel(
-    @InjectedParam private val dayId: String?, private val savePlaceUseCase: SavePlaceUseCase
-) : ViewModel() {
+    @InjectedParam private val travelId: String,
+    @InjectedParam private val dayId: String?,
+//    private val savePlaceUseCase: SavePlaceUseCase
+) : ViewModel(), KoinComponent {
     private val latRegex =
         Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
     private val lngRegex =
@@ -197,12 +199,14 @@ class PlaceInsertViewModel(
 
             // Only save if there are no errors
             if (name != null && lat != null && lng != null) {
-                savePlaceUseCase(
-                    name = name.value.text,
-                    lat = lat.value.text.toDoubleOrNull() ?: 0.0,
-                    lng = lng.value.text.toDoubleOrNull() ?: 0.0,
-                    dayId = dayId
-                )
+                getKoin().getOrCreateScope<PlanningScope>(travelId)
+                    .get<SavePlaceUseCase>()
+                    .invoke(
+                        name = name.value.text,
+                        lat = lat.value.text.toDoubleOrNull() ?: 0.0,
+                        lng = lng.value.text.toDoubleOrNull() ?: 0.0,
+                        dayId = dayId
+                    )
 
                 if (newUiState.isBulk) {
                     _uiState.update {
