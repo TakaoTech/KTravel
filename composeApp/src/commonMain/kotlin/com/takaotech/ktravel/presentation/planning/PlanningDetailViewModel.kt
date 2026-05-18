@@ -2,6 +2,7 @@ package com.takaotech.ktravel.presentation.planning
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +16,7 @@ import org.koin.core.annotation.Scope
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @KoinViewModel
-@Scope(name = "PlanningScope")
+@Scope(PlanningScope::class)
 class PlanningDetailViewModel(
     @InjectedParam private val dayId: String,
     private val repository: TravelPlanRepository
