@@ -5,8 +5,7 @@
 ## Project Overview
 
 KTravel is a Kotlin Multiplatform travel planning application built with Compose Multiplatform. The
-application targets
-multiple platforms including Android, iOS, Web (WebAssembly and JavaScript), and Desktop (JVM).
+application targets multiple platforms including Android, iOS, and Desktop (JVM).
 
 ### Key Features
 
@@ -40,9 +39,6 @@ The composeApp module follows Kotlin Multiplatform conventions:
     - `/src/androidMain` - Android-specific code
     - `/src/iosMain` - iOS-specific code
     - `/src/jvmMain` - Desktop (JVM) specific code
-    - `/src/wasmJsMain` - WebAssembly specific code
-    - `/src/jsMain` - JavaScript specific code
-    - `/src/webMain` - Common web code
 
 ### Architecture
 
@@ -58,7 +54,7 @@ The project follows **Clean Architecture** principles:
 - **UI Framework:** Compose Multiplatform
 - **Build System:** Gradle with Kotlin DSL
 - **Testing Frameworks:** Kotest, JUnit, Kotlin-Test
-- **Platforms:** Android, iOS, Desktop (JVM), Web (Wasm/JS)
+- **Platforms:** Android, iOS, Desktop (JVM)
 
 ## Testing Guidelines
 
@@ -69,7 +65,6 @@ The project follows **Clean Architecture** principles:
 - **Platform-specific tests:**
     - Android: `./gradlew :composeApp:testDebugUnitTest`
     - Desktop: `./gradlew :composeApp:jvmTest`
-    - Web (Wasm): `./gradlew :composeApp:wasmJsTest`
 
 ### Test Framework Usage
 
