@@ -1,8 +1,10 @@
 package com.takaotech.ktravel.domain.repository
 
+import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import kotlinx.datetime.LocalDate
 
+@OpenForMokkery
 interface TravelManagerRepository {
     /**
      * Restituisce la lista di tutti i piani di viaggio salvati nel database

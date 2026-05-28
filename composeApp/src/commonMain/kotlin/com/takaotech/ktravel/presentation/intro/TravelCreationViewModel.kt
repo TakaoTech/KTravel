@@ -9,7 +9,7 @@ import com.takaotech.ktravel.core.ui.toTextPayload
 import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository // Assuming this import is needed
+import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +24,7 @@ import kotlin.time.Instant
 
 @KoinViewModel
 class TravelCreationViewModel(
-    private val repository: TravelManagerRepository
+    private val repository: TravelManagerRepository,
 ) : ViewModel(), KoinComponent {
 
     private val _uiState = MutableStateFlow(TravelCreationUiState())
@@ -41,7 +41,7 @@ class TravelCreationViewModel(
         }
     }
 
-    fun onDateRangeChange(start: Long?, end: Long?) {
+    fun onDateRangeChange(start: Long, end: Long) {
         _uiState.update { it.copy(startDateMillis = start, endDateMillis = end) }
     }
 
@@ -64,7 +64,7 @@ class TravelCreationViewModel(
             return
         }
 
-        if (start == null || end == null) {
+        if (start == 0L || end == 0L) {
             _uiState.update { it.copy(error = "Compila tutti i campi") }
             return
         }
