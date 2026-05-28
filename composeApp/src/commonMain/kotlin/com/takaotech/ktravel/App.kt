@@ -19,9 +19,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
@@ -89,8 +91,8 @@ fun App() {
                         onBackClick = {
                             navController.navigateUp()
                         },
-                        onNavigateToPlanning = { id ->
-                            navController.navigate(PlanningNavigation(id)) {
+                        onNavigateToPlanning = { travelId ->
+                            navController.navigate(PlanningNavigation(travelId)) {
                                 popUpTo(TravelSelectionPage) { inclusive = false }
                             }
                         }
@@ -101,10 +103,6 @@ fun App() {
                     composable<PlanningTripPageNavigation> { backStackEntry ->
                         val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
                         val scope = getKoin().getOrCreateScope<PlanningScope>(args.travelId)
-
-                        scope.get<PlanningScopeData>().apply {
-                            travelId = args.travelId
-                        }
 
                         val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(
                             navController = navController,
@@ -117,6 +115,14 @@ fun App() {
                                 // Write your data to the file
 
                             }
+
+                        NavigationBackHandler(
+                            state = rememberNavigationEventState(NavigationEventInfo.None),
+                            isBackEnabled = true, // You can toggle this dynamically
+                            onBackCompleted = {
+                                scope.close()
+                            }
+                        )
 
 
                         PlanningTripPage(
