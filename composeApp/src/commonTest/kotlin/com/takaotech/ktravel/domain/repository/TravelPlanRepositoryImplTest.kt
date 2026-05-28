@@ -4,6 +4,7 @@ import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
 import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import dev.mokkery.MockMode
@@ -38,11 +39,15 @@ private fun mockDataSource(): TravelPlanStorageDataSource = mock(MockMode.autoUn
     )
 }
 
+private fun mockScopeData(): PlanningScopeData = PlanningScopeData().apply {
+    travelId = TEST_PLAN_ID
+}
+
 @OptIn(ExperimentalTime::class)
 class TravelPlanRepositoryImplTest : BehaviorSpec({
 
     given("a newly created TravelPlanRepositoryImpl") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
 
         then("should initialize planningState with a default period") {
             val state = repository.planningState.value
@@ -58,7 +63,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with a set period") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -85,7 +90,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with existing days") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -118,7 +123,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with places in the general list") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -128,7 +133,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         repository.savePlace(place1)
         repository.savePlace(place2)
@@ -185,7 +191,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with multiple places to move to the same day") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -195,7 +201,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
         val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
         repository.savePlace(place1)
@@ -226,7 +233,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with multiple places to move to different days") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -236,7 +243,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
         val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
         repository.savePlace(place1)
@@ -269,7 +277,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for savePlace with dayId parameter") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -299,7 +307,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for savePlace with valid dayId") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -336,7 +344,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for savePlace with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -365,7 +373,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for savePlace with multiple places to the same day") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -378,7 +386,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             val state = repository.planningState.value
             val dayId = state.days[1].id
             val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+            val place2 =
+                PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
             repository.savePlace(place1, dayId)
             repository.savePlace(place2, dayId)
@@ -399,7 +408,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for savePlace mixing general list and day-specific places") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -412,7 +421,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             val state = repository.planningState.value
             val dayId = state.days[1].id
             val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+            val place2 =
+                PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
             val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
             repository.savePlace(place1, null)
@@ -436,7 +446,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with places in a TravelDay for movePlaceToGeneral") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -446,7 +456,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -480,7 +491,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for movePlaceToGeneral with invalid placeId") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -509,7 +520,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for movePlaceToGeneral with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -538,7 +549,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for deletePlace from general list") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -548,7 +559,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         repository.savePlace(place1, null)
         repository.savePlace(place2, null)
@@ -573,7 +585,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for deletePlace from a TravelDay") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -583,7 +595,8 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         )
 
         val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 = PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+        val place2 =
+            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
 
         val state = repository.planningState.value
         val dayId = state.days[1].id
@@ -616,7 +629,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for deletePlace with invalid placeId from general list") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -642,7 +655,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for deletePlace with invalid placeId from a TravelDay") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -671,7 +684,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for deletePlace with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -700,7 +713,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for updatePlanName") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
 
         `when`("updatePlanName is called with a new name") {
             val newName = "Viaggio a Roma"
@@ -715,7 +728,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for updatePlanName with empty name") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
 
         `when`("updatePlanName is called with an empty name") {
             val emptyName = ""
@@ -730,7 +743,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for updatePlanName called multiple times") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
 
         `when`("updatePlanName is called multiple times") {
             val firstName = "Primo Nome"
@@ -747,7 +760,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository for updatePlanName preserving other state") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -789,7 +802,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
     given("a repository with a place in a TravelDay to move to steps") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -848,7 +861,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with a Step.Place in a TravelDay to move back to places") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 
@@ -912,7 +925,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
     }
 
     given("a repository with steps in a TravelDay to move up and down") {
-        val repository = TravelPlanRepositoryImpl(TEST_PLAN_ID, mockDataSource())
+        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
         val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
         val endInstant = startInstant + 2.days // 2021-01-03
 

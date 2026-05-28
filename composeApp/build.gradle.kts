@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.mokkery)
 //    alias(libs.plugins.kotzilla)
     alias(libs.plugins.kotzilla.koin.compiler)
+    alias(libs.plugins.allopen)
 }
 
 kotlin {
@@ -99,7 +100,7 @@ kotlin {
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
-                implementation(libs.androidx.navigationevent)
+                implementation(libs.compose.backhandler.core)
                 implementation(libs.bundles.material.adaptive)
                 implementation(libs.compose.ui)
                 implementation(libs.compose.resources)
@@ -223,6 +224,10 @@ tasks.named<Test>("jvmTest") {
 //    keyGeneration = KotzillaKeyGeneration.NONE
 //    composeInstrumentation = true
 // }
+
+allOpen {
+    annotation("com.takaotech.ktravel.core.annotation.OpenForMokkery")
+}
 
 detekt {
 //    buildUponDefaultConfig = true

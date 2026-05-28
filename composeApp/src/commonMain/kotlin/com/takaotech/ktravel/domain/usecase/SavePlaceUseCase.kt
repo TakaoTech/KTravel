@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.usecase
 
+import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
@@ -8,6 +9,7 @@ import org.koin.core.annotation.Scoped
 
 @Scope(PlanningScope::class)
 @Scoped
+@OpenForMokkery
 class SavePlaceUseCase(
     private val repository: TravelPlanRepository
 ) {

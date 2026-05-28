@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.toTextPayload
+import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
+import com.takaotech.ktravel.domain.repository.TravelPlanRepository // Assuming this import is needed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,12 +19,13 @@ import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.travel_creation_name_empty_error
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.component.KoinComponent
 import kotlin.time.Instant
 
 @KoinViewModel
 class TravelCreationViewModel(
     private val repository: TravelManagerRepository
-) : ViewModel() {
+) : ViewModel(), KoinComponent {
 
     private val _uiState = MutableStateFlow(TravelCreationUiState())
     val uiState: StateFlow<TravelCreationUiState> = _uiState.asStateFlow()
@@ -74,6 +78,14 @@ class TravelCreationViewModel(
                     periodEnd = Instant.fromEpochMilliseconds(end).toLocalDate()
                 )
             }.onSuccess { id ->
+                val planningScope = getKoin().getOrCreateScope<PlanningScope>(id)
+                planningScope.get<PlanningScopeData>().apply {
+                    travelId = id
+                }
+
+                val planRepository: TravelPlanRepository = planningScope.get<TravelPlanRepository>()
+                planRepository.updatePeriod(start, end)
+
                 _uiState.update { it.copy(isLoading = false, createdTravelId = id) }
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false, error = error.message) }
