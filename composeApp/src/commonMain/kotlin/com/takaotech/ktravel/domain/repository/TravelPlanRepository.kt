@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.repository
 
+import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
@@ -7,6 +8,7 @@ import com.takaotech.ktravel.domain.model.TravelPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
+@OpenForMokkery
 interface TravelPlanRepository {
     /**
      * Stato completo del piano di viaggio
