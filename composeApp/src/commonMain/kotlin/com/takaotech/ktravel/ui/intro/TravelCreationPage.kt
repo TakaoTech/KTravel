@@ -1,10 +1,34 @@
 package com.takaotech.ktravel.ui.intro
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -17,7 +41,14 @@ import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.presentation.intro.TravelCreationViewModel
 import com.takaotech.ktravel.ui.planning.trip.TravelDateRangePicker
 import kotlinx.serialization.Serializable
-import ktravel.composeapp.generated.resources.*
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.add
+import ktravel.composeapp.generated.resources.arrow_back
+import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.travel_creation_button
+import ktravel.composeapp.generated.resources.travel_creation_name_label
+import ktravel.composeapp.generated.resources.travel_creation_name_placeholder
+import ktravel.composeapp.generated.resources.travel_creation_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -65,7 +96,7 @@ private fun TravelCreationPage(
     endDateMillis: Long?,
     error: String?,
     onNameChange: (TextFieldValue) -> Unit,
-    onPlanDateRangeChanged: (start: Long?, end: Long?) -> Unit,
+    onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
     onBackClick: () -> Unit,
     onConfirmClick: () -> Unit,
     onDismissError: () -> Unit,
