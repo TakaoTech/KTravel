@@ -133,6 +133,7 @@ fun App() {
                             state = rememberNavigationEventState(NavigationEventInfo.None),
                             isBackEnabled = true, // You can toggle this dynamically
                             onBackCompleted = {
+                                navController.navigateUp()
                                 scope.close()
                             }
                         )
