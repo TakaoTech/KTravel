@@ -154,6 +154,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.bundles.kotest.multiplatform)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.compose.ui.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
