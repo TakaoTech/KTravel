@@ -33,7 +33,7 @@ interface TravelPlanRepository {
     /**
      * Aggiorna il nome del piano di viaggio
      */
-    fun updatePlanName(name: String)
+    suspend fun updatePlanName(name: String)
 
     /**
      * Salva un nuovo Place

@@ -24,6 +24,7 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
@@ -79,9 +80,21 @@ fun App() {
 
             NavHost(navController = navController, startDestination = TravelSelectionPage) {
                 composable<TravelSelectionPage> {
+                    val koin = getKoin()
+
                     TravelSelectionPage(
                         onNewTravelClick = {
                             navController.navigate(TravelCreationPage)
+                        },
+                        onTravelClick = { id ->
+                            val planningScope = koin.getOrCreateScope<PlanningScope>(id)
+                            planningScope.get<PlanningScopeData>().apply {
+                                travelId = id
+                            }
+
+                            navController.navigate(PlanningNavigation(id)) {
+                                popUpTo(TravelSelectionPage) { inclusive = false }
+                            }
                         }
                     )
                 }

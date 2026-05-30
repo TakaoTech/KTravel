@@ -4,7 +4,6 @@ package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
-import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toDomain
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
 import com.takaotech.ktravel.di.PlanningScope
@@ -37,8 +36,8 @@ class TravelPlanRepositoryImpl(
     private val _planningState = MutableStateFlow(dataSource.getTravelPlan(travelPlanId).toDomain())
     override val planningState: StateFlow<TravelPlan> = _planningState.asStateFlow()
 
-    private fun persistCurrentState() {
-        val entity = _planningState.value.toEntity(id = TravelPlanStorageDataSourceImpl.TRAVEL_PLAN_ID)
+    private suspend fun persistCurrentState() {
+        val entity = _planningState.value.toEntity(id = travelPlanId)
         dataSource.saveTravelPlan(entity)
     }
 
@@ -85,7 +84,7 @@ class TravelPlanRepositoryImpl(
         persistCurrentState()
     }
 
-    override fun updatePlanName(name: String) {
+    override suspend fun updatePlanName(name: String) {
         _planningState.update { it.copy(name = name) }
         persistCurrentState()
     }

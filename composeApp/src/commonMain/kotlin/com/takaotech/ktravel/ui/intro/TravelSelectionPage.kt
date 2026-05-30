@@ -1,15 +1,34 @@
 package com.takaotech.ktravel.ui.intro
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults.InputField
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,30 +48,40 @@ import kotlin.time.Clock
 @Serializable
 object TravelSelectionPage
 
+internal object TravelSelectionTestTags {
+    const val SEARCH_BAR = "travel_selection_search_bar"
+    const val FAB_NEW_TRAVEL = "travel_selection_fab"
+    fun travelItemTag(id: String) = "travel_item_$id"
+}
+
 @Composable
 fun TravelSelectionPage(
     viewModel: TravelSelectionViewModel = koinViewModel(),
+    onTravelClick: (id: String) -> Unit,
     onNewTravelClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     TravelSelectionPage(
         travelList = uiState.travelList,
+        onTravelClick = onTravelClick,
         newTravelClick = onNewTravelClick
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TravelSelectionPage(
+internal fun TravelSelectionPage(
     travelList: PersistentList<TravelSummaryUiState>,
     modifier: Modifier = Modifier,
+    onTravelClick: (id: String) -> Unit,
     newTravelClick: () -> Unit
 ) {
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
             FloatingActionButton(
+                modifier = Modifier.testTag(TravelSelectionTestTags.FAB_NEW_TRAVEL),
                 onClick = newTravelClick
             ) {
                 Icon(
@@ -75,7 +104,8 @@ private fun TravelSelectionPage(
                 SearchBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .testTag(TravelSelectionTestTags.SEARCH_BAR),
                     state = searchBarState,
                     inputField = {
                         InputField(
@@ -98,11 +128,14 @@ private fun TravelSelectionPage(
                 TravelItem(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .testTag(TravelSelectionTestTags.travelItemTag(travel.id)),
                     name = travel.name,
                     startDate = travel.periodStart.toString(),
                     endDate = travel.periodEnd.toString(),
-                    onClick = {}
+                    onClick = {
+                        onTravelClick(travel.id)
+                    }
                 )
             }
         }
@@ -113,7 +146,7 @@ private fun TravelSelectionPage(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun TravelItem(
+internal fun TravelItem(
     name: String,
     startDate: String?,
     endDate: String?,
@@ -171,6 +204,7 @@ private fun TravelSelectionPagePreview() {
                 periodEnd = Clock.System.now().toLocalDate()
             )
         ),
+        onTravelClick = {},
         newTravelClick = {}
     )
 }

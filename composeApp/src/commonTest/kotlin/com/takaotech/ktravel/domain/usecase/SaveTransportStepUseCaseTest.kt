@@ -161,7 +161,7 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(TravelDayDomain.EMPTY)
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
-    override fun updatePlanName(name: String) = Unit
+    override suspend fun updatePlanName(name: String) = Unit
     override suspend fun savePlace(place: com.takaotech.ktravel.domain.model.PlaceDomain, dayId: String?) = Unit
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = Unit
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) = Unit
