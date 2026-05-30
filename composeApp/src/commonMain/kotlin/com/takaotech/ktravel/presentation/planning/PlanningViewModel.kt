@@ -4,7 +4,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +18,8 @@ import org.koin.core.annotation.Scope
 @KoinViewModel
 @Scope(PlanningScope::class)
 class PlanningViewModel(
-    private val scopeData: PlanningScopeData,
     private val repository: TravelPlanRepository
 ) : ViewModel() {
-
-    val travelPlanId: String = scopeData.travelId
 
     private val _uiState = MutableStateFlow(PlanningUiState())
     val uiState: StateFlow<PlanningUiState> = _uiState.asStateFlow()
@@ -52,7 +48,9 @@ class PlanningViewModel(
         // Immediately update UI state preserving full TextFieldValue (cursor/selection)
         _uiState.update { it.copy(planHeader = it.planHeader.copy(name = name)) }
         // Send only the String to the domain layer
-        repository.updatePlanName(name.text)
+        viewModelScope.launch {
+            repository.updatePlanName(name.text)
+        }
     }
 
     fun onPlanDateChanged(start: Long, end: Long) {

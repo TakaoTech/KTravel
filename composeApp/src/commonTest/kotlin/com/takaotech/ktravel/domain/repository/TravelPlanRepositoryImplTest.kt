@@ -6,12 +6,16 @@ import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.routing.model.Route
 import dev.mokkery.MockMode
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -22,11 +26,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.LocalDate
-import kotlin.time.Duration.Companion.days
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 private const val TEST_PLAN_ID = "test-plan-id"
+private const val START_MILLIS = 1609459200000L  // 2021-01-01T00:00:00Z
+private const val END_MILLIS = 1609632000000L    // 2021-01-03T00:00:00Z
+
+private val COLOSSEO = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
+private val TREVI =
+    PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
+private val PANTHEON = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
 
 private fun mockDataSource(): TravelPlanStorageDataSource = mock(MockMode.autoUnit) {
     every { getTravelPlan(any()) } returns TravelPlanEntity(
@@ -43,954 +51,853 @@ private fun mockScopeData(): PlanningScopeData = PlanningScopeData().apply {
     travelId = TEST_PLAN_ID
 }
 
-@OptIn(ExperimentalTime::class)
+private data class Ctx(
+    val repo: TravelPlanRepositoryImpl,
+    val ds: TravelPlanStorageDataSource,
+    val dayIds: List<String> = emptyList()
+)
+
+private fun freshCtx(): Ctx {
+    val ds = mockDataSource()
+    return Ctx(TravelPlanRepositoryImpl(mockScopeData(), ds), ds)
+}
+
+private suspend fun ctxWith3Days(): Ctx {
+    val ds = mockDataSource()
+    val repo = TravelPlanRepositoryImpl(mockScopeData(), ds)
+    repo.updatePeriod(START_MILLIS, END_MILLIS)
+    val dayIds = repo.planningState.value.days.map { it.id }
+    return Ctx(repo, ds, dayIds)
+}
+
 class TravelPlanRepositoryImplTest : BehaviorSpec({
 
-    given("a newly created TravelPlanRepositoryImpl") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
+    given("repository initialization") {
+        `when`("initialized from an empty entity") {
+            val (repo) = freshCtx()
 
-        then("should initialize planningState with a default period") {
-            val state = repository.planningState.value
-            state shouldNotBe null
-            state.periodStart shouldNotBe null
-            state.periodEnd shouldNotBe null
-        }
-
-        then("should have empty days when initialized from empty entity") {
-            val state = repository.planningState.value
-            state.days.size shouldBe 0
-        }
-    }
-
-    given("a repository with a set period") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        `when`("updatePeriod is called") {
-            repository.updatePeriod(
-                startMillis = startInstant.toEpochMilliseconds(),
-                endMillis = endInstant.toEpochMilliseconds()
-            )
-
-            then("should update the period in planningState") {
-                val state = repository.planningState.value
-                state.periodStart shouldBe LocalDate(2021, 1, 1)
-                state.periodEnd shouldBe LocalDate(2021, 1, 3)
+            then("planningState should not be null") {
+                repo.planningState.value shouldNotBe null
             }
 
-            then("should create days for the specified period") {
-                val state = repository.planningState.value
-                state.days shouldHaveSize 3
-                state.days[0].date shouldBe LocalDate(2021, 1, 1)
-                state.days[1].date shouldBe LocalDate(2021, 1, 2)
-                state.days[2].date shouldBe LocalDate(2021, 1, 3)
+            then("period dates should be set to defaults") {
+                repo.planningState.value.periodStart shouldNotBe null
+                repo.planningState.value.periodEnd shouldNotBe null
+            }
+
+            then("days should be empty") {
+                repo.planningState.value.days.shouldBeEmpty()
             }
         }
     }
 
-    given("a repository with existing days") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("period management") {
+        `when`("updatePeriod is called with a 3-day range") {
+            val (repo, ds) = freshCtx()
+            repo.updatePeriod(START_MILLIS, END_MILLIS)
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
+            then("should set the correct period start date") {
+                repo.planningState.value.periodStart shouldBe LocalDate(2021, 1, 1)
+            }
 
+            then("should set the correct period end date") {
+                repo.planningState.value.periodEnd shouldBe LocalDate(2021, 1, 3)
+            }
+
+            then("should create one day per date in the range") {
+                repo.planningState.value.days shouldHaveSize 3
+            }
+
+            then("days should have correct dates in order") {
+                val days = repo.planningState.value.days
+                days[0].date shouldBe LocalDate(2021, 1, 1)
+                days[1].date shouldBe LocalDate(2021, 1, 2)
+                days[2].date shouldBe LocalDate(2021, 1, 3)
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+    }
+
+    given("day flow") {
         `when`("getTravelDayFlow is called with an existing dayId") {
-            val state = repository.planningState.value
-            val existingDayId = state.days[1].id
-            val dayFlow = repository.getTravelDayFlow(existingDayId)
+            val (repo, _, dayIds) = ctxWith3Days()
+            val targetId = dayIds[1]
+            val dayFlow = repo.getTravelDayFlow(targetId)
 
-            then("should return the correct TravelDay") {
+            then("should emit the correct day with the matching id and date") {
                 val day = dayFlow.first()
                 day.shouldNotBeNull()
-                day.id shouldBe existingDayId
+                day.id shouldBe targetId
                 day.date shouldBe LocalDate(2021, 1, 2)
             }
         }
 
         `when`("getTravelDayFlow is called with a non-existing dayId") {
-            val dayFlow = repository.getTravelDayFlow("non-existing-id")
+            val (repo) = ctxWith3Days()
+            val dayFlow = repo.getTravelDayFlow("non-existing-id")
 
-            then("should return TravelDayDomain.EMPTY") {
-                val day = dayFlow.first()
-                day shouldBe TravelDayDomain.EMPTY
+            then("should emit TravelDayDomain.EMPTY") {
+                dayFlow.first() shouldBe TravelDayDomain.EMPTY
             }
         }
     }
 
-    given("a repository with places in the general list") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("plan name management") {
+        `when`("updatePlanName is called with a new name") {
+            val (repo, ds) = freshCtx()
+            repo.updatePlanName("Viaggio a Roma")
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-
-        repository.savePlace(place1)
-        repository.savePlace(place2)
-
-        `when`("movePlaceToDay is called with valid placeId and dayId") {
-            val state = repository.planningState.value
-            val dayId = state.days[1].id
-
-            repository.movePlaceToDay("place1", dayId)
-
-            then("should remove the place from the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldNotContain place1
-                updatedState.places shouldContain place2
+            then("should update the plan name in planningState") {
+                repo.planningState.value.name shouldBe "Viaggio a Roma"
             }
 
-            then("should add the place to the specified day") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 1
-                day.places shouldContain place1
-            }
-
-            then("should not modify other days") {
-                val updatedState = repository.planningState.value
-                updatedState.days[0].places.shouldBeEmpty()
-                updatedState.days[2].places.shouldBeEmpty()
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
 
-        `when`("movePlaceToDay is called with an invalid placeId") {
-            val initialState = repository.planningState.value
-            val dayId = initialState.days[1].id
+        `when`("updatePlanName is called with an empty name") {
+            val (repo) = freshCtx()
+            repo.updatePlanName("")
 
-            repository.movePlaceToDay("invalid-place-id", dayId)
-
-            then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+            then("should update the plan name to empty string") {
+                repo.planningState.value.name shouldBe ""
             }
         }
 
-        `when`("movePlaceToDay is called with an invalid dayId") {
-            val initialState = repository.planningState.value
+        `when`("updatePlanName is called multiple times") {
+            val (repo) = freshCtx()
+            repo.updatePlanName("First Name")
+            repo.updatePlanName("Second Name")
 
-            repository.movePlaceToDay("place1", "invalid-day-id")
+            then("should retain only the last name") {
+                repo.planningState.value.name shouldBe "Second Name"
+            }
+        }
 
-            then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+        `when`("updatePlanName is called with existing days and places") {
+            val (repo) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            val stateBefore = repo.planningState.value
+            repo.updatePlanName("Viaggio a Roma")
+
+            then("should update only the plan name") {
+                repo.planningState.value.name shouldBe "Viaggio a Roma"
+            }
+
+            then("should preserve the period start") {
+                repo.planningState.value.periodStart shouldBe stateBefore.periodStart
+            }
+
+            then("should preserve the period end") {
+                repo.planningState.value.periodEnd shouldBe stateBefore.periodEnd
+            }
+
+            then("should preserve the days count") {
+                repo.planningState.value.days shouldHaveSize stateBefore.days.size
+            }
+
+            then("should preserve the places in the general list") {
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldContain COLOSSEO
             }
         }
     }
 
-    given("a repository with multiple places to move to the same day") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-        val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
-
-        repository.savePlace(place1)
-        repository.savePlace(place2)
-        repository.savePlace(place3)
-
-        `when`("multiple places are moved to the same day") {
-            val state = repository.planningState.value
-            val dayId = state.days[1].id
-
-            repository.movePlaceToDay("place1", dayId)
-            repository.movePlaceToDay("place2", dayId)
-
-            then("should add all places to the day in order") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 2
-                day.places[0] shouldBe place1
-                day.places[1] shouldBe place2
-            }
-
-            then("should keep remaining places in the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldContain place3
-            }
-        }
-    }
-
-    given("a repository with multiple places to move to different days") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-        val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
-
-        repository.savePlace(place1)
-        repository.savePlace(place2)
-        repository.savePlace(place3)
-
-        `when`("places are moved to different days") {
-            val state = repository.planningState.value
-            val day1Id = state.days[0].id
-            val day2Id = state.days[1].id
-
-            repository.movePlaceToDay("place1", day1Id)
-            repository.movePlaceToDay("place2", day2Id)
-
-            then("should distribute places correctly across days") {
-                val updatedState = repository.planningState.value
-                updatedState.days[0].places shouldHaveSize 1
-                updatedState.days[0].places shouldContain place1
-                updatedState.days[1].places shouldHaveSize 1
-                updatedState.days[1].places shouldContain place2
-                updatedState.days[2].places.shouldBeEmpty()
-            }
-
-            then("should keep remaining places in the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldContain place3
-            }
-        }
-    }
-
-    given("a repository for savePlace with dayId parameter") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("savePlace is called with null dayId") {
-            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-            repository.savePlace(place, null)
+    given("savePlace") {
+        `when`("savePlace with null dayId adds the place to the general list") {
+            val (repo, ds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
 
             then("should add the place to the general list") {
-                val state = repository.planningState.value
-                state.places shouldHaveSize 1
-                state.places shouldContain place
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldContain COLOSSEO
             }
 
             then("should not add the place to any day") {
-                val state = repository.planningState.value
-                state.days.forEach { day ->
-                    day.places.shouldBeEmpty()
-                }
+                repo.planningState.value.days.forEach { it.places.shouldBeEmpty() }
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
-    }
 
-    given("a repository for savePlace with valid dayId") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+        `when`("savePlace with a valid dayId adds the place directly to the specified day") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("savePlace is called with a valid dayId") {
-            val state = repository.planningState.value
-            val dayId = state.days[1].id
-            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-            repository.savePlace(place, dayId)
-
-            then("should add the place directly to the specified day") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 1
-                day.places shouldContain place
+            then("should add the place to the specified day") {
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldContain COLOSSEO
             }
 
             then("should not add the place to the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
             }
 
             then("should not modify other days") {
-                val updatedState = repository.planningState.value
-                updatedState.days[0].places.shouldBeEmpty()
-                updatedState.days[2].places.shouldBeEmpty()
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
-    }
 
-    given("a repository for savePlace with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("savePlace is called with a non-existing dayId") {
-            val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-            repository.savePlace(place, "non-existing-day-id")
+        `when`("savePlace with a non-existing dayId does not modify the state") {
+            val (repo) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, "non-existing-day-id")
 
             then("should not add the place to the general list") {
-                val state = repository.planningState.value
-                state.places.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
             }
 
             then("should not add the place to any day") {
-                val state = repository.planningState.value
-                state.days.forEach { day ->
-                    day.places.shouldBeEmpty()
-                }
+                repo.planningState.value.days.forEach { it.places.shouldBeEmpty() }
             }
         }
-    }
 
-    given("a repository for savePlace with multiple places to the same day") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+        `when`("multiple savePlaces to the same day preserve insertion order") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.savePlace(TREVI, dayIds[1])
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("multiple places are saved directly to the same day") {
-            val state = repository.planningState.value
-            val dayId = state.days[1].id
-            val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 =
-                PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-
-            repository.savePlace(place1, dayId)
-            repository.savePlace(place2, dayId)
-
-            then("should add all places to the day in order") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 2
-                day.places[0] shouldBe place1
-                day.places[1] shouldBe place2
+            then("should add all places to the specified day in insertion order") {
+                val places = repo.planningState.value.days[1].places
+                places shouldHaveSize 2
+                places[0] shouldBe COLOSSEO
+                places[1] shouldBe TREVI
             }
 
             then("should not add any place to the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
+            }
+        }
+
+        `when`("saving places to both the general list and a specific day") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            repo.savePlace(TREVI, dayIds[1])
+            repo.savePlace(PANTHEON, null)
+
+            then("should add places with null dayId to the general list") {
+                repo.planningState.value.places shouldHaveSize 2
+                repo.planningState.value.places shouldContain COLOSSEO
+                repo.planningState.value.places shouldContain PANTHEON
+            }
+
+            then("should add the place with a dayId to the specified day only") {
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldContain TREVI
             }
         }
     }
 
-    given("a repository for savePlace mixing general list and day-specific places") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("movePlaceToDay") {
+        `when`("movePlaceToDay moves a place from the general list to the specified day") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            repo.savePlace(TREVI, null)
+            repo.movePlaceToDay("place1", dayIds[1])
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        `when`("places are saved both to general list and to specific days") {
-            val state = repository.planningState.value
-            val dayId = state.days[1].id
-            val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-            val place2 =
-                PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-            val place3 = PlaceDomain(id = "place3", name = "Pantheon", lat = 41.8986, lng = 12.4769)
-
-            repository.savePlace(place1, null)
-            repository.savePlace(place2, dayId)
-            repository.savePlace(place3, null)
-
-            then("should add places to the general list when dayId is null") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 2
-                updatedState.places shouldContain place1
-                updatedState.places shouldContain place3
+            then("should remove the place from the general list") {
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldNotContain COLOSSEO
+                repo.planningState.value.places shouldContain TREVI
             }
 
-            then("should add places to the specified day when dayId is provided") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 1
-                day.places shouldContain place2
+            then("should add the place to the specified day") {
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldContain COLOSSEO
+            }
+
+            then("should not modify other days") {
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("movePlaceToDay with an invalid placeId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToDay("invalid-place-id", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("movePlaceToDay with an invalid dayId does not modify the state") {
+            val (repo) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToDay("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("multiple movePlaceToDay calls to the same day preserve insertion order") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            repo.savePlace(TREVI, null)
+            repo.savePlace(PANTHEON, null)
+            repo.movePlaceToDay("place1", dayIds[1])
+            repo.movePlaceToDay("place2", dayIds[1])
+
+            then("should add all moved places to the day in insertion order") {
+                val places = repo.planningState.value.days[1].places
+                places shouldHaveSize 2
+                places[0] shouldBe COLOSSEO
+                places[1] shouldBe TREVI
+            }
+
+            then("should keep remaining places in the general list") {
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldContain PANTHEON
+            }
+        }
+
+        `when`("movePlaceToDay distributes places across different days") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            repo.savePlace(TREVI, null)
+            repo.savePlace(PANTHEON, null)
+            repo.movePlaceToDay("place1", dayIds[0])
+            repo.movePlaceToDay("place2", dayIds[1])
+
+            then("should assign each place to its specified day") {
+                repo.planningState.value.days[0].places shouldHaveSize 1
+                repo.planningState.value.days[0].places shouldContain COLOSSEO
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldContain TREVI
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+            }
+
+            then("should keep remaining places in the general list") {
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldContain PANTHEON
             }
         }
     }
 
-    given("a repository with places in a TravelDay for movePlaceToGeneral") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-        repository.savePlace(place2, dayId)
-
-        `when`("movePlaceToGeneral is called with valid placeId and dayId") {
-            repository.movePlaceToGeneral("place1", dayId)
+    given("movePlaceToGeneral") {
+        `when`("movePlaceToGeneral moves a place from a day to the general list") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.savePlace(TREVI, dayIds[1])
+            repo.movePlaceToGeneral("place1", dayIds[1])
 
             then("should remove the place from the day") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 1
-                day.places shouldNotContain place1
-                day.places shouldContain place2
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldNotContain COLOSSEO
+                repo.planningState.value.days[1].places shouldContain TREVI
             }
 
             then("should add the place to the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldContain place1
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldContain COLOSSEO
             }
 
             then("should not modify other days") {
-                val updatedState = repository.planningState.value
-                updatedState.days[0].places.shouldBeEmpty()
-                updatedState.days[2].places.shouldBeEmpty()
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
-    }
 
-    given("a repository for movePlaceToGeneral with invalid placeId") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-
-        `when`("movePlaceToGeneral is called with an invalid placeId") {
-            val initialState = repository.planningState.value
-
-            repository.movePlaceToGeneral("invalid-place-id", dayId)
+        `when`("movePlaceToGeneral with an invalid placeId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToGeneral("invalid-place-id", dayIds[1])
 
             then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+                repo.planningState.value shouldBe stateBefore
             }
         }
-    }
 
-    given("a repository for movePlaceToGeneral with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-
-        `when`("movePlaceToGeneral is called with an invalid dayId") {
-            val initialState = repository.planningState.value
-
-            repository.movePlaceToGeneral("place1", "invalid-day-id")
+        `when`("movePlaceToGeneral with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToGeneral("place1", "invalid-day-id")
 
             then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+                repo.planningState.value shouldBe stateBefore
             }
         }
     }
 
-    given("a repository for deletePlace from general list") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("deletePlace") {
+        `when`("deletePlace with null dayId removes the place from the general list") {
+            val (repo, ds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            repo.savePlace(TREVI, null)
+            repo.deletePlace("place1", null)
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-
-        repository.savePlace(place1, null)
-        repository.savePlace(place2, null)
-
-        `when`("deletePlace is called with null dayId") {
-            repository.deletePlace("place1", null)
-
-            then("should remove the place from the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldNotContain place1
-                updatedState.places shouldContain place2
+            then("should remove only the specified place from the general list") {
+                repo.planningState.value.places shouldHaveSize 1
+                repo.planningState.value.places shouldNotContain COLOSSEO
+                repo.planningState.value.places shouldContain TREVI
             }
 
             then("should not modify any day") {
-                val updatedState = repository.planningState.value
-                updatedState.days.forEach { day ->
-                    day.places.shouldBeEmpty()
-                }
+                repo.planningState.value.days.forEach { it.places.shouldBeEmpty() }
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
-    }
 
-    given("a repository for deletePlace from a TravelDay") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+        `when`("deletePlace with a valid dayId removes the place from the specified day") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.savePlace(TREVI, dayIds[1])
+            repo.deletePlace("place1", dayIds[1])
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        val place2 =
-            PlaceDomain(id = "place2", name = "Fontana di Trevi", lat = 41.9009, lng = 12.4833)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-        repository.savePlace(place2, dayId)
-
-        `when`("deletePlace is called with a valid dayId") {
-            repository.deletePlace("place1", dayId)
-
-            then("should remove the place from the specified day") {
-                val updatedState = repository.planningState.value
-                val day = updatedState.days[1]
-                day.places shouldHaveSize 1
-                day.places shouldNotContain place1
-                day.places shouldContain place2
+            then("should remove only the specified place from the day") {
+                repo.planningState.value.days[1].places shouldHaveSize 1
+                repo.planningState.value.days[1].places shouldNotContain COLOSSEO
+                repo.planningState.value.days[1].places shouldContain TREVI
             }
 
             then("should not add the place to the general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
             }
 
             then("should not modify other days") {
-                val updatedState = repository.planningState.value
-                updatedState.days[0].places.shouldBeEmpty()
-                updatedState.days[2].places.shouldBeEmpty()
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
-    }
 
-    given("a repository for deletePlace with invalid placeId from general list") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        repository.savePlace(place1, null)
-
-        `when`("deletePlace is called with an invalid placeId and null dayId") {
-            val initialState = repository.planningState.value
-
-            repository.deletePlace("invalid-place-id", null)
+        `when`("deletePlace with an invalid placeId and null dayId does not modify the state") {
+            val (repo) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            val stateBefore = repo.planningState.value
+            repo.deletePlace("invalid-place-id", null)
 
             then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+                repo.planningState.value shouldBe stateBefore
             }
         }
-    }
 
-    given("a repository for deletePlace with invalid placeId from a TravelDay") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-
-        `when`("deletePlace is called with an invalid placeId and valid dayId") {
-            val initialState = repository.planningState.value
-
-            repository.deletePlace("invalid-place-id", dayId)
+        `when`("deletePlace with an invalid placeId and valid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.deletePlace("invalid-place-id", dayIds[1])
 
             then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+                repo.planningState.value shouldBe stateBefore
             }
         }
-    }
 
-    given("a repository for deletePlace with invalid dayId") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-
-        `when`("deletePlace is called with an invalid dayId") {
-            val initialState = repository.planningState.value
-
-            repository.deletePlace("place1", "invalid-day-id")
+        `when`("deletePlace with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.deletePlace("place1", "invalid-day-id")
 
             then("should not modify the state") {
-                val updatedState = repository.planningState.value
-                updatedState shouldBe initialState
+                repo.planningState.value shouldBe stateBefore
             }
         }
     }
 
-    given("a repository for updatePlanName") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
+    given("movePlaceToStep") {
+        `when`("movePlaceToStep converts a day place into a Step.Place in the steps list") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
 
-        `when`("updatePlanName is called with a new name") {
-            val newName = "Viaggio a Roma"
-
-            repository.updatePlanName(newName)
-
-            then("should update the plan name in planningState") {
-                val updatedState = repository.planningState.value
-                updatedState.name shouldBe newName
-            }
-        }
-    }
-
-    given("a repository for updatePlanName with empty name") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-
-        `when`("updatePlanName is called with an empty name") {
-            val emptyName = ""
-
-            repository.updatePlanName(emptyName)
-
-            then("should update the plan name to empty") {
-                val updatedState = repository.planningState.value
-                updatedState.name shouldBe emptyName
-            }
-        }
-    }
-
-    given("a repository for updatePlanName called multiple times") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-
-        `when`("updatePlanName is called multiple times") {
-            val firstName = "Primo Nome"
-            val secondName = "Secondo Nome"
-
-            repository.updatePlanName(firstName)
-            repository.updatePlanName(secondName)
-
-            then("should keep only the last name") {
-                val updatedState = repository.planningState.value
-                updatedState.name shouldBe secondName
-            }
-        }
-    }
-
-    given("a repository for updatePlanName preserving other state") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-        repository.savePlace(place, null)
-
-        `when`("updatePlanName is called") {
-            val initialState = repository.planningState.value
-            val newName = "Viaggio a Roma"
-
-            repository.updatePlanName(newName)
-
-            then("should update only the plan name") {
-                val updatedState = repository.planningState.value
-                updatedState.name shouldBe newName
+            then("should remove the place from the day's place list") {
+                repo.planningState.value.days[1].places.shouldBeEmpty()
             }
 
-            then("should preserve the period") {
-                val updatedState = repository.planningState.value
-                updatedState.periodStart shouldBe initialState.periodStart
-                updatedState.periodEnd shouldBe initialState.periodEnd
-            }
-
-            then("should preserve the days") {
-                val updatedState = repository.planningState.value
-                updatedState.days shouldHaveSize initialState.days.size
-            }
-
-            then("should preserve the places in general list") {
-                val updatedState = repository.planningState.value
-                updatedState.places shouldHaveSize 1
-                updatedState.places shouldContain place
-            }
-        }
-    }
-    given("a repository with a place in a TravelDay to move to steps") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
-
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        repository.savePlace(place1, dayId)
-
-        `when`("movePlaceToStep is called with valid placeId and dayId") {
-            repository.movePlaceToStep("place1", dayId)
-
-            then("should remove the place from places and add a Step.Place to steps with same id and name") {
-                val updated = repository.planningState.value
-                val day = updated.days[1]
-                day.places.shouldBeEmpty()
-                day.steps shouldHaveSize 1
-                val step = day.steps[0] as StepDomain.Place
+            then("should add a Step.Place to the day's steps with the same id and location") {
+                val steps = repo.planningState.value.days[1].steps
+                steps shouldHaveSize 1
+                val step = steps[0] as StepDomain.Place
                 step.id shouldBe "place1"
-                step.location shouldBe place1.name
+                step.location shouldBe COLOSSEO.name
             }
 
-            then("should not affect other days or general places list") {
-                val updated = repository.planningState.value
-                updated.days[0].places.shouldBeEmpty()
-                updated.days[0].steps.shouldBeEmpty()
-                updated.days[2].places.shouldBeEmpty()
-                updated.days[2].steps.shouldBeEmpty()
-                updated.places.shouldBeEmpty()
+            then("should not affect other days or the general places list") {
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[0].steps.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+                repo.planningState.value.days[2].steps.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
             }
-        }
 
-        `when`("movePlaceToStep is called with an invalid placeId") {
-            val snapshot = repository.planningState.value
-            repository.movePlaceToStep("invalid-place-id", dayId)
-
-            then("should not modify the state") {
-                repository.planningState.value shouldBe snapshot
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
 
-        `when`("movePlaceToStep is called with an invalid dayId") {
-            val snapshot = repository.planningState.value
-            repository.movePlaceToStep("place1", "invalid-day-id")
+        `when`("movePlaceToStep with an invalid placeId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToStep("invalid-place-id", dayIds[1])
 
             then("should not modify the state") {
-                repository.planningState.value shouldBe snapshot
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("movePlaceToStep with an invalid dayId does not modify the state") {
+            val (repo) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, null)
+            val stateBefore = repo.planningState.value
+            repo.movePlaceToStep("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
             }
         }
     }
 
-    given("a repository with a Step.Place in a TravelDay to move back to places") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("moveStepToPlace") {
+        `when`("moveStepToPlace converts a Step.Place back to a place in the day") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            repo.moveStepToPlace("place1", dayIds[1])
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
-
-        val place1 = PlaceDomain(id = "place1", name = "Colosseo", lat = 41.8902, lng = 12.4922)
-
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
-
-        // Crea uno Step.Place partendo da un Place
-        repository.savePlace(place1, dayId)
-        repository.movePlaceToStep("place1", dayId)
-
-        `when`("moveStepToPlace is called with valid stepId and dayId") {
-            // Lo step creato ha lo stesso id del place
-            repository.moveStepToPlace("place1", dayId)
-
-            then("should remove the step from steps and add a Place to places with same id and name") {
-                val updated = repository.planningState.value
-                val day = updated.days[1]
-                day.steps.shouldBeEmpty()
-                day.places shouldHaveSize 1
-                val backPlace = day.places[0]
-                backPlace.id shouldBe "place1"
-                backPlace.name shouldBe place1.name
-                backPlace.lat shouldBe place1.lat
-                backPlace.lng shouldBe place1.lng
+            then("should remove the step from the day's steps list") {
+                repo.planningState.value.days[1].steps.shouldBeEmpty()
             }
 
-            then("should not affect other days or general places list") {
-                val updated = repository.planningState.value
-                updated.days[0].places.shouldBeEmpty()
-                updated.days[0].steps.shouldBeEmpty()
-                updated.days[2].places.shouldBeEmpty()
-                updated.days[2].steps.shouldBeEmpty()
-                updated.places.shouldBeEmpty()
+            then("should recreate the place in the day with original id, name, lat and lng") {
+                val places = repo.planningState.value.days[1].places
+                places shouldHaveSize 1
+                val place = places[0]
+                place.id shouldBe "place1"
+                place.name shouldBe COLOSSEO.name
+                place.lat shouldBe COLOSSEO.lat
+                place.lng shouldBe COLOSSEO.lng
+            }
+
+            then("should not affect other days or the general places list") {
+                repo.planningState.value.days[0].places.shouldBeEmpty()
+                repo.planningState.value.days[0].steps.shouldBeEmpty()
+                repo.planningState.value.days[2].places.shouldBeEmpty()
+                repo.planningState.value.days[2].steps.shouldBeEmpty()
+                repo.planningState.value.places.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
 
-        `when`("moveStepToPlace is called with an invalid stepId") {
-            val snapshot = repository.planningState.value
-            repository.moveStepToPlace("invalid-step-id", dayId)
+        `when`("moveStepToPlace with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveStepToPlace("invalid-step-id", dayIds[1])
 
             then("should not modify the state") {
-                repository.planningState.value shouldBe snapshot
+                repo.planningState.value shouldBe stateBefore
             }
         }
 
-        `when`("moveStepToPlace is called with an invalid dayId") {
-            val snapshot = repository.planningState.value
-            repository.moveStepToPlace("place1", "invalid-day-id")
+        `when`("moveStepToPlace with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveStepToPlace("place1", "invalid-day-id")
 
             then("should not modify the state") {
-                repository.planningState.value shouldBe snapshot
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("moveStepToPlace on a Transport step does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val transportStep = StepDomain.Transport(
+                id = "transport1",
+                type = TransportType.TRAIN,
+                route = Route(emptyList())
+            )
+            repo.addTransportStep(dayIds[1], "place1", transportStep)
+            val stateBefore = repo.planningState.value
+            repo.moveStepToPlace("transport1", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
             }
         }
     }
 
-    given("a repository with steps in a TravelDay to move up and down") {
-        val repository = TravelPlanRepositoryImpl(mockScopeData(), mockDataSource())
-        val startInstant = Instant.fromEpochMilliseconds(1609459200000) // 2021-01-01
-        val endInstant = startInstant + 2.days // 2021-01-03
+    given("updateStep") {
+        `when`("updateStep replaces the target step with the updated one") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val updatedStep =
+                StepDomain.Place(id = "place1", location = "Updated Location", lat = 0.0, lng = 0.0)
+            repo.updateStep(dayIds[1], "place1", updatedStep)
 
-        repository.updatePeriod(
-            startMillis = startInstant.toEpochMilliseconds(),
-            endMillis = endInstant.toEpochMilliseconds()
-        )
+            then("should replace the step with the updated version") {
+                val steps = repo.planningState.value.days[1].steps
+                steps shouldHaveSize 1
+                steps[0] shouldBe updatedStep
+            }
 
-        val state = repository.planningState.value
-        val dayId = state.days[1].id
+            then("should not affect other days") {
+                repo.planningState.value.days[0].steps.shouldBeEmpty()
+                repo.planningState.value.days[2].steps.shouldBeEmpty()
+            }
 
-        val place1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
-        val place2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
-        val place3 = PlaceDomain(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
-
-        repository.savePlace(place1, dayId)
-        repository.savePlace(place2, dayId)
-        repository.savePlace(place3, dayId)
-
-        repository.movePlaceToStep("p1", dayId)
-        repository.movePlaceToStep("p2", dayId)
-        repository.movePlaceToStep("p3", dayId)
-
-        // Initial order: P1, P2, P3
-
-        `when`("moveStepUp is called on the second step") {
-            repository.moveTravelStepUp("p2", dayId)
-
-            then("should swap it with the first step") {
-                val day = repository.planningState.value.days[1]
-                day.steps[0].id shouldBe "p2"
-                day.steps[1].id shouldBe "p1"
-                day.steps[2].id shouldBe "p3"
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
             }
         }
 
-        `when`("moveStepUp is called on the first step") {
-            val snapshot = repository.planningState.value
-            repository.moveTravelStepUp("p2", dayId) // p2 is now at index 0
+        `when`("updateStep with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            val updatedStep =
+                StepDomain.Place(id = "place1", location = "Updated", lat = 0.0, lng = 0.0)
+            repo.updateStep("invalid-day-id", "place1", updatedStep)
 
-            then("should not change the state") {
-                repository.planningState.value shouldBe snapshot
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
             }
         }
 
-        `when`("moveStepDown is called on the second step") {
-            // Current order: P2, P1, P3. P1 is at index 1
-            repository.moveTravelStepDown("p1", dayId)
+        `when`("updateStep with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            val updatedStep =
+                StepDomain.Place(id = "other", location = "Updated", lat = 0.0, lng = 0.0)
+            repo.updateStep(dayIds[1], "invalid-step-id", updatedStep)
 
-            then("should swap it with the third step") {
-                val day = repository.planningState.value.days[1]
-                day.steps[0].id shouldBe "p2"
-                day.steps[1].id shouldBe "p3"
-                day.steps[2].id shouldBe "p1"
-            }
-        }
-
-        `when`("moveStepDown is called on the last step") {
-            val snapshot = repository.planningState.value
-            repository.moveTravelStepDown("p1", dayId) // p1 is at index 2
-
-            then("should not change the state") {
-                repository.planningState.value shouldBe snapshot
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
             }
         }
     }
 
+    given("addTransportStep") {
+        `when`("addTransportStep inserts a step immediately after the specified reference step") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+            val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+            repo.savePlace(p1, dayIds[1])
+            repo.savePlace(p2, dayIds[1])
+            repo.movePlaceToStep("p1", dayIds[1])
+            repo.movePlaceToStep("p2", dayIds[1])
+            val newStep = StepDomain.Place(id = "new1", location = "New Stop", lat = 0.0, lng = 0.0)
+            repo.addTransportStep(dayIds[1], "p1", newStep)
+
+            then("should insert the step at afterIndex + 1") {
+                val steps = repo.planningState.value.days[1].steps
+                steps shouldHaveSize 3
+                steps[0].id shouldBe "p1"
+                steps[1].id shouldBe "new1"
+                steps[2].id shouldBe "p2"
+            }
+
+            then("should not affect other days") {
+                repo.planningState.value.days[0].steps.shouldBeEmpty()
+                repo.planningState.value.days[2].steps.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("addTransportStep with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            val newStep = StepDomain.Place(id = "new1", location = "New", lat = 0.0, lng = 0.0)
+            repo.addTransportStep("invalid-day-id", "place1", newStep)
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("addTransportStep with an invalid afterStepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            val newStep = StepDomain.Place(id = "new1", location = "New", lat = 0.0, lng = 0.0)
+            repo.addTransportStep(dayIds[1], "invalid-after-step-id", newStep)
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+    }
+
+    given("moveTravelStepUp") {
+        `when`("moveTravelStepUp on the second step swaps it with the first") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+            val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+            val p3 = PlaceDomain(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
+            repo.savePlace(p1, dayIds[1])
+            repo.savePlace(p2, dayIds[1])
+            repo.savePlace(p3, dayIds[1])
+            repo.movePlaceToStep("p1", dayIds[1])
+            repo.movePlaceToStep("p2", dayIds[1])
+            repo.movePlaceToStep("p3", dayIds[1])
+            repo.moveTravelStepUp("p2", dayIds[1])
+
+            then("should reorder steps to p2, p1, p3") {
+                val steps = repo.planningState.value.days[1].steps
+                steps[0].id shouldBe "p2"
+                steps[1].id shouldBe "p1"
+                steps[2].id shouldBe "p3"
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("moveTravelStepUp on the first step does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+            val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+            repo.savePlace(p1, dayIds[1])
+            repo.savePlace(p2, dayIds[1])
+            repo.movePlaceToStep("p1", dayIds[1])
+            repo.movePlaceToStep("p2", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepUp("p1", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("moveTravelStepUp with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepUp("invalid-step-id", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("moveTravelStepUp with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepUp("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+    }
+
+    given("moveTravelStepDown") {
+        `when`("moveTravelStepDown on the second-to-last step swaps it with the last") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+            val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+            val p3 = PlaceDomain(id = "p3", name = "P3", lat = 0.0, lng = 0.0)
+            repo.savePlace(p1, dayIds[1])
+            repo.savePlace(p2, dayIds[1])
+            repo.savePlace(p3, dayIds[1])
+            repo.movePlaceToStep("p1", dayIds[1])
+            repo.movePlaceToStep("p2", dayIds[1])
+            repo.movePlaceToStep("p3", dayIds[1])
+            repo.moveTravelStepDown("p2", dayIds[1])
+
+            then("should reorder steps to p1, p3, p2") {
+                val steps = repo.planningState.value.days[1].steps
+                steps[0].id shouldBe "p1"
+                steps[1].id shouldBe "p3"
+                steps[2].id shouldBe "p2"
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("moveTravelStepDown on the last step does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+            val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+            repo.savePlace(p1, dayIds[1])
+            repo.savePlace(p2, dayIds[1])
+            repo.movePlaceToStep("p1", dayIds[1])
+            repo.movePlaceToStep("p2", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepDown("p2", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("moveTravelStepDown with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepDown("invalid-step-id", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("moveTravelStepDown with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.moveTravelStepDown("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+    }
 })
