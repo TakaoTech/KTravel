@@ -38,17 +38,6 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-//        target.swiftPackageConfig {
-//            dependency {
-//                remotePackageVersion(
-//                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
-//                    products = { add("MapLibre", exportToKotlin = true) },
-//                    packageName = "maplibre-gl-native-distribution",
-//                    version = "6.25.1",
-//                )
-//            }
-//        }
-
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
@@ -196,6 +185,18 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.takaotech.ktravel.MainKt"
+
+        jvmArgs(
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED",
+            "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt.macosx=ALL-UNNAMED"
+        )
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
