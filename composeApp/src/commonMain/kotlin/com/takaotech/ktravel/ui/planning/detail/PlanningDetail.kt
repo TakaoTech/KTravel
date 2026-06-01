@@ -1,13 +1,28 @@
 package com.takaotech.ktravel.ui.planning.detail
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.*
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.PaneExpansionState
+import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,7 +44,11 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import ktravel.composeapp.generated.resources.*
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.add
+import ktravel.composeapp.generated.resources.arrow_back
+import ktravel.composeapp.generated.resources.close
+import ktravel.composeapp.generated.resources.flight
 import org.jetbrains.compose.resources.painterResource
 
 @Serializable
@@ -66,15 +85,16 @@ fun PlanningDetailPage(
 //    )
 //    val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
     val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
-    val paneExpansionState: PaneExpansionState = rememberPaneExpansionState(keyProvider = navigator.scaffoldValue)
+    val paneExpansionState: PaneExpansionState =
+        rememberPaneExpansionState(keyProvider = navigator.scaffoldValue)
 
-    val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
-        onDeletePermanentPlaceClick(placeId)
-    }
+//    val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
+//        onDeletePermanentPlaceClick(placeId)
+//    }
 
-    DisruptiveOperationDialog(
-        state = deleteDialogState
-    )
+//    DisruptiveOperationDialog(
+//        state = deleteDialogState
+//    )
 
     if (isExpandedNavigation) {
         // Expanded screen layout
@@ -104,7 +124,7 @@ fun PlanningDetailPage(
                     SupportingPaneContent(
                         modifier = Modifier.fillMaxSize(),
                         places = places,
-                        onPermanentDeleteClick = { placeId -> deleteDialogState.show(placeId) },
+                        onPermanentDeleteClick = onDeletePermanentPlaceClick,
                         onDeletePlaceClick = onDeletePlaceClick,
                         onAddPlaceClick = onAddPlaceClick,
                         onMovePlaceToList = onMovePlaceToList,
@@ -140,12 +160,18 @@ private fun MainPaneContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigationBackClick) {
-                        Icon(painter = painterResource(Res.drawable.arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(Res.drawable.arrow_back),
+                            contentDescription = null
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onPlaceMenuClicked) {
-                        Icon(painter = painterResource(Res.drawable.flight), contentDescription = null)
+                        Icon(
+                            painter = painterResource(Res.drawable.flight),
+                            contentDescription = null
+                        )
                     }
                 }
             )
@@ -251,7 +277,10 @@ private fun SupportingPaneContent(
                                     onMovePlaceToList(place.id)
                                 }
                             ) {
-                                Icon(painter = painterResource(Res.drawable.add), contentDescription = null)
+                                Icon(
+                                    painter = painterResource(Res.drawable.add),
+                                    contentDescription = null
+                                )
                             }
                         },
                         onPermanentDeleteClick = {
