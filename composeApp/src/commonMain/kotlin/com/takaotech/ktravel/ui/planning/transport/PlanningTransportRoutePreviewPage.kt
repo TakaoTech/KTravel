@@ -1,7 +1,6 @@
 package com.takaotech.ktravel.ui.planning.transport
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,25 +28,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
-import com.takaotech.ktravel.core.LocalOperatingSystem
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.Routes
 import com.takaotech.navigation.common.GeoJsonConverter
-import io.github.kdroidfilter.platformtools.OperatingSystem
+import com.takaotech.os_map.RouteMap
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.check
 import org.jetbrains.compose.resources.painterResource
-import org.maplibre.compose.layers.LineLayer
-import org.maplibre.compose.map.MaplibreMap
-import org.maplibre.compose.sources.GeoJsonData
-import org.maplibre.compose.sources.rememberGeoJsonSource
-import org.maplibre.compose.style.BaseStyle
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
@@ -134,36 +127,17 @@ fun RoutePreviewMap(
     modifier: Modifier = Modifier,
     sections: List<RouteSection>
 ) {
-    val currentOs = LocalOperatingSystem.current
-
     val path by remember(sections) {
         derivedStateOf {
-            sections.mapNotNull {
-                it.polyline
-            }.let {
-                GeoJsonConverter.mergePolylinesToGeoJson(it)
-            }
+            sections.mapNotNull { it.polyline }
+                .let { GeoJsonConverter.mergePolylinesToGeoJson(it) }
         }
     }
 
-    Box(modifier = modifier) {
-        MaplibreMap(
-            baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
-        ) {
-            //TODO Temporary mitigation, on desktop di functionality isn't  supported
-            when (currentOs) {
-                OperatingSystem.ANDROID,
-                OperatingSystem.IOS -> {
-                    val pathLine = rememberGeoJsonSource(
-                        data = GeoJsonData.JsonString(path)
-                    )
-                    LineLayer("path", source = pathLine)
-                }
-
-                else -> Unit
-            }
-        }
-    }
+    RouteMap(
+        modifier = modifier,
+        geoJsonPath = path
+    )
 }
 
 @Composable
