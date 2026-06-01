@@ -37,5 +37,5 @@ plugins {
 
 include(":androidApp")
 include(":composeApp")
-//include(":os-map")
+include(":os-map")
 include(":location-clients")

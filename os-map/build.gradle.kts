@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -12,10 +13,14 @@ kotlin {
     // Target declarations - add or remove as needed below. These define
     // which platforms this KMP module supports.
     // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
-    androidLibrary {
+    android {
         namespace = "com.takaotech.os_map"
         minSdk = libs.versions.android.minSdk.get().toInt()
         compileSdk = libs.versions.android.targetSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
 
 //        withHostTestBuilder {
 //        }
@@ -26,7 +31,9 @@ kotlin {
 //            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 //        }
 
-        androidResources.enable = true
+        androidResources {
+            enable = true
+        }
     }
 
     // For iOS targets, this is also where you should
@@ -39,12 +46,24 @@ kotlin {
     val xcfName = "os-mapKit"
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
+        // TODO: Add SPM plugin
+        //  https://maplibre.org/maplibre-compose/getting-started/#swift-package-manager
+//        iosTarget.swiftPackageConfig {
+//            dependency {
+//                remotePackageVersion(
+//                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+//                    products = { add("MapLibre", exportToKotlin = true) },
+//                    packageName = "maplibre-gl-native-distribution",
+//                    version = "6.25.1",
+//                )
+//            }
+//        }
+
         iosTarget.binaries.framework {
-            baseName = "os-mapKit"
+            baseName = xcfName
             isStatic = true
         }
     }
@@ -66,8 +85,6 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-            implementation(libs.kotlin.stdlib)
-
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
@@ -75,6 +92,8 @@ kotlin {
             implementation(libs.compose.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.maplibre.compose)
+            implementation(libs.platformtools.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -84,6 +103,12 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
 
             implementation(libs.bundles.osm.jvm)
+            implementation(libs.maplibre.compose)
+            runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.13.0") {
+                capabilities {
+                    requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
+                }
+            }
         }
     }
 }
@@ -117,4 +142,21 @@ tasks.withType<Detekt>().configureEach {
         xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
+}
+
+fun detectTarget(): String {
+    val hostOs = when (val os = System.getProperty("os.name").lowercase()) {
+        "mac os x" -> "macos"
+        else -> os.split(" ").first()
+    }
+    val hostArch = when (val arch = System.getProperty("os.arch").lowercase()) {
+        "x86_64" -> "amd64"
+        "arm64" -> "aarch64"
+        else -> arch
+    }
+    val renderer = when (hostOs) {
+        "macos" -> "metal"
+        else -> "opengl"
+    }
+    return "${hostOs}-${hostArch}-${renderer}"
 }

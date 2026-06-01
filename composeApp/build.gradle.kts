@@ -122,7 +122,7 @@ kotlin {
                 implementation(libs.androidx.lifecycle.runtimeCompose)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.immutable)
-//                implementation(project(":os-map"))
+                implementation(project(":os-map"))
                 implementation(project(":location-clients"))
 
                 implementation(libs.compottie)
@@ -155,8 +155,6 @@ kotlin {
 
                 implementation(libs.kotlinx.serialization.json)
 
-                implementation(libs.maplibre.compose)
-
             }
         }
         iosMain.dependencies {
@@ -175,12 +173,6 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logback.classic)
 
-            implementation(libs.maplibre.compose)
-            runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.13.0") {
-                capabilities {
-                    requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
-                }
-            }
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
@@ -280,19 +272,3 @@ tasks.withType<Detekt>().configureEach {
     mustRunAfter(tasks.matching { it.name == "kspCommonMainKotlinMetadata" })
 }
 
-fun detectTarget(): String {
-    val hostOs = when (val os = System.getProperty("os.name").lowercase()) {
-        "mac os x" -> "macos"
-        else -> os.split(" ").first()
-    }
-    val hostArch = when (val arch = System.getProperty("os.arch").lowercase()) {
-        "x86_64" -> "amd64"
-        "arm64" -> "aarch64"
-        else -> arch
-    }
-    val renderer = when (hostOs) {
-        "macos" -> "metal"
-        else -> "opengl"
-    }
-    return "${hostOs}-${hostArch}-${renderer}"
-}
