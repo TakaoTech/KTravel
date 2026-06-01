@@ -14,9 +14,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
+import org.koin.core.annotation.Scoped
 
 @KoinViewModel
 @Scope(PlanningScope::class)
+@Scoped
 class PlanningViewModel(
     private val repository: TravelPlanRepository
 ) : ViewModel() {
