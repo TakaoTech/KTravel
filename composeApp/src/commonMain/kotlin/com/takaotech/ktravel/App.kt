@@ -221,6 +221,7 @@ fun App() {
                             val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
                             val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
+                            //TODO Change scope
                             val scope =
                                 getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
 
@@ -250,6 +251,7 @@ fun App() {
                             PlanningTransportPage(
                                 viewModel = viewModel,
                                 onNavigationBackClick = {
+//                                    scope.close()
                                     if (backStackEntry.lifecycleIsResumed()) {
                                         navController.navigateUp()
                                     }
@@ -262,6 +264,8 @@ fun App() {
                                 backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
                             val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
+
+                            //TODO Change scope
                             val scope =
                                 getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
                             val viewModel = koinViewModel<PlanningTransportViewModel>(
@@ -281,6 +285,7 @@ fun App() {
                                         navController.popBackStack<PlanningDetailPageNavigation>(
                                             inclusive = false
                                         )
+//                                        scope.close()
                                     },
                                     onRouteChange = { viewModel.selectRoute(it) }
                                 )

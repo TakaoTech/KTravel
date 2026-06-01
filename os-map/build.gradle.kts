@@ -1,5 +1,7 @@
+import io.github.frankois944.spmForKmp.swiftPackageConfig
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,6 +9,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.detekt)
+    id("io.github.frankois944.spmForKmp") version "1.9.2"
 }
 
 kotlin {
@@ -51,16 +54,16 @@ kotlin {
     ).forEach { iosTarget ->
         // TODO: Add SPM plugin
         //  https://maplibre.org/maplibre-compose/getting-started/#swift-package-manager
-//        iosTarget.swiftPackageConfig {
-//            dependency {
-//                remotePackageVersion(
-//                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
-//                    products = { add("MapLibre", exportToKotlin = true) },
-//                    packageName = "maplibre-gl-native-distribution",
-//                    version = "6.25.1",
-//                )
-//            }
-//        }
+        iosTarget.swiftPackageConfig {
+            dependency {
+                remotePackageVersion(
+                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+                    products = { add("MapLibre", exportToKotlin = true) },
+                    packageName = "maplibre-gl-native-distribution",
+                    version = "6.25.1",
+                )
+            }
+        }
 
         iosTarget.binaries.framework {
             baseName = xcfName
@@ -101,14 +104,15 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-
             implementation(libs.bundles.osm.jvm)
-            implementation(libs.maplibre.compose)
-            runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.13.0") {
-                capabilities {
-                    requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
-                }
-            }
+            implementation(libs.kotlinx.serialization.json)
+
+            // implementation(libs.maplibre.compose)  // already in commonMain
+            // runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.13.0") {
+            //     capabilities {
+            //         requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
+            //     }
+            // }
         }
     }
 }
