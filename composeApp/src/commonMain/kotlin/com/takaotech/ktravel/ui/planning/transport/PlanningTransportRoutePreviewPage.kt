@@ -1,21 +1,53 @@
 package com.takaotech.ktravel.ui.planning.transport
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
-import com.takaotech.ktravel.domain.routing.model.*
+import com.takaotech.ktravel.core.LocalOperatingSystem
+import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.domain.routing.model.RouteAction
+import com.takaotech.ktravel.domain.routing.model.RouteSection
+import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.navigation.common.GeoJsonConverter
+import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.check
 import org.jetbrains.compose.resources.painterResource
+import org.maplibre.compose.layers.LineLayer
+import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.sources.GeoJsonData
+import org.maplibre.compose.sources.rememberGeoJsonSource
+import org.maplibre.compose.style.BaseStyle
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
@@ -28,6 +60,12 @@ fun PlanningTransportRoutePreviewPage(
     onRouteConfirm: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val selectedRoute by remember(selectedRouteIndex) {
+        derivedStateOf {
+            routes.routes[selectedRouteIndex]
+        }
+    }
+
     val sheetState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
@@ -84,7 +122,8 @@ fun PlanningTransportRoutePreviewPage(
         RoutePreviewMap(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(it),
+            sections = selectedRoute.sections
         )
     }
 }
@@ -92,13 +131,38 @@ fun PlanningTransportRoutePreviewPage(
 
 @Composable
 fun RoutePreviewMap(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sections: List<RouteSection>
 ) {
+    val currentOs = LocalOperatingSystem.current
+
+    val path by remember(sections) {
+        derivedStateOf {
+            sections.mapNotNull {
+                it.polyline
+            }.let {
+                GeoJsonConverter.mergePolylinesToGeoJson(it)
+            }
+        }
+    }
+
     Box(modifier = modifier) {
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            text = "Route Preview Map"
-        )
+        MaplibreMap(
+            baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
+        ) {
+            //TODO Temporary mitigation, on desktop di functionality isn't  supported
+            when (currentOs) {
+                OperatingSystem.ANDROID,
+                OperatingSystem.IOS -> {
+                    val pathLine = rememberGeoJsonSource(
+                        data = GeoJsonData.JsonString(path)
+                    )
+                    LineLayer("path", source = pathLine)
+                }
+
+                else -> Unit
+            }
+        }
     }
 }
 
