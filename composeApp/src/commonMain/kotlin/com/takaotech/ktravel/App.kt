@@ -10,10 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -23,6 +20,7 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.LocalOperatingSystem
+import com.takaotech.ktravel.core.ui.lifecycleIsResumed
 import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
@@ -55,7 +53,6 @@ import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.Koin
 import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.parametersOf
 
 
@@ -102,7 +99,10 @@ fun App() {
                 composable<TravelCreationPage> {
                     TravelCreationPage(
                         onBackClick = {
-                            navController.navigateUp()
+                            if (it.lifecycleIsResumed()) {
+                                navController.navigateUp()
+                            }
+
                         },
                         onNavigateToPlanning = { travelId ->
                             navController.navigate(PlanningNavigation(travelId)) {
@@ -116,9 +116,8 @@ fun App() {
                     composable<PlanningTripPageNavigation> { backStackEntry ->
                         val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
                         val scope = getKoin().getOrCreateScope<PlanningScope>(args.travelId)
-
-                        val viewModel = backStackEntry.sharedKoinViewModel2<PlanningViewModel>(
-                            navController = navController,
+                        val viewModel = koinViewModel<PlanningViewModel>(
+                            viewModelStoreOwner = backStackEntry,
                             scope = scope
                         )
                         val coroutine = rememberCoroutineScope()
@@ -133,8 +132,10 @@ fun App() {
                             state = rememberNavigationEventState(NavigationEventInfo.None),
                             isBackEnabled = true, // You can toggle this dynamically
                             onBackCompleted = {
-                                navController.navigateUp()
-                                scope.close()
+                                if (backStackEntry.lifecycleIsResumed()) {
+                                    navController.navigateUp()
+                                    scope.close()
+                                }
                             }
                         )
 
@@ -194,7 +195,9 @@ fun App() {
                                 viewModel.moveStepToPlace(it)
                             },
                             onNavigationBackClick = {
-                                navController.navigateUp()
+                                if (backStackEntry.lifecycleIsResumed()) {
+                                    navController.navigateUp()
+                                }
                             },
                             onMovePlaceToList = {
                                 viewModel.movePlaceToStep(it)
@@ -218,17 +221,15 @@ fun App() {
                             val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
                             val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
-                            val koin: Koin = getKoin()
-                            val scope = remember(parentArgs.travelId) {
-                                koin.getOrCreateScope<PlanningScope>(parentArgs.travelId)
+                            val scope =
+                                getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
+
+                            val viewModel = koinViewModel<PlanningTransportViewModel>(
+                                viewModelStoreOwner = backStackEntry,
+                                scope = scope
+                            ) {
+                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                             }
-                            val viewModel =
-                                backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
-                                    navController = navController,
-                                    scope = scope
-                                ) {
-                                    parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
-                                }
 
                             LaunchedEffect(viewModel) {
                                 viewModel.navigationEvent.collect { event ->
@@ -249,7 +250,9 @@ fun App() {
                             PlanningTransportPage(
                                 viewModel = viewModel,
                                 onNavigationBackClick = {
-                                    navController.navigateUp()
+                                    if (backStackEntry.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
                                 }
                             )
                         }
@@ -257,22 +260,16 @@ fun App() {
                         composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
                             val args =
                                 backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
-                            val parentArgs =
-                                navController.getBackStackEntry<PlanningNavigation>()
-                                    .toRoute<PlanningNavigation>()
-                            val koin: Koin = getKoin()
-                            val scope = remember(parentArgs.travelId) {
-                                koin.getOrCreateScope<PlanningScope>(
-                                    parentArgs.travelId
-                                )
+                            val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>()
+                            val scope =
+                                getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
+                            val viewModel = koinViewModel<PlanningTransportViewModel>(
+                                viewModelStoreOwner = backStackEntry,
+                                scope = scope
+                            ) {
+                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
                             }
-                            val viewModel =
-                                backStackEntry.sharedKoinViewModel2<PlanningTransportViewModel>(
-                                    navController = navController,
-                                    scope = scope
-                                ) {
-                                    parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
-                                }
                             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                             uiState.routes?.let { routes ->
@@ -307,7 +304,9 @@ fun App() {
                     PlaceInsertPage(
                         viewModel = viewModel,
                         onExit = {
-                            navController.navigateUp()
+                            if (backStackEntry.lifecycleIsResumed()) {
+                                navController.navigateUp()
+                            }
                         },
                         onSaveClicked = {
                             navController.navigateUp()
@@ -321,7 +320,9 @@ fun App() {
                     SettingsPage(
                         viewModel = viewModel,
                         onNavigationBackClick = {
-                            navController.navigateUp()
+                            if (it.lifecycleIsResumed()) {
+                                navController.navigateUp()
+                            }
                         }
                     )
                 }
@@ -409,36 +410,36 @@ fun App() {
     }
 }
 
-@Deprecated("https://github.com/InsertKoinIO/koin/pull/2293 is merged in 4.2.0-beta3, wait for 4.2.0 release")
-@Composable
-inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
-    navController: NavController,
-    navGraphRoute: Any? = this.destination.parent?.route,
-    scope: org.koin.core.scope.Scope? = null,
-    noinline parameters: ParametersDefinition? = null,
-): VM {
-    val navGraphRoute = navGraphRoute ?: return if (scope != null) {
-        koinViewModel<VM>(scope = scope, parameters = parameters)
-    } else {
-        koinViewModel<VM>(parameters = parameters)
-    }
-    val parentEntry = remember(this) {
-        if (navGraphRoute is String) {
-            navController.getBackStackEntry(navGraphRoute)
-        } else {
-            navController.getBackStackEntry(navGraphRoute)
-        }
-    }
-    return if (scope != null) {
-        koinViewModel(
-            viewModelStoreOwner = parentEntry,
-            scope = scope,
-            parameters = parameters
-        )
-    } else {
-        koinViewModel(
-            viewModelStoreOwner = parentEntry,
-            parameters = parameters
-        )
-    }
-}
+//@Deprecated("https://github.com/InsertKoinIO/koin/pull/2293 is merged in 4.2.0-beta3, wait for 4.2.0 release")
+//@Composable
+//inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
+//    navController: NavController,
+//    navGraphRoute: Any? = this.destination.parent?.route,
+//    scope: org.koin.core.scope.Scope? = null,
+//    noinline parameters: ParametersDefinition? = null,
+//): VM {
+//    val navGraphRoute = navGraphRoute ?: return if (scope != null) {
+//        koinViewModel<VM>(scope = scope, parameters = parameters)
+//    } else {
+//        koinViewModel<VM>(parameters = parameters)
+//    }
+//    val parentEntry = remember(this) {
+//        if (navGraphRoute is String) {
+//            navController.getBackStackEntry(navGraphRoute)
+//        } else {
+//            navController.getBackStackEntry(navGraphRoute)
+//        }
+//    }
+//    return if (scope != null) {
+//        koinViewModel(
+//            viewModelStoreOwner = parentEntry,
+//            scope = scope,
+//            parameters = parameters
+//        )
+//    } else {
+//        koinViewModel(
+//            viewModelStoreOwner = parentEntry,
+//            parameters = parameters
+//        )
+//    }
+//}

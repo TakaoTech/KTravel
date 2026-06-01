@@ -13,10 +13,12 @@ import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Scope
+import org.koin.core.annotation.Scoped
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @KoinViewModel
 @Scope(PlanningScope::class)
+@Scoped
 class PlanningDetailViewModel(
     @InjectedParam private val dayId: String,
     private val repository: TravelPlanRepository
