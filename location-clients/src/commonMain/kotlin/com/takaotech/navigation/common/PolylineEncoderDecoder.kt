@@ -88,6 +88,23 @@ object PolylineEncoderDecoder {
     }
 
     /**
+     * Returns the coordinate at the given [offset] index in the decoded polyline.
+     *
+     * The offset matches the HERE Routing API `offset` field on actions, which is a 0-based
+     * index into the section's decoded polyline point list.
+     *
+     * @param encoded URL-safe encoded polyline String
+     * @param offset 0-based index of the desired coordinate
+     * @throws IllegalArgumentException if [offset] is negative or out of bounds
+     */
+    fun getCoordinateAtOffset(encoded: String, offset: Int): LatLngZ {
+        require(offset >= 0) { "Offset must be non-negative" }
+        val coordinates = decode(encoded)
+        require(offset < coordinates.size) { "Offset $offset is out of bounds for polyline with ${coordinates.size} points" }
+        return coordinates[offset]
+    }
+
+    /**
      * ThirdDimension type from the encoded input String
      * @param encoded URL-safe encoded coordinate triples String
      * @return type of [ThirdDimension]
