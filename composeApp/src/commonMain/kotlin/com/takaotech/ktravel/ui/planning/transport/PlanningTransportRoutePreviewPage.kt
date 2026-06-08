@@ -1,8 +1,10 @@
 package com.takaotech.ktravel.ui.planning.transport
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,15 +28,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import com.takaotech.ktravel.core.KTravelPlatform
+import com.takaotech.ktravel.core.LocalPlatform
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.Routes
 import com.takaotech.navigation.common.GeoJsonConverter
+import com.takaotech.navigation.common.PolylineEncoderDecoder
 import com.takaotech.os_map.RouteMap
+import io.github.kdroidfilter.platformtools.Platform
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
@@ -51,7 +59,8 @@ fun PlanningTransportRoutePreviewPage(
     selectedRouteIndex: Int,
     onRouteChange: (Int) -> Unit,
     onRouteConfirm: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    platform: Platform = LocalPlatform.current,
 ) {
     val selectedRoute by remember(selectedRouteIndex) {
         derivedStateOf {
@@ -59,6 +68,81 @@ fun PlanningTransportRoutePreviewPage(
         }
     }
 
+
+    val onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit = {
+
+    }
+
+
+    if (platform == Platform.JVM) {
+        PlanningTransportRouteDesktop(
+            onRouteConfirm = onRouteConfirm,
+            modifier = modifier,
+            routes = routes,
+            selectedRouteIndex = selectedRouteIndex,
+            onRouteChange = onRouteChange,
+            selectedRoute = selectedRoute,
+            onStepClick = onStepClick
+        )
+    } else {
+        PlanningTransportPreviewMobile(
+            modifier = modifier,
+            routes = routes,
+            selectedRouteIndex = selectedRouteIndex,
+            onRouteChange = onRouteChange,
+            onRouteConfirm = onRouteConfirm,
+            selectedRoute = selectedRoute,
+            onStepClick = onStepClick
+        )
+    }
+}
+
+@Composable
+private fun PlanningTransportRouteDesktop(
+    onRouteConfirm: () -> Unit,
+    modifier: Modifier,
+    routes: Routes,
+    selectedRouteIndex: Int,
+    onRouteChange: (Int) -> Unit,
+    selectedRoute: Route,
+    onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
+        }
+    ) {
+        Row(modifier = modifier.padding(it)) {
+            RouteStepsPreview(
+                modifier = Modifier.weight(1f),
+                routes = routes,
+                selectedRouteIndex = selectedRouteIndex,
+                onRouteChange = onRouteChange,
+                onStepClick = onStepClick
+            )
+
+            RoutePreviewMap(
+                modifier = Modifier
+                    .weight(2f)
+                    .fillMaxHeight(),
+                enable = true,
+                sections = selectedRoute.sections,
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun PlanningTransportPreviewMobile(
+    modifier: Modifier,
+    routes: Routes,
+    selectedRouteIndex: Int,
+    onRouteChange: (Int) -> Unit,
+    onRouteConfirm: () -> Unit,
+    selectedRoute: Route,
+    onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
+) {
     val sheetState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
@@ -66,66 +150,96 @@ fun PlanningTransportRoutePreviewPage(
         scaffoldState = sheetState,
         sheetPeekHeight = 128.dp,
         sheetContent = {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                if (routes.routes.size > 1) {
-                    stickyHeader {
-                        PrimaryScrollableTabRow(
-                            selectedTabIndex = selectedRouteIndex,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            routes.routes.forEachIndexed { index, _ ->
-                                Tab(
-                                    selected = index == selectedRouteIndex,
-                                    onClick = { onRouteChange(index) },
-                                    text = { Text("Route ${index + 1}") }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                val selectedRoute = routes.routes.getOrNull(selectedRouteIndex)
-                selectedRoute?.sections?.forEach { section ->
-                    item {
-                        RouteStepSection(section = section)
-                    }
-                }
-            }
+            RouteStepsPreview(
+                modifier = Modifier.fillMaxSize(),
+                routes = routes,
+                selectedRouteIndex = selectedRouteIndex,
+                onRouteChange = onRouteChange,
+                onStepClick = onStepClick
+            )
         },
         topBar = {
-            TopAppBar(
-                title = { Text("Route Preview") },
-                actions = {
-                    IconButton(
-                        modifier = Modifier,
-                        onClick = onRouteConfirm
-                    ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.check),
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
+            RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
         }
     ) {
+        val mapEnable by remember(sheetState.bottomSheetState.hasExpandedState) {
+            derivedStateOf {
+                !sheetState.bottomSheetState.hasExpandedState
+            }
+        }
+
         RoutePreviewMap(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it),
-            sections = selectedRoute.sections
+            enable = mapEnable,
+            sections = selectedRoute.sections,
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RoutePreviewTopBar(onRouteConfirm: () -> Unit) {
+    TopAppBar(
+        title = { Text("Route Preview") },
+        actions = {
+            IconButton(
+                modifier = Modifier,
+                onClick = onRouteConfirm
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.check),
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun RouteStepsPreview(
+    routes: Routes,
+    selectedRouteIndex: Int,
+    modifier: Modifier = Modifier,
+    onRouteChange: (Int) -> Unit,
+    onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit
+) {
+    LazyColumn(
+        modifier = modifier
+    ) {
+        if (routes.routes.size > 1) {
+            stickyHeader {
+                PrimaryScrollableTabRow(
+                    selectedTabIndex = selectedRouteIndex,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    routes.routes.forEachIndexed { index, _ ->
+                        Tab(
+                            selected = index == selectedRouteIndex,
+                            onClick = { onRouteChange(index) },
+                            text = { Text("Route ${index + 1}") }
+                        )
+                    }
+                }
+            }
+        }
+
+        val selectedRoute = routes.routes.getOrNull(selectedRouteIndex)
+        selectedRoute?.sections?.forEach { section ->
+            item {
+                RouteStepSection(section = section, onActionClick = onStepClick)
+            }
+        }
     }
 }
 
 
 @Composable
 fun RoutePreviewMap(
+    enable: Boolean,
+    sections: List<RouteSection>,
     modifier: Modifier = Modifier,
-    sections: List<RouteSection>
 ) {
     val path by remember(sections) {
         derivedStateOf {
@@ -136,21 +250,38 @@ fun RoutePreviewMap(
 
     RouteMap(
         modifier = modifier,
-        geoJsonPath = path
+        enable = enable,
+        geoJsonPath = path,
     )
 }
 
 @Composable
 fun RouteStepSection(
     section: RouteSection,
+    onActionClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         Text("Duration ${section.summary.durationSeconds}")
 
         for (action in section.actions) {
+            val resolvedClick: (() -> Unit)? = remember(section.polyline, action.offset) {
+                val polyline = section.polyline
+                val offset = action.offset
+                if (polyline != null && offset != null) {
+                    {
+                        runCatching {
+                            val coord =
+                                PolylineEncoderDecoder.getCoordinateAtOffset(polyline, offset)
+                            onActionClick(coord)
+                        }
+                    }
+                } else null
+            }
+
             RouteStep(
-                action = action
+                action = action,
+                onActionClick = resolvedClick
             )
         }
     }
@@ -159,6 +290,7 @@ fun RouteStepSection(
 @Composable
 fun RouteStep(
     action: RouteAction,
+    onActionClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val distanceM = (action.distanceMeters `in` Length.meters).roundToInt()
@@ -171,7 +303,10 @@ fun RouteStep(
         "$distanceM m"
     }
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier
+            .then(if (onActionClick != null) Modifier.clickable(onClick = onActionClick) else Modifier)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -221,93 +356,19 @@ fun RouteStep(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningRoutePreviewPagePreview() {
-    Scaffold {
-        Column(
-            modifier = Modifier
-                .padding(it)
-        ) {
-            PlanningTransportRoutePreviewPage(
-                selectedRouteIndex = 0,
-                onRouteChange = {},
-                onRouteConfirm = {},
-                routes = Routes(
-                    routes = listOf(
-                        Route(
-                            sections = listOf(
-                                RouteSection(
-                                    summary = RouteSummary(
-                                        durationSeconds = 1800.seconds,
-                                        distanceMeters = 15000
-                                    ),
-                                    actions = buildList {
-
-                                        add(
-                                            RouteAction(
-                                                action = "depart",
-                                                durationSeconds = 60.seconds,
-                                                distanceMeters = 500 * Length.meters,
-                                                instruction = "Head north on Via del Corso",
-                                                direction = "north",
-                                                severity = "normal"
-                                            )
-                                        )
-                                        repeat(10) {
-                                            add(
-                                                RouteAction(
-                                                    action = "turn",
-                                                    durationSeconds = 45.seconds,
-                                                    distanceMeters = 320 * Length.meters,
-                                                    instruction = "Turn right onto Via Roma",
-                                                    direction = "right",
-                                                    severity = "normal"
-                                                )
-                                            )
-                                        }
-                                        add(
-                                            RouteAction(
-                                                action = "arrive",
-                                                durationSeconds = 0.seconds,
-                                                distanceMeters = 0 * Length.meters,
-                                                instruction = "Arrive at destination",
-                                                severity = "normal"
-                                            )
-                                        )
-                                    }.toPersistentList()
-                                )
-                            ).toPersistentList()
-                        ),
-                        Route(
-                            sections = listOf(
-                                RouteSection(
-                                    summary = RouteSummary(
-                                        durationSeconds = 2400.seconds,
-                                        distanceMeters = 18000
-                                    ),
-                                    actions = listOf(
-                                        RouteAction(
-                                            action = "depart",
-                                            durationSeconds = 90.seconds,
-                                            distanceMeters = 800 * Length.meters,
-                                            instruction = "Head south on Via Appia",
-                                            direction = "south",
-                                            severity = "normal"
-                                        ),
-                                        RouteAction(
-                                            action = "arrive",
-                                            durationSeconds = 0.seconds,
-                                            distanceMeters = 0 * Length.meters,
-                                            instruction = "Arrive at destination",
-                                            severity = "normal"
-                                        )
-                                    ).toPersistentList()
-                                )
-                            ).toPersistentList()
-                        )
-                    ).toPersistentList()
-                )
-            )
-        }
+private fun PlanningRoutePreviewPagePreview(
+    @PreviewParameter(RoutesPreviewParameterProvider::class) routes: Routes
+) {
+    KTravelPlatform {
+        PlanningTransportPreviewMobile(
+            selectedRouteIndex = 0,
+            onRouteChange = {},
+            onRouteConfirm = {},
+            routes = routes,
+            modifier = Modifier.fillMaxSize(),
+            selectedRoute = routes.routes.first(),
+            onStepClick = {}
+        )
     }
 }
 
@@ -327,4 +388,83 @@ private fun RouteStepPreview() {
             )
         )
     }
+}
+
+class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
+    override val values = sequenceOf(
+        Routes(
+            routes = listOf(
+                Route(
+                    sections = listOf(
+                        RouteSection(
+                            summary = RouteSummary(
+                                durationSeconds = 1800.seconds,
+                                distanceMeters = 15000
+                            ),
+                            actions = buildList {
+                                add(
+                                    RouteAction(
+                                        action = "depart",
+                                        durationSeconds = 60.seconds,
+                                        distanceMeters = 500 * Length.meters,
+                                        instruction = "Head north on Via del Corso",
+                                        direction = "north",
+                                        severity = "normal"
+                                    )
+                                )
+                                repeat(10) {
+                                    add(
+                                        RouteAction(
+                                            action = "turn",
+                                            durationSeconds = 45.seconds,
+                                            distanceMeters = 320 * Length.meters,
+                                            instruction = "Turn right onto Via Roma",
+                                            direction = "right",
+                                            severity = "normal"
+                                        )
+                                    )
+                                }
+                                add(
+                                    RouteAction(
+                                        action = "arrive",
+                                        durationSeconds = 0.seconds,
+                                        distanceMeters = 0 * Length.meters,
+                                        instruction = "Arrive at destination",
+                                        severity = "normal"
+                                    )
+                                )
+                            }.toPersistentList()
+                        )
+                    ).toPersistentList()
+                ),
+                Route(
+                    sections = listOf(
+                        RouteSection(
+                            summary = RouteSummary(
+                                durationSeconds = 2400.seconds,
+                                distanceMeters = 18000
+                            ),
+                            actions = listOf(
+                                RouteAction(
+                                    action = "depart",
+                                    durationSeconds = 90.seconds,
+                                    distanceMeters = 800 * Length.meters,
+                                    instruction = "Head south on Via Appia",
+                                    direction = "south",
+                                    severity = "normal"
+                                ),
+                                RouteAction(
+                                    action = "arrive",
+                                    durationSeconds = 0.seconds,
+                                    distanceMeters = 0 * Length.meters,
+                                    instruction = "Arrive at destination",
+                                    severity = "normal"
+                                )
+                            ).toPersistentList()
+                        )
+                    ).toPersistentList()
+                )
+            ).toPersistentList()
+        )
+    )
 }

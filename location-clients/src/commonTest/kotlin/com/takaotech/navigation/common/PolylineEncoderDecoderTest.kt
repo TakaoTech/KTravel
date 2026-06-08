@@ -216,6 +216,44 @@ class PolylineEncoderDecoderTest {
         }
     }
 
+    // getCoordinateAtOffset — encoded string "BFoz5xJ67i1B1B7PzIhaxL7Y" decodes to 4 points:
+    // [0] LatLngZ(50.10228, 8.69821)
+    // [1] LatLngZ(50.10201, 8.69567)
+    // [2] LatLngZ(50.10063, 8.69150)
+    // [3] LatLngZ(50.09878, 8.68752)
+
+    @Test
+    fun `Given valid polyline and offset 0 When getting coordinate at offset Then should return first coordinate`() {
+        val result = PolylineEncoderDecoder.getCoordinateAtOffset("BFoz5xJ67i1B1B7PzIhaxL7Y", 0)
+        assertEquals(PolylineEncoderDecoder.LatLngZ(50.10228, 8.69821), result)
+    }
+
+    @Test
+    fun `Given valid polyline and mid offset When getting coordinate at offset Then should return correct coordinate`() {
+        val result = PolylineEncoderDecoder.getCoordinateAtOffset("BFoz5xJ67i1B1B7PzIhaxL7Y", 2)
+        assertEquals(PolylineEncoderDecoder.LatLngZ(50.10063, 8.69150), result)
+    }
+
+    @Test
+    fun `Given valid polyline and last offset When getting coordinate at offset Then should return last coordinate`() {
+        val result = PolylineEncoderDecoder.getCoordinateAtOffset("BFoz5xJ67i1B1B7PzIhaxL7Y", 3)
+        assertEquals(PolylineEncoderDecoder.LatLngZ(50.09878, 8.68752), result)
+    }
+
+    @Test
+    fun `Given valid polyline and out of bounds offset When getting coordinate at offset Then should throw IllegalArgumentException`() {
+        assertFailsWith<IllegalArgumentException> {
+            PolylineEncoderDecoder.getCoordinateAtOffset("BFoz5xJ67i1B1B7PzIhaxL7Y", 4)
+        }
+    }
+
+    @Test
+    fun `Given valid polyline and negative offset When getting coordinate at offset Then should throw IllegalArgumentException`() {
+        assertFailsWith<IllegalArgumentException> {
+            PolylineEncoderDecoder.getCoordinateAtOffset("BFoz5xJ67i1B1B7PzIhaxL7Y", -1)
+        }
+    }
+
     @Test
     fun `Given format version When getting version Then should return 1`() {
         assertEquals(1.toByte(), PolylineEncoderDecoder.getVersion())

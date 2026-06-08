@@ -3,7 +3,6 @@ package com.takaotech.ktravel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,7 +18,7 @@ import androidx.navigation.toRoute
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import com.takaotech.ktravel.core.LocalOperatingSystem
+import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
 import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.model.PlanningScopeData
@@ -44,7 +43,6 @@ import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
-import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.launch
@@ -67,11 +65,8 @@ data class PlanningNavigation(val travelId: String)
 @Composable
 @Preview
 fun App() {
-    val currentOs = getOperatingSystem()
 
-    CompositionLocalProvider(
-        LocalOperatingSystem provides currentOs
-    ) {
+    KTravelPlatform {
         MaterialTheme {
             val navController = rememberNavController()
 
