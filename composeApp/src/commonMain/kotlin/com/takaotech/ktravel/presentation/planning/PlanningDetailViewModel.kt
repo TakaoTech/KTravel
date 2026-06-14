@@ -2,31 +2,28 @@ package com.takaotech.ktravel.presentation.planning
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.di.PlanningScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.KoinViewModel
-import org.koin.core.annotation.Scope
-import org.koin.core.annotation.Scoped
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@KoinViewModel
-@Scope(PlanningScope::class)
-@Scoped
-class PlanningDetailViewModel(
-    @InjectedParam private val dayId: String,
+class PlanningDetailViewModel @AssistedInject constructor(
+    @Assisted private val dayId: String,
     private val repository: TravelPlanRepository
 ) : ViewModel() {
 
-    /**
-     * Stato del giorno corrente, sincronizzato automaticamente con il repository
-     */
+    @AssistedFactory
+    fun interface Factory {
+        fun create(dayId: String): PlanningDetailViewModel
+    }
+
     val travelDay: StateFlow<TravelDay> = repository.getTravelDayFlow(dayId)
         .map { with(TravelPlanUiMapper) { it.toUiDay() } }
         .stateIn(

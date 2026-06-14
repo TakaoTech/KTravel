@@ -2,53 +2,48 @@ package com.takaotech.ktravel.presentation.intro
 
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.ui.FieldValidationState
-import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.model.PlanningScopeData
+import com.takaotech.ktravel.di.PlanningGraph
+import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
+import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.koin.KoinExtension
-import io.kotest.koin.KoinLifecycleMode
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import org.koin.dsl.module
-import org.koin.test.KoinTest
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
+class TravelCreationViewModelTest : BehaviorSpec() {
     init {
         coroutineTestScope = true
         coroutineDebugProbes = true
 
         val mockTravelPlanRepository: TravelPlanRepository = mock()
-
         val mockTravelManagerRepository: TravelManagerRepository = mock()
 
-        extension(
-            KoinExtension(
-                module = module {
-                    scope<PlanningScope> {
-                        scoped { PlanningScopeData() }
-                        scoped<TravelPlanRepository> { mockTravelPlanRepository }
-                    }
-                },
-                mode = KoinLifecycleMode.Root
-            )
-        )
+        val mockPlanningGraph: PlanningGraph = mock()
+        every { mockPlanningGraph.travelPlanRepository } returns mockTravelPlanRepository
+
+        val mockFactory: PlanningGraph.Factory = mock()
+        every { mockFactory.create(any()) } returns mockPlanningGraph
+
+        val planningGraphStore = PlanningGraphStore(mockFactory)
+
+        fun createViewModel() =
+            TravelCreationViewModel(mockTravelManagerRepository, planningGraphStore)
 
         given("a TravelCreationViewModel with initial state") {
-            val viewModel = TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             then("should have default UI state") {
                 viewModel.uiState.value.travelName.value.text shouldBe ""
@@ -65,7 +60,7 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
         }
 
         given("a TravelCreationViewModel for travel name changes") {
-            val viewModel = TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             `when`("onNameChange is called with empty TextFieldValue") {
                 viewModel.onNameChange(TextFieldValue(""))
@@ -123,7 +118,7 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
         }
 
         given("a TravelCreationViewModel for date range changes") {
-            val viewModel = TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             `when`("onDateRangeChange is called with start and end dates") {
                 val startDateMillis = 1704067200000L
@@ -185,7 +180,6 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
 
                 viewModel.onDateRangeChange(0L, endDateMillis)
 
-                // The ViewModel filters out 0 values by setting null
                 then("should reset start date to null (not 0)") {
                     viewModel.uiState.value.startDateMillis shouldBe 0
                 }
@@ -200,7 +194,6 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
 
                 viewModel.onDateRangeChange(startDateMillis, 0L)
 
-                // The ViewModel filters out 0 values by setting null
                 then("should keep non-zero start date") {
                     viewModel.uiState.value.startDateMillis shouldBe startDateMillis
                 }
@@ -212,7 +205,7 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
         }
 
         given("a TravelCreationViewModel for validation scenarios") {
-            val viewModel = TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             `when`("createTravelPlan is called with empty name and valid dates") {
                 val startDateMillis = 1704067200000L
@@ -259,17 +252,12 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
 
             everySuspend { mockTravelPlanRepository.updatePeriod(any(), any()) } returns Unit
             everySuspend {
-                mockTravelManagerRepository.createTravelPlan(
-                    any(),
-                    any(),
-                    any()
-                )
+                mockTravelManagerRepository.createTravelPlan(any(), any(), any())
             } calls {
                 mockTravelId
             }
 
-            val viewModel =
-                TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             val name = TextFieldValue("Wonderful Summer Trip")
             viewModel.onNameChange(name)
@@ -300,14 +288,6 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
                     }
                 }
 
-                then("should fill travelId in PlanningScopeData") {
-                    eventually(duration = 1.seconds) {
-                        val travelId = viewModel.uiState.value.createdTravelId!!
-                        getKoin().getScope(travelId)
-                            .get<PlanningScopeData>().travelId shouldBe travelId
-                    }
-                }
-
                 then("should call updatePeriod on TravelPlanRepository") {
                     eventually(duration = 1.seconds) {
                         verifySuspend {
@@ -322,12 +302,11 @@ class TravelCreationViewModelTest : KoinTest, BehaviorSpec() {
         }
 
         given("a TravelCreationViewModel for error clearing via data input") {
-            val viewModel = TravelCreationViewModel(mockTravelManagerRepository)
+            val viewModel = createViewModel()
 
             `when`("onNameChange is called after validation error") {
-                viewModel.createTravelPlan() // Sets name validation error and empty string
+                viewModel.createTravelPlan()
 
-                // Now provide valid name
                 val validName = TextFieldValue("Valid Name After Error")
                 viewModel.onNameChange(validName)
 

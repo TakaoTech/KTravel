@@ -4,7 +4,6 @@ import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
 import com.takaotech.ktravel.domain.model.PlaceDomain
-import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
@@ -47,10 +46,6 @@ private fun mockDataSource(): TravelPlanStorageDataSource = mock(MockMode.autoUn
     )
 }
 
-private fun mockScopeData(): PlanningScopeData = PlanningScopeData().apply {
-    travelId = TEST_PLAN_ID
-}
-
 private data class Ctx(
     val repo: TravelPlanRepositoryImpl,
     val ds: TravelPlanStorageDataSource,
@@ -59,12 +54,12 @@ private data class Ctx(
 
 private fun freshCtx(): Ctx {
     val ds = mockDataSource()
-    return Ctx(TravelPlanRepositoryImpl(mockScopeData(), ds), ds)
+    return Ctx(TravelPlanRepositoryImpl(TEST_PLAN_ID, ds), ds)
 }
 
 private suspend fun ctxWith3Days(): Ctx {
     val ds = mockDataSource()
-    val repo = TravelPlanRepositoryImpl(mockScopeData(), ds)
+    val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds)
     repo.updatePeriod(START_MILLIS, END_MILLIS)
     val dayIds = repo.planningState.value.days.map { it.id }
     return Ctx(repo, ds, dayIds)
