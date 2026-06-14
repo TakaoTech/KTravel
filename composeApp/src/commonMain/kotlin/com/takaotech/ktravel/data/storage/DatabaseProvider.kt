@@ -6,10 +6,8 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import org.koin.core.annotation.Single
 import kotlin.coroutines.CoroutineContext
 
-@Single
 class DatabaseProvider(
     val databaseName: String = DB_NAME,
     val directory: String? = null,

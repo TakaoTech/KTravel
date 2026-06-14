@@ -1,9 +1,19 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
-import com.takaotech.ktravel.domain.routing.model.*
+import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.domain.routing.model.RouteAction
+import com.takaotech.ktravel.domain.routing.model.RouteDeparture
+import com.takaotech.ktravel.domain.routing.model.RouteLocation
+import com.takaotech.ktravel.domain.routing.model.RouteSection
+import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.RouteTollCost
+import com.takaotech.ktravel.domain.routing.model.RouteTollSystem
+import com.takaotech.ktravel.domain.routing.model.RouteTransport
+import com.takaotech.ktravel.domain.routing.model.Routes
 import com.takaotech.navigation.routing.client.HereRoutingClient
 import com.takaotech.navigation.routing.dto.request.DepartureTime
 import com.takaotech.navigation.routing.dto.request.ReturnAttribute
@@ -12,6 +22,9 @@ import com.takaotech.navigation.routing.dto.request.Waypoint
 import com.takaotech.navigation.routing.dto.response.RouterRouteResponse
 import com.takaotech.navigation.routing.model.RoutingMode
 import com.takaotech.navigation.routing.model.TransportMode
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.coroutines.Dispatchers
@@ -20,13 +33,11 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format.DateTimeComponents
-import org.koin.core.annotation.Factory
-import org.koin.core.annotation.Named
 import kotlin.time.Duration.Companion.seconds
 
-@Factory
 @Named("HERE")
-class HereRoutingProvider(
+@ContributesBinding(AppScope::class)
+class HereRoutingProvider @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : RoutingProvider {
 

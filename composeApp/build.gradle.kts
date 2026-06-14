@@ -14,8 +14,7 @@ plugins {
     alias(libs.plugins.stability.analyzer)
     alias(libs.plugins.detekt)
     alias(libs.plugins.mokkery)
-//    alias(libs.plugins.kotzilla)
-    alias(libs.plugins.kotzilla.koin.compiler)
+    alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
 }
 
@@ -95,12 +94,12 @@ kotlin {
 //        }
 
         val commonMain by getting {
-            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
                 implementation(libs.compose.backhandler.core)
+                implementation(libs.navigation.compose)
                 implementation(libs.bundles.material.adaptive)
                 implementation(libs.compose.ui)
                 implementation(libs.compose.resources)
@@ -115,23 +114,15 @@ kotlin {
                 implementation(project(":location-clients"))
 
                 implementation(libs.compottie)
-//                implementation(libs.compottie.resources)
 
-                implementation(libs.kotzilla.sdk.compose)
-                implementation(libs.kotzilla.koin.core)
-                implementation(libs.kotzilla.koin.core.viewmodel)
-                implementation(libs.kotzilla.koin.test)
-                implementation(libs.kotzilla.koin.compose)
-                implementation(libs.kotzilla.koin.compose.viewmodel)
-                implementation(libs.kotzilla.koin.compose.navigation)
+                implementation(libs.metro.runtime)
+                implementation(libs.metro.viewmodel.compose)
 
                 implementation(libs.ktor.client.logging)
-
                 implementation(libs.ktor.client.core)
 
                 implementation(libs.platformtools.core)
                 implementation(libs.dnd)
-                api(libs.kotzilla.koin.annotation)
 
                 implementation(libs.kotlinx.measure)
                 implementation(libs.kotlinx.money)
@@ -143,7 +134,6 @@ kotlin {
                 implementation(libs.couchbase.lite)
 
                 implementation(libs.kotlinx.serialization.json)
-
             }
         }
         iosMain.dependencies {
@@ -172,14 +162,14 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.tooling)
-//    add("kspCommonMainMetadata", libs.kotzilla.koin.annotation.compiler)
-//    add("kspAndroid", libs.kotzilla.koin.annotation.compiler)
-//    add("kspJvm", libs.kotzilla.koin.annotation.compiler)
-//    add("kspIosArm64", libs.kotzilla.koin.annotation.compiler)
-//    add("kspIosSimulatorArm64", libs.kotzilla.koin.annotation.compiler)
 
     detektPlugins(libs.detekt.composerules)
     detektPlugins(libs.detekt.formatting)
+}
+
+metro {
+    enabled = true
+    debug = false
 }
 
 compose.desktop {
@@ -204,22 +194,6 @@ compose.desktop {
             packageVersion = libs.versions.ktravel.version.get()
         }
     }
-}
-
-//ksp {
-//    arg("KOIN_CONFIG_CHECK", "true")
-//}
-
-// Trigger Common Metadata Generation from Native tasks
-//tasks.matching {
-//    it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata"
-//}.configureEach {
-//    dependsOn("kspCommonMainKotlinMetadata")
-//}
-
-koinCompiler {
-    userLogs = true  // Log component detection
-    debugLogs = true
 }
 
 tasks.withType<Test>().configureEach {
@@ -269,7 +243,5 @@ tasks.withType<Detekt>().configureEach {
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 
-    // Ensure detekt tasks run after KSP generates code
-    mustRunAfter(tasks.matching { it.name == "kspCommonMainKotlinMetadata" })
 }
 
