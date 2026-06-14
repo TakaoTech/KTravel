@@ -6,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.toTextPayload
-import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.model.PlanningScopeData
+import com.takaotech.ktravel.di.AppScope
+import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,14 +19,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.travel_creation_name_empty_error
-import org.koin.core.annotation.KoinViewModel
-import org.koin.core.component.KoinComponent
 import kotlin.time.Instant
 
-@KoinViewModel
+@SingleIn(AppScope::class)
+@Inject
 class TravelCreationViewModel(
     private val repository: TravelManagerRepository,
-) : ViewModel(), KoinComponent {
+    private val planningGraphStore: PlanningGraphStore,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TravelCreationUiState())
     val uiState: StateFlow<TravelCreationUiState> = _uiState.asStateFlow()
@@ -78,13 +79,8 @@ class TravelCreationViewModel(
                     periodEnd = Instant.fromEpochMilliseconds(end).toLocalDate()
                 )
             }.onSuccess { id ->
-                val planningScope = getKoin().getOrCreateScope<PlanningScope>(id)
-                planningScope.get<PlanningScopeData>().apply {
-                    travelId = id
-                }
-
-                val planRepository: TravelPlanRepository = planningScope.get<TravelPlanRepository>()
-                planRepository.updatePeriod(start, end)
+                val planningGraph = planningGraphStore.getOrCreate(id)
+                planningGraph.travelPlanRepository.updatePeriod(start, end)
 
                 _uiState.update { it.copy(isLoading = false, createdTravelId = id) }
             }.onFailure { error ->

@@ -2,6 +2,10 @@ package com.takaotech.ktravel.data.datasource
 
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
+import com.takaotech.ktravel.di.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotbase.DataSource
 import kotbase.Expression
 import kotbase.Meta
@@ -11,10 +15,10 @@ import kotbase.SelectResult
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import org.koin.core.annotation.Single
 
-@Single
-class TravelPlanStorageDataSourceImpl(
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
+class TravelPlanStorageDataSourceImpl @Inject constructor(
     private val storageRepository: DatabaseProvider
 ) : TravelPlanStorageDataSource {
 

@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.ui.KFieldState
-import com.takaotech.ktravel.presentation.intro.TravelCreationViewModel
+import com.takaotech.ktravel.di.LocalAppGraph
 import com.takaotech.ktravel.ui.planning.trip.TravelDateRangePicker
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
@@ -51,7 +51,6 @@ import ktravel.composeapp.generated.resources.travel_creation_name_placeholder
 import ktravel.composeapp.generated.resources.travel_creation_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -61,10 +60,11 @@ object TravelCreationPage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelCreationPage(
-    viewModel: TravelCreationViewModel = koinViewModel(),
     onBackClick: () -> Unit,
     onNavigateToPlanning: (id: String) -> Unit
 ) {
+    val appGraph = LocalAppGraph.current
+    val viewModel = remember { appGraph.travelCreationViewModel }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.createdTravelId) {

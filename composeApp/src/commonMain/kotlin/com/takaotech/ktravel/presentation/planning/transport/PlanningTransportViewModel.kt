@@ -2,14 +2,15 @@ package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.StepDomain
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
-import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
@@ -22,20 +23,27 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.KoinViewModel
-import org.koin.core.component.KoinComponent
 
-@KoinViewModel
-class PlanningTransportViewModel(
-    @InjectedParam private val travelId: String,
-    @InjectedParam private val dayId: String,
-    @InjectedParam private val startPlaceId: String,
-    @InjectedParam private val endPlaceId: String,
+class PlanningTransportViewModel @AssistedInject constructor(
+    @Assisted private val travelId: String,
+    @Assisted private val dayId: String,
+    @Assisted private val startPlaceId: String,
+    @Assisted private val endPlaceId: String,
     private val providerFactory: RoutingProviderFactory,
-) : ViewModel(), KoinComponent {
+    private val planningGraphStore: PlanningGraphStore,
+) : ViewModel() {
 
-    private val scope = getKoin().getOrCreateScope<PlanningScope>(travelId)
+    @AssistedFactory
+    fun interface Factory {
+        fun create(
+            travelId: String,
+            dayId: String,
+            startPlaceId: String,
+            endPlaceId: String,
+        ): PlanningTransportViewModel
+    }
+
+    private val planningGraph get() = planningGraphStore.getOrCreate(travelId)
 
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
     val uiState = mUiState.asStateFlow()
@@ -47,7 +55,7 @@ class PlanningTransportViewModel(
 
     init {
         viewModelScope.launch {
-            scope.get<TravelPlanRepository>()
+            planningGraph.travelPlanRepository
                 .getTravelDayFlow(dayId).map {
                     it.steps.first { it.id == startPlaceId } to it.steps.first { it.id == endPlaceId }
                 }.collect { (startStep, endStep) ->
@@ -66,7 +74,6 @@ class PlanningTransportViewModel(
                 }
         }
     }
-
 
     fun selectProvider(providerType: RoutingProviderType) {
         val defaultSettings = when (providerType) {
@@ -94,8 +101,6 @@ class PlanningTransportViewModel(
     fun calculateTransport() {
         if (calculateTransportJob?.isActive == true) return
         calculateTransportJob = viewModelScope.launch(Dispatchers.Default) {
-            // TODO Change to a common LatLng
-
             mUiState.update {
                 it.copy(
                     isLoading = true,
@@ -134,7 +139,7 @@ class PlanningTransportViewModel(
             val state = mUiState.value
             val selectedRoute =
                 state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
-            scope.get<SaveTransportStepUseCase>()(dayId, startPlaceId, selectedRoute)
+            planningGraph.saveTransportStepUseCase(dayId, startPlaceId, selectedRoute)
         }
     }
 }

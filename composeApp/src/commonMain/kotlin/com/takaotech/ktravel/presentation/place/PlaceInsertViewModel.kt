@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.core.ui.toTextPayload
-import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
+import com.takaotech.ktravel.di.PlanningGraphStore
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,16 +24,18 @@ import ktravel.composeapp.generated.resources.place_insert_error_lat_invalid_for
 import ktravel.composeapp.generated.resources.place_insert_error_lng_empty
 import ktravel.composeapp.generated.resources.place_insert_error_lng_invalid_format
 import ktravel.composeapp.generated.resources.place_insert_error_name_empty
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.KoinViewModel
-import org.koin.core.component.KoinComponent
 
-@KoinViewModel
-class PlaceInsertViewModel(
-    @InjectedParam private val travelId: String,
-    @InjectedParam private val dayId: String?,
-//    private val savePlaceUseCase: SavePlaceUseCase
-) : ViewModel(), KoinComponent {
+class PlaceInsertViewModel @AssistedInject constructor(
+    @Assisted private val travelId: String,
+    @Assisted private val dayId: String?,
+    private val planningGraphStore: PlanningGraphStore
+) : ViewModel() {
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(travelId: String, dayId: String?): PlaceInsertViewModel
+    }
+
     private val latRegex =
         Regex("^(\\+|-)?(?:90(?:(?:\\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\\.[0-9]{1,6})?))$")
     private val lngRegex =
@@ -96,7 +100,6 @@ class PlaceInsertViewModel(
         val parts = coordinatePattern.findAll(text.trim()).map { it.value }.toList()
         if (parts.size < 2) return null
 
-        // Verifica che il testo contenga un separatore (virgola o spazio) tra due numeri
         val separatorPattern = Regex("""^[+-]?[0-9]+(?:\.[0-9]+)?[\s,]+[+-]?[0-9]+(?:\.[0-9]+)?$""")
         if (!separatorPattern.matches(text.trim())) return null
 
@@ -113,21 +116,9 @@ class PlaceInsertViewModel(
         }
     }
 
-    fun onPlaceSelected(name: String, lat: Double, lng: Double) {
-//        _uiState.update {
-//            it.copy(
-//                placeName = TextFieldValue(name),
-//                placeLat = TextFieldValue(lat.toString()),
-//                placeLng = TextFieldValue(lng.toString())
-//            )
-//        }
-    }
+    fun onPlaceSelected(name: String, lat: Double, lng: Double) {}
 
-    fun searchPlaces(query: String) {
-        // TODO: Implementare la ricerca effettiva tramite servizio di geocoding
-        // Questo metodo verrà chiamato quando l'utente cerca un luogo
-        // I risultati dovranno essere esposti tramite un nuovo campo nello stato UI
-    }
+    fun searchPlaces(query: String) {}
 
     fun onTimeSelected(hour: Int, minute: Int) {
         _uiState.update { it.copy(selectedTime = LocalTime(hour, minute)) }
@@ -143,7 +134,6 @@ class PlaceInsertViewModel(
 
     fun savePlace() {
         viewModelScope.launch {
-            // Update state with errors
             val newUiState = _uiState.updateAndGet {
                 it.copy(
                     placeName = with(it.placeName) {
@@ -197,10 +187,9 @@ class PlaceInsertViewModel(
             val lng =
                 newUiState.placeLng.takeIf { it.validationState is FieldValidationState.Valid }
 
-            // Only save if there are no errors
             if (name != null && lat != null && lng != null) {
-                getKoin().getOrCreateScope<PlanningScope>(travelId)
-                    .get<SavePlaceUseCase>()
+                planningGraphStore.getOrCreate(travelId)
+                    .savePlaceUseCase
                     .invoke(
                         name = name.value.text,
                         lat = lat.value.text.toDoubleOrNull() ?: 0.0,

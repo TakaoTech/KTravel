@@ -3,8 +3,10 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,13 +14,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.annotation.KoinViewModel
-import org.koin.core.annotation.Scope
-import org.koin.core.annotation.Scoped
 
-@KoinViewModel
-@Scope(PlanningScope::class)
-@Scoped
+@SingleIn(PlanningGraphScope::class)
+@Inject
 class PlanningViewModel(
     private val repository: TravelPlanRepository
 ) : ViewModel() {
