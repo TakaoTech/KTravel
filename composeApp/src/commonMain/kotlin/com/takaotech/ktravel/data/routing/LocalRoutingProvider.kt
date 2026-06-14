@@ -1,14 +1,16 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.model.Routes
-import org.koin.core.annotation.Factory
-import org.koin.core.annotation.Named
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
 
-@Factory
 @Named("LOCAL")
-class LocalRoutingProvider : RoutingProvider {
+@ContributesBinding(AppScope::class)
+class LocalRoutingProvider @Inject constructor() : RoutingProvider {
     override suspend fun getRoutes(
         origin: String,
         destination: String,

@@ -3,15 +3,19 @@ package com.takaotech.ktravel.data.repository
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toSummary
+import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.datetime.LocalDate
-import org.koin.core.annotation.Single
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Single(binds = [TravelManagerRepository::class])
-class TravelManagerRepositoryImpl(
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
+class TravelManagerRepositoryImpl @Inject constructor(
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelManagerRepository {
 

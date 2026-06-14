@@ -13,8 +13,7 @@ plugins {
     alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.kotest) apply false
-    alias(libs.plugins.kotzilla) apply false
-    alias(libs.plugins.kotzilla.koin.compiler) apply false
+    alias(libs.plugins.metro) apply false
     alias(libs.plugins.kotlinx.serialization) apply false
     alias(libs.plugins.stability.analyzer) apply false
     alias(libs.plugins.mokkery) apply false

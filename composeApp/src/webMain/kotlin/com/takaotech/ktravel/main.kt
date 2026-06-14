@@ -1,13 +1,17 @@
 package com.takaotech.ktravel
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
-import com.takaotech.ktravel.core.startKTravelKoin
+import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.di.createAppGraph
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    startKTravelKoin()
+    val appGraph = createAppGraph()
     ComposeViewport {
-        App()
+        CompositionLocalProvider(LocalAppGraph provides appGraph) {
+            App()
+        }
     }
 }

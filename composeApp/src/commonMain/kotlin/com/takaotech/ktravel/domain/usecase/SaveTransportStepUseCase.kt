@@ -1,16 +1,15 @@
 package com.takaotech.ktravel.domain.usecase
 
-import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.model.Route
-import org.koin.core.annotation.Scope
-import org.koin.core.annotation.Scoped
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
-@Scope(PlanningScope::class)
-@Scoped
-class SaveTransportStepUseCase(
+@SingleIn(PlanningGraphScope::class)
+class SaveTransportStepUseCase @Inject constructor(
     private val repository: TravelPlanRepository
 ) {
     suspend operator fun invoke(dayId: String, afterStepId: String, route: Route) {

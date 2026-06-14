@@ -8,28 +8,17 @@ import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.koin.KoinExtension
-import io.kotest.koin.KoinLifecycleMode
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.LocalDate
-import org.koin.dsl.module
-import org.koin.test.KoinTest
 import kotlin.time.Duration.Companion.seconds
 
-class TravelSelectionViewModelTest : KoinTest, BehaviorSpec() {
+class TravelSelectionViewModelTest : BehaviorSpec() {
     init {
         coroutineTestScope = true
         coroutineDebugProbes = true
 
         val mockRepository: TravelManagerRepository = mock()
-
-        extension(
-            KoinExtension(
-                module = module { },
-                mode = KoinLifecycleMode.Root
-            )
-        )
 
         val samplePlan1 = TravelPlanSummary(
             id = "id-1",

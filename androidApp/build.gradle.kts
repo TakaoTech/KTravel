@@ -42,7 +42,7 @@ kotlin {
     dependencies {
         implementation(projects.composeApp)
         implementation(libs.androidx.activity.compose)
-        implementation(libs.kotzilla.koin.android)
+
         implementation(libs.ktor.client.okhttp)
 
         //libs.bundles.mockk.android

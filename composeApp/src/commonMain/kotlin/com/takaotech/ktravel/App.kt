@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -20,14 +21,8 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
-import com.takaotech.ktravel.di.PlanningScope
-import com.takaotech.ktravel.domain.model.PlanningScopeData
-import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
-import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
-import com.takaotech.ktravel.presentation.planning.PlanningViewModel
+import com.takaotech.ktravel.di.LocalAppGraph
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
-import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
-import com.takaotech.ktravel.presentation.settings.SettingsViewModel
 import com.takaotech.ktravel.ui.intro.TravelCreationPage
 import com.takaotech.ktravel.ui.intro.TravelSelectionPage
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
@@ -47,11 +42,6 @@ import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.koin.compose.getKoin
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.Koin
-import org.koin.core.annotation.KoinExperimentalAPI
-import org.koin.core.parameter.parametersOf
 
 
 @Serializable
@@ -60,11 +50,11 @@ data class PlanningNavigation(val travelId: String)
 @OptIn(
     ExperimentalMaterial3AdaptiveApi::class,
     ExperimentalComposeUiApi::class,
-    KoinExperimentalAPI::class
 )
 @Composable
 @Preview
 fun App() {
+    val appGraph = LocalAppGraph.current
 
     KTravelPlatform {
         MaterialTheme {
@@ -72,18 +62,12 @@ fun App() {
 
             NavHost(navController = navController, startDestination = TravelSelectionPage) {
                 composable<TravelSelectionPage> {
-                    val koin = getKoin()
-
                     TravelSelectionPage(
                         onNewTravelClick = {
                             navController.navigate(TravelCreationPage)
                         },
                         onTravelClick = { id ->
-                            val planningScope = koin.getOrCreateScope<PlanningScope>(id)
-                            planningScope.get<PlanningScopeData>().apply {
-                                travelId = id
-                            }
-
+                            appGraph.planningGraphStore.getOrCreate(id)
                             navController.navigate(PlanningNavigation(id)) {
                                 popUpTo(TravelSelectionPage) { inclusive = false }
                             }
@@ -97,7 +81,6 @@ fun App() {
                             if (it.lifecycleIsResumed()) {
                                 navController.navigateUp()
                             }
-
                         },
                         onNavigateToPlanning = { travelId ->
                             navController.navigate(PlanningNavigation(travelId)) {
@@ -110,30 +93,27 @@ fun App() {
                 navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
                     composable<PlanningTripPageNavigation> { backStackEntry ->
                         val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
-                        val scope = getKoin().getOrCreateScope<PlanningScope>(args.travelId)
-                        val viewModel = koinViewModel<PlanningViewModel>(
+                        val planningGraph = remember(args.travelId) {
+                            appGraph.planningGraphStore.getOrCreate(args.travelId)
+                        }
+                        val viewModel = viewModel(
                             viewModelStoreOwner = backStackEntry,
-                            scope = scope
-                        )
+                            key = args.travelId
+                        ) { planningGraph.planningViewModel }
                         val coroutine = rememberCoroutineScope()
 
                         val launcher =
-                            rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
-                                // Write your data to the file
-
-                            }
+                            rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { _ -> }
 
                         NavigationBackHandler(
                             state = rememberNavigationEventState(NavigationEventInfo.None),
-                            isBackEnabled = true, // You can toggle this dynamically
+                            isBackEnabled = true,
                             onBackCompleted = {
                                 if (backStackEntry.lifecycleIsResumed()) {
                                     navController.navigateUp()
-                                    scope.close()
                                 }
                             }
                         )
-
 
                         PlanningTripPage(
                             viewModel = viewModel,
@@ -162,14 +142,11 @@ fun App() {
                         val parentArgs =
                             navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
-                        val koin: Koin = getKoin()
-                        val scope = remember(parentArgs.travelId) {
-                            koin.getOrCreateScope<PlanningScope>(
-                                parentArgs.travelId
-                            )
+                        val planningGraph = remember(parentArgs.travelId) {
+                            appGraph.planningGraphStore.getOrCreate(parentArgs.travelId)
                         }
-                        val viewModel = koinViewModel<PlanningDetailViewModel>(scope = scope) {
-                            parametersOf(args.id)
+                        val viewModel = viewModel(key = "detail_${args.id}") {
+                            planningGraph.planningDetailViewModelFactory.create(args.id)
                         }
 
                         val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
@@ -216,15 +193,17 @@ fun App() {
                             val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
                             val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
-                            //TODO Change scope
-                            val scope =
-                                getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
-
-                            val viewModel = koinViewModel<PlanningTransportViewModel>(
-                                viewModelStoreOwner = backStackEntry,
-                                scope = scope
-                            ) {
-                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                            val transportEntry = remember(backStackEntry) {
+                                navController.getBackStackEntry<PlanningTransportNavigation>()
+                            }
+                            val factory = appGraph.planningTransportViewModelFactory
+                            val viewModel = viewModel(viewModelStoreOwner = transportEntry) {
+                                factory.create(
+                                    parentArgs.travelId,
+                                    args.dayId,
+                                    args.startPlaceId,
+                                    args.endPlaceId
+                                )
                             }
 
                             LaunchedEffect(viewModel) {
@@ -246,7 +225,6 @@ fun App() {
                             PlanningTransportPage(
                                 viewModel = viewModel,
                                 onNavigationBackClick = {
-//                                    scope.close()
                                     if (backStackEntry.lifecycleIsResumed()) {
                                         navController.navigateUp()
                                     }
@@ -259,16 +237,19 @@ fun App() {
                                 backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
                             val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
                                 .toRoute<PlanningNavigation>()
-
-                            //TODO Change scope
-                            val scope =
-                                getKoin().getOrCreateScope<PlanningScope>(parentArgs.travelId)
-                            val viewModel = koinViewModel<PlanningTransportViewModel>(
-                                viewModelStoreOwner = backStackEntry,
-                                scope = scope
-                            ) {
-                                parametersOf(args.dayId, args.startPlaceId, args.endPlaceId)
+                            val transportEntry = remember(backStackEntry) {
+                                navController.getBackStackEntry<PlanningTransportNavigation>()
                             }
+                            val factory = appGraph.planningTransportViewModelFactory
+                            val viewModel = viewModel(viewModelStoreOwner = transportEntry) {
+                                factory.create(
+                                    parentArgs.travelId,
+                                    args.dayId,
+                                    args.startPlaceId,
+                                    args.endPlaceId
+                                )
+                            }
+
                             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                             uiState.routes?.let { routes ->
@@ -280,7 +261,6 @@ fun App() {
                                         navController.popBackStack<PlanningDetailPageNavigation>(
                                             inclusive = false
                                         )
-//                                        scope.close()
                                     },
                                     onRouteChange = { viewModel.selectRoute(it) }
                                 )
@@ -291,14 +271,11 @@ fun App() {
 
                 composable<PlaceInsertNavigation> { backStackEntry ->
                     val args = backStackEntry.toRoute<PlaceInsertNavigation>()
-
-                    val viewModel = koinViewModel<PlaceInsertViewModel> {
-                        //TODO Fix this param inject, travelId is injected in dayId when dayId is null
-                        parametersOf(
-                            navController.getBackStackEntry<PlanningNavigation>()
-                                .toRoute<PlanningNavigation>().travelId,
-                            args.dayId
-                        )
+                    val travelId = navController.getBackStackEntry<PlanningNavigation>()
+                        .toRoute<PlanningNavigation>().travelId
+                    val factory = appGraph.placeInsertViewModelFactory
+                    val viewModel = viewModel(key = "place_${travelId}_${args.dayId}") {
+                        factory.create(travelId, args.dayId)
                     }
 
                     PlaceInsertPage(
@@ -314,132 +291,21 @@ fun App() {
                     )
                 }
 
-                composable<SettingsNavigation> {
-                    val viewModel = koinViewModel<SettingsViewModel>()
+                composable<SettingsNavigation> { backStackEntry ->
+                    val viewModel = viewModel(viewModelStoreOwner = backStackEntry) {
+                        appGraph.settingsViewModel
+                    }
 
                     SettingsPage(
                         viewModel = viewModel,
                         onNavigationBackClick = {
-                            if (it.lifecycleIsResumed()) {
+                            if (backStackEntry.lifecycleIsResumed()) {
                                 navController.navigateUp()
                             }
                         }
                     )
                 }
-
-                //                    composable<PlanningPage> {
-                //                        LaunchedEffect(currentValue, directive) {
-                //                            when (directive.maxHorizontalPartitions) {
-                //                                1 -> {
-                //                                    // Schermo piccolo: scegli quale pannello mantenere
-                //                                    // Ad esempio, mantieni sempre il mainPane
-                //                                    navigator
-                //
-                //                                    navigator.navigateBack()
-                //                                }
-                //                                2 -> {
-                //                                    // Schermo medio: mostra due pannelli
-                //                                    // Personalizza quale combinazione mostrare
-                //                                }
-                //                                else -> {
-                //
-                //                                }
-                //                            }
-                //                        }
-
-
-                //                        PanelHorizontalDivided(
-                //                            modifier = Modifier.fillMaxSize(),
-                //                            scaffoldNavigator = navigator,
-                //                            mainPane = {
-                //                                AnimatedPane {
-                //                                    PlanningPage(
-                //                                        modifier = Modifier.fillMaxSize(),
-                //                                        viewModel = koinViewModel()
-                //                                    )
-                //
-                //                                    Button(
-                //                                        onClick = {
-                //                                            coroutine.launch {
-                //                                                navigator.navigateTo(ThreePaneScaffoldRole.Secondary)
-                //                                            }
-                //                                        }
-                //                                    ){
-                //                                        Text("Secondary")
-                //                                    }
-                //
-                //                                }
-                //                            },
-                //                            supportPane = {
-                //                                AnimatedPane {
-                //                                    Text("text")
-                //                                }
-                //                            },
-                //                            extraPane = {
-                //                                AnimatedPane {
-                //                                    Scaffold(
-                //                                        topBar = {
-                //                                            IconButton(
-                //                                                modifier = Modifier,
-                //                                                onClick = {
-                //                                                    coroutine.launch {
-                //                                                        navigator.navigateBack()
-                //                                                    }
-                //                                                }
-                //                                            ) {
-                //                                                Icon(
-                //                                                    painter = painterResource(Res.drawable.arrow_back),
-                //                                                    contentDescription = null
-                //                                                )
-                //                                            }
-                //                                        }
-                //                                    ) {
-                ////                                    MapForge(
-                ////                                        modifier = Modifier
-                ////                                            .fillMaxSize()
-                ////                                            .padding(it),
-                ////                                        showFps = true
-                ////                                    )
-                //                                    }
-                //                                }
-                //                            }
-                //                        )
-                //                    }
             }
         }
     }
 }
-
-//@Deprecated("https://github.com/InsertKoinIO/koin/pull/2293 is merged in 4.2.0-beta3, wait for 4.2.0 release")
-//@Composable
-//inline fun <reified VM : ViewModel> NavBackStackEntry.sharedKoinViewModel2(
-//    navController: NavController,
-//    navGraphRoute: Any? = this.destination.parent?.route,
-//    scope: org.koin.core.scope.Scope? = null,
-//    noinline parameters: ParametersDefinition? = null,
-//): VM {
-//    val navGraphRoute = navGraphRoute ?: return if (scope != null) {
-//        koinViewModel<VM>(scope = scope, parameters = parameters)
-//    } else {
-//        koinViewModel<VM>(parameters = parameters)
-//    }
-//    val parentEntry = remember(this) {
-//        if (navGraphRoute is String) {
-//            navController.getBackStackEntry(navGraphRoute)
-//        } else {
-//            navController.getBackStackEntry(navGraphRoute)
-//        }
-//    }
-//    return if (scope != null) {
-//        koinViewModel(
-//            viewModelStoreOwner = parentEntry,
-//            scope = scope,
-//            parameters = parameters
-//        )
-//    } else {
-//        koinViewModel(
-//            viewModelStoreOwner = parentEntry,
-//            parameters = parameters
-//        )
-//    }
-//}

@@ -3,15 +3,18 @@ package com.takaotech.ktravel.presentation.settings
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.repository.SettingsRepository
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.annotation.KoinViewModel
 
-@KoinViewModel
+@SingleIn(AppScope::class)
+@Inject
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {

@@ -6,33 +6,34 @@ import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toDomain
 import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
-import com.takaotech.ktravel.di.PlanningScope
+import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.PlaceDomain
-import com.takaotech.ktravel.domain.model.PlanningScopeData
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.StepPlaceMapper
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlan
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import org.koin.core.annotation.Scope
-import org.koin.core.annotation.Scoped
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@Scope(PlanningScope::class)
-@Scoped(binds = [TravelPlanRepository::class])
-class TravelPlanRepositoryImpl(
-    private val scopeData: PlanningScopeData,
+@SingleIn(PlanningGraphScope::class)
+@ContributesBinding(PlanningGraphScope::class)
+class TravelPlanRepositoryImpl @Inject constructor(
+    @Named("travelId") private val travelId: String,
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelPlanRepository {
 
-    private val travelPlanId: String = scopeData.travelId
+    private val travelPlanId: String = travelId
     private val _planningState = MutableStateFlow(dataSource.getTravelPlan(travelPlanId).toDomain())
     override val planningState: StateFlow<TravelPlan> = _planningState.asStateFlow()
 
