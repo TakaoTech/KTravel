@@ -24,20 +24,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
-import org.koin.core.annotation.Scope
-import org.koin.core.annotation.Scoped
+import org.koin.core.component.KoinComponent
 
 @KoinViewModel
-@Scope(PlanningScope::class)
-@Scoped
 class PlanningTransportViewModel(
+    @InjectedParam private val travelId: String,
     @InjectedParam private val dayId: String,
     @InjectedParam private val startPlaceId: String,
     @InjectedParam private val endPlaceId: String,
-    private val repository: TravelPlanRepository,
     private val providerFactory: RoutingProviderFactory,
-    private val saveTransportStepUseCase: SaveTransportStepUseCase,
-) : ViewModel() {
+) : ViewModel(), KoinComponent {
+
+    private val scope = getKoin().getOrCreateScope<PlanningScope>(travelId)
 
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
     val uiState = mUiState.asStateFlow()
@@ -49,22 +47,23 @@ class PlanningTransportViewModel(
 
     init {
         viewModelScope.launch {
-            repository.getTravelDayFlow(dayId).map {
-                it.steps.first { it.id == startPlaceId } to it.steps.first { it.id == endPlaceId }
-            }.collect { (startStep, endStep) ->
-                val startUi = (startStep as? StepDomain.Place)?.let {
-                    with(TravelPlanUiMapper) { it.toUiStepPlace() }
+            scope.get<TravelPlanRepository>()
+                .getTravelDayFlow(dayId).map {
+                    it.steps.first { it.id == startPlaceId } to it.steps.first { it.id == endPlaceId }
+                }.collect { (startStep, endStep) ->
+                    val startUi = (startStep as? StepDomain.Place)?.let {
+                        with(TravelPlanUiMapper) { it.toUiStepPlace() }
+                    }
+                    val endUi = (endStep as? StepDomain.Place)?.let {
+                        with(TravelPlanUiMapper) { it.toUiStepPlace() }
+                    }
+                    mUiState.update {
+                        it.copy(
+                            startPlace = startUi,
+                            endPlace = endUi
+                        )
+                    }
                 }
-                val endUi = (endStep as? StepDomain.Place)?.let {
-                    with(TravelPlanUiMapper) { it.toUiStepPlace() }
-                }
-                mUiState.update {
-                    it.copy(
-                        startPlace = startUi,
-                        endPlace = endUi
-                    )
-                }
-            }
         }
     }
 
@@ -122,7 +121,6 @@ class PlanningTransportViewModel(
                 )
             }
 
-            // TODO change this
             _navigationEvent.emit(PlanningTransportNavigationEvent.NavigateToRoutePreview)
         }
     }
@@ -136,7 +134,7 @@ class PlanningTransportViewModel(
             val state = mUiState.value
             val selectedRoute =
                 state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
-            saveTransportStepUseCase(dayId, startPlaceId, selectedRoute)
+            scope.get<SaveTransportStepUseCase>()(dayId, startPlaceId, selectedRoute)
         }
     }
 }
