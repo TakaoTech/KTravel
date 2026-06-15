@@ -22,7 +22,7 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
-import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.di.createAppGraph
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
@@ -61,7 +61,7 @@ data class PlanningNavigation(val travelId: String)
 @Composable
 @Preview
 fun App() {
-    val appGraph = LocalAppGraph.current
+    val appGraph = remember { createAppGraph() }
 
     KTravelPlatform {
         MaterialTheme {
@@ -243,24 +243,11 @@ fun App() {
                         }
 
                         composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
-                            val args =
-                                backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
-                            val parentArgs = navController.getBackStackEntry<PlanningNavigation>()
-                                .toRoute<PlanningNavigation>()
                             val transportEntry = remember(backStackEntry) {
                                 navController.getBackStackEntry<PlanningTransportNavigation>()
                             }
                             val viewModel =
-                                assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
-                                    viewModelStoreOwner = transportEntry
-                                ) { _ ->
-                                    create(
-                                    parentArgs.travelId,
-                                    args.dayId,
-                                    args.startPlaceId,
-                                    args.endPlaceId
-                                )
-                            }
+                                viewModel<PlanningTransportViewModel>(viewModelStoreOwner = transportEntry)
 
                             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
