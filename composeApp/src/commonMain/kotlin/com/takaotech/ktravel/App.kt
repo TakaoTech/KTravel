@@ -3,6 +3,7 @@ package com.takaotech.ktravel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -22,7 +23,10 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
 import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
+import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
+import com.takaotech.ktravel.presentation.settings.SettingsViewModel
 import com.takaotech.ktravel.ui.intro.TravelCreationPage
 import com.takaotech.ktravel.ui.intro.TravelSelectionPage
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
@@ -38,6 +42,9 @@ import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
+import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.launch
@@ -60,6 +67,7 @@ fun App() {
         MaterialTheme {
             val navController = rememberNavController()
 
+            CompositionLocalProvider(LocalMetroViewModelFactory provides appGraph.metroViewModelFactory) {
             NavHost(navController = navController, startDestination = TravelSelectionPage) {
                 composable<TravelSelectionPage> {
                     TravelSelectionPage(
@@ -196,9 +204,11 @@ fun App() {
                             val transportEntry = remember(backStackEntry) {
                                 navController.getBackStackEntry<PlanningTransportNavigation>()
                             }
-                            val factory = appGraph.planningTransportViewModelFactory
-                            val viewModel = viewModel(viewModelStoreOwner = transportEntry) {
-                                factory.create(
+                            val viewModel =
+                                assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
+                                    viewModelStoreOwner = transportEntry
+                                ) { _ ->
+                                    create(
                                     parentArgs.travelId,
                                     args.dayId,
                                     args.startPlaceId,
@@ -240,9 +250,11 @@ fun App() {
                             val transportEntry = remember(backStackEntry) {
                                 navController.getBackStackEntry<PlanningTransportNavigation>()
                             }
-                            val factory = appGraph.planningTransportViewModelFactory
-                            val viewModel = viewModel(viewModelStoreOwner = transportEntry) {
-                                factory.create(
+                            val viewModel =
+                                assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
+                                    viewModelStoreOwner = transportEntry
+                                ) { _ ->
+                                    create(
                                     parentArgs.travelId,
                                     args.dayId,
                                     args.startPlaceId,
@@ -273,10 +285,10 @@ fun App() {
                     val args = backStackEntry.toRoute<PlaceInsertNavigation>()
                     val travelId = navController.getBackStackEntry<PlanningNavigation>()
                         .toRoute<PlanningNavigation>().travelId
-                    val factory = appGraph.placeInsertViewModelFactory
-                    val viewModel = viewModel(key = "place_${travelId}_${args.dayId}") {
-                        factory.create(travelId, args.dayId)
-                    }
+                    val viewModel =
+                        assistedMetroViewModel<PlaceInsertViewModel, PlaceInsertViewModel.Factory>(
+                            key = "place_${travelId}_${args.dayId}"
+                        ) { _ -> create(travelId, args.dayId) }
 
                     PlaceInsertPage(
                         viewModel = viewModel,
@@ -292,9 +304,7 @@ fun App() {
                 }
 
                 composable<SettingsNavigation> { backStackEntry ->
-                    val viewModel = viewModel(viewModelStoreOwner = backStackEntry) {
-                        appGraph.settingsViewModel
-                    }
+                    val viewModel: SettingsViewModel = metroViewModel()
 
                     SettingsPage(
                         viewModel = viewModel,
@@ -305,6 +315,7 @@ fun App() {
                         }
                     )
                 }
+            }
             }
         }
     }

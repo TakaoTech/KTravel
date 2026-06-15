@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PlanningDetailViewModel @AssistedInject constructor(
+@AssistedInject
+class PlanningDetailViewModel(
     @Assisted private val dayId: String,
     private val repository: TravelPlanRepository
 ) : ViewModel() {

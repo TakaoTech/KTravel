@@ -10,7 +10,8 @@ import dev.zacsweers.metro.Named
 
 @Named("GMAPS")
 @ContributesBinding(AppScope::class)
-class GoogleMapsRoutingProvider @Inject constructor() : RoutingProvider {
+@Inject
+class GoogleMapsRoutingProvider : RoutingProvider {
     override suspend fun getRoutes(
         origin: String,
         destination: String,
