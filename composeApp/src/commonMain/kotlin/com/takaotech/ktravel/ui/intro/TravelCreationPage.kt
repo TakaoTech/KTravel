@@ -38,8 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.ui.KFieldState
-import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.presentation.intro.TravelCreationViewModel
 import com.takaotech.ktravel.ui.planning.trip.TravelDateRangePicker
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
@@ -63,8 +64,7 @@ fun TravelCreationPage(
     onBackClick: () -> Unit,
     onNavigateToPlanning: (id: String) -> Unit
 ) {
-    val appGraph = LocalAppGraph.current
-    val viewModel = remember { appGraph.travelCreationViewModel }
+    val viewModel: TravelCreationViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.createdTravelId) {

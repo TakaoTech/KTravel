@@ -28,8 +28,9 @@ import kotlin.time.Instant
 
 @SingleIn(PlanningGraphScope::class)
 @ContributesBinding(PlanningGraphScope::class)
-class TravelPlanRepositoryImpl @Inject constructor(
-    @Named("travelId") private val travelId: String,
+@Inject
+class TravelPlanRepositoryImpl(
+    @param:Named("travelId") private val travelId: String,
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelPlanRepository {
 

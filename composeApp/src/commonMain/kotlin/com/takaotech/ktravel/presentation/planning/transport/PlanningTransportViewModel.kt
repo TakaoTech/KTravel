@@ -11,6 +11,9 @@ import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
@@ -24,7 +27,8 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class PlanningTransportViewModel @AssistedInject constructor(
+@AssistedInject
+class PlanningTransportViewModel(
     @Assisted private val travelId: String,
     @Assisted private val dayId: String,
     @Assisted private val startPlaceId: String,
@@ -34,7 +38,9 @@ class PlanningTransportViewModel @AssistedInject constructor(
 ) : ViewModel() {
 
     @AssistedFactory
-    fun interface Factory {
+    @ContributesIntoMap(com.takaotech.ktravel.di.AppScope::class)
+    @ManualViewModelAssistedFactoryKey
+    fun interface Factory : ManualViewModelAssistedFactory {
         fun create(
             travelId: String,
             dayId: String,

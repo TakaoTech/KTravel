@@ -37,7 +37,8 @@ import kotlin.time.Duration.Companion.seconds
 
 @Named("HERE")
 @ContributesBinding(AppScope::class)
-class HereRoutingProvider @Inject constructor(
+@Inject
+class HereRoutingProvider(
     private val settingsRepository: SettingsRepository
 ) : RoutingProvider {
 
