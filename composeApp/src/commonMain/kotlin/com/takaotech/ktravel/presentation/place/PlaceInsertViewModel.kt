@@ -10,6 +10,9 @@ import com.takaotech.ktravel.di.PlanningGraphStore
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,14 +28,17 @@ import ktravel.composeapp.generated.resources.place_insert_error_lng_empty
 import ktravel.composeapp.generated.resources.place_insert_error_lng_invalid_format
 import ktravel.composeapp.generated.resources.place_insert_error_name_empty
 
-class PlaceInsertViewModel @AssistedInject constructor(
+@AssistedInject
+class PlaceInsertViewModel(
     @Assisted private val travelId: String,
     @Assisted private val dayId: String?,
     private val planningGraphStore: PlanningGraphStore
 ) : ViewModel() {
 
     @AssistedFactory
-    fun interface Factory {
+    @ContributesIntoMap(com.takaotech.ktravel.di.AppScope::class)
+    @ManualViewModelAssistedFactoryKey
+    fun interface Factory : ManualViewModelAssistedFactory {
         fun create(travelId: String, dayId: String?): PlaceInsertViewModel
     }
 

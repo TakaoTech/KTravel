@@ -10,7 +10,8 @@ import dev.zacsweers.metro.Named
 
 @Named("LOCAL")
 @ContributesBinding(AppScope::class)
-class LocalRoutingProvider @Inject constructor() : RoutingProvider {
+@Inject
+class LocalRoutingProvider : RoutingProvider {
     override suspend fun getRoutes(
         origin: String,
         destination: String,

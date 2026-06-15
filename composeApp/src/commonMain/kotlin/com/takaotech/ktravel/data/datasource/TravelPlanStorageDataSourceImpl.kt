@@ -18,7 +18,8 @@ import kotlinx.serialization.json.Json
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
-class TravelPlanStorageDataSourceImpl @Inject constructor(
+@Inject
+class TravelPlanStorageDataSourceImpl(
     private val storageRepository: DatabaseProvider
 ) : TravelPlanStorageDataSource {
 

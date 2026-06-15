@@ -33,8 +33,9 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.toLocalDate
-import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.presentation.intro.TravelSelectionViewModel
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
@@ -58,8 +59,7 @@ fun TravelSelectionPage(
     onTravelClick: (id: String) -> Unit,
     onNewTravelClick: () -> Unit
 ) {
-    val appGraph = LocalAppGraph.current
-    val viewModel = remember { appGraph.travelSelectionViewModel }
+    val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     TravelSelectionPage(
