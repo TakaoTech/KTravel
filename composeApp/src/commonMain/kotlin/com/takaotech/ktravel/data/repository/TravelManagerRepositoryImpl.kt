@@ -15,7 +15,8 @@ import kotlin.uuid.Uuid
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
-class TravelManagerRepositoryImpl @Inject constructor(
+@Inject
+class TravelManagerRepositoryImpl(
     private val dataSource: TravelPlanStorageDataSource
 ) : TravelManagerRepository {
 

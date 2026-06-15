@@ -9,7 +9,8 @@ import dev.zacsweers.metro.SingleIn
 
 @SingleIn(PlanningGraphScope::class)
 @OpenForMokkery
-class SavePlaceUseCase @Inject constructor(
+@Inject
+class SavePlaceUseCase(
     private val repository: TravelPlanRepository
 ) {
     open suspend operator fun invoke(name: String, lat: Double, lng: Double, dayId: String?) {

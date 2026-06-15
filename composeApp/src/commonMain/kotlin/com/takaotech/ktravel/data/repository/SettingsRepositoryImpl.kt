@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
-class SettingsRepositoryImpl @Inject constructor() : SettingsRepository {
+@Inject
+class SettingsRepositoryImpl : SettingsRepository {
 
     private val _hereApiKey = MutableStateFlow("")
     override val hereApiKey: StateFlow<String> = _hereApiKey.asStateFlow()

@@ -9,8 +9,9 @@ import com.takaotech.ktravel.core.ui.toTextPayload
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
+import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,8 @@ import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.travel_creation_name_empty_error
 import kotlin.time.Instant
 
-@SingleIn(AppScope::class)
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey
 @Inject
 class TravelCreationViewModel(
     private val repository: TravelManagerRepository,

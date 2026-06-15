@@ -9,7 +9,8 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 
 @SingleIn(PlanningGraphScope::class)
-class SaveTransportStepUseCase @Inject constructor(
+@Inject
+class SaveTransportStepUseCase(
     private val repository: TravelPlanRepository
 ) {
     suspend operator fun invoke(dayId: String, afterStepId: String, route: Route) {

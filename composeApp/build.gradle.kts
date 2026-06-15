@@ -116,6 +116,7 @@ kotlin {
                 implementation(libs.compottie)
 
                 implementation(libs.metro.runtime)
+                implementation(libs.metro.viewmodel)
                 implementation(libs.metro.viewmodel.compose)
 
                 implementation(libs.ktor.client.logging)
