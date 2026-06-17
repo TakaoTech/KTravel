@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -32,7 +33,8 @@ class PlanningDetailViewModel(
         fun create(travelId: String, dayId: String): PlanningDetailViewModel
     }
 
-    private val repository get() = planningGraphStore.getOrCreate(travelId).travelPlanRepository
+    private val repository: TravelPlanRepository =
+        planningGraphStore.getOrCreate(travelId).travelPlanRepository
 
     val travelDay: StateFlow<TravelDay> = repository.getTravelDayFlow(dayId)
         .map { with(TravelPlanUiMapper) { it.toUiDay() } }
@@ -60,11 +62,6 @@ class PlanningDetailViewModel(
         }
     }
 
-    fun moveStepToPlace(stepId: String) {
-        viewModelScope.launch {
-            repository.moveStepToPlace(stepId, dayId)
-        }
-    }
 
     fun moveStepUp(stepId: String) {
         viewModelScope.launch {
@@ -75,6 +72,22 @@ class PlanningDetailViewModel(
     fun moveStepDown(stepId: String) {
         viewModelScope.launch {
             repository.moveTravelStepDown(stepId, dayId)
+        }
+    }
+
+    fun onStepDelete(it: TravelDay.Step) {
+        when (it) {
+            is TravelDay.Step.Place -> {
+                viewModelScope.launch {
+                    repository.moveStepToPlace(it.id, dayId)
+                }
+            }
+
+            is TravelDay.Step.Transport -> {
+                viewModelScope.launch {
+                    repository.deleteStep(it.id, dayId)
+                }
+            }
         }
     }
 }

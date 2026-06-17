@@ -829,6 +829,65 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
 
+    given("deleteStep") {
+        `when`("deleteStep removes a Transport step from the specified day") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val transportStep = StepDomain.Transport(
+                id = "transport1",
+                type = TransportType.TRAIN,
+                route = Route(emptyList())
+            )
+            repo.addTransportStep(dayIds[1], "place1", transportStep)
+            repo.deleteStep("transport1", dayIds[1])
+
+            then("should remove the Transport step from the day's steps list") {
+                val steps = repo.planningState.value.days[1].steps
+                steps.none { it.id == "transport1" } shouldBe true
+            }
+
+            then("should keep other steps intact") {
+                val steps = repo.planningState.value.days[1].steps
+                steps shouldHaveSize 1
+                steps[0].id shouldBe "place1"
+            }
+
+            then("should not affect other days") {
+                repo.planningState.value.days[0].steps.shouldBeEmpty()
+                repo.planningState.value.days[2].steps.shouldBeEmpty()
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("deleteStep with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.deleteStep("invalid-step-id", dayIds[1])
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("deleteStep with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.deleteStep("place1", "invalid-day-id")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+    }
+
     given("moveTravelStepDown") {
         `when`("moveTravelStepDown on the second-to-last step swaps it with the last") {
             val (repo, ds, dayIds) = ctxWith3Days()

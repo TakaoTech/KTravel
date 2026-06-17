@@ -170,7 +170,7 @@ fun App() {
                                     viewModel.deletePlace(it)
                                 },
                                 onStepDeleteClicked = {
-                                    viewModel.moveStepToPlace(it)
+                                    viewModel.onStepDelete(it)
                                 },
                                 onNavigationBackClick = {
                                     if (backStackEntry.lifecycleIsResumed()) {

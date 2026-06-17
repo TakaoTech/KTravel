@@ -15,7 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.presentation.planning.TravelDay
-import ktravel.composeapp.generated.resources.*
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.directions_bus
+import ktravel.composeapp.generated.resources.directions_car
+import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.train
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Duration.Companion.seconds
@@ -30,7 +35,7 @@ fun TransportType.toIcon(): DrawableResource = when (this) {
 @Composable
 fun TravelStepTransport(
     step: TravelDay.Step.Transport,
-    onStepDeleteClicked: (String) -> Unit,
+    onStepDeleteClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -56,9 +61,7 @@ fun TravelStepTransport(
 
         IconButton(
             modifier = Modifier.padding(top = 8.dp),
-            onClick = {
-                onStepDeleteClicked(step.id)
-            }
+            onClick = onStepDeleteClicked
         ) {
             Icon(
                 painter = painterResource(Res.drawable.delete),

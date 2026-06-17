@@ -231,6 +231,18 @@ class TravelPlanRepositoryImpl(
         persistCurrentState()
     }
 
+    override suspend fun deleteStep(stepId: String, dayId: String) {
+        val currentState = _planningState.value
+        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
+        if (dayIndex == -1) return
+
+        val day = currentState.days[dayIndex]
+        val updatedDay = day.copy(steps = day.steps.filter { it.id != stepId })
+        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
+        _planningState.value = currentState.copy(days = updatedDays)
+        persistCurrentState()
+    }
+
     override suspend fun deletePlace(placeId: String, dayId: String?) {
         val currentState = _planningState.value
 
