@@ -3,7 +3,11 @@ package com.takaotech.ktravel.ui.planning.detail
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,7 +22,7 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 internal fun TravelStepPlace(
     step: TravelDay.Step.Place,
-    onStepDeleteClicked: (String) -> Unit,
+    onStepDeleteClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit
 ) {
@@ -39,9 +43,7 @@ internal fun TravelStepPlace(
 
             IconButton(
                 modifier = Modifier.padding(top = 8.dp),
-                onClick = {
-                    onStepDeleteClicked(step.id)
-                }
+                onClick = onStepDeleteClicked
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),

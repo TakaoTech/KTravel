@@ -20,6 +20,13 @@ interface TravelPlanRepository {
      */
     fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain>
 
+    //region Update
+
+    /**
+     * Aggiorna il nome del piano di viaggio
+     */
+    suspend fun updatePlanName(name: String)
+
     /**
      * Aggiorna il periodo del viaggio
      */
@@ -30,18 +37,10 @@ interface TravelPlanRepository {
      */
     suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain)
 
-    /**
-     * Aggiorna il nome del piano di viaggio
-     */
-    suspend fun updatePlanName(name: String)
 
-    /**
-     * Salva un nuovo Place
-     * @param place il Place da salvare
-     * @param dayId se impostato, aggiunge il Place direttamente al TravelDay con questo id
-     */
-    suspend fun savePlace(place: PlaceDomain, dayId: String? = null)
+    //endregion Update
 
+    //region Move
     /**
      * Sposta un Place dalla lista generale a un TravelDay
      */
@@ -51,6 +50,7 @@ interface TravelPlanRepository {
      * Sposta un Place da un TravelDay alla lista generale
      */
     suspend fun movePlaceToGeneral(placeId: String, dayId: String)
+
 
     /**
      * Sposta un Place (presente nella lista places del giorno) nella lista steps
@@ -74,6 +74,15 @@ interface TravelPlanRepository {
      */
     suspend fun moveTravelStepDown(stepId: String, dayId: String)
 
+    //endregion Move
+
+    /**
+     * Salva un nuovo Place
+     * @param place il Place da salvare
+     * @param dayId se impostato, aggiunge il Place direttamente al TravelDay con questo id
+     */
+    suspend fun savePlace(place: PlaceDomain, dayId: String? = null)
+
     /**
      * Inserisce uno step nella posizione successiva a un altro step
      */
@@ -83,4 +92,9 @@ interface TravelPlanRepository {
      * Elimina un Place dal piano di viaggio
      */
     suspend fun deletePlace(placeId: String, dayId: String? = null)
+
+    /**
+     * Elimina uno step dalla lista steps del giorno
+     */
+    suspend fun deleteStep(stepId: String, dayId: String)
 }
