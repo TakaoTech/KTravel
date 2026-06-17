@@ -66,7 +66,7 @@ fun PlanningDetailPage(
     onMovePlaceToList: (String) -> Unit,
     onDeletePlaceClick: (String) -> Unit,
     onDeletePermanentPlaceClick: (String) -> Unit,
-    onStepDeleteClicked: (String) -> Unit,
+    onStepDeleteClicked: (TravelDay.Step) -> Unit,
 
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit,
@@ -87,14 +87,6 @@ fun PlanningDetailPage(
     val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
     val paneExpansionState: PaneExpansionState =
         rememberPaneExpansionState(keyProvider = navigator.scaffoldValue)
-
-//    val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
-//        onDeletePermanentPlaceClick(placeId)
-//    }
-
-//    DisruptiveOperationDialog(
-//        state = deleteDialogState
-//    )
 
     if (isExpandedNavigation) {
         // Expanded screen layout
@@ -144,7 +136,7 @@ fun PlanningDetailPage(
 @Composable
 private fun MainPaneContent(
     steps: ImmutableList<TravelDay.Step>,
-    onStepDeleteClicked: (String) -> Unit,
+    onStepDeleteClicked: (TravelDay.Step) -> Unit,
     onNavigationBackClick: () -> Unit,
     onPlaceMenuClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
@@ -186,7 +178,9 @@ private fun MainPaneContent(
                         is TravelDay.Step.Place -> {
                             TravelStepPlace(
                                 step = step,
-                                onStepDeleteClicked = onStepDeleteClicked,
+                                onStepDeleteClicked = {
+                                    onStepDeleteClicked(step)
+                                },
                                 onStepMoveUp = onStepMoveUp,
                                 onStepMoveDown = onStepMoveDown
                             )
@@ -205,7 +199,9 @@ private fun MainPaneContent(
                             TravelStepTransport(
                                 modifier = Modifier.fillMaxWidth(),
                                 step = step,
-                                onStepDeleteClicked = onStepDeleteClicked,
+                                onStepDeleteClicked = {
+                                    onStepDeleteClicked(step)
+                                },
                             )
                         }
                     }

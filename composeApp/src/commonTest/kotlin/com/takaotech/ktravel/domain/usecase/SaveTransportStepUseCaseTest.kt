@@ -176,4 +176,5 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     }
 
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
+    override suspend fun deleteStep(stepId: String, dayId: String) = Unit
 }
