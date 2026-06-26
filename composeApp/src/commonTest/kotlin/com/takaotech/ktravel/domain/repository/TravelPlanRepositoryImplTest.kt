@@ -535,7 +535,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
                 steps shouldHaveSize 1
                 val step = steps[0] as StepDomain.Place
                 step.id shouldBe "place1"
-                step.location shouldBe COLOSSEO.name
+                step.name shouldBe COLOSSEO.name
             }
 
             then("should not affect other days or the general places list") {
@@ -657,7 +657,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.savePlace(COLOSSEO, dayIds[1])
             repo.movePlaceToStep("place1", dayIds[1])
             val updatedStep =
-                StepDomain.Place(id = "place1", location = "Updated Location", lat = 0.0, lng = 0.0)
+                StepDomain.Place(id = "place1", name = "Updated Location", lat = 0.0, lng = 0.0)
             repo.updateStep(dayIds[1], "place1", updatedStep)
 
             then("should replace the step with the updated version") {
@@ -682,7 +682,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.movePlaceToStep("place1", dayIds[1])
             val stateBefore = repo.planningState.value
             val updatedStep =
-                StepDomain.Place(id = "place1", location = "Updated", lat = 0.0, lng = 0.0)
+                StepDomain.Place(id = "place1", name = "Updated", lat = 0.0, lng = 0.0)
             repo.updateStep("invalid-day-id", "place1", updatedStep)
 
             then("should not modify the state") {
@@ -696,7 +696,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.movePlaceToStep("place1", dayIds[1])
             val stateBefore = repo.planningState.value
             val updatedStep =
-                StepDomain.Place(id = "other", location = "Updated", lat = 0.0, lng = 0.0)
+                StepDomain.Place(id = "other", name = "Updated", lat = 0.0, lng = 0.0)
             repo.updateStep(dayIds[1], "invalid-step-id", updatedStep)
 
             then("should not modify the state") {
@@ -714,7 +714,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.savePlace(p2, dayIds[1])
             repo.movePlaceToStep("p1", dayIds[1])
             repo.movePlaceToStep("p2", dayIds[1])
-            val newStep = StepDomain.Place(id = "new1", location = "New Stop", lat = 0.0, lng = 0.0)
+            val newStep = StepDomain.Place(id = "new1", name = "New Stop", lat = 0.0, lng = 0.0)
             repo.addTransportStep(dayIds[1], "p1", newStep)
 
             then("should insert the step at afterIndex + 1") {
@@ -740,7 +740,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.savePlace(COLOSSEO, dayIds[1])
             repo.movePlaceToStep("place1", dayIds[1])
             val stateBefore = repo.planningState.value
-            val newStep = StepDomain.Place(id = "new1", location = "New", lat = 0.0, lng = 0.0)
+            val newStep = StepDomain.Place(id = "new1", name = "New", lat = 0.0, lng = 0.0)
             repo.addTransportStep("invalid-day-id", "place1", newStep)
 
             then("should not modify the state") {
@@ -753,7 +753,7 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
             repo.savePlace(COLOSSEO, dayIds[1])
             repo.movePlaceToStep("place1", dayIds[1])
             val stateBefore = repo.planningState.value
-            val newStep = StepDomain.Place(id = "new1", location = "New", lat = 0.0, lng = 0.0)
+            val newStep = StepDomain.Place(id = "new1", name = "New", lat = 0.0, lng = 0.0)
             repo.addTransportStep(dayIds[1], "invalid-after-step-id", newStep)
 
             then("should not modify the state") {

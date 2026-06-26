@@ -3,7 +3,11 @@
 package com.takaotech.ktravel.presentation.planning
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.domain.model.*
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.VisitScheduleDomain
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -11,7 +15,7 @@ import kotlin.time.ExperimentalTime
 
 object TravelPlanUiMapper {
 
-    fun TravelPlan.toUiState(): PlanningUiState = PlanningUiState(
+    fun TravelPlanDomain.toUiState(): PlanningUiState = PlanningUiState(
         planHeader = PlanHeader(
             name = TextFieldValue(name),
             mPeriod = PlanHeader.Period(
@@ -23,35 +27,35 @@ object TravelPlanUiMapper {
         places = places.map { it.toUiPlace() }.toPersistentList()
     )
 
-    fun TravelDayDomain.toUiDay(): TravelDay = TravelDay(
+    fun TravelDayDomain.toUiDay(): TravelDayUi = TravelDayUi(
         id = id,
         date = date,
         steps = steps.map { it.toUiStep() }.toPersistentList(),
         places = places.map { it.toUiPlace() }.toPersistentList()
     )
 
-    fun PlaceDomain.toUiPlace(): Place = Place(
+    fun PlaceDomain.toUiPlace(): PlaceUi = PlaceUi(
         id = id,
         name = name,
         lat = lat,
-        lng = lng,
-        schedule = schedule?.toUiSchedule()
+        lng = lng
     )
 
-    private fun VisitScheduleDomain.toUiSchedule(): VisitSchedule = VisitSchedule(
+    private fun VisitScheduleDomain.toUiSchedule(): VisitScheduleUi = VisitScheduleUi(
         date = date,
         time = time
     )
 
-    fun StepDomain.toUiStep(): TravelDay.Step = when (this) {
-        is StepDomain.Place -> TravelDay.Step.Place(
+    fun StepDomain.toUiStep(): StepUi = when (this) {
+        is StepDomain.Place -> StepUi.Place(
             id = id,
-            location = location,
+            name = name,
             lat = lat,
-            lng = lng
+            lng = lng,
+            schedule = schedule?.toUiSchedule()
         )
 
-        is StepDomain.Transport -> TravelDay.Step.Transport(
+        is StepDomain.Transport -> StepUi.Transport(
             id = id,
             type = type,
             route = route
@@ -59,27 +63,25 @@ object TravelPlanUiMapper {
     }
 
 
-    fun Place.toDomain(): PlaceDomain = PlaceDomain(
+    fun PlaceUi.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,
         lat = lat,
-        lng = lng,
-        schedule = schedule?.let {
-            VisitScheduleDomain(date = it.date, time = it.time)
-        }
+        lng = lng
     )
 
-    fun TravelDay.Step.Transport.toDomainStep(): StepDomain.Transport = StepDomain.Transport(
+    fun StepUi.Transport.toDomainStep(): StepDomain.Transport = StepDomain.Transport(
         id = id,
         type = type,
         route = route
     )
 
-    fun StepDomain.Place.toUiStepPlace(): TravelDay.Step.Place = TravelDay.Step.Place(
+    fun StepDomain.Place.toUiStepPlace(): StepUi.Place = StepUi.Place(
         id = id,
-        location = location,
+        name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
+        schedule = schedule?.toUiSchedule()
     )
 
     fun uiFieldsToDomain(name: String, lat: Double, lng: Double): PlaceDomain = PlaceDomain(

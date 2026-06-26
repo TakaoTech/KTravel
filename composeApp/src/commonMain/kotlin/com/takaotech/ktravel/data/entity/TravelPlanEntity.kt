@@ -33,8 +33,7 @@ data class PlaceEntity(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("lat") val lat: Double,
-    @SerialName("lng") val lng: Double,
-    @SerialName("schedule") val schedule: VisitScheduleEntity? = null
+    @SerialName("lng") val lng: Double
 )
 
 @Serializable
@@ -52,9 +51,11 @@ sealed class StepEntity {
     @SerialName("place")
     data class Place(
         override val id: String,
-        @SerialName("location") val location: String,
+        // SerialName "location" mantenuto per retro-compatibilità con i documenti già salvati.
+        @SerialName("location") val name: String,
         @SerialName("lat") val lat: Double,
-        @SerialName("lng") val lng: Double
+        @SerialName("lng") val lng: Double,
+        @SerialName("schedule") val schedule: VisitScheduleEntity? = null
     ) : StepEntity()
 
     @Serializable

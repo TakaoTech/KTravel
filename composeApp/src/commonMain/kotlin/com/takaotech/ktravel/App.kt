@@ -20,12 +20,17 @@ import androidx.navigation.toRoute
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.slack.circuit.foundation.CircuitCompositionLocals
+import com.slack.circuit.foundation.CircuitContent
+import com.slack.circuit.foundation.NavEvent
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
 import com.takaotech.ktravel.di.createAppGraph
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
-import com.takaotech.ktravel.presentation.planning.PlanningDetailViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
+import com.takaotech.ktravel.presentation.planning.detail.AddPlaceScreen
+import com.takaotech.ktravel.presentation.planning.detail.AddTransportScreen
+import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailScreen
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
@@ -33,7 +38,6 @@ import com.takaotech.ktravel.ui.intro.TravelCreationPage
 import com.takaotech.ktravel.ui.intro.TravelSelectionPage
 import com.takaotech.ktravel.ui.place.PlaceInsertNavigation
 import com.takaotech.ktravel.ui.place.PlaceInsertPage
-import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPage
 import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPageNavigation
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportNavigation
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPage
@@ -150,52 +154,39 @@ fun App() {
                             val parentArgs =
                                 navController.getBackStackEntry<PlanningNavigation>()
                                     .toRoute<PlanningNavigation>()
-                            val viewModel =
-                                assistedMetroViewModel<PlanningDetailViewModel, PlanningDetailViewModel.Factory>(
-                                    key = "detail_${args.id}"
-                                ) { _ -> create(parentArgs.travelId, args.id) }
 
-                            val travelDay by viewModel.travelDay.collectAsStateWithLifecycle()
+                            CircuitCompositionLocals(appGraph.circuit) {
+                                CircuitContent(
+                                    screen = PlanningDetailScreen(parentArgs.travelId, args.id),
+                                    onNavEvent = { event ->
+                                        when (event) {
+                                            is NavEvent.Pop -> {
+                                                if (backStackEntry.lifecycleIsResumed()) {
+                                                    navController.navigateUp()
+                                                }
+                                            }
 
-                            PlanningDetailPage(
-                                steps = travelDay.steps,
-                                places = travelDay.places,
-                                onAddPlaceClick = {
-                                    navController.navigate(PlaceInsertNavigation(travelDay.id))
-                                },
-                                onDeletePlaceClick = {
-                                    viewModel.movePlaceToGeneral(it)
-                                },
-                                onDeletePermanentPlaceClick = {
-                                    viewModel.deletePlace(it)
-                                },
-                                onStepDeleteClicked = {
-                                    viewModel.onStepDelete(it)
-                                },
-                                onNavigationBackClick = {
-                                    if (backStackEntry.lifecycleIsResumed()) {
-                                        navController.navigateUp()
+                                            is NavEvent.GoTo -> when (val screen = event.screen) {
+                                                is AddPlaceScreen -> navController.navigate(
+                                                    PlaceInsertNavigation(screen.dayId)
+                                                )
+
+                                                is AddTransportScreen -> navController.navigate(
+                                                    PlanningTransportPageNavigation(
+                                                        screen.dayId,
+                                                        screen.startPlaceId,
+                                                        screen.endPlaceId
+                                                    )
+                                                )
+
+                                                else -> Unit
+                                            }
+
+                                            else -> Unit
+                                        }
                                     }
-                                },
-                                onMovePlaceToList = {
-                                    viewModel.movePlaceToStep(it)
-                                },
-                                onStepMoveDown = {
-                                    viewModel.moveStepDown(it)
-                                },
-                                onStepMoveUp = {
-                                    viewModel.moveStepUp(it)
-                                },
-                                onTransportAddClick = { startId, endId ->
-                                    navController.navigate(
-                                        PlanningTransportPageNavigation(
-                                            travelDay.id,
-                                            startId,
-                                            endId
-                                        )
-                                    )
-                                }
-                            )
+                                )
+                            }
                         }
 
                         navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {

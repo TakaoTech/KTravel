@@ -3,7 +3,7 @@ package com.takaotech.ktravel.domain.usecase
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
-import com.takaotech.ktravel.domain.model.TravelPlan
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteSection
@@ -155,8 +155,8 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     var savedDayId: String? = null
     var savedAfterStepId: String? = null
 
-    private val _planningState = MutableStateFlow(TravelPlan())
-    override val planningState: StateFlow<TravelPlan> = _planningState
+    private val _planningState = MutableStateFlow(TravelPlanDomain())
+    override val planningState: StateFlow<TravelPlanDomain> = _planningState
 
     override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(TravelDayDomain.EMPTY)
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
@@ -177,4 +177,5 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
 
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit
     override suspend fun deleteStep(stepId: String, dayId: String) = Unit
+    override suspend fun removeStep(stepId: String, dayId: String) = Unit
 }

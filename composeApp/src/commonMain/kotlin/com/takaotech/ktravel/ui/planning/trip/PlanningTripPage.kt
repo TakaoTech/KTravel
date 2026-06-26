@@ -4,7 +4,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,10 +25,10 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
-import com.takaotech.ktravel.presentation.planning.Place
+import com.takaotech.ktravel.presentation.planning.PlaceUi
 import com.takaotech.ktravel.presentation.planning.PlanHeader
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
@@ -92,8 +99,8 @@ fun PlanningTripPage(
 @Composable
 private fun PlanningTripPage(
     planHeader: PlanHeader,
-    places: PersistentList<Place>,
-    days: ImmutableList<TravelDay>,
+    places: PersistentList<PlaceUi>,
+    days: ImmutableList<TravelDayUi>,
     modifier: Modifier = Modifier,
 
     onSaveClick: () -> Unit,
@@ -132,7 +139,7 @@ private fun PlanningTripPage(
             }
         }
     ) {
-        val dragAndDropState = rememberDragAndDropState<Place>()
+        val dragAndDropState = rememberDragAndDropState<PlaceUi>()
 
         DragAndDropContainer(
             modifier = Modifier
@@ -188,7 +195,7 @@ private fun PlanningTripPage(
 
                 itemsIndexed(
                     items = days,
-                    key = { _: Int, day: TravelDay ->
+                    key = { _: Int, day: TravelDayUi ->
                         day.date.toEpochDays()
                     }
                 ) { _, day ->
@@ -223,7 +230,7 @@ private fun PlanningPagePreview() {
         ),
         places = persistentListOf(),
         days = persistentListOf(
-            TravelDay(
+            TravelDayUi(
                 date = LocalDate(2024, 6, 15),
                 steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList()
             )

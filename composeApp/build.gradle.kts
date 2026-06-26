@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMetroGradleApi::class)
+
+import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -16,6 +20,7 @@ plugins {
     alias(libs.plugins.mokkery)
     alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
+    id("kotlin-parcelize")
 }
 
 kotlin {
@@ -134,6 +139,11 @@ kotlin {
 
                 implementation(libs.couchbase.lite)
 
+                api(libs.circuit.foundation)
+                api(libs.circuit.runtime)
+                api(libs.circuit.runtime.presenter)
+                api(libs.circuit.runtime.ui)
+
                 implementation(libs.kotlinx.serialization.json)
             }
         }
@@ -158,6 +168,21 @@ kotlin {
             implementation(libs.kotest.runner.junit5)
             implementation(libs.bundles.mockk)
         }
+
+        targets.configureEach {
+            if (platformType == KotlinPlatformType.androidJvm) {
+                compilations.configureEach {
+                    compileTaskProvider.configure {
+                        compilerOptions {
+                            freeCompilerArgs.addAll(
+                                "-P",
+                                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.slack.circuit.internal.runtime.Parcelize",
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -171,6 +196,7 @@ dependencies {
 metro {
     enabled = true
     debug = false
+    enableCircuitCodegen = true
 }
 
 compose.desktop {

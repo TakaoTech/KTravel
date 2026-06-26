@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.PanelHorizontalDivided
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
-import com.takaotech.ktravel.presentation.planning.Place
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.presentation.planning.PlaceUi
+import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
@@ -57,8 +57,8 @@ data class PlanningDetailPageNavigation(val id: String)
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun PlanningDetailPage(
-    steps: ImmutableList<TravelDay.Step>,
-    places: PersistentList<Place>,
+    steps: ImmutableList<StepUi>,
+    places: PersistentList<PlaceUi>,
     modifier: Modifier = Modifier,
     onNavigationBackClick: () -> Unit,
 
@@ -66,7 +66,7 @@ fun PlanningDetailPage(
     onMovePlaceToList: (String) -> Unit,
     onDeletePlaceClick: (String) -> Unit,
     onDeletePermanentPlaceClick: (String) -> Unit,
-    onStepDeleteClicked: (TravelDay.Step) -> Unit,
+    onStepDeleteClicked: (StepUi) -> Unit,
 
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit,
@@ -135,8 +135,8 @@ fun PlanningDetailPage(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainPaneContent(
-    steps: ImmutableList<TravelDay.Step>,
-    onStepDeleteClicked: (TravelDay.Step) -> Unit,
+    steps: ImmutableList<StepUi>,
+    onStepDeleteClicked: (StepUi) -> Unit,
     onNavigationBackClick: () -> Unit,
     onPlaceMenuClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
@@ -175,7 +175,7 @@ private fun MainPaneContent(
             LazyColumn(modifier = Modifier.padding(it)) {
                 itemsIndexed(steps) { index, step ->
                     when (step) {
-                        is TravelDay.Step.Place -> {
+                        is StepUi.Place -> {
                             TravelStepPlace(
                                 step = step,
                                 onStepDeleteClicked = {
@@ -185,17 +185,19 @@ private fun MainPaneContent(
                                 onStepMoveDown = onStepMoveDown
                             )
 
-                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is TravelDay.Step.Transport) {
-                                TravelTransportStepAdd(onClick = {
-                                    onTransportAddClick(
-                                        step.id,
-                                        steps.get(index + 1).id
-                                    )
-                                })
+                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is StepUi.Transport) {
+                                TravelTransportStepAdd(
+                                    onClick = {
+                                        onTransportAddClick(
+                                            step.id,
+                                            steps.get(index + 1).id
+                                        )
+                                    }
+                                )
                             }
                         }
 
-                        is TravelDay.Step.Transport -> {
+                        is StepUi.Transport -> {
                             TravelStepTransport(
                                 modifier = Modifier.fillMaxWidth(),
                                 step = step,
@@ -213,7 +215,7 @@ private fun MainPaneContent(
 
 @Composable
 private fun SupportingPaneContent(
-    places: PersistentList<Place>,
+    places: PersistentList<PlaceUi>,
     modifier: Modifier = Modifier,
     onCloseClick: () -> Unit,
     onMovePlaceToList: (String) -> Unit,

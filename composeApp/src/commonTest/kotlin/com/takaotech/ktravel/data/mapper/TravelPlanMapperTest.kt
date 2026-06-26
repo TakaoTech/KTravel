@@ -1,7 +1,19 @@
 package com.takaotech.ktravel.data.mapper
 
-import com.takaotech.ktravel.data.entity.*
-import com.takaotech.ktravel.domain.model.*
+import com.takaotech.ktravel.data.entity.PlaceEntity
+import com.takaotech.ktravel.data.entity.RouteActionEntity
+import com.takaotech.ktravel.data.entity.RouteEntity
+import com.takaotech.ktravel.data.entity.RouteSectionEntity
+import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TravelDayEntity
+import com.takaotech.ktravel.data.entity.TravelPlanEntity
+import com.takaotech.ktravel.data.entity.VisitScheduleEntity
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TransportType
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.VisitScheduleDomain
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
@@ -17,7 +29,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class TravelPlanMapperTest : BehaviorSpec({
 
-    given("a TravelPlan domain model") {
+    given("a TravelPlanDomain domain model") {
         val place = PlaceDomain(
             id = "place-1",
             name = "Colosseo",
@@ -29,7 +41,7 @@ class TravelPlanMapperTest : BehaviorSpec({
             date = LocalDate(2024, 6, 1),
             places = listOf(place)
         )
-        val travelPlan = TravelPlan(
+        val travelPlan = TravelPlanDomain(
             name = "Roma Trip",
             periodStart = LocalDate(2024, 6, 1),
             periodEnd = LocalDate(2024, 6, 30),
@@ -38,7 +50,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         )
 
         `when`("toEntity is called") {
-            val entity = with(TravelPlanMapper) { travelPlan.toEntity("plan-id") }
+            val entity = with(TravelPlanEntityMapper) { travelPlan.toEntity("plan-id") }
 
             then("entity id should match the provided id") {
                 entity.id shouldBe "plan-id"
@@ -87,7 +99,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         )
 
         `when`("toDomain is called") {
-            val domain = with(TravelPlanMapper) { entity.toDomain() }
+            val domain = with(TravelPlanEntityMapper) { entity.toDomain() }
 
             then("domain name should match entity name") {
                 domain.name shouldBe "Roma Trip"
@@ -110,9 +122,9 @@ class TravelPlanMapperTest : BehaviorSpec({
         }
     }
 
-    given("a PlaceDomain with a VisitSchedule") {
-        val place = PlaceDomain(
-            id = "place-2",
+    given("a StepDomain.Place with a VisitSchedule") {
+        val step = StepDomain.Place(
+            id = "step-2",
             name = "Pantheon",
             lat = 41.89,
             lng = 12.47,
@@ -123,7 +135,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         )
 
         `when`("toEntity is called") {
-            val entity = with(TravelPlanMapper) { place.toEntity() }
+            val entity = with(TravelPlanEntityMapper) { step.toEntity() } as StepEntity.Place
 
             then("entity schedule should not be null") {
                 entity.schedule shouldBe VisitScheduleEntity(
@@ -135,10 +147,11 @@ class TravelPlanMapperTest : BehaviorSpec({
         }
 
         `when`("toEntity and then toDomain is called") {
-            val roundTripped = with(TravelPlanMapper) { place.toEntity().toDomain() }
+            val roundTripped =
+                with(TravelPlanEntityMapper) { step.toEntity().toDomain() } as StepDomain.Place
 
-            then("round-tripped place name should match original") {
-                roundTripped.name shouldBe place.name
+            then("round-tripped step name should match original") {
+                roundTripped.name shouldBe step.name
             }
             then("round-tripped schedule time should match original") {
                 roundTripped.schedule?.time shouldBe LocalTime(10, 30)
@@ -152,18 +165,18 @@ class TravelPlanMapperTest : BehaviorSpec({
     given("a StepDomain.Place") {
         val step = StepDomain.Place(
             id = "step-1",
-            location = "Colosseo",
+            name = "Colosseo",
             lat = 41.89,
             lng = 12.49
         )
 
         `when`("toEntity is called") {
-            val entity = with(TravelPlanMapper) { step.toEntity() }
+            val entity = with(TravelPlanEntityMapper) { step.toEntity() }
 
             then("entity should be StepEntity.Place") {
                 entity shouldBe StepEntity.Place(
                     id = "step-1",
-                    location = "Colosseo",
+                    name = "Colosseo",
                     lat = 41.89,
                     lng = 12.49
                 )
@@ -171,7 +184,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         }
 
         `when`("toEntity and then toDomain is called") {
-            val roundTripped = with(TravelPlanMapper) { step.toEntity().toDomain() }
+            val roundTripped = with(TravelPlanEntityMapper) { step.toEntity().toDomain() }
 
             then("round-tripped step should match original") {
                 roundTripped shouldBe step
@@ -205,7 +218,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         )
 
         `when`("toEntity is called") {
-            val entity = with(TravelPlanMapper) { step.toEntity() } as? StepEntity.Transport
+            val entity = with(TravelPlanEntityMapper) { step.toEntity() } as? StepEntity.Transport
 
             then("entity should be StepEntity.Transport") {
                 (entity != null) shouldBe true
@@ -219,7 +232,8 @@ class TravelPlanMapperTest : BehaviorSpec({
         }
 
         `when`("toEntity and then toDomain is called") {
-            val roundTripped = with(TravelPlanMapper) { step.toEntity().toDomain() } as? StepDomain.Transport
+            val roundTripped =
+                with(TravelPlanEntityMapper) { step.toEntity().toDomain() } as? StepDomain.Transport
 
             then("round-tripped step type should be TRAIN") {
                 roundTripped!!.type shouldBe TransportType.TRAIN
@@ -253,7 +267,7 @@ class TravelPlanMapperTest : BehaviorSpec({
         )
 
         `when`("toDomain is called") {
-            val domain = with(TravelPlanMapper) { routeEntity.toDomain() }
+            val domain = with(TravelPlanEntityMapper) { routeEntity.toDomain() }
 
             then("domain sections size should match entity sections size") {
                 domain.sections.size shouldBe 1

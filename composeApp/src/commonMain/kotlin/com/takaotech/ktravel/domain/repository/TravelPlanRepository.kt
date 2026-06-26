@@ -4,7 +4,7 @@ import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
-import com.takaotech.ktravel.domain.model.TravelPlan
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -13,7 +13,7 @@ interface TravelPlanRepository {
     /**
      * Stato completo del piano di viaggio
      */
-    val planningState: StateFlow<TravelPlan>
+    val planningState: StateFlow<TravelPlanDomain>
 
     /**
      * Ottiene un Flow per un giorno specifico
@@ -97,4 +97,10 @@ interface TravelPlanRepository {
      * Elimina uno step dalla lista steps del giorno
      */
     suspend fun deleteStep(stepId: String, dayId: String)
+
+    /**
+     * Rimuove uno step decidendo in base al tipo: uno Step.Place torna nel backlog (places),
+     * uno Step.Transport viene eliminato. La decisione è una regola di dominio (non della UI).
+     */
+    suspend fun removeStep(stepId: String, dayId: String)
 }

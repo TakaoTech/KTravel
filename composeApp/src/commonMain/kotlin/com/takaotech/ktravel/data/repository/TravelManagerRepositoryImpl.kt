@@ -2,7 +2,7 @@ package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
-import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toSummary
+import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.toSummary
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
