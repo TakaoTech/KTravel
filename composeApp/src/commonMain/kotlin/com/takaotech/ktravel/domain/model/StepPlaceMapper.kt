@@ -1,31 +1,42 @@
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.domain.model.StepPlaceMapper.placeToStep
+import com.takaotech.ktravel.domain.model.StepPlaceMapper.stepToPlace
+
+
 /**
- * Mapper per convertire tra [PlaceDomain] e [StepDomain.Place].
+ * Conversione fra [PlaceDomain] (backlog, senza tempo) e [StepDomain.Place] (itinerario,
+ * titolare dell'orario).
+ *
+ * La conversione è **volutamente asimmetrica**:
+ * - [placeToStep] crea uno step *non ancora schedulato* ([StepDomain.Place.schedule] = null);
+ *   l'orario si assegna in itinerario.
+ * - [stepToPlace] riporta lo step nel backlog **scartando l'orario** (perdita voluta). Non lancia
+ *   mai eccezioni.
+ *
+ * Entrambe mantengono lo stesso `id` per poter tracciare l'elemento dopo lo spostamento.
  */
 object StepPlaceMapper {
     /**
-     * Converte un [PlaceDomain] in [StepDomain.Place].
-     * Mantiene lo stesso id per poter tracciare l'elemento dopo la conversione.
+     * Converte un [PlaceDomain] in [StepDomain.Place] non ancora schedulato.
      */
     fun placeToStep(place: PlaceDomain): StepDomain.Place =
         StepDomain.Place(
             id = place.id,
-            location = place.name,
+            name = place.name,
             lat = place.lat,
             lng = place.lng,
+            schedule = null
         )
 
     /**
-     * Converte un [StepDomain.Place] in [PlaceDomain].
-     * Se lat/lng non sono disponibili nello step, vengono impostati valori di default (0.0).
+     * Converte un [StepDomain.Place] in [PlaceDomain] scartando lo [StepDomain.Place.schedule].
      */
-    fun stepToPlace(step: StepDomain.Place, lat: Double = step.lat, lng: Double = step.lng): PlaceDomain =
+    fun stepToPlace(step: StepDomain.Place): PlaceDomain =
         PlaceDomain(
             id = step.id,
-            name = step.location,
-            lat = lat,
-            lng = lng,
-            schedule = null
+            name = step.name,
+            lat = step.lat,
+            lng = step.lng
         )
 }

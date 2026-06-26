@@ -16,7 +16,7 @@ data class TravelPlanSummary(
     val periodEnd: LocalDate
 )
 
-data class TravelPlan(
+data class TravelPlanDomain(
     val id: String = newId(),
     val name: String = "",
     val periodStart: LocalDate = LocalDate.fromEpochDays(0),
@@ -43,8 +43,7 @@ data class PlaceDomain(
     val id: String = newId(),
     val name: String,
     val lat: Double,
-    val lng: Double,
-    val schedule: VisitScheduleDomain? = null
+    val lng: Double
 )
 
 data class VisitScheduleDomain(
@@ -53,11 +52,18 @@ data class VisitScheduleDomain(
 )
 
 sealed class StepDomain(open val id: String = newId()) {
+    /**
+     * Step di un luogo collocato nell'itinerario.
+     *
+     * A differenza di [PlaceDomain] (backlog senza tempo), lo step è l'unico titolare
+     * dell'orario di visita ([schedule], vincolo V2.1).
+     */
     data class Place(
         override val id: String = newId(),
-        val location: String,
+        val name: String,
         val lat: Double,
-        val lng: Double
+        val lng: Double,
+        val schedule: VisitScheduleDomain? = null
     ) : StepDomain(id)
 
     data class Transport(

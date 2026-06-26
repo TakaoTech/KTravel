@@ -4,14 +4,25 @@ package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
-import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toDomain
-import com.takaotech.ktravel.data.mapper.TravelPlanMapper.toEntity
+import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.toDomain
+import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.toEntity
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
-import com.takaotech.ktravel.domain.model.StepPlaceMapper
 import com.takaotech.ktravel.domain.model.TravelDayDomain
-import com.takaotech.ktravel.domain.model.TravelPlan
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.addTransportStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.deletePlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToDay
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToGeneral
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepDown
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -36,14 +47,20 @@ class TravelPlanRepositoryImpl(
 
     private val travelPlanId: String = travelId
     private val _planningState = MutableStateFlow(dataSource.getTravelPlan(travelPlanId).toDomain())
-    override val planningState: StateFlow<TravelPlan> = _planningState.asStateFlow()
+    override val planningState: StateFlow<TravelPlanDomain> = _planningState.asStateFlow()
 
     private suspend fun persistCurrentState() {
         val entity = _planningState.value.toEntity(id = travelPlanId)
         dataSource.saveTravelPlan(entity)
     }
 
-    private fun TravelPlan.setPeriod(start: Instant, end: Instant): TravelPlan {
+    /** Applica una mutazione pura allo stato corrente e persiste il risultato. */
+    private suspend fun mutate(transform: (TravelPlanDomain) -> TravelPlanDomain) {
+        _planningState.update(transform)
+        persistCurrentState()
+    }
+
+    private fun TravelPlanDomain.setPeriod(start: Instant, end: Instant): TravelPlanDomain {
         val newDays = (start.toLocalDate()..end.toLocalDate()).map { newDate ->
             days.firstOrNull { it.date == newDate } ?: TravelDayDomain(date = newDate)
         }
@@ -62,203 +79,48 @@ class TravelPlanRepositoryImpl(
         }
     }
 
-    override suspend fun updatePeriod(startMillis: Long, endMillis: Long) {
-        _planningState.value = _planningState.value.setPeriod(
+    override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = mutate {
+        it.setPeriod(
             start = Instant.fromEpochMilliseconds(startMillis),
             end = Instant.fromEpochMilliseconds(endMillis)
         )
-        persistCurrentState()
     }
 
-    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
+    override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) =
+        mutate { it.updateStep(dayId, stepId, updatedStep) }
 
-        val day = currentState.days[dayIndex]
-        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        if (stepIndex == -1) return
+    override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
 
-        val updatedSteps = day.steps.toMutableList().also { it[stepIndex] = updatedStep }
-        val updatedDay = day.copy(steps = updatedSteps)
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
+    override suspend fun savePlace(place: PlaceDomain, dayId: String?) =
+        mutate { it.savePlace(place, dayId) }
 
-    override suspend fun updatePlanName(name: String) {
-        _planningState.update { it.copy(name = name) }
-        persistCurrentState()
-    }
+    override suspend fun movePlaceToDay(placeId: String, dayId: String) =
+        mutate { it.movePlaceToDay(placeId, dayId) }
 
-    override suspend fun savePlace(place: PlaceDomain, dayId: String?) {
-        val currentState = _planningState.value
+    override suspend fun movePlaceToGeneral(placeId: String, dayId: String) =
+        mutate { it.movePlaceToGeneral(placeId, dayId) }
 
-        if (dayId != null) {
-            val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-            if (dayIndex == -1) return
+    override suspend fun movePlaceToStep(placeId: String, dayId: String) =
+        mutate { it.movePlaceToStep(placeId, dayId) }
 
-            val day = currentState.days[dayIndex]
-            val updatedDay = day.copy(places = day.places + place)
-            val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-            _planningState.value = currentState.copy(days = updatedDays)
-        } else {
-            _planningState.value = currentState.copy(places = currentState.places + place)
-        }
-        persistCurrentState()
-    }
+    override suspend fun moveStepToPlace(stepId: String, dayId: String) =
+        mutate { it.moveStepToPlace(stepId, dayId) }
 
-    override suspend fun movePlaceToDay(placeId: String, dayId: String) {
-        val currentState = _planningState.value
-        val place = currentState.places.firstOrNull { it.id == placeId } ?: return
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
+    override suspend fun moveTravelStepUp(stepId: String, dayId: String) =
+        mutate { it.moveStepUp(stepId, dayId) }
 
-        val day = currentState.days[dayIndex]
-        val updatedDay = day.copy(places = day.places + place)
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(
-            places = currentState.places.filter { it.id != placeId },
-            days = updatedDays
-        )
-        persistCurrentState()
-    }
+    override suspend fun moveTravelStepDown(stepId: String, dayId: String) =
+        mutate { it.moveStepDown(stepId, dayId) }
 
-    override suspend fun movePlaceToGeneral(placeId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
+    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) =
+        mutate { it.addTransportStep(dayId, afterStepId, step) }
 
-        val day = currentState.days[dayIndex]
-        val place = day.places.firstOrNull { it.id == placeId } ?: return
+    override suspend fun deleteStep(stepId: String, dayId: String) =
+        mutate { it.deleteStep(stepId, dayId) }
 
-        val updatedDay = day.copy(places = day.places.filter { it.id != placeId })
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(
-            places = currentState.places + place,
-            days = updatedDays
-        )
-        persistCurrentState()
-    }
+    override suspend fun removeStep(stepId: String, dayId: String) =
+        mutate { it.removeStep(stepId, dayId) }
 
-    override suspend fun movePlaceToStep(placeId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val place = day.places.firstOrNull { it.id == placeId } ?: return
-        val stepPlace = StepPlaceMapper.placeToStep(place)
-
-        val updatedDay = day.copy(
-            places = day.places.filter { it.id != placeId },
-            steps = day.steps + stepPlace
-        )
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun moveStepToPlace(stepId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val step = day.steps.firstOrNull { it.id == stepId } as? StepDomain.Place ?: return
-        val place = StepPlaceMapper.stepToPlace(step)
-
-        val updatedDay = day.copy(
-            steps = day.steps.filter { it.id != stepId },
-            places = day.places + place
-        )
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun moveTravelStepUp(stepId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        if (stepIndex <= 0) return
-
-        val steps = day.steps
-        val mutableSteps = steps.toMutableList()
-        mutableSteps[stepIndex - 1] = steps[stepIndex]
-        mutableSteps[stepIndex] = steps[stepIndex - 1]
-        val updatedDay = day.copy(steps = mutableSteps)
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun moveTravelStepDown(stepId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        if (stepIndex == -1 || stepIndex >= day.steps.size - 1) return
-
-        val steps = day.steps
-        val mutableSteps = steps.toMutableList()
-        mutableSteps[stepIndex + 1] = steps[stepIndex]
-        mutableSteps[stepIndex] = steps[stepIndex + 1]
-        val updatedDay = day.copy(steps = mutableSteps)
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
-        if (afterIndex == -1) return
-
-        val updatedSteps = day.steps.toMutableList().also { it.add(afterIndex + 1, step) }
-        val updatedDay = day.copy(steps = updatedSteps)
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun deleteStep(stepId: String, dayId: String) {
-        val currentState = _planningState.value
-        val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-        if (dayIndex == -1) return
-
-        val day = currentState.days[dayIndex]
-        val updatedDay = day.copy(steps = day.steps.filter { it.id != stepId })
-        val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-        _planningState.value = currentState.copy(days = updatedDays)
-        persistCurrentState()
-    }
-
-    override suspend fun deletePlace(placeId: String, dayId: String?) {
-        val currentState = _planningState.value
-
-        if (dayId != null) {
-            val dayIndex = currentState.days.indexOfFirst { it.id == dayId }
-            if (dayIndex == -1) return
-
-            val day = currentState.days[dayIndex]
-            val updatedDay = day.copy(places = day.places.filter { it.id != placeId })
-            val updatedDays = currentState.days.toMutableList().also { it[dayIndex] = updatedDay }
-            _planningState.value = currentState.copy(days = updatedDays)
-        } else {
-            _planningState.value = currentState.copy(
-                places = currentState.places.filter { it.id != placeId }
-            )
-        }
-        persistCurrentState()
-    }
+    override suspend fun deletePlace(placeId: String, dayId: String?) =
+        mutate { it.deletePlace(placeId, dayId) }
 }

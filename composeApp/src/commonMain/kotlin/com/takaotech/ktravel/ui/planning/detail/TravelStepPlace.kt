@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.presentation.planning.StepUi
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_downward
 import ktravel.composeapp.generated.resources.arrow_upward
@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun TravelStepPlace(
-    step: TravelDay.Step.Place,
+    step: StepUi.Place,
     onStepDeleteClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit
@@ -37,7 +37,7 @@ internal fun TravelStepPlace(
             ) {
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = step.location
+                    text = step.name
                 )
             }
 
@@ -82,8 +82,8 @@ internal fun TravelStepPlace(
 @Composable
 private fun TravelStepPlacePreview() {
     TravelStepPlace(
-        step = TravelDay.Step.Place(
-            location = "Tokyo Tower",
+        step = StepUi.Place(
+            name = "Tokyo Tower",
             lat = 0.0,
             lng = 0.0
         ),

@@ -1,19 +1,38 @@
 package com.takaotech.ktravel.data.mapper
 
-import com.takaotech.ktravel.data.entity.*
-import com.takaotech.ktravel.domain.model.*
-import com.takaotech.ktravel.domain.routing.model.*
+import com.takaotech.ktravel.data.entity.PlaceEntity
+import com.takaotech.ktravel.data.entity.RouteActionEntity
+import com.takaotech.ktravel.data.entity.RouteEntity
+import com.takaotech.ktravel.data.entity.RouteSectionEntity
+import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TravelDayEntity
+import com.takaotech.ktravel.data.entity.TravelPlanEntity
+import com.takaotech.ktravel.data.entity.VisitScheduleEntity
+import com.takaotech.ktravel.domain.model.PlaceDomain
+import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TransportType
+import com.takaotech.ktravel.domain.model.TravelDayDomain
+import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.TravelPlanSummary
+import com.takaotech.ktravel.domain.model.VisitScheduleDomain
+import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.domain.routing.model.RouteAction
+import com.takaotech.ktravel.domain.routing.model.RouteDeparture
+import com.takaotech.ktravel.domain.routing.model.RouteLocation
+import com.takaotech.ktravel.domain.routing.model.RouteSection
+import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.RouteTransport
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlin.time.Duration.Companion.seconds
 
-object TravelPlanMapper {
+object TravelPlanEntityMapper {
 
     // ── Domain → Entity ───────────────────────────────────────────────────────
 
-    fun TravelPlan.toEntity(id: String): TravelPlanEntity = TravelPlanEntity(
+    fun TravelPlanDomain.toEntity(id: String): TravelPlanEntity = TravelPlanEntity(
         id = id,
         name = name,
         periodStart = periodStart,
@@ -33,8 +52,7 @@ object TravelPlanMapper {
         id = id,
         name = name,
         lat = lat,
-        lng = lng,
-        schedule = schedule?.toEntity()
+        lng = lng
     )
 
     fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
@@ -46,9 +64,10 @@ object TravelPlanMapper {
     fun StepDomain.toEntity(): StepEntity = when (this) {
         is StepDomain.Place -> StepEntity.Place(
             id = id,
-            location = location,
+            name = name,
             lat = lat,
-            lng = lng
+            lng = lng,
+            schedule = schedule?.toEntity()
         )
 
         is StepDomain.Transport -> StepEntity.Transport(
@@ -92,7 +111,7 @@ object TravelPlanMapper {
         periodEnd = periodEnd
     )
 
-    fun TravelPlanEntity.toDomain(): TravelPlan = TravelPlan(
+    fun TravelPlanEntity.toDomain(): TravelPlanDomain = TravelPlanDomain(
         id = id,
         name = name,
         periodStart = periodStart,
@@ -112,8 +131,7 @@ object TravelPlanMapper {
         id = id,
         name = name,
         lat = lat,
-        lng = lng,
-        schedule = schedule?.toDomain()
+        lng = lng
     )
 
     fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
@@ -124,9 +142,10 @@ object TravelPlanMapper {
     fun StepEntity.toDomain(): StepDomain = when (this) {
         is StepEntity.Place -> StepDomain.Place(
             id = id,
-            location = location,
+            name = name,
             lat = lat,
-            lng = lng
+            lng = lng,
+            schedule = schedule?.toDomain()
         )
 
         is StepEntity.Transport -> StepDomain.Transport(
