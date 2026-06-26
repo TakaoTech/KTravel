@@ -21,15 +21,15 @@ import kotlin.uuid.Uuid
 @Stable
 data class PlanningUiState(
     val planHeader: PlanHeader = PlanHeader(),
-    val days: PersistentList<TravelDay> = persistentListOf(),
-    val places: PersistentList<Place> = persistentListOf()
+    val days: PersistentList<TravelDayUi> = persistentListOf(),
+    val places: PersistentList<PlaceUi> = persistentListOf()
 ) {
     fun setPeriod(
         start: Instant,
         end: Instant
     ): PlanningUiState {
         return (start.toLocalDate()..end.toLocalDate()).map { newDate ->
-            days.firstOrNull { it.date == newDate } ?: TravelDay(date = newDate)
+            days.firstOrNull { it.date == newDate } ?: TravelDayUi(date = newDate)
         }.let {
             copy(
                 planHeader = planHeader.copy(
@@ -59,48 +59,49 @@ data class PlanHeader(
 }
 
 @Stable
-data class TravelDay(
+data class TravelDayUi(
     val id: String = Uuid.random().toString(),
     val date: LocalDate,
-    val steps: PersistentList<Step> = persistentListOf(),
-    val places: PersistentList<Place> = persistentListOf()
+    val steps: PersistentList<StepUi> = persistentListOf(),
+    val places: PersistentList<PlaceUi> = persistentListOf()
 ) {
     companion object {
-        val EMPTY = TravelDay(
+        val EMPTY = TravelDayUi(
             id = "",
             date = LocalDate.fromEpochDays(0)
         )
     }
-
-    sealed class Step(open val id: String = Uuid.random().toString()) {
-        @Stable
-        data class Place(
-            override val id: String = Uuid.random().toString(),
-            val location: String,
-            val lat: Double,
-            val lng: Double
-        ) : Step(id)
-
-        @Stable
-        data class Transport(
-            override val id: String = Uuid.random().toString(),
-            val type: TransportType,
-            val route: Route
-        ) : Step(id)
-    }
 }
 
 @Stable
-data class VisitSchedule(
+sealed class StepUi(open val id: String = Uuid.random().toString()) {
+    @Stable
+    data class Place(
+        override val id: String = Uuid.random().toString(),
+        val name: String,
+        val lat: Double,
+        val lng: Double,
+        val schedule: VisitScheduleUi? = null
+    ) : StepUi(id)
+
+    @Stable
+    data class Transport(
+        override val id: String = Uuid.random().toString(),
+        val type: TransportType,
+        val route: Route
+    ) : StepUi(id)
+}
+
+@Stable
+data class VisitScheduleUi(
     val date: LocalDate? = null,
     val time: LocalTime
 )
 
 @Stable
-data class Place(
+data class PlaceUi(
     val id: String = Uuid.random().toString(),
     val name: String,
     val lat: Double,
-    val lng: Double,
-    val schedule: VisitSchedule? = null
+    val lng: Double
 )
