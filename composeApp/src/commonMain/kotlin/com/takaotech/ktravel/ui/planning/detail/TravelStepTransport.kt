@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.presentation.planning.TravelDay
+import com.takaotech.ktravel.presentation.planning.StepUi
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.delete
 import ktravel.composeapp.generated.resources.directions_bus
@@ -34,7 +34,7 @@ fun TransportType.toIcon(): DrawableResource = when (this) {
 
 @Composable
 fun TravelStepTransport(
-    step: TravelDay.Step.Transport,
+    step: StepUi.Transport,
     onStepDeleteClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
