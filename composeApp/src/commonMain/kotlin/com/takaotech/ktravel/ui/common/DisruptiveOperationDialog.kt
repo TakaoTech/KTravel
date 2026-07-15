@@ -4,8 +4,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
-import ktravel.composeapp.generated.resources.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.permanent_delete_dialog_cancel
+import ktravel.composeapp.generated.resources.permanent_delete_dialog_confirm
+import ktravel.composeapp.generated.resources.permanent_delete_dialog_message
+import ktravel.composeapp.generated.resources.permanent_delete_dialog_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -29,39 +38,54 @@ fun <T> DisruptiveOperationDialog(
     confirmText: String = stringResource(Res.string.permanent_delete_dialog_confirm),
 ) {
     if (state.showDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                state.dismiss()
-            },
-            title = {
-                Text(text = title)
-            },
-            text = {
-                Text(text = text)
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        state.confirm()
-                    }
-                ) {
-                    Text(
-                        text = confirmText,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        state.dismiss()
-                    }
-                ) {
-                    Text(text = stringResource(Res.string.permanent_delete_dialog_cancel))
-                }
-            }
+        DisruptiveOperationDialog(
+            onConfirm = { state.confirm() },
+            onDismiss = { state.dismiss() },
+            title = title,
+            text = text,
+            confirmText = confirmText
         )
     }
+}
+
+/**
+ * Variante stateless del dialog di conferma: la visibilità è decisa dal chiamante (es. stato del
+ * presenter), che riceve conferma o annullamento tramite [onConfirm]/[onDismiss].
+ */
+@Composable
+fun DisruptiveOperationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    title: String = stringResource(Res.string.permanent_delete_dialog_title),
+    text: String = stringResource(Res.string.permanent_delete_dialog_message),
+    confirmText: String = stringResource(Res.string.permanent_delete_dialog_confirm),
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = title)
+        },
+        text = {
+            Text(text = text)
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm
+            ) {
+                Text(
+                    text = confirmText,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text(text = stringResource(Res.string.permanent_delete_dialog_cancel))
+            }
+        }
+    )
 }
 
 @Stable

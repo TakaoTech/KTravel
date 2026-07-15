@@ -7,9 +7,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,10 +17,12 @@ import ktravel.composeapp.generated.resources.delete
 import ktravel.composeapp.generated.resources.directions_bus
 import ktravel.composeapp.generated.resources.directions_car
 import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.planning_detail_cd_delete_step
+import ktravel.composeapp.generated.resources.planning_detail_transport_duration
 import ktravel.composeapp.generated.resources.train
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.compose.resources.stringResource
 
 fun TransportType.toIcon(): DrawableResource = when (this) {
     TransportType.TRAIN -> Res.drawable.train
@@ -43,19 +42,13 @@ fun TravelStepTransport(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(painter = painterResource(step.type.toIcon()), contentDescription = null)
-        val totalDuration by remember(step.route) {
-            derivedStateOf {
-                var wholeDuration = 0.seconds
 
-                for (section in step.route.sections) {
-                    wholeDuration += section.summary.durationSeconds
-                }
-
-                wholeDuration.toString()
-            }
-        }
-
-        Text("Duration $totalDuration")
+        Text(
+            text = stringResource(
+                Res.string.planning_detail_transport_duration,
+                step.totalDuration.toString()
+            )
+        )
 
         Spacer(Modifier.weight(1f))
 
@@ -65,7 +58,7 @@ fun TravelStepTransport(
         ) {
             Icon(
                 painter = painterResource(Res.drawable.delete),
-                contentDescription = null,
+                contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
             )
         }
     }
