@@ -17,7 +17,12 @@ import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_downward
 import ktravel.composeapp.generated.resources.arrow_upward
 import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.planning_detail_add_transport
+import ktravel.composeapp.generated.resources.planning_detail_cd_delete_step
+import ktravel.composeapp.generated.resources.planning_detail_cd_move_step_down
+import ktravel.composeapp.generated.resources.planning_detail_cd_move_step_up
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun TravelStepPlace(
@@ -47,7 +52,7 @@ internal fun TravelStepPlace(
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),
-                    contentDescription = null,
+                    contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
                 )
             }
 
@@ -59,7 +64,7 @@ internal fun TravelStepPlace(
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.arrow_upward),
-                    contentDescription = null,
+                    contentDescription = stringResource(Res.string.planning_detail_cd_move_step_up),
                 )
             }
 
@@ -71,7 +76,7 @@ internal fun TravelStepPlace(
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.arrow_downward),
-                    contentDescription = null,
+                    contentDescription = stringResource(Res.string.planning_detail_cd_move_step_down),
                 )
             }
         }
@@ -102,6 +107,6 @@ fun TravelTransportStepAdd(
         modifier = modifier,
         onClick = onClick
     ) {
-        Text("Add Transport")
+        Text(stringResource(Res.string.planning_detail_add_transport))
     }
 }

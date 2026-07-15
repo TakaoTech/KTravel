@@ -1,16 +1,15 @@
 package com.takaotech.ktravel.presentation.planning.detail
 
+import com.slack.circuit.foundation.NavEvent
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.core.annotation.Parcelize
-import com.takaotech.ktravel.presentation.planning.PlaceUi
-import com.takaotech.ktravel.presentation.planning.StepUi
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.PersistentList
 
 /**
- * Schermata Circuit del dettaglio di un giorno di pianificazione.
+ * Schermata Circuit del dettaglio di un giorno di pianificazione: coordina i due pannelli figli
+ * [StepsPaneScreen] (itinerario) e [PlacesBacklogScreen] (backlog posti), montati come
+ * `CircuitContent` annidati dal layout adattivo della pagina.
  *
  * `Screen` è `Parcelable` su Android: l'annotazione comune [Parcelize] (riconosciuta dal plugin
  * kotlin-parcelize via `additionalAnnotation`) genera l'implementazione Parcelable solo su Android;
@@ -22,7 +21,7 @@ import kotlinx.collections.immutable.PersistentList
 @Parcelize
 data class PlanningDetailScreen(val travelId: String, val dayId: String) : Screen
 
-/** Target di navigazione emessi dal presenter; tradotti dal NavHost ospite in destinazioni Compose. */
+/** Target di navigazione emessi dai presenter; tradotti dal NavHost ospite in destinazioni Compose. */
 @Parcelize
 data class AddPlaceScreen(val dayId: String) : Screen
 
@@ -34,29 +33,16 @@ data class AddTransportScreen(
 ) : Screen
 
 data class PlanningDetailUiState(
-    val steps: ImmutableList<StepUi>,
-    val places: PersistentList<PlaceUi>,
+    val stepsPaneScreen: StepsPaneScreen,
+    val placesBacklogScreen: PlacesBacklogScreen,
     val eventSink: (PlanningDetailEvent) -> Unit
 ) : CircuitUiState
 
 sealed interface PlanningDetailEvent : CircuitUiEvent {
-    data object NavigateBack : PlanningDetailEvent
-    data object AddPlace : PlanningDetailEvent
-
-    /** Sposta un Place del backlog nella lista steps (movePlaceToStep). */
-    data class MovePlaceToSteps(val placeId: String) : PlanningDetailEvent
-
-    /** Riporta un Place del giorno nel backlog generale (movePlaceToGeneral). */
-    data class MovePlaceToGeneral(val placeId: String) : PlanningDetailEvent
-
-    /** Elimina definitivamente un Place del giorno (deletePlace). */
-    data class DeletePlace(val placeId: String) : PlanningDetailEvent
-
-    /** Rimuove uno step (la decisione Place->backlog / Transport->delete è del dominio). */
-    data class StepDelete(val step: StepUi) : PlanningDetailEvent
-
-    data class StepMoveUp(val stepId: String) : PlanningDetailEvent
-    data class StepMoveDown(val stepId: String) : PlanningDetailEvent
-
-    data class AddTransport(val startId: String, val endId: String) : PlanningDetailEvent
+    /**
+     * [NavEvent] emerso da un `CircuitContent` figlio e non gestito dal layout della pagina
+     * (pane switching): il presenter lo inoltra al proprio [com.slack.circuit.runtime.Navigator],
+     * raggiungendo la traduzione verso il NavController nell'host.
+     */
+    data class ChildNav(val navEvent: NavEvent) : PlanningDetailEvent
 }

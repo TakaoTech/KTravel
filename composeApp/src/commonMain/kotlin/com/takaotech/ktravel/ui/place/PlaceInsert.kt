@@ -256,28 +256,32 @@ fun SearchPlaceInsert(
 @Composable
 @Preview(showBackground = true)
 private fun PlaceInsertPreview() {
-    PlaceInsert(
-        placeName = KFieldState(),
-        placeLat = KFieldState(),
-        placeLng = KFieldState(),
-        searchQuery = TextFieldValue(),
-        timePickerState = rememberTimePickerState(),
-        isBulk = false,
-        onPlaceNameChange = { },
-        onPlaceLatChange = { },
-        onPlaceLngChange = { },
-        inputMode = PlaceInputMode.LAT_LNG,
-        onInputModeChange = {},
-        onBulkChanged = {}
-    )
+    MaterialTheme {
+        PlaceInsert(
+            placeName = KFieldState(),
+            placeLat = KFieldState(),
+            placeLng = KFieldState(),
+            searchQuery = TextFieldValue(),
+            timePickerState = rememberTimePickerState(),
+            isBulk = false,
+            onPlaceNameChange = { },
+            onPlaceLatChange = { },
+            onPlaceLngChange = { },
+            inputMode = PlaceInputMode.LAT_LNG,
+            onInputModeChange = {},
+            onBulkChanged = {}
+        )
+    }
 }
 
 @Composable
 @Preview(showBackground = true)
 private fun SearchPlaceInsertPreview() {
-    SearchPlaceInsert(
-        searchQuery = TextFieldValue(),
-        onSearchQueryChange = { },
-        onPlaceSelected = { _, _, _ -> },
-    )
+    MaterialTheme {
+        SearchPlaceInsert(
+            searchQuery = TextFieldValue(),
+            onSearchQueryChange = { },
+            onPlaceSelected = { _, _, _ -> },
+        )
+    }
 }
