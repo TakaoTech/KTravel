@@ -13,6 +13,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
@@ -88,7 +89,11 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
     data class Transport(
         override val id: String = Uuid.random().toString(),
         val type: TransportType,
-        val route: Route
+        val route: Route,
+        /** Durata complessiva della tratta, aggregata dalle sezioni del [route]. */
+        val totalDuration: Duration = route.sections.fold(Duration.ZERO) { acc, section ->
+            acc + section.summary.durationSeconds
+        }
     ) : StepUi(id)
 }
 
