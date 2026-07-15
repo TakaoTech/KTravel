@@ -1,21 +1,6 @@
 package com.takaotech.ktravel.ui.planning.detail
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -27,294 +12,90 @@ import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowSizeClass
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
+import com.slack.circuit.foundation.CircuitContent
+import com.slack.circuit.foundation.NavEvent
 import com.takaotech.ktravel.PanelHorizontalDivided
-import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
-import com.takaotech.ktravel.presentation.planning.PlaceUi
-import com.takaotech.ktravel.presentation.planning.StepUi
-import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
-import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
-import com.takaotech.ktravel.ui.place.PlaceItem
-import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
+import com.takaotech.ktravel.presentation.planning.detail.PlacesBacklogScreen
+import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailEvent
+import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailUiState
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.add
-import ktravel.composeapp.generated.resources.arrow_back
-import ktravel.composeapp.generated.resources.close
-import ktravel.composeapp.generated.resources.flight
-import org.jetbrains.compose.resources.painterResource
 
 @Serializable
 data class PlanningDetailPageNavigation(val id: String)
 
+/**
+ * Pagina del dettaglio giorno: layout adattivo che compone i pannelli itinerario e backlog come
+ * `CircuitContent` annidati.
+ *
+ * Su larghezze medium+ i pannelli sono affiancati (con drag handle); su compatto la directive
+ * collassa a un solo pannello e il backlog si apre a schermo intero via `OpenBacklog`/`Close`
+ * (intercettati qui come [NavEvent] e tradotti in navigazione dello scaffold). Ogni altro
+ * [NavEvent] dei figli risale al presenter padre tramite [PlanningDetailEvent.ChildNav].
+ */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun PlanningDetailPage(
-    steps: ImmutableList<StepUi>,
-    places: PersistentList<PlaceUi>,
+    state: PlanningDetailUiState,
     modifier: Modifier = Modifier,
-    onNavigationBackClick: () -> Unit,
-
-    onAddPlaceClick: () -> Unit,
-    onMovePlaceToList: (String) -> Unit,
-    onDeletePlaceClick: (String) -> Unit,
-    onDeletePermanentPlaceClick: (String) -> Unit,
-    onStepDeleteClicked: (StepUi) -> Unit,
-
-    onStepMoveUp: (String) -> Unit,
-    onStepMoveDown: (String) -> Unit,
-
-    onTransportAddClick: (startId: String, endId: String) -> Unit,
 ) {
     val coroutine = rememberCoroutineScope()
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
-
-    val isExpandedNavigation =
-        windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val directive = calculatePaneScaffoldDirective(windowAdaptiveInfo)
 
-//    val directive = calculatePaneScaffoldDirective(windowAdaptiveInfo).copy(
-//        horizontalPartitionSpacerSize = 24.dp // Spazio tra i pannelli
-//    )
-//    val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
-    val navigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
+    val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)
     val paneExpansionState: PaneExpansionState =
-        rememberPaneExpansionState(keyProvider = navigator.scaffoldValue)
+        rememberPaneExpansionState(keyProvider = scaffoldNavigator.scaffoldValue)
 
-    if (isExpandedNavigation) {
-        // Expanded screen layout
-        PanelHorizontalDivided(
-            scaffoldNavigator = navigator,
-            paneExpansionState = paneExpansionState,
-            modifier = modifier,
-            mainPane = {
-                AnimatedPane {
-                    MainPaneContent(
-                        steps = steps,
-                        onStepDeleteClicked = onStepDeleteClicked,
-                        onNavigationBackClick = onNavigationBackClick,
-                        onPlaceMenuClicked = {
-                            coroutine.launch {
-                                navigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
-                            }
-                        },
-                        onStepMoveUp = onStepMoveUp,
-                        onStepMoveDown = onStepMoveDown,
-                        onTransportAddClick = onTransportAddClick,
-                    )
-                }
-            },
-            supportingPane = {
-                AnimatedPane {
-                    SupportingPaneContent(
-                        modifier = Modifier.fillMaxSize(),
-                        places = places,
-                        onPermanentDeleteClick = onDeletePermanentPlaceClick,
-                        onDeletePlaceClick = onDeletePlaceClick,
-                        onAddPlaceClick = onAddPlaceClick,
-                        onMovePlaceToList = onMovePlaceToList,
-                        onCloseClick = {
-                            coroutine.launch {
-                                navigator.navigateBack()
-                            }
-                        }
-                    )
-                }
+    NavigationBackHandler(
+        state = rememberNavigationEventState(NavigationEventInfo.None),
+        isBackEnabled = scaffoldNavigator.canNavigateBack(),
+        onBackCompleted = {
+            coroutine.launch {
+                scaffoldNavigator.navigateBack()
             }
-        )
-    }
-}
+        }
+    )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MainPaneContent(
-    steps: ImmutableList<StepUi>,
-    onStepDeleteClicked: (StepUi) -> Unit,
-    onNavigationBackClick: () -> Unit,
-    onPlaceMenuClicked: () -> Unit,
-    onStepMoveUp: (String) -> Unit,
-    onStepMoveDown: (String) -> Unit,
-    onTransportAddClick: (startId: String, endId: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Scaffold(
+    PanelHorizontalDivided(
+        scaffoldNavigator = scaffoldNavigator,
+        paneExpansionState = paneExpansionState,
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigationBackClick) {
-                        Icon(
-                            painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = null
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onPlaceMenuClicked) {
-                        Icon(
-                            painter = painterResource(Res.drawable.flight),
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
-        }
-    ) {
-        if (steps.isEmpty()) {
-            // TODO Add empty view
-        } else {
-            LazyColumn(modifier = Modifier.padding(it)) {
-                itemsIndexed(steps) { index, step ->
-                    when (step) {
-                        is StepUi.Place -> {
-                            TravelStepPlace(
-                                step = step,
-                                onStepDeleteClicked = {
-                                    onStepDeleteClicked(step)
-                                },
-                                onStepMoveUp = onStepMoveUp,
-                                onStepMoveDown = onStepMoveDown
-                            )
-
-                            if ((index < steps.lastIndex) && steps.getOrNull(index + 1) !is StepUi.Transport) {
-                                TravelTransportStepAdd(
-                                    onClick = {
-                                        onTransportAddClick(
-                                            step.id,
-                                            steps.get(index + 1).id
-                                        )
-                                    }
-                                )
+        mainPane = {
+            AnimatedPane {
+                CircuitContent(
+                    screen = state.stepsPaneScreen,
+                    onNavEvent = { event ->
+                        if (event is NavEvent.GoTo && event.screen is PlacesBacklogScreen) {
+                            coroutine.launch {
+                                scaffoldNavigator.navigateTo(SupportingPaneScaffoldRole.Supporting)
                             }
-                        }
-
-                        is StepUi.Transport -> {
-                            TravelStepTransport(
-                                modifier = Modifier.fillMaxWidth(),
-                                step = step,
-                                onStepDeleteClicked = {
-                                    onStepDeleteClicked(step)
-                                },
-                            )
+                        } else {
+                            state.eventSink(PlanningDetailEvent.ChildNav(event))
                         }
                     }
-                }
+                )
             }
-        }
-    }
-}
-
-@Composable
-private fun SupportingPaneContent(
-    places: PersistentList<PlaceUi>,
-    modifier: Modifier = Modifier,
-    onCloseClick: () -> Unit,
-    onMovePlaceToList: (String) -> Unit,
-    onPermanentDeleteClick: (String) -> Unit,
-    onDeletePlaceClick: (String) -> Unit,
-    onAddPlaceClick: () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.large,
-    ) {
-        val deleteDialogState = rememberDisruptiveOperationDialog<String> { placeId ->
-            onPermanentDeleteClick(placeId)
-        }
-
-        DisruptiveOperationDialog(
-            state = deleteDialogState
-        )
-
-        Column {
-            IconButton(
-                onClick = onCloseClick
-            ) {
-                Icon(painter = painterResource(Res.drawable.close), contentDescription = null)
-            }
-
-            Text(
-                text = "Places Overview",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-                    .padding(horizontal = 8.dp)
-            )
-
-            AddPlaceButton(
-                onClick = onAddPlaceClick
-            )
-
-            LazyColumn(
-                contentPadding = PaddingValues(8.dp),
-            ) {
-                items(items = places, key = { it.id }) { place ->
-                    // TODO Add Hours
-                    // TODO Add image
-                    PlaceItem(
-                        modifier = Modifier
-                            .animateItem()
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        name = place.name,
-                        onDeleteClick = {
-                            onDeletePlaceClick(place.id)
-                        },
-                        actions = {
-                            IconButton(
-                                onClick = {
-                                    onMovePlaceToList(place.id)
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.add),
-                                    contentDescription = null
-                                )
+        },
+        supportingPane = {
+            AnimatedPane {
+                CircuitContent(
+                    modifier = Modifier.fillMaxSize(),
+                    screen = state.placesBacklogScreen,
+                    onNavEvent = { event ->
+                        if (event is NavEvent.Pop) {
+                            coroutine.launch {
+                                scaffoldNavigator.navigateBack()
                             }
-                        },
-                        onPermanentDeleteClick = {
-                            deleteDialogState.show(place.id)
+                        } else {
+                            state.eventSink(PlanningDetailEvent.ChildNav(event))
                         }
-                    )
-                }
-
-                if (places.isEmpty()) {
-                    item {
-                        Text(
-                            text = "No places added yet",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
-                }
+                )
             }
         }
-    }
-}
-
-@PreviewScreenSizes
-@Composable
-private fun PlanningDetailPagePreview() {
-    PlanningDetailPage(
-        steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList(),
-        onAddPlaceClick = {},
-        onStepDeleteClicked = {},
-        onDeletePlaceClick = {},
-        places = persistentListOf(),
-        onNavigationBackClick = {},
-        onDeletePermanentPlaceClick = {},
-        onMovePlaceToList = {},
-        onStepMoveDown = {},
-        onStepMoveUp = {},
-        onTransportAddClick = { _, _ -> }
     )
 }

@@ -156,6 +156,7 @@ kotlin {
             implementation(libs.bundles.kotest.multiplatform)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.compose.ui.test)
+            implementation(libs.circuit.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -176,7 +177,7 @@ kotlin {
                         compilerOptions {
                             freeCompilerArgs.addAll(
                                 "-P",
-                                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.slack.circuit.internal.runtime.Parcelize",
+                                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.takaotech.ktravel.core.annotation.Parcelize",
                             )
                         }
                     }
