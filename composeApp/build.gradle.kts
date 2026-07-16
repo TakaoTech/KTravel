@@ -1,8 +1,10 @@
-@file:OptIn(ExperimentalMetroGradleApi::class)
+@file:OptIn(ExperimentalMetroGradleApi::class, ExperimentalKotlinGradlePluginApi::class)
 
+import com.android.build.api.dsl.KotlinMultiplatformAndroidCompilation
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -11,7 +13,6 @@ plugins {
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotest)
     alias(libs.plugins.kotlinx.serialization)
@@ -49,6 +50,15 @@ kotlin {
     }
 
     jvm()
+
+    applyDefaultHierarchyTemplate {
+        common {
+            group("jvmAndroid") {
+                withJvm()
+                withCompilations { it is KotlinMultiplatformAndroidCompilation }
+            }
+        }
+    }
 
 //    js {
 //        browser {
@@ -152,16 +162,12 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
-        // Source set condiviso da Android e JVM: qui vive Hyphen (editor Markdown),
-        // che pubblica artefatti Android/JVM/JS ma non iOS (su iOS si usa un fallback).
-        val jvmAndroidMain by creating {
-            dependsOn(commonMain)
+
+        val jvmAndroidMain by getting {
             dependencies {
+                //Source set sharede with And-JVM-JS, currently no iOS
                 implementation(libs.hyphen)
             }
-        }
-        val androidMain by getting {
-            dependsOn(jvmAndroidMain)
         }
         iosMain.dependencies {
 //            implementation(libs.kotzilla.sdk.compose)
@@ -174,14 +180,11 @@ kotlin {
             implementation(libs.compose.ui.test)
             implementation(libs.circuit.test)
         }
-        val jvmMain by getting {
-            dependsOn(jvmAndroidMain)
-            dependencies {
-                implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutinesSwing)
-                implementation(libs.ktor.client.okhttp)
-                implementation(libs.logback.classic)
-            }
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.logback.classic)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
