@@ -5,11 +5,12 @@ import com.takaotech.navigation.common.createHereHttpClient
 import com.takaotech.navigation.routing.dto.request.RoutesRequest
 import com.takaotech.navigation.routing.dto.response.RouterRouteResponse
 import com.takaotech.navigation.routing.exception.HereApiResult
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.serialization.SerializationException
 
 /**
@@ -126,7 +127,7 @@ class HereRoutingClient(
                 val errorResponse = try {
                     response.body<com.takaotech.navigation.routing.dto.response.ErrorResponse>()
                 } catch (e: SerializationException) {
-                    _root_ide_package_.com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                    com.takaotech.navigation.routing.dto.response.ErrorResponse(
                         title = "Unknown error",
                         status = response.status.value,
                         cause = response.bodyAsText()
@@ -141,7 +142,7 @@ class HereRoutingClient(
             HereApiResult.Error(
                 httpStatusCode = 0,
                 exception = e,
-                errorResponse = _root_ide_package_.com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
                     title = "Serialization error",
                     status = 0,
                     cause = e.message
@@ -151,7 +152,7 @@ class HereRoutingClient(
             HereApiResult.Error(
                 httpStatusCode = 0,
                 exception = e,
-                errorResponse = _root_ide_package_.com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
                     title = "Network error",
                     status = 0,
                     cause = e.message
