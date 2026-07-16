@@ -38,7 +38,10 @@ kotbase = "3.2.4-1.2.0"
 circuit = "0.34.0"
 
 detekt = "1.23.8"
-compottie = "2.0.2"
+compottie = "2.2.4"
+
+hyphen = "0.6.0-alpha03"
+markdown-renderer = "0.43.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -74,7 +77,7 @@ compose-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref 
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-backhandler-core = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
-compose-constraintlayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version = "0.6.1" }
+compose-constraintlayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version = "0.8.0-shaded" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-client" }
@@ -131,6 +134,10 @@ circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = 
 circuit-runtime-presenter = { module = "com.slack.circuit:circuit-runtime-presenter", version.ref = "circuit" }
 circuit-runtime-ui = { module = "com.slack.circuit:circuit-runtime-ui", version.ref = "circuit" }
 circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circuit" }
+
+hyphen = { module = "io.github.densermeerkat:hyphen", version.ref = "hyphen" }
+markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
+markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdown-renderer" }
 
 compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
 #compottie-lite = { module = "io.github.alexzhirkevich:compottie-lite", version.ref = "compottie" }

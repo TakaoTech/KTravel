@@ -63,7 +63,9 @@ sealed class StepDomain(open val id: String = newId()) {
         val name: String,
         val lat: Double,
         val lng: Double,
-        val schedule: VisitScheduleDomain? = null
+        val schedule: VisitScheduleDomain? = null,
+        /** Note libere in formato Markdown associate allo step. */
+        val note: String = ""
     ) : StepDomain(id)
 
     data class Transport(

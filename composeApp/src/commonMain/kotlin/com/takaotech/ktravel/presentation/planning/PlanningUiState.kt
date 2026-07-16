@@ -82,7 +82,9 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
         val name: String,
         val lat: Double,
         val lng: Double,
-        val schedule: VisitScheduleUi? = null
+        val schedule: VisitScheduleUi? = null,
+        /** Note libere in formato Markdown associate allo step. */
+        val note: String = ""
     ) : StepUi(id)
 
     @Stable

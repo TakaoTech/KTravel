@@ -59,6 +59,7 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
         modifier = modifier,
         onNavigationBackClick = { sink(StepsPaneEvent.NavigateBack) },
         onOpenBacklogClick = { sink(StepsPaneEvent.OpenBacklog) },
+        onStepClick = { sink(StepsPaneEvent.OpenStepDetail(it)) },
         onDeleteStepClick = { sink(StepsPaneEvent.DeleteStep(it)) },
         onMoveStepUpClick = { sink(StepsPaneEvent.MoveStepUp(it)) },
         onMoveStepDownClick = { sink(StepsPaneEvent.MoveStepDown(it)) },
@@ -78,6 +79,7 @@ internal fun StepsPaneContent(
     rows: ImmutableList<StepRow>,
     onNavigationBackClick: () -> Unit,
     onOpenBacklogClick: () -> Unit,
+    onStepClick: (String) -> Unit,
     onDeleteStepClick: (StepUi) -> Unit,
     onMoveStepUpClick: (String) -> Unit,
     onMoveStepDownClick: (String) -> Unit,
@@ -136,6 +138,7 @@ internal fun StepsPaneContent(
                         is StepRow.Step -> when (val step = row.step) {
                             is StepUi.Place -> TravelStepPlace(
                                 step = step,
+                                onStepClick = onStepClick,
                                 onStepDeleteClicked = { onDeleteStepClick(step) },
                                 onStepMoveUp = onMoveStepUpClick,
                                 onStepMoveDown = onMoveStepDownClick
@@ -168,6 +171,7 @@ private fun StepsPaneContentPreview() {
         rows = buildStepRows(TravelDayStepPreviewParameterProvider(8).values.toList()),
         onNavigationBackClick = {},
         onOpenBacklogClick = {},
+        onStepClick = {},
         onDeleteStepClick = {},
         onMoveStepUpClick = {},
         onMoveStepDownClick = {},
