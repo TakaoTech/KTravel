@@ -10,8 +10,10 @@ actual fun RouteMap(
     enable: Boolean,
     styleUri: String,
     geoJsonPath: String?,
+    marker: LatLng?,
     cameraState: CameraState,
 ) {
+    // TODO: rendere il marker anche su Desktop (Mapsforge Marker/LatLong). Per ora ignorato.
     MapForge(
         modifier = modifier,
         enable = enable,

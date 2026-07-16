@@ -120,6 +120,11 @@ kotlin {
 
                 implementation(libs.compottie)
 
+                // Nota: Hyphen (editor Markdown) non pubblica artefatti iOS: aggiunto solo ai
+                // sourceSet android/jvm; su iOS si usa un fallback (vedi MarkdownNoteEditor).
+                implementation(libs.markdown.renderer)
+                implementation(libs.markdown.renderer.m3)
+
                 implementation(libs.metro.runtime)
                 implementation(libs.metro.viewmodel)
                 implementation(libs.metro.viewmodel.compose)
@@ -147,6 +152,17 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
+        // Source set condiviso da Android e JVM: qui vive Hyphen (editor Markdown),
+        // che pubblica artefatti Android/JVM/JS ma non iOS (su iOS si usa un fallback).
+        val jvmAndroidMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.hyphen)
+            }
+        }
+        val androidMain by getting {
+            dependsOn(jvmAndroidMain)
+        }
         iosMain.dependencies {
 //            implementation(libs.kotzilla.sdk.compose)
             implementation(libs.ktor.client.darwin)
@@ -158,12 +174,14 @@ kotlin {
             implementation(libs.compose.ui.test)
             implementation(libs.circuit.test)
         }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.logback.classic)
-
+        val jvmMain by getting {
+            dependsOn(jvmAndroidMain)
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutinesSwing)
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.logback.classic)
+            }
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
