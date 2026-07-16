@@ -55,7 +55,8 @@ sealed class StepEntity {
         @SerialName("location") val name: String,
         @SerialName("lat") val lat: Double,
         @SerialName("lng") val lng: Double,
-        @SerialName("schedule") val schedule: VisitScheduleEntity? = null
+        @SerialName("schedule") val schedule: VisitScheduleEntity? = null,
+        @SerialName("note") val note: String = ""
     ) : StepEntity()
 
     @Serializable

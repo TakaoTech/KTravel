@@ -22,6 +22,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -88,6 +89,9 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) =
         mutate { it.updateStep(dayId, stepId, updatedStep) }
+
+    override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) =
+        mutate { it.updatePlaceNote(dayId, stepId, note) }
 
     override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
 

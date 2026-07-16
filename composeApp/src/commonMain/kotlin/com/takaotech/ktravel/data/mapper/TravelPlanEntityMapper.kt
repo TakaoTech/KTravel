@@ -67,7 +67,8 @@ object TravelPlanEntityMapper {
             name = name,
             lat = lat,
             lng = lng,
-            schedule = schedule?.toEntity()
+            schedule = schedule?.toEntity(),
+            note = note
         )
 
         is StepDomain.Transport -> StepEntity.Transport(
@@ -145,7 +146,8 @@ object TravelPlanEntityMapper {
             name = name,
             lat = lat,
             lng = lng,
-            schedule = schedule?.toDomain()
+            schedule = schedule?.toDomain(),
+            note = note
         )
 
         is StepEntity.Transport -> StepDomain.Transport(

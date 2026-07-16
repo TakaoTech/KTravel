@@ -41,6 +41,20 @@ object TravelPlanEditor {
         else day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = updatedStep })
     }
 
+    /**
+     * Aggiorna le note (Markdown) di uno [StepDomain.Place]. Operazione totale: se il giorno o lo
+     * step non esistono, o lo step non è un Place, restituisce il piano invariato.
+     */
+    fun TravelPlanDomain.updatePlaceNote(
+        dayId: String,
+        stepId: String,
+        note: String
+    ): TravelPlanDomain = updateDay(dayId) { day ->
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+        val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
+        day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) })
+    }
+
     fun TravelPlanDomain.movePlaceToDay(placeId: String, dayId: String): TravelPlanDomain {
         val place = places.firstOrNull { it.id == placeId } ?: return this
         if (days.none { it.id == dayId }) return this

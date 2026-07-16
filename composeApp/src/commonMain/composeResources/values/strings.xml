@@ -33,6 +33,13 @@
     <string name="planning_detail_cd_move_step_up">Move step up</string>
     <string name="planning_detail_cd_move_step_down">Move step down</string>
     <string name="planning_detail_cd_move_place_to_steps">Add place to itinerary</string>
+    <string name="planning_detail_cd_open_step_detail">Open step detail</string>
+    <string name="planning_detail_step_note_title">Notes</string>
+    <string name="planning_detail_step_note_empty">No notes yet</string>
+    <string name="planning_detail_step_note_label">Notes (Markdown)</string>
+    <string name="planning_detail_cd_edit_note">Edit notes</string>
+    <string name="planning_detail_cd_done_note">Done editing notes</string>
+    <string name="planning_detail_cd_note_invalid">Invalid Markdown: notes not saved</string>
 
     <string name="planning_transport_provider_name_local">Local</string>
     <string name="planning_transport_provider_name_here">Here</string>

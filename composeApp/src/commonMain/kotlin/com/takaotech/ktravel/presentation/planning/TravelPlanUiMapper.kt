@@ -52,7 +52,8 @@ object TravelPlanUiMapper {
             name = name,
             lat = lat,
             lng = lng,
-            schedule = schedule?.toUiSchedule()
+            schedule = schedule?.toUiSchedule(),
+            note = note
         )
 
         is StepDomain.Transport -> StepUi.Transport(
@@ -81,7 +82,8 @@ object TravelPlanUiMapper {
         name = name,
         lat = lat,
         lng = lng,
-        schedule = schedule?.toUiSchedule()
+        schedule = schedule?.toUiSchedule(),
+        note = note
     )
 
     fun uiFieldsToDomain(name: String, lat: Double, lng: Double): PlaceDomain = PlaceDomain(

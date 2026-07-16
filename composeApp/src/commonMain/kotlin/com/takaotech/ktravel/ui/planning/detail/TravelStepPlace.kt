@@ -27,6 +27,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun TravelStepPlace(
     step: StepUi.Place,
+    onStepClick: (String) -> Unit,
     onStepDeleteClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit
@@ -34,6 +35,7 @@ internal fun TravelStepPlace(
     Column {
         Row {
             Card(
+                onClick = { onStepClick(step.id) },
                 modifier = Modifier
                     .weight(1f)
                     .padding(
@@ -92,6 +94,7 @@ private fun TravelStepPlacePreview() {
             lat = 0.0,
             lng = 0.0
         ),
+        onStepClick = {},
         onStepDeleteClicked = {},
         onStepMoveDown = {},
         onStepMoveUp = {}

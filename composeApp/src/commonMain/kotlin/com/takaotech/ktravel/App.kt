@@ -31,6 +31,7 @@ import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.detail.AddPlaceScreen
 import com.takaotech.ktravel.presentation.planning.detail.AddTransportScreen
 import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailScreen
+import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
@@ -59,6 +60,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlanningNavigation(val travelId: String)
+
+@Serializable
+data class StepDetailPageNavigation(val travelId: String, val dayId: String, val stepId: String)
 
 @OptIn(
     ExperimentalMaterial3AdaptiveApi::class,
@@ -179,7 +183,40 @@ fun App() {
                                                     )
                                                 )
 
+                                                is StepDetailScreen -> navController.navigate(
+                                                    StepDetailPageNavigation(
+                                                        screen.travelId,
+                                                        screen.dayId,
+                                                        screen.stepId
+                                                    )
+                                                )
+
                                                 else -> Unit
+                                            }
+
+                                            else -> Unit
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        composable<StepDetailPageNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<StepDetailPageNavigation>()
+
+                            CircuitCompositionLocals(appGraph.circuit) {
+                                CircuitContent(
+                                    screen = StepDetailScreen(
+                                        travelId = args.travelId,
+                                        dayId = args.dayId,
+                                        stepId = args.stepId
+                                    ),
+                                    onNavEvent = { event ->
+                                        when (event) {
+                                            is NavEvent.Pop -> {
+                                                if (backStackEntry.lifecycleIsResumed()) {
+                                                    navController.navigateUp()
+                                                }
                                             }
 
                                             else -> Unit

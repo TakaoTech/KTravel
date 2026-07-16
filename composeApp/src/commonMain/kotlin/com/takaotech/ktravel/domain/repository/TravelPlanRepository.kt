@@ -37,6 +37,11 @@ interface TravelPlanRepository {
      */
     suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain)
 
+    /**
+     * Aggiorna le note (Markdown) di uno Step.Place
+     */
+    suspend fun updatePlaceNote(dayId: String, stepId: String, note: String)
+
 
     //endregion Update
 
