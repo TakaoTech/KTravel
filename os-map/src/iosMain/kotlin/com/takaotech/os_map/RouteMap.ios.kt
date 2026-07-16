@@ -10,6 +10,7 @@ actual fun RouteMap(
     enable: Boolean,
     styleUri: String,
     geoJsonPath: String?,
+    marker: LatLng?,
     cameraState: CameraState,
 ) {
     MobileRouteMapContent(
@@ -17,6 +18,7 @@ actual fun RouteMap(
         enable = enable,
         styleUri = styleUri,
         geoJsonPath = geoJsonPath,
+        marker = marker,
         cameraState = cameraState,
     )
 }

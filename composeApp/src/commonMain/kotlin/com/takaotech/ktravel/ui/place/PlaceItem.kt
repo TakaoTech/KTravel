@@ -10,8 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import coil3.compose.AsyncImage
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.delete
@@ -20,6 +18,8 @@ import ktravel.composeapp.generated.resources.place_delete_permanent
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import tech.annexflow.constraintlayout.compose.ConstraintLayout
+import tech.annexflow.constraintlayout.compose.Dimension
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 

@@ -29,6 +29,9 @@ sealed interface StepsPaneEvent : CircuitUiEvent {
     /** Mostra il pannello backlog dei posti (gestito dal layout della pagina padre). */
     data object OpenBacklog : StepsPaneEvent
 
+    /** Apre la schermata di dettaglio dello step indicato. */
+    data class OpenStepDetail(val stepId: String) : StepsPaneEvent
+
     /** Rimuove uno step (la decisione Place->backlog / Transport->delete è del dominio). */
     data class DeleteStep(val step: StepUi) : StepsPaneEvent
 

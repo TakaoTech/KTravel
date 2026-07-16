@@ -705,6 +705,66 @@ class TravelPlanRepositoryImplTest : BehaviorSpec({
         }
     }
 
+    given("updatePlaceNote") {
+        `when`("updatePlaceNote sets the note on a Step.Place") {
+            val (repo, ds, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            repo.updatePlaceNote(dayIds[1], "place1", "# Notes\n- visit")
+
+            then("should update the note of the target Step.Place") {
+                val step = repo.planningState.value.days[1].steps[0] as StepDomain.Place
+                step.note shouldBe "# Notes\n- visit"
+            }
+
+            then("should persist the state") {
+                verifySuspend(VerifyMode.soft) { ds.saveTravelPlan(any()) }
+            }
+        }
+
+        `when`("updatePlaceNote on a Transport step does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val transportStep = StepDomain.Transport(
+                id = "transport1",
+                type = TransportType.TRAIN,
+                route = Route(emptyList())
+            )
+            repo.addTransportStep(dayIds[1], "place1", transportStep)
+            val stateBefore = repo.planningState.value
+            repo.updatePlaceNote(dayIds[1], "transport1", "note")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("updatePlaceNote with an invalid stepId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.updatePlaceNote(dayIds[1], "invalid-step-id", "note")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+
+        `when`("updatePlaceNote with an invalid dayId does not modify the state") {
+            val (repo, _, dayIds) = ctxWith3Days()
+            repo.savePlace(COLOSSEO, dayIds[1])
+            repo.movePlaceToStep("place1", dayIds[1])
+            val stateBefore = repo.planningState.value
+            repo.updatePlaceNote("invalid-day-id", "place1", "note")
+
+            then("should not modify the state") {
+                repo.planningState.value shouldBe stateBefore
+            }
+        }
+    }
+
     given("addTransportStep") {
         `when`("addTransportStep inserts a step immediately after the specified reference step") {
             val (repo, ds, dayIds) = ctxWith3Days()
