@@ -20,7 +20,8 @@ import kotlinx.serialization.json.Json
 @ContributesBinding(AppScope::class)
 @Inject
 class TravelPlanStorageDataSourceImpl(
-    private val storageRepository: DatabaseProvider
+    private val storageRepository: DatabaseProvider,
+    private val attachmentDataSource: AttachmentDataSource
 ) : TravelPlanStorageDataSource {
 
     private val json = Json {
@@ -71,6 +72,8 @@ class TravelPlanStorageDataSourceImpl(
             travelCollection.getDocument(id)?.let { document ->
                 travelCollection.delete(document)
             }
+            // Rimuove anche i file dell'inventario di tutti gli step del viaggio.
+            attachmentDataSource.deleteTravelAttachments(id)
         }
     }
 }

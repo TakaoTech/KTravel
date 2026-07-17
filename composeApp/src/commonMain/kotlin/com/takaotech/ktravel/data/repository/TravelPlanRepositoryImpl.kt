@@ -3,6 +3,7 @@
 package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.core.toLocalDate
+import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.toDomain
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.toEntity
@@ -11,6 +12,7 @@ import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.addPlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addTransportStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deletePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
@@ -20,6 +22,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepDown
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
@@ -29,6 +32,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.SingleIn
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,7 +47,8 @@ import kotlin.time.Instant
 @Inject
 class TravelPlanRepositoryImpl(
     @param:Named("travelId") private val travelId: String,
-    private val dataSource: TravelPlanStorageDataSource
+    private val dataSource: TravelPlanStorageDataSource,
+    private val attachmentDataSource: AttachmentDataSource
 ) : TravelPlanRepository {
 
     private val travelPlanId: String = travelId
@@ -92,6 +97,22 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) =
         mutate { it.updatePlaceNote(dayId, stepId, note) }
+
+    override suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile) {
+        // Prima il file su disco, poi i metadati: evita riferimenti a file inesistenti.
+        val attachment = attachmentDataSource.saveAttachment(travelId, stepId, source).toDomain()
+        mutate { it.addPlaceAttachment(dayId, stepId, attachment) }
+    }
+
+    override suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String) {
+        val relativePath = _planningState.value.days
+            .firstOrNull { it.id == dayId }?.steps
+            ?.filterIsInstance<StepDomain.Place>()
+            ?.firstOrNull { it.id == stepId }?.attachments
+            ?.firstOrNull { it.id == attachmentId }?.relativePath
+        mutate { it.removePlaceAttachment(dayId, stepId, attachmentId) }
+        relativePath?.let { attachmentDataSource.deleteAttachment(it) }
+    }
 
     override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
 

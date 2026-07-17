@@ -5,6 +5,7 @@ import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -41,6 +42,17 @@ interface TravelPlanRepository {
      * Aggiorna le note (Markdown) di uno Step.Place
      */
     suspend fun updatePlaceNote(dayId: String, stepId: String, note: String)
+
+    /**
+     * Aggiunge un file all'inventario di uno Step.Place: copia il [source] su disco e registra i
+     * metadati. Scrive prima il file, poi i metadati (consistenza).
+     */
+    suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile)
+
+    /**
+     * Rimuove un file dall'inventario di uno Step.Place: elimina i metadati e poi il file su disco.
+     */
+    suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String)
 
 
     //endregion Update

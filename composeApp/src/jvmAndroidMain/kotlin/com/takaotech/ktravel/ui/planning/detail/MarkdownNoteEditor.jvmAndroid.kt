@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
@@ -29,8 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.denser.hyphen.model.MarkupStyle
 import com.denser.hyphen.state.HyphenTextState
-import com.denser.hyphen.state.markdownFlow
-import com.denser.hyphen.state.rememberHyphenTextState
 import com.denser.hyphen.ui.material3.HyphenTextField
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.check_box_24dp
@@ -58,15 +55,11 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 actual fun MarkdownNoteEditor(
-    initialValue: String,
-    onValueChange: (String) -> Unit,
+    controller: MarkdownEditorController,
     label: String,
     modifier: Modifier,
 ) {
-    val state = rememberHyphenTextState(initialText = initialValue)
-    LaunchedEffect(state) {
-        state.markdownFlow.collect { onValueChange(it) }
-    }
+    val state = controller.state
 
     Column(modifier = modifier.fillMaxWidth()) {
         HyphenToolbar(state = state)

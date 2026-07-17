@@ -5,6 +5,7 @@ import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.presentation.planning.StepUi
+import io.github.vinceglb.filekit.PlatformFile
 
 /**
  * Schermata Circuit di dettaglio di un singolo step.
@@ -29,6 +30,13 @@ data class StepDetailUiState(
     val isEditing: Boolean,
     /** True quando l'ultimo tentativo di salvataggio è fallito perché il Markdown non è valido. */
     val noteInvalid: Boolean,
+    /**
+     * Path relativi referenziati nel Markdown ma non presenti nell'inventario dello step
+     * (riferimenti "dangling"): vuoto = coerente. Da segnalare come errore.
+     */
+    val missingReferences: List<String>,
+    /** Risolve un path relativo dell'inventario nel file assoluto, per rendering/apertura. */
+    val resolveFile: (String) -> PlatformFile,
     val eventSink: (StepDetailEvent) -> Unit
 ) : CircuitUiState
 
@@ -40,4 +48,10 @@ sealed interface StepDetailEvent : CircuitUiEvent {
 
     /** Nuovo contenuto Markdown delle note, salvato automaticamente se valido. */
     data class NoteChanged(val note: String) : StepDetailEvent
+
+    /** Carica un file nell'inventario dello step. */
+    data class AddAttachment(val file: PlatformFile) : StepDetailEvent
+
+    /** Rimuove un file dall'inventario dello step (azione dedicata dell'inventario). */
+    data class RemoveAttachment(val attachmentId: String) : StepDetailEvent
 }

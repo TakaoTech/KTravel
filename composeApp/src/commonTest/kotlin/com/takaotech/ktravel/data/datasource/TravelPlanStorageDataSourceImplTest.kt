@@ -42,7 +42,10 @@ class TravelPlanStorageDataSourceImplTest : BehaviorSpec({
             directory = testDir.path,
             scope = testScope
         )
-        dataSource = TravelPlanStorageDataSourceImpl(provider)
+        dataSource = TravelPlanStorageDataSourceImpl(
+            provider,
+            AttachmentDataSourceImpl(testDir / "attachments")
+        )
     }
 
     afterTest {
