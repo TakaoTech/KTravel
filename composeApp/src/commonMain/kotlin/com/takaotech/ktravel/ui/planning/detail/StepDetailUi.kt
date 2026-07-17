@@ -19,12 +19,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -50,12 +53,14 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
 import io.github.vinceglb.filekit.exists
+import kotlinx.coroutines.launch
 import kotlinx.io.files.Path
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.check
 import ktravel.composeapp.generated.resources.edit
 import ktravel.composeapp.generated.resources.error
+import ktravel.composeapp.generated.resources.planning_detail_attachment_open_error
 import ktravel.composeapp.generated.resources.planning_detail_attachments_missing
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
 import ktravel.composeapp.generated.resources.planning_detail_cd_done_note
@@ -147,15 +152,31 @@ internal fun StepDetailPlaceContent(
         file?.let(onAddAttachment)
     }
 
-    // OS-delegated opening (OS chooses app)
-    val openAttachment: (String) -> Unit = remember(resolveFile) {
-        { relativePath ->
-            val file = resolveFile(relativePath)
-            // TODO Add catching
-            //  android.content.ActivityNotFoundException: No Activity found to handle Intent
-            if (file.exists()) FileKit.openFileWithDefaultApplication(file)
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scope = rememberCoroutineScope()
+    val openErrorMessage = stringResource(Res.string.planning_detail_attachment_open_error)
+
+    // OS-delegated opening (OS chooses app). A missing file or a platform failure such as
+    // ActivityNotFoundException/FileNotFoundException surfaces as a timed snackbar.
+    val openAttachment: (String) -> Unit =
+        remember(resolveFile, scope, scaffoldState, openErrorMessage) {
+            { relativePath ->
+                try {
+                    val file = resolveFile(relativePath)
+                    if (file.exists()) {
+                        FileKit.openFileWithDefaultApplication(file)
+                    } else {
+                        scope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(openErrorMessage)
+                        }
+                    }
+                } catch (e: Exception) {
+                    scope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(openErrorMessage)
+                    }
+                }
+            }
         }
-    }
 
     val errorPainter = painterResource(Res.drawable.error)
     val imageTransformer = remember(resolveFile, errorPainter) {
@@ -176,6 +197,14 @@ internal fun StepDetailPlaceContent(
 
     BottomSheetScaffold(
         modifier = modifier,
+        scaffoldState = scaffoldState,
+        snackbarHost = {
+            SnackbarHost(
+                modifier = Modifier
+                    .navigationBarsPadding(),
+                hostState = it
+            )
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -210,9 +239,9 @@ internal fun StepDetailPlaceContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(padding)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             RouteMap(
@@ -235,7 +264,7 @@ internal fun StepDetailPlaceContent(
                 onToggleEdit = onToggleEdit
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

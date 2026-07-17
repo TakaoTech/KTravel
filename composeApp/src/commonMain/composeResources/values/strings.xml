@@ -46,6 +46,7 @@
     <string name="planning_detail_cd_insert_attachment">Insert into notes</string>
     <string name="planning_detail_cd_open_attachment">Open file</string>
     <string name="planning_detail_cd_remove_attachment">Remove file from inventory</string>
+    <string name="planning_detail_attachment_open_error">Unable to open the file</string>
     <string name="planning_detail_attachments_missing">Some notes reference files no longer in the inventory</string>
 
     <string name="planning_transport_provider_name_local">Local</string>
