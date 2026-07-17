@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.data.mapper
 
+import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.RouteActionEntity
 import com.takaotech.ktravel.data.entity.RouteEntity
@@ -8,6 +9,7 @@ import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
+import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
@@ -61,6 +63,14 @@ object TravelPlanEntityMapper {
         timeMinute = time.minute
     )
 
+    fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
+        id = id,
+        relativePath = relativePath,
+        originalName = originalName,
+        mimeType = mimeType,
+        sizeBytes = sizeBytes
+    )
+
     fun StepDomain.toEntity(): StepEntity = when (this) {
         is StepDomain.Place -> StepEntity.Place(
             id = id,
@@ -68,7 +78,8 @@ object TravelPlanEntityMapper {
             lat = lat,
             lng = lng,
             schedule = schedule?.toEntity(),
-            note = note
+            note = note,
+            attachments = attachments.map { it.toEntity() }
         )
 
         is StepDomain.Transport -> StepEntity.Transport(
@@ -140,6 +151,14 @@ object TravelPlanEntityMapper {
         time = LocalTime(timeHour, timeMinute)
     )
 
+    fun AttachmentEntity.toDomain(): AttachmentDomain = AttachmentDomain(
+        id = id,
+        relativePath = relativePath,
+        originalName = originalName,
+        mimeType = mimeType,
+        sizeBytes = sizeBytes
+    )
+
     fun StepEntity.toDomain(): StepDomain = when (this) {
         is StepEntity.Place -> StepDomain.Place(
             id = id,
@@ -147,7 +166,8 @@ object TravelPlanEntityMapper {
             lat = lat,
             lng = lng,
             schedule = schedule?.toDomain(),
-            note = note
+            note = note,
+            attachments = attachments.map { it.toDomain() }
         )
 
         is StepEntity.Transport -> StepDomain.Transport(

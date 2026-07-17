@@ -3,6 +3,7 @@
 package com.takaotech.ktravel.presentation.planning
 
 import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
@@ -46,6 +47,14 @@ object TravelPlanUiMapper {
         time = time
     )
 
+    private fun AttachmentDomain.toUi(): AttachmentUi = AttachmentUi(
+        id = id,
+        relativePath = relativePath,
+        originalName = originalName,
+        mimeType = mimeType,
+        isImage = isImage
+    )
+
     fun StepDomain.toUiStep(): StepUi = when (this) {
         is StepDomain.Place -> StepUi.Place(
             id = id,
@@ -53,7 +62,8 @@ object TravelPlanUiMapper {
             lat = lat,
             lng = lng,
             schedule = schedule?.toUiSchedule(),
-            note = note
+            note = note,
+            attachments = attachments.map { it.toUi() }.toPersistentList()
         )
 
         is StepDomain.Transport -> StepUi.Transport(
@@ -83,7 +93,8 @@ object TravelPlanUiMapper {
         lat = lat,
         lng = lng,
         schedule = schedule?.toUiSchedule(),
-        note = note
+        note = note,
+        attachments = attachments.map { it.toUi() }.toPersistentList()
     )
 
     fun uiFieldsToDomain(name: String, lat: Double, lng: Double): PlaceDomain = PlaceDomain(

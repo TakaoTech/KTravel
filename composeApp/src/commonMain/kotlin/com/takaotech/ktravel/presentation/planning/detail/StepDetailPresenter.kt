@@ -13,8 +13,10 @@ import com.mikepenz.markdown.model.State
 import com.mikepenz.markdown.model.parseMarkdown
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
+import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.domain.model.AttachmentReference
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
@@ -35,7 +37,8 @@ import kotlinx.coroutines.launch
 fun StepDetailPresenter(
     screen: StepDetailScreen,
     navigator: Navigator,
-    planningGraphStore: PlanningGraphStore
+    planningGraphStore: PlanningGraphStore,
+    attachmentDataSource: AttachmentDataSource
 ): StepDetailUiState {
     val repository = remember(screen.travelId) {
         planningGraphStore.getOrCreate(screen.travelId).travelPlanRepository
@@ -64,10 +67,20 @@ fun StepDetailPresenter(
         noteInvalid = !repository.persistNoteIfValid(screen.dayId, screen.stepId, note)
     }
 
+    // Riferimenti nel Markdown non presenti nell'inventario dello step (dangling): errore da segnalare.
+    // Ricalcolato quando cambia la nota corrente (in bozza o salvata) o l'inventario.
+    val currentNote = pendingNote ?: place?.note.orEmpty()
+    val inventoryPaths = place?.attachments?.map { it.relativePath }.orEmpty()
+    val missingReferences = remember(currentNote, inventoryPaths) {
+        AttachmentReference.missingReferences(currentNote, inventoryPaths)
+    }
+
     return StepDetailUiState(
         place = place,
         isEditing = isEditing,
-        noteInvalid = noteInvalid
+        noteInvalid = noteInvalid,
+        missingReferences = missingReferences,
+        resolveFile = attachmentDataSource::resolveFile
     ) { event ->
         when (event) {
             StepDetailEvent.NavigateBack -> navigator.pop()
@@ -89,6 +102,18 @@ fun StepDetailPresenter(
 
             is StepDetailEvent.NoteChanged -> {
                 pendingNote = event.note
+            }
+
+            is StepDetailEvent.AddAttachment -> {
+                scope.launch {
+                    repository.addAttachment(screen.dayId, screen.stepId, event.file)
+                }
+            }
+
+            is StepDetailEvent.RemoveAttachment -> {
+                scope.launch {
+                    repository.removeAttachment(screen.dayId, screen.stepId, event.attachmentId)
+                }
             }
         }
     }

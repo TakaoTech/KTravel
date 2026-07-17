@@ -51,6 +51,20 @@ data class VisitScheduleDomain(
     val time: LocalTime
 )
 
+/**
+ * File dell'inventario di uno step. [relativePath] è relativo alla root degli allegati
+ * (`<travelId>/<stepId>/<uuid>.<ext>`); [isImage] deriva dal [mimeType].
+ */
+data class AttachmentDomain(
+    val id: String = newId(),
+    val relativePath: String,
+    val originalName: String,
+    val mimeType: String,
+    val sizeBytes: Long
+) {
+    val isImage: Boolean get() = mimeType.startsWith("image/")
+}
+
 sealed class StepDomain(open val id: String = newId()) {
     /**
      * Step di un luogo collocato nell'itinerario.
@@ -65,7 +79,9 @@ sealed class StepDomain(open val id: String = newId()) {
         val lng: Double,
         val schedule: VisitScheduleDomain? = null,
         /** Note libere in formato Markdown associate allo step. */
-        val note: String = ""
+        val note: String = "",
+        /** Inventario file dello step (foto e documenti). */
+        val attachments: List<AttachmentDomain> = emptyList()
     ) : StepDomain(id)
 
     data class Transport(

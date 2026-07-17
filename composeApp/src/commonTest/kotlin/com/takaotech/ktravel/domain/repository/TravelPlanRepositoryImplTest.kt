@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.repository
 
+import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
@@ -52,14 +53,16 @@ private data class Ctx(
     val dayIds: List<String> = emptyList()
 )
 
+private fun mockAttachmentDataSource(): AttachmentDataSource = mock(MockMode.autoUnit)
+
 private fun freshCtx(): Ctx {
     val ds = mockDataSource()
-    return Ctx(TravelPlanRepositoryImpl(TEST_PLAN_ID, ds), ds)
+    return Ctx(TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, mockAttachmentDataSource()), ds)
 }
 
 private suspend fun ctxWith3Days(): Ctx {
     val ds = mockDataSource()
-    val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds)
+    val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, mockAttachmentDataSource())
     repo.updatePeriod(START_MILLIS, END_MILLIS)
     val dayIds = repo.planningState.value.days.map { it.id }
     return Ctx(repo, ds, dayIds)

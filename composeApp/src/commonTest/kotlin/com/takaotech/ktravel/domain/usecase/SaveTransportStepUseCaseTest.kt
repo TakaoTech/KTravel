@@ -162,6 +162,14 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
     override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) = Unit
+    override suspend fun addAttachment(
+        dayId: String,
+        stepId: String,
+        source: io.github.vinceglb.filekit.PlatformFile
+    ) = Unit
+
+    override suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String) =
+        Unit
     override suspend fun updatePlanName(name: String) = Unit
     override suspend fun savePlace(place: com.takaotech.ktravel.domain.model.PlaceDomain, dayId: String?) = Unit
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = Unit

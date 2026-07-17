@@ -84,7 +84,9 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
         val lng: Double,
         val schedule: VisitScheduleUi? = null,
         /** Note libere in formato Markdown associate allo step. */
-        val note: String = ""
+        val note: String = "",
+        /** Inventario file dello step. */
+        val attachments: PersistentList<AttachmentUi> = persistentListOf()
     ) : StepUi(id)
 
     @Stable
@@ -103,6 +105,15 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
 data class VisitScheduleUi(
     val date: LocalDate? = null,
     val time: LocalTime
+)
+
+@Stable
+data class AttachmentUi(
+    val id: String,
+    val relativePath: String,
+    val originalName: String,
+    val mimeType: String,
+    val isImage: Boolean
 )
 
 @Stable

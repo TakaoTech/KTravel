@@ -43,6 +43,20 @@ data class VisitScheduleEntity(
     @SerialName("time_minute") val timeMinute: Int
 )
 
+/**
+ * Metadati di un file dell'inventario di uno step. Il binario risiede su disco
+ * (`<travelId>/<stepId>/<uuid>.<ext>`); qui si conserva solo il [relativePath] relativo alla root
+ * degli allegati, mai un path assoluto (su iOS il container sandbox cambia tra i lanci).
+ */
+@Serializable
+data class AttachmentEntity(
+    @SerialName("id") val id: String,
+    @SerialName("relative_path") val relativePath: String,
+    @SerialName("original_name") val originalName: String,
+    @SerialName("mime_type") val mimeType: String,
+    @SerialName("size_bytes") val sizeBytes: Long
+)
+
 @Serializable
 sealed class StepEntity {
     abstract val id: String
@@ -56,7 +70,9 @@ sealed class StepEntity {
         @SerialName("lat") val lat: Double,
         @SerialName("lng") val lng: Double,
         @SerialName("schedule") val schedule: VisitScheduleEntity? = null,
-        @SerialName("note") val note: String = ""
+        @SerialName("note") val note: String = "",
+        // Inventario file dello step. Default vuoto = retro-compatibile con i documenti già salvati.
+        @SerialName("attachments") val attachments: List<AttachmentEntity> = emptyList()
     ) : StepEntity()
 
     @Serializable

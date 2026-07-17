@@ -40,6 +40,13 @@
     <string name="planning_detail_cd_edit_note">Edit notes</string>
     <string name="planning_detail_cd_done_note">Done editing notes</string>
     <string name="planning_detail_cd_note_invalid">Invalid Markdown: notes not saved</string>
+    <string name="planning_detail_attachments_title">Files</string>
+    <string name="planning_detail_attachments_empty">No files yet</string>
+    <string name="planning_detail_cd_add_attachment">Add file</string>
+    <string name="planning_detail_cd_insert_attachment">Insert into notes</string>
+    <string name="planning_detail_cd_open_attachment">Open file</string>
+    <string name="planning_detail_cd_remove_attachment">Remove file from inventory</string>
+    <string name="planning_detail_attachments_missing">Some notes reference files no longer in the inventory</string>
 
     <string name="planning_transport_provider_name_local">Local</string>
     <string name="planning_transport_provider_name_here">Here</string>

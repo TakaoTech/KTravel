@@ -55,6 +55,40 @@ object TravelPlanEditor {
         day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) })
     }
 
+    /**
+     * Aggiunge un file all'inventario di uno [StepDomain.Place]. Operazione totale: se il giorno o lo
+     * step non esistono, o lo step non è un Place, restituisce il piano invariato.
+     */
+    fun TravelPlanDomain.addPlaceAttachment(
+        dayId: String,
+        stepId: String,
+        attachment: AttachmentDomain
+    ): TravelPlanDomain =
+        updatePlaceStep(dayId, stepId) { it.copy(attachments = it.attachments + attachment) }
+
+    /**
+     * Rimuove un file dall'inventario di uno [StepDomain.Place] per id. Operazione totale: se non
+     * trova giorno/step/allegato, restituisce il piano invariato.
+     */
+    fun TravelPlanDomain.removePlaceAttachment(
+        dayId: String,
+        stepId: String,
+        attachmentId: String
+    ): TravelPlanDomain = updatePlaceStep(dayId, stepId) {
+        it.copy(attachments = it.attachments.filter { a -> a.id != attachmentId })
+    }
+
+    /** Applica [transform] allo [StepDomain.Place] indicato, se esiste; altrimenti no-op. */
+    private fun TravelPlanDomain.updatePlaceStep(
+        dayId: String,
+        stepId: String,
+        transform: (StepDomain.Place) -> StepDomain.Place
+    ): TravelPlanDomain = updateDay(dayId) { day ->
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+        val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
+        day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = transform(step) })
+    }
+
     fun TravelPlanDomain.movePlaceToDay(placeId: String, dayId: String): TravelPlanDomain {
         val place = places.firstOrNull { it.id == placeId } ?: return this
         if (days.none { it.id == dayId }) return this
