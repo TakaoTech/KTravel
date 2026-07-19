@@ -117,6 +117,7 @@ Open `/iosApp` directory in Xcode and run from there.
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
 - Keep functions small and focused on a single responsibility
+- Write method name, comment, and documentation in English
 
 ### Architecture Guidelines
 
@@ -139,6 +140,7 @@ Open `/iosApp` directory in Xcode and run from there.
 - Follow Compose best practices for performance
 - Keep composables focused and composable
 - Place new label strings in `strings.xml` and use id for string references
+- Use Immutable package instead of standard List
 
 ## Development Workflow
 
