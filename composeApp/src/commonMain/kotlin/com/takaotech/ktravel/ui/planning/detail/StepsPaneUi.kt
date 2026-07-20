@@ -1,11 +1,21 @@
 package com.takaotech.ktravel.ui.planning.detail
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,10 +24,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.di.AppScope
@@ -28,11 +44,15 @@ import com.takaotech.ktravel.presentation.planning.detail.StepsPaneScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepsPaneUiState
 import com.takaotech.ktravel.presentation.planning.detail.buildStepRows
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
+import ktravel.composeapp.generated.resources.flag
 import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.place
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
 import ktravel.composeapp.generated.resources.planning_detail_cd_open_backlog
+import ktravel.composeapp.generated.resources.planning_detail_cd_step_time
 import ktravel.composeapp.generated.resources.planning_detail_steps_empty
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -46,9 +66,16 @@ internal object StepsPaneTestTags {
         "steps_pane_add_transport_${startPlaceId}_$endPlaceId"
 }
 
+// Timeline sizing (gutter with vertical line and nodes).
+private val TimeColumnWidth = 48.dp
+private val GutterWidth = 40.dp
+private val NodeSize = 32.dp
+private val NodeCenterY = 28.dp
+private val LineThickness = 2.dp
+
 /**
- * `Ui` Circuit del pannello itinerario (registrata via Metro `@CircuitInject`): renderizza lo stato
- * e inoltra gli eventi via `eventSink`, riusando il contenuto stateless [StepsPaneContent].
+ * Circuit `Ui` of the itinerary pane (registered through Metro `@CircuitInject`): renders the state
+ * and forwards events via `eventSink`, reusing the stateless [StepsPaneContent].
  */
 @CircuitInject(StepsPaneScreen::class, AppScope::class)
 @Composable
@@ -70,8 +97,8 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
 }
 
 /**
- * Contenuto stateless del pannello itinerario: renderizza le [rows] pre-calcolate dal presenter,
- * senza alcuna logica di adiacenza.
+ * Stateless content of the itinerary pane: renders the [rows] pre-computed by the presenter as a
+ * vertical timeline, without any adjacency logic.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,39 +157,219 @@ internal fun StepsPaneContent(
                 )
             }
         } else {
+            // Row of the last place: marked as the final destination only when there is an actual
+            // journey (at least two places).
+            val destinationIndex = remember(rows) {
+                val placeCount = rows.count { it is StepRow.Step && it.step is StepUi.Place }
+                if (placeCount >= 2) {
+                    rows.indexOfLast { it is StepRow.Step && it.step is StepUi.Place }
+                } else {
+                    -1
+                }
+            }
             LazyColumn(
                 modifier = Modifier.padding(padding).testTag(StepsPaneTestTags.LIST)
             ) {
-                items(items = rows, key = { it.key }) { row ->
+                itemsIndexed(items = rows, key = { _, row -> row.key }) { index, row ->
+                    val isFirst = index == 0
+                    val isLast = index == rows.lastIndex
                     when (row) {
                         is StepRow.Step -> when (val step = row.step) {
-                            is StepUi.Place -> TravelStepPlace(
-                                step = step,
-                                onStepClick = onStepClick,
-                                onStepDeleteClicked = { onDeleteStepClick(step) },
-                                onStepMoveUp = onMoveStepUpClick,
-                                onStepMoveDown = onMoveStepDownClick
-                            )
+                            is StepUi.Place -> TimelineRow(
+                                isFirst = isFirst,
+                                isLast = isLast,
+                                timeLabel = step.schedule?.time?.let(::formatScheduleTime),
+                                node = {
+                                    if (index == destinationIndex) DestinationNode() else PlaceNode()
+                                }
+                            ) {
+                                TravelStepPlace(
+                                    step = step,
+                                    onStepClick = onStepClick,
+                                    onStepDeleteClicked = { onDeleteStepClick(step) },
+                                    onStepMoveUp = onMoveStepUpClick,
+                                    onStepMoveDown = onMoveStepDownClick
+                                )
+                            }
 
-                            is StepUi.Transport -> TravelStepTransport(
-                                modifier = Modifier.fillMaxWidth(),
-                                step = step,
-                                onStepDeleteClicked = { onDeleteStepClick(step) }
-                            )
+                            is StepUi.Transport -> TimelineRow(
+                                isFirst = isFirst,
+                                isLast = isLast,
+                                timeLabel = null,
+                                node = { TransportNode(step) }
+                            ) {
+                                TravelStepTransport(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    step = step,
+                                    onStepDeleteClicked = { onDeleteStepClick(step) }
+                                )
+                            }
                         }
 
-                        is StepRow.AddTransportSlot -> TravelTransportStepAdd(
-                            modifier = Modifier.testTag(
-                                StepsPaneTestTags.addTransportTag(row.startPlaceId, row.endPlaceId)
-                            ),
-                            onClick = { onAddTransportClick(row.startPlaceId, row.endPlaceId) }
-                        )
+                        is StepRow.AddTransportSlot -> TimelineRow(
+                            isFirst = isFirst,
+                            isLast = isLast,
+                            timeLabel = null,
+                            node = { AddTransportNode() }
+                        ) {
+                            TravelTransportStepAdd(
+                                modifier = Modifier.testTag(
+                                    StepsPaneTestTags.addTransportTag(
+                                        row.startPlaceId,
+                                        row.endPlaceId
+                                    )
+                                ),
+                                onClick = { onAddTransportClick(row.startPlaceId, row.endPlaceId) }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+
+/**
+ * Timeline row: optional time column on the left, gutter with a continuous vertical line and the
+ * centered [node], and [content] on the right. The line is trimmed at the node when [isFirst] /
+ * [isLast].
+ */
+@Composable
+private fun TimelineRow(
+    isFirst: Boolean,
+    isLast: Boolean,
+    timeLabel: String?,
+    node: @Composable BoxScope.() -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val lineColor = MaterialTheme.colorScheme.outlineVariant
+    val timeDescription = stringResource(Res.string.planning_detail_cd_step_time)
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+    ) {
+        Box(modifier = Modifier.width(TimeColumnWidth).fillMaxHeight()) {
+            if (timeLabel != null) {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = NodeCenterY - 8.dp, end = 4.dp)
+                        .semantics { contentDescription = timeDescription },
+                    text = timeLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Box(modifier = Modifier.width(GutterWidth).fillMaxHeight()) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(LineThickness)
+                    .align(Alignment.TopCenter)
+            ) {
+                val centerY = NodeCenterY.toPx()
+                val top = if (isFirst) centerY else 0f
+                val bottom = if (isLast) centerY else size.height
+                drawLine(
+                    color = lineColor,
+                    start = Offset(size.width / 2f, top),
+                    end = Offset(size.width / 2f, bottom),
+                    strokeWidth = size.width
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = NodeCenterY - NodeSize / 2)
+                    .size(NodeSize),
+                contentAlignment = Alignment.Center,
+                content = node
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 8.dp)
+                .padding(end = 16.dp)
+        ) {
+            content()
+        }
+    }
+}
+
+/** Node of a place: filled circle with a "place" icon. */
+@Composable
+private fun BoxScope.PlaceNode() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(18.dp),
+            painter = painterResource(Res.drawable.place),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
+
+/** Node of the final destination: accented circle with a flag icon. */
+@Composable
+private fun BoxScope.DestinationNode() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.tertiary),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(18.dp),
+            painter = painterResource(Res.drawable.flag),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onTertiary
+        )
+    }
+}
+
+/** Node of a transport: the vehicle icon over a `surface` background that punches through the line. */
+@Composable
+private fun BoxScope.TransportNode(step: StepUi.Transport) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(step.type.toIcon()),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+/** Node of the "add transport" slot: a small, unobtrusive dot on the line. */
+@Composable
+private fun BoxScope.AddTransportNode() {
+    Box(
+        modifier = Modifier
+            .size(10.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.outlineVariant)
+    )
+}
+
+private fun formatScheduleTime(time: LocalTime): String =
+    "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
 
 @Preview
 @Composable

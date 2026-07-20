@@ -32,6 +32,7 @@
     <string name="planning_detail_cd_delete_step">Delete step</string>
     <string name="planning_detail_cd_move_step_up">Move step up</string>
     <string name="planning_detail_cd_move_step_down">Move step down</string>
+    <string name="planning_detail_cd_step_time">Scheduled time</string>
     <string name="planning_detail_cd_move_place_to_steps">Add place to itinerary</string>
     <string name="planning_detail_cd_open_step_detail">Open step detail</string>
     <string name="planning_detail_step_note_title">Notes</string>
