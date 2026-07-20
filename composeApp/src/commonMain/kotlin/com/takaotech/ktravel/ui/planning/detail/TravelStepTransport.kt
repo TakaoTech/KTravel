@@ -2,14 +2,13 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.presentation.planning.StepUi
 import ktravel.composeapp.generated.resources.Res
@@ -31,6 +30,11 @@ fun TransportType.toIcon(): DrawableResource = when (this) {
     TransportType.FLIGHT -> Res.drawable.flight
 }
 
+/**
+ * Content (right-hand side of the timeline) of a transport: a compact connector between two places.
+ * The vehicle icon is rendered in the gutter node by the calling timeline row; only the aggregated
+ * duration and the delete action remain here.
+ */
 @Composable
 fun TravelStepTransport(
     step: StepUi.Transport,
@@ -41,21 +45,18 @@ fun TravelStepTransport(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painter = painterResource(step.type.toIcon()), contentDescription = null)
-
         Text(
             text = stringResource(
                 Res.string.planning_detail_transport_duration,
                 step.totalDuration.toString()
-            )
+            ),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(Modifier.weight(1f))
 
-        IconButton(
-            modifier = Modifier.padding(top = 8.dp),
-            onClick = onStepDeleteClicked
-        ) {
+        IconButton(onClick = onStepDeleteClicked) {
             Icon(
                 painter = painterResource(Res.drawable.delete),
                 contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),

@@ -32,7 +32,6 @@ import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
-import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -40,6 +39,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.add
 import ktravel.composeapp.generated.resources.save
 import ktravel.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.painterResource
@@ -122,6 +122,12 @@ private fun PlanningTripPage(
             TopAppBar(
                 title = { },
                 actions = {
+                    IconButton(onClick = onSaveClick) {
+                        Icon(
+                            painter = painterResource(Res.drawable.save),
+                            contentDescription = null
+                        )
+                    }
                     IconButton(onClick = onSettingClicked) {
                         Icon(painter = painterResource(Res.drawable.settings), contentDescription = null)
                     }
@@ -130,10 +136,10 @@ private fun PlanningTripPage(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onSaveClick
+                onClick = onAddPlaceClicked
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.save),
+                    painter = painterResource(Res.drawable.add),
                     contentDescription = null
                 )
             }
@@ -177,12 +183,6 @@ private fun PlanningTripPage(
                             }
                         )
                     }
-                }
-
-                item {
-                    AddPlaceButton(
-                        onClick = onAddPlaceClicked
-                    )
                 }
 
                 item {
