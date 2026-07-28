@@ -14,6 +14,7 @@ import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addPlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addTransportStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.clearFinalDestinationSchedules
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deletePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToDay
@@ -25,6 +26,8 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceArrivalTime
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceDepartureTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
@@ -39,6 +42,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.LocalTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -52,7 +56,10 @@ class TravelPlanRepositoryImpl(
 ) : TravelPlanRepository {
 
     private val travelPlanId: String = travelId
-    private val _planningState = MutableStateFlow(dataSource.getTravelPlan(travelPlanId).toDomain())
+    private val _planningState =
+        MutableStateFlow(
+            dataSource.getTravelPlan(travelPlanId).toDomain().clearFinalDestinationSchedules()
+        )
     override val planningState: StateFlow<TravelPlanDomain> = _planningState.asStateFlow()
 
     private suspend fun persistCurrentState() {
@@ -60,9 +67,12 @@ class TravelPlanRepositoryImpl(
         dataSource.saveTravelPlan(entity)
     }
 
-    /** Applica una mutazione pura allo stato corrente e persiste il risultato. */
+    /**
+     * Applica una mutazione pura allo stato corrente e persiste il risultato. Dopo ogni mutazione
+     * riapplica l'invariante della destinazione finale (nessun orario sull'ultimo luogo del giorno).
+     */
     private suspend fun mutate(transform: (TravelPlanDomain) -> TravelPlanDomain) {
-        _planningState.update(transform)
+        _planningState.update { transform(it).clearFinalDestinationSchedules() }
         persistCurrentState()
     }
 
@@ -97,6 +107,12 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) =
         mutate { it.updatePlaceNote(dayId, stepId, note) }
+
+    override suspend fun updatePlaceArrivalTime(dayId: String, stepId: String, time: LocalTime) =
+        mutate { it.updatePlaceArrivalTime(dayId, stepId, time) }
+
+    override suspend fun updatePlaceDepartureTime(dayId: String, stepId: String, time: LocalTime) =
+        mutate { it.updatePlaceDepartureTime(dayId, stepId, time) }
 
     override suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile) {
         // Prima il file su disco, poi i metadati: evita riferimenti a file inesistenti.

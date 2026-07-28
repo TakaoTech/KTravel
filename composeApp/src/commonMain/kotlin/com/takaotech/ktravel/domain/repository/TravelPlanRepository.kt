@@ -8,6 +8,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.datetime.LocalTime
 
 @OpenForMokkery
 interface TravelPlanRepository {
@@ -42,6 +43,16 @@ interface TravelPlanRepository {
      * Aggiorna le note (Markdown) di uno Step.Place
      */
     suspend fun updatePlaceNote(dayId: String, stepId: String, note: String)
+
+    /**
+     * Imposta l'orario di arrivo di uno Step.Place (crea lo schedule se assente)
+     */
+    suspend fun updatePlaceArrivalTime(dayId: String, stepId: String, time: LocalTime)
+
+    /**
+     * Imposta l'orario di partenza di uno Step.Place (crea lo schedule se assente)
+     */
+    suspend fun updatePlaceDepartureTime(dayId: String, stepId: String, time: LocalTime)
 
     /**
      * Aggiunge un file all'inventario di uno Step.Place: copia il [source] su disco e registra i

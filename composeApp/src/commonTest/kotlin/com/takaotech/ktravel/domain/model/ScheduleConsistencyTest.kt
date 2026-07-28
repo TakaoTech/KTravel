@@ -15,7 +15,7 @@ class ScheduleConsistencyTest : BehaviorSpec({
         name = id,
         lat = 0.0,
         lng = 0.0,
-        schedule = VisitScheduleDomain(time = LocalTime(hour, minute))
+        schedule = VisitScheduleDomain(arrivalTime = LocalTime(hour, minute))
     )
 
     given("an itinerary with strictly increasing times") {

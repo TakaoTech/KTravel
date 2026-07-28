@@ -2,8 +2,10 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -52,7 +55,6 @@ import ktravel.composeapp.generated.resources.flight
 import ktravel.composeapp.generated.resources.place
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
 import ktravel.composeapp.generated.resources.planning_detail_cd_open_backlog
-import ktravel.composeapp.generated.resources.planning_detail_cd_step_time
 import ktravel.composeapp.generated.resources.planning_detail_steps_empty
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -67,7 +69,7 @@ internal object StepsPaneTestTags {
 }
 
 // Timeline sizing (gutter with vertical line and nodes).
-private val TimeColumnWidth = 48.dp
+private val TimeColumnWidth = 64.dp
 private val GutterWidth = 40.dp
 private val NodeSize = 32.dp
 private val NodeCenterY = 28.dp
@@ -92,7 +94,9 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
         onMoveStepDownClick = { sink(StepsPaneEvent.MoveStepDown(it)) },
         onAddTransportClick = { startPlaceId, endPlaceId ->
             sink(StepsPaneEvent.AddTransport(startPlaceId, endPlaceId))
-        }
+        },
+        onSetArrivalTime = { stepId, time -> sink(StepsPaneEvent.SetArrivalTime(stepId, time)) },
+        onSetDepartureTime = { stepId, time -> sink(StepsPaneEvent.SetDepartureTime(stepId, time)) }
     )
 }
 
@@ -111,6 +115,8 @@ internal fun StepsPaneContent(
     onMoveStepUpClick: (String) -> Unit,
     onMoveStepDownClick: (String) -> Unit,
     onAddTransportClick: (startPlaceId: String, endPlaceId: String) -> Unit,
+    onSetArrivalTime: (stepId: String, time: LocalTime) -> Unit,
+    onSetDepartureTime: (stepId: String, time: LocalTime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -175,27 +181,52 @@ internal fun StepsPaneContent(
                     val isLast = index == rows.lastIndex
                     when (row) {
                         is StepRow.Step -> when (val step = row.step) {
-                            is StepUi.Place -> TimelineRow(
-                                isFirst = isFirst,
-                                isLast = isLast,
-                                timeLabel = step.schedule?.time?.let(::formatScheduleTime),
-                                node = {
-                                    if (index == destinationIndex) DestinationNode() else PlaceNode()
+                            is StepUi.Place -> {
+                                // The final destination is the arrival point of the journey: it
+                                // cannot hold a visit schedule, so no editable time column is shown.
+                                val isDestination = index == destinationIndex
+                                TimelineRow(
+                                    isFirst = isFirst,
+                                    isLast = isLast,
+                                    timeColumn = if (isDestination) {
+                                        null
+                                    } else {
+                                        {
+                                            ScheduleTimeColumn(
+                                                arrivalTime = step.schedule?.arrivalTime,
+                                                departureTime = step.schedule?.departureTime,
+                                                onArrivalConfirm = {
+                                                    onSetArrivalTime(
+                                                        step.id,
+                                                        it
+                                                    )
+                                                },
+                                                onDepartureConfirm = {
+                                                    onSetDepartureTime(
+                                                        step.id,
+                                                        it
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    },
+                                    node = {
+                                        if (isDestination) DestinationNode() else PlaceNode()
+                                    }
+                                ) {
+                                    TravelStepPlace(
+                                        step = step,
+                                        onStepClick = onStepClick,
+                                        onStepDeleteClicked = { onDeleteStepClick(step) },
+                                        onStepMoveUp = onMoveStepUpClick,
+                                        onStepMoveDown = onMoveStepDownClick
+                                    )
                                 }
-                            ) {
-                                TravelStepPlace(
-                                    step = step,
-                                    onStepClick = onStepClick,
-                                    onStepDeleteClicked = { onDeleteStepClick(step) },
-                                    onStepMoveUp = onMoveStepUpClick,
-                                    onStepMoveDown = onMoveStepDownClick
-                                )
                             }
 
                             is StepUi.Transport -> TimelineRow(
                                 isFirst = isFirst,
                                 isLast = isLast,
-                                timeLabel = null,
                                 node = { TransportNode(step) }
                             ) {
                                 TravelStepTransport(
@@ -209,7 +240,6 @@ internal fun StepsPaneContent(
                         is StepRow.AddTransportSlot -> TimelineRow(
                             isFirst = isFirst,
                             isLast = isLast,
-                            timeLabel = null,
                             node = { AddTransportNode() }
                         ) {
                             TravelTransportStepAdd(
@@ -230,34 +260,34 @@ internal fun StepsPaneContent(
 }
 
 /**
- * Timeline row: optional time column on the left, gutter with a continuous vertical line and the
- * centered [node], and [content] on the right. The line is trimmed at the node when [isFirst] /
+ * Timeline row: optional [timeColumn] slot on the left, gutter with a continuous vertical line and
+ * the centered [node], and [content] on the right. The line is trimmed at the node when [isFirst] /
  * [isLast].
  */
 @Composable
 private fun TimelineRow(
     isFirst: Boolean,
     isLast: Boolean,
-    timeLabel: String?,
     node: @Composable BoxScope.() -> Unit,
+    timeColumn: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val lineColor = MaterialTheme.colorScheme.outlineVariant
-    val timeDescription = stringResource(Res.string.planning_detail_cd_step_time)
     Row(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
     ) {
         Box(modifier = Modifier.width(TimeColumnWidth).fillMaxHeight()) {
-            if (timeLabel != null) {
-                Text(
+            if (timeColumn != null) {
+                Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = NodeCenterY - 8.dp, end = 4.dp)
-                        .semantics { contentDescription = timeDescription },
-                    text = timeLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                        .padding(
+                            top = NodeCenterY - 16.dp,
+                            end = 4.dp
+                        )
+                ) {
+                    timeColumn()
+                }
             }
         }
 
@@ -340,7 +370,7 @@ private fun BoxScope.DestinationNode() {
 
 /** Node of a transport: the vehicle icon over a `surface` background that punches through the line. */
 @Composable
-private fun BoxScope.TransportNode(step: StepUi.Transport) {
+private fun TransportNode(step: StepUi.Transport) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -359,7 +389,7 @@ private fun BoxScope.TransportNode(step: StepUi.Transport) {
 
 /** Node of the "add transport" slot: a small, unobtrusive dot on the line. */
 @Composable
-private fun BoxScope.AddTransportNode() {
+private fun AddTransportNode() {
     Box(
         modifier = Modifier
             .size(10.dp)
@@ -368,8 +398,50 @@ private fun BoxScope.AddTransportNode() {
     )
 }
 
-private fun formatScheduleTime(time: LocalTime): String =
-    "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
+/**
+ * Editable time column of a place row: arrival above, departure below. Compact presentation of the
+ * shared [ScheduleTimeEditor]: each time is a clickable label opening the Material3 time picker; an
+ * unset time shows the `--:--` placeholder yet stays clickable.
+ */
+@Composable
+private fun ScheduleTimeColumn(
+    arrivalTime: LocalTime?,
+    departureTime: LocalTime?,
+    onArrivalConfirm: (LocalTime) -> Unit,
+    onDepartureConfirm: (LocalTime) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ScheduleTimeEditor(
+        arrivalTime = arrivalTime,
+        departureTime = departureTime,
+        onArrivalConfirm = onArrivalConfirm,
+        onDepartureConfirm = onDepartureConfirm
+    ) { scope ->
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                modifier = Modifier
+                    .clickable(onClick = scope.openArrivalPicker)
+                    .minimumInteractiveComponentSize()
+                    .semantics { contentDescription = scope.arrivalContentDescription },
+                text = scope.arrivalDisplay,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                modifier = Modifier
+                    .clickable(onClick = scope.openDeparturePicker)
+                    .minimumInteractiveComponentSize()
+                    .semantics { contentDescription = scope.departureContentDescription },
+                text = scope.departureDisplay,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
 
 @Preview
 @Composable
@@ -382,6 +454,8 @@ private fun StepsPaneContentPreview() {
         onDeleteStepClick = {},
         onMoveStepUpClick = {},
         onMoveStepDownClick = {},
-        onAddTransportClick = { _, _ -> }
+        onAddTransportClick = { _, _ -> },
+        onSetArrivalTime = { _, _ -> },
+        onSetDepartureTime = { _, _ -> }
     )
 }

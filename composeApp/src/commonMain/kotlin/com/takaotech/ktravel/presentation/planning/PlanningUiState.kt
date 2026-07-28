@@ -104,7 +104,8 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
 @Stable
 data class VisitScheduleUi(
     val date: LocalDate? = null,
-    val time: LocalTime
+    val arrivalTime: LocalTime? = null,
+    val departureTime: LocalTime? = null
 )
 
 @Stable

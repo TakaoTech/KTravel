@@ -6,6 +6,7 @@ import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.presentation.planning.StepUi
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.datetime.LocalTime
 
 /**
  * Pannello itinerario del dettaglio giorno: lista ordinata di step (posti e trasporti) con slot
@@ -40,4 +41,10 @@ sealed interface StepsPaneEvent : CircuitUiEvent {
 
     /** Avvia il flusso di aggiunta trasporto tra due step consecutivi. */
     data class AddTransport(val startPlaceId: String, val endPlaceId: String) : StepsPaneEvent
+
+    /** Imposta l'orario di arrivo dello step luogo indicato. */
+    data class SetArrivalTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
+
+    /** Imposta l'orario di partenza dello step luogo indicato. */
+    data class SetDepartureTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
 }

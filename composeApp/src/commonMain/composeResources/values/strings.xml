@@ -50,6 +50,18 @@
     <string name="planning_detail_attachment_open_error">Unable to open the file</string>
     <string name="planning_detail_attachments_missing">Some notes reference files no longer in the inventory</string>
 
+    <string name="planning_detail_schedule_title">Schedule</string>
+    <string name="planning_detail_time_unset">--:--</string>
+    <string name="planning_detail_arrival_label">Arrival</string>
+    <string name="planning_detail_departure_label">Departure</string>
+    <string name="planning_detail_cd_arrival_time">Arrival time</string>
+    <string name="planning_detail_cd_departure_time">Departure time</string>
+    <string name="planning_detail_arrival_picker_title">Select arrival time</string>
+    <string name="planning_detail_departure_picker_title">Select departure time</string>
+    <string name="planning_detail_departure_before_arrival">Departure cannot be earlier than arrival</string>
+    <string name="time_picker_confirm">Confirm</string>
+    <string name="time_picker_cancel">Cancel</string>
+
     <string name="planning_transport_provider_name_local">Local</string>
     <string name="planning_transport_provider_name_here">Here</string>
     <string name="planning_transport_provider_name_gmaps">Google Maps</string>
