@@ -130,7 +130,8 @@ class TravelPlanMapperTest : BehaviorSpec({
             lng = 12.47,
             schedule = VisitScheduleDomain(
                 date = LocalDate(2024, 6, 2),
-                time = LocalTime(10, 30)
+                arrivalTime = LocalTime(10, 30),
+                departureTime = LocalTime(11, 15)
             )
         )
 
@@ -140,8 +141,10 @@ class TravelPlanMapperTest : BehaviorSpec({
             then("entity schedule should not be null") {
                 entity.schedule shouldBe VisitScheduleEntity(
                     dateEpochDays = LocalDate(2024, 6, 2).toEpochDays().toInt(),
-                    timeHour = 10,
-                    timeMinute = 30
+                    arrivalTimeHour = 10,
+                    arrivalTimeMinute = 30,
+                    departureTimeHour = 11,
+                    departureTimeMinute = 15
                 )
             }
         }
@@ -153,8 +156,11 @@ class TravelPlanMapperTest : BehaviorSpec({
             then("round-tripped step name should match original") {
                 roundTripped.name shouldBe step.name
             }
-            then("round-tripped schedule time should match original") {
-                roundTripped.schedule?.time shouldBe LocalTime(10, 30)
+            then("round-tripped schedule arrival time should match original") {
+                roundTripped.schedule?.arrivalTime shouldBe LocalTime(10, 30)
+            }
+            then("round-tripped schedule departure time should match original") {
+                roundTripped.schedule?.departureTime shouldBe LocalTime(11, 15)
             }
             then("round-tripped schedule date should match original") {
                 roundTripped.schedule?.date shouldBe LocalDate(2024, 6, 2)

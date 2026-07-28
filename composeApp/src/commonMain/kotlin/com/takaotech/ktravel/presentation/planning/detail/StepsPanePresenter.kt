@@ -72,6 +72,14 @@ fun StepsPanePresenter(
             is StepsPaneEvent.AddTransport -> navigator.goTo(
                 AddTransportScreen(screen.dayId, event.startPlaceId, event.endPlaceId)
             )
+
+            is StepsPaneEvent.SetArrivalTime -> scope.launch {
+                repository.updatePlaceArrivalTime(screen.dayId, event.stepId, event.time)
+            }
+
+            is StepsPaneEvent.SetDepartureTime -> scope.launch {
+                repository.updatePlaceDepartureTime(screen.dayId, event.stepId, event.time)
+            }
         }
     }
 }

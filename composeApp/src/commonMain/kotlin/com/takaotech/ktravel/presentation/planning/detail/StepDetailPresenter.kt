@@ -17,6 +17,7 @@ import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.AttachmentReference
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.finalDestinationIndex
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
@@ -45,14 +46,20 @@ fun StepDetailPresenter(
     }
     val scope = rememberCoroutineScope()
 
-    val placeFlow = remember(repository, screen.dayId, screen.stepId) {
+    val detailFlow = remember(repository, screen.dayId, screen.stepId) {
         repository.getTravelDayFlow(screen.dayId).map { day ->
-            with(TravelPlanUiMapper) { day.toUiDay() }.steps
+            val place = with(TravelPlanUiMapper) { day.toUiDay() }.steps
                 .filterIsInstance<StepUi.Place>()
                 .firstOrNull { it.id == screen.stepId }
+            val destinationIndex = day.steps.finalDestinationIndex()
+            val isFinalDestination =
+                destinationIndex >= 0 && day.steps[destinationIndex].id == screen.stepId
+            place to isFinalDestination
         }
     }
-    val place: StepUi.Place? by placeFlow.collectAsState(initial = null)
+    val detail by detailFlow.collectAsState(initial = null to false)
+    val place: StepUi.Place? = detail.first
+    val isFinalDestination: Boolean = detail.second
 
     var isEditing by rememberSaveable(screen.stepId) { mutableStateOf(false) }
     var noteInvalid by rememberSaveable(screen.stepId) { mutableStateOf(false) }
@@ -77,6 +84,7 @@ fun StepDetailPresenter(
 
     return StepDetailUiState(
         place = place,
+        isFinalDestination = isFinalDestination,
         isEditing = isEditing,
         noteInvalid = noteInvalid,
         missingReferences = missingReferences,
@@ -102,6 +110,18 @@ fun StepDetailPresenter(
 
             is StepDetailEvent.NoteChanged -> {
                 pendingNote = event.note
+            }
+
+            is StepDetailEvent.SetArrivalTime -> {
+                scope.launch {
+                    repository.updatePlaceArrivalTime(screen.dayId, screen.stepId, event.time)
+                }
+            }
+
+            is StepDetailEvent.SetDepartureTime -> {
+                scope.launch {
+                    repository.updatePlaceDepartureTime(screen.dayId, screen.stepId, event.time)
+                }
             }
 
             is StepDetailEvent.AddAttachment -> {

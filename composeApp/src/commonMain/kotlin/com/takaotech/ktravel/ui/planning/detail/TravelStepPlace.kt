@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.ui.planning.detail
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planning.StepUi
+import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
+import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_downward
 import ktravel.composeapp.generated.resources.arrow_upward
@@ -43,35 +46,37 @@ internal fun TravelStepPlace(
         onClick = { onStepClick(step.id) },
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                modifier = Modifier.weight(1f).padding(vertical = 12.dp),
-                text = step.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            IconButton(onClick = onStepDeleteClicked) {
-                Icon(
-                    painter = painterResource(Res.drawable.delete),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
+        Column {
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                    text = step.name,
+                    style = MaterialTheme.typography.titleMedium
                 )
-            }
 
-            IconButton(onClick = { onStepMoveUp(step.id) }) {
-                Icon(
-                    painter = painterResource(Res.drawable.arrow_upward),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_move_step_up),
-                )
-            }
+                IconButton(onClick = onStepDeleteClicked) {
+                    Icon(
+                        painter = painterResource(Res.drawable.delete),
+                        contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
+                    )
+                }
 
-            IconButton(onClick = { onStepMoveDown(step.id) }) {
-                Icon(
-                    painter = painterResource(Res.drawable.arrow_downward),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_move_step_down),
-                )
+                IconButton(onClick = { onStepMoveUp(step.id) }) {
+                    Icon(
+                        painter = painterResource(Res.drawable.arrow_upward),
+                        contentDescription = stringResource(Res.string.planning_detail_cd_move_step_up),
+                    )
+                }
+
+                IconButton(onClick = { onStepMoveDown(step.id) }) {
+                    Icon(
+                        painter = painterResource(Res.drawable.arrow_downward),
+                        contentDescription = stringResource(Res.string.planning_detail_cd_move_step_down),
+                    )
+                }
             }
         }
     }
@@ -84,7 +89,11 @@ private fun TravelStepPlacePreview() {
         step = StepUi.Place(
             name = "Tokyo Tower",
             lat = 0.0,
-            lng = 0.0
+            lng = 0.0,
+            schedule = VisitScheduleUi(
+                arrivalTime = LocalTime(9, 30),
+                departureTime = LocalTime(11, 0)
+            )
         ),
         onStepClick = {},
         onStepDeleteClicked = {},

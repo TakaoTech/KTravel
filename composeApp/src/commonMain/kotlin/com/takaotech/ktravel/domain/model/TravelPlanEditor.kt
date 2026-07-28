@@ -2,6 +2,8 @@ package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceArrivalTime
+import kotlinx.datetime.LocalTime
 
 
 /**
@@ -53,6 +55,68 @@ object TravelPlanEditor {
         val stepIndex = day.steps.indexOfFirst { it.id == stepId }
         val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
         day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) })
+    }
+
+    /**
+     * Imposta l'orario di arrivo di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
+     * assente. Operazione totale: se il giorno o lo step non esistono, o lo step non è un Place,
+     * restituisce il piano invariato.
+     */
+    fun TravelPlanDomain.updatePlaceArrivalTime(
+        dayId: String,
+        stepId: String,
+        time: LocalTime
+    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(arrivalTime = time) }
+
+    /**
+     * Imposta l'orario di partenza di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
+     * assente. Operazione totale (vedi [updatePlaceArrivalTime]).
+     */
+    fun TravelPlanDomain.updatePlaceDepartureTime(
+        dayId: String,
+        stepId: String,
+        time: LocalTime
+    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(departureTime = time) }
+
+    private fun TravelPlanDomain.updatePlaceSchedule(
+        dayId: String,
+        stepId: String,
+        transform: (VisitScheduleDomain) -> VisitScheduleDomain
+    ): TravelPlanDomain = updateDay(dayId) { day ->
+        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+        val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
+        val schedule = transform(step.schedule ?: VisitScheduleDomain())
+        day.copy(
+            steps = day.steps.toMutableList()
+                .also { it[stepIndex] = step.copy(schedule = schedule) }
+        )
+    }
+
+    /**
+     * Index of the final destination place within a day's steps: the last [StepDomain.Place] when
+     * the day has at least two places, otherwise -1. Mirrors the timeline "destination" marker in
+     * the UI: a lone place is not a destination and may keep its schedule.
+     */
+    fun List<StepDomain>.finalDestinationIndex(): Int {
+        val placeCount = count { it is StepDomain.Place }
+        return if (placeCount >= 2) indexOfLast { it is StepDomain.Place } else -1
+    }
+
+    /**
+     * Enforces the rule that the final destination place carries no visit schedule: clears the
+     * schedule of the destination place of every day when present. The destination is the arrival
+     * point of the journey, so an arrival/departure time on it is meaningless and is dropped.
+     */
+    fun TravelPlanDomain.clearFinalDestinationSchedules(): TravelPlanDomain =
+        copy(days = days.map { it.clearFinalDestinationSchedule() })
+
+    private fun TravelDayDomain.clearFinalDestinationSchedule(): TravelDayDomain {
+        val index = steps.finalDestinationIndex()
+        val destination = steps.getOrNull(index) as? StepDomain.Place ?: return this
+        if (destination.schedule == null) return this
+        return copy(
+            steps = steps.toMutableList().also { it[index] = destination.copy(schedule = null) }
+        )
     }
 
     /**

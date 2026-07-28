@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
@@ -18,10 +19,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -34,14 +37,16 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import com.mikepenz.markdown.m3.Markdown
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.model.AttachmentReference
 import com.takaotech.ktravel.presentation.planning.AttachmentUi
 import com.takaotech.ktravel.presentation.planning.StepUi
+import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailUiState
@@ -54,18 +59,22 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
 import io.github.vinceglb.filekit.exists
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalTime
 import kotlinx.io.files.Path
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.check
 import ktravel.composeapp.generated.resources.edit
 import ktravel.composeapp.generated.resources.error
+import ktravel.composeapp.generated.resources.planning_detail_arrival_label
 import ktravel.composeapp.generated.resources.planning_detail_attachment_open_error
 import ktravel.composeapp.generated.resources.planning_detail_attachments_missing
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
 import ktravel.composeapp.generated.resources.planning_detail_cd_done_note
 import ktravel.composeapp.generated.resources.planning_detail_cd_edit_note
 import ktravel.composeapp.generated.resources.planning_detail_cd_note_invalid
+import ktravel.composeapp.generated.resources.planning_detail_departure_label
+import ktravel.composeapp.generated.resources.planning_detail_schedule_title
 import ktravel.composeapp.generated.resources.planning_detail_step_note_empty
 import ktravel.composeapp.generated.resources.planning_detail_step_note_label
 import ktravel.composeapp.generated.resources.planning_detail_step_note_title
@@ -97,6 +106,7 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
     } else {
         StepDetailPlaceContent(
             place = place,
+            isFinalDestination = state.isFinalDestination,
             isEditing = state.isEditing,
             noteInvalid = state.noteInvalid,
             missingReferences = state.missingReferences,
@@ -106,7 +116,9 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
             onToggleEdit = { sink(StepDetailEvent.ToggleEdit(it)) },
             onNoteChanged = { sink(StepDetailEvent.NoteChanged(it)) },
             onAddAttachment = { sink(StepDetailEvent.AddAttachment(it)) },
-            onRemoveAttachment = { sink(StepDetailEvent.RemoveAttachment(it)) }
+            onRemoveAttachment = { sink(StepDetailEvent.RemoveAttachment(it)) },
+            onSetArrivalTime = { sink(StepDetailEvent.SetArrivalTime(it)) },
+            onSetDepartureTime = { sink(StepDetailEvent.SetDepartureTime(it)) }
         )
     }
 }
@@ -131,6 +143,7 @@ private fun StepDetailLoading(onBack: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 internal fun StepDetailPlaceContent(
     place: StepUi.Place,
+    isFinalDestination: Boolean,
     isEditing: Boolean,
     noteInvalid: Boolean,
     missingReferences: List<String>,
@@ -140,6 +153,8 @@ internal fun StepDetailPlaceContent(
     onNoteChanged: (String) -> Unit,
     onAddAttachment: (PlatformFile) -> Unit,
     onRemoveAttachment: (String) -> Unit,
+    onSetArrivalTime: (LocalTime) -> Unit,
+    onSetDepartureTime: (LocalTime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Controller condiviso: pilota l'editor e riceve gli inserimenti al cursore dall'inventario.
@@ -253,6 +268,16 @@ internal fun StepDetailPlaceContent(
                 marker = LatLng(lat = place.lat, lng = place.lng)
             )
 
+            // The final destination is the arrival point of the journey: it cannot hold a schedule,
+            // so the time-input section is hidden (consistent with the timeline column).
+            if (!isFinalDestination) {
+                ScheduleSection(
+                    schedule = place.schedule,
+                    onSetArrivalTime = onSetArrivalTime,
+                    onSetDepartureTime = onSetDepartureTime
+                )
+            }
+
             NotesSection(
                 note = place.note,
                 isEditing = isEditing,
@@ -351,6 +376,77 @@ private fun NotesSection(
     }
 }
 
+/**
+ * Section that lets the user set the place arrival/departure times. Reuses the shared
+ * [ScheduleTimeEditor] (Material3 time pickers + `departure >= arrival` validation), rendering two
+ * full-width fields; the unset value shows the `--:--` placeholder.
+ */
+@Composable
+private fun ScheduleSection(
+    schedule: VisitScheduleUi?,
+    onSetArrivalTime: (LocalTime) -> Unit,
+    onSetDepartureTime: (LocalTime) -> Unit,
+) {
+    ScheduleTimeEditor(
+        arrivalTime = schedule?.arrivalTime,
+        departureTime = schedule?.departureTime,
+        onArrivalConfirm = onSetArrivalTime,
+        onDepartureConfirm = onSetDepartureTime
+    ) { scope ->
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
+
+
+            Text(
+                text = stringResource(Res.string.planning_detail_schedule_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                val modifier = if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
+                        WIDTH_DP_MEDIUM_LOWER_BOUND
+                    )
+                ) {
+                    Modifier
+                } else {
+                    Modifier.weight(1f)
+                }
+
+                ScheduleField(
+                    modifier = modifier,
+                    label = stringResource(Res.string.planning_detail_arrival_label),
+                    value = scope.arrivalDisplay,
+                    onClick = scope.openArrivalPicker
+                )
+                ScheduleField(
+                    modifier = modifier,
+                    label = stringResource(Res.string.planning_detail_departure_label),
+                    value = scope.departureDisplay,
+                    onClick = scope.openDeparturePicker
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Text(text = label)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = value, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
 /** Snippet Markdown per referenziare l'allegato: immagine inline o link a file. */
 private fun AttachmentUi.toMarkdownReference(): String =
     if (isImage) AttachmentReference.imageMarkdown(relativePath, altText = originalName)
@@ -369,7 +465,7 @@ private fun BackButton(onClick: () -> Unit) {
     }
 }
 
-@Preview
+@PreviewScreenSizes
 @Composable
 private fun StepDetailPlaceContentPreview() {
     StepDetailPlaceContent(
@@ -377,8 +473,13 @@ private fun StepDetailPlaceContentPreview() {
             name = "Tokyo Tower",
             lat = 35.6586,
             lng = 139.7454,
+            schedule = VisitScheduleUi(
+                arrivalTime = LocalTime(9, 30),
+                departureTime = LocalTime(11, 0)
+            ),
             note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto"
         ),
+        isFinalDestination = false,
         isEditing = false,
         noteInvalid = false,
         missingReferences = emptyList(),
@@ -387,15 +488,18 @@ private fun StepDetailPlaceContentPreview() {
         onToggleEdit = {},
         onNoteChanged = {},
         onAddAttachment = {},
-        onRemoveAttachment = {}
+        onRemoveAttachment = {},
+        onSetArrivalTime = {},
+        onSetDepartureTime = {}
     )
 }
 
-@Preview
+@PreviewScreenSizes
 @Composable
 private fun StepDetailPlaceContentEmptyNotePreview() {
     StepDetailPlaceContent(
         place = StepUi.Place(name = "Shibuya Crossing", lat = 35.6595, lng = 139.7005),
+        isFinalDestination = false,
         isEditing = false,
         noteInvalid = true,
         missingReferences = listOf("t1/s1/missing.jpg"),
@@ -404,6 +508,8 @@ private fun StepDetailPlaceContentEmptyNotePreview() {
         onToggleEdit = {},
         onNoteChanged = {},
         onAddAttachment = {},
-        onRemoveAttachment = {}
+        onRemoveAttachment = {},
+        onSetArrivalTime = {},
+        onSetDepartureTime = {}
     )
 }

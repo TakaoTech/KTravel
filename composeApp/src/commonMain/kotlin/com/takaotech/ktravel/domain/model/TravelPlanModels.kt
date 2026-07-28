@@ -48,7 +48,8 @@ data class PlaceDomain(
 
 data class VisitScheduleDomain(
     val date: LocalDate? = null,
-    val time: LocalTime
+    val arrivalTime: LocalTime? = null,
+    val departureTime: LocalTime? = null
 )
 
 /**

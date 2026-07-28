@@ -8,6 +8,8 @@ import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.presentation.planning.StepUi
+import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
+import kotlinx.datetime.LocalTime
 import kotlin.time.Duration.Companion.minutes
 
 class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterProvider<StepUi> {
@@ -21,7 +23,11 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
         return StepUi.Place(
             name = "Place $index",
             lat = 45.0 + index * 0.1,
-            lng = 9.0 + index * 0.1
+            lng = 9.0 + index * 0.1,
+            schedule = VisitScheduleUi(
+                arrivalTime = LocalTime(8 + index, 0),
+                departureTime = LocalTime(8 + index, 30)
+            )
         )
     }
 

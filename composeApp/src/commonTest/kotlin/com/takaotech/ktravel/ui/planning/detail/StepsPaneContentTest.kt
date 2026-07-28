@@ -52,7 +52,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
-                            onAddTransportClick = { _, _ -> }
+                            onAddTransportClick = { _, _ -> },
+                            onSetArrivalTime = { _, _ -> },
+                            onSetDepartureTime = { _, _ -> }
                         )
                     }
                     onNodeWithTag(StepsPaneTestTags.EMPTY).assertIsDisplayed()
@@ -74,7 +76,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
-                            onAddTransportClick = { _, _ -> }
+                            onAddTransportClick = { _, _ -> },
+                            onSetArrivalTime = { _, _ -> },
+                            onSetDepartureTime = { _, _ -> }
                         )
                     }
                     onNodeWithText(placeA.name).assertIsDisplayed()
@@ -93,7 +97,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
-                            onAddTransportClick = { _, _ -> }
+                            onAddTransportClick = { _, _ -> },
+                            onSetArrivalTime = { _, _ -> },
+                            onSetDepartureTime = { _, _ -> }
                         )
                     }
                     onNodeWithText("Duration 30m").assertIsDisplayed()
@@ -117,7 +123,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
-                                onAddTransportClick = { start, end -> clicked = start to end }
+                                onAddTransportClick = { start, end -> clicked = start to end },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithTag(
@@ -145,7 +153,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = { deleted = it },
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
-                                onAddTransportClick = { _, _ -> }
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithContentDescription("Delete step").performClick()
@@ -167,7 +177,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = { movedUp = it },
                                 onMoveStepDownClick = {},
-                                onAddTransportClick = { _, _ -> }
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithContentDescription("Move step up").performClick()
@@ -189,7 +201,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = { movedDown = it },
-                                onAddTransportClick = { _, _ -> }
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithContentDescription("Move step down").performClick()
@@ -213,7 +227,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
-                                onAddTransportClick = { _, _ -> }
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithTag(StepsPaneTestTags.BACK_BUTTON).performClick()
@@ -235,7 +251,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
-                                onAddTransportClick = { _, _ -> }
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> }
                             )
                         }
                         onNodeWithTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON).performClick()
