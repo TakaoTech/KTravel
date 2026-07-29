@@ -45,14 +45,14 @@ interface TravelPlanRepository {
     suspend fun updatePlaceNote(dayId: String, stepId: String, note: String)
 
     /**
-     * Imposta l'orario di arrivo di uno Step.Place (crea lo schedule se assente)
+     * Imposta l'orario di inizio di uno Step.Place (crea lo schedule se assente)
      */
-    suspend fun updatePlaceArrivalTime(dayId: String, stepId: String, time: LocalTime)
+    suspend fun updatePlaceStartTime(dayId: String, stepId: String, time: LocalTime)
 
     /**
-     * Imposta l'orario di partenza di uno Step.Place (crea lo schedule se assente)
+     * Imposta l'orario di fine di uno Step.Place (crea lo schedule se assente)
      */
-    suspend fun updatePlaceDepartureTime(dayId: String, stepId: String, time: LocalTime)
+    suspend fun updatePlaceEndTime(dayId: String, stepId: String, time: LocalTime)
 
     /**
      * Aggiunge un file all'inventario di uno Step.Place: copia il [source] su disco e registra i

@@ -39,10 +39,10 @@ data class PlaceEntity(
 @Serializable
 data class VisitScheduleEntity(
     @SerialName("date_epoch_days") val dateEpochDays: Int? = null,
-    @SerialName("arrival_time_hour") val arrivalTimeHour: Int? = null,
-    @SerialName("arrival_time_minute") val arrivalTimeMinute: Int? = null,
-    @SerialName("departure_time_hour") val departureTimeHour: Int? = null,
-    @SerialName("departure_time_minute") val departureTimeMinute: Int? = null
+    @SerialName("start_time_hour") val startTimeHour: Int? = null,
+    @SerialName("start_time_minute") val startTimeMinute: Int? = null,
+    @SerialName("end_time_hour") val endTimeHour: Int? = null,
+    @SerialName("end_time_minute") val endTimeMinute: Int? = null
 )
 
 /**

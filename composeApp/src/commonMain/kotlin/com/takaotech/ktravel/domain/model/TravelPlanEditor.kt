@@ -2,7 +2,7 @@ package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceArrivalTime
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceStartTime
 import kotlinx.datetime.LocalTime
 
 
@@ -58,25 +58,25 @@ object TravelPlanEditor {
     }
 
     /**
-     * Imposta l'orario di arrivo di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
+     * Imposta l'orario di inizio di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
      * assente. Operazione totale: se il giorno o lo step non esistono, o lo step non è un Place,
      * restituisce il piano invariato.
      */
-    fun TravelPlanDomain.updatePlaceArrivalTime(
+    fun TravelPlanDomain.updatePlaceStartTime(
         dayId: String,
         stepId: String,
         time: LocalTime
-    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(arrivalTime = time) }
+    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(startTime = time) }
 
     /**
-     * Imposta l'orario di partenza di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
-     * assente. Operazione totale (vedi [updatePlaceArrivalTime]).
+     * Imposta l'orario di fine di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
+     * assente. Operazione totale (vedi [updatePlaceStartTime]).
      */
-    fun TravelPlanDomain.updatePlaceDepartureTime(
+    fun TravelPlanDomain.updatePlaceEndTime(
         dayId: String,
         stepId: String,
         time: LocalTime
-    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(departureTime = time) }
+    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(endTime = time) }
 
     private fun TravelPlanDomain.updatePlaceSchedule(
         dayId: String,

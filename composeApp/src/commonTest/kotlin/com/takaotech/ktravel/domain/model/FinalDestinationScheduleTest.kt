@@ -26,7 +26,7 @@ class FinalDestinationScheduleTest : BehaviorSpec({
     )
 
     val schedule =
-        VisitScheduleDomain(arrivalTime = LocalTime(9, 0), departureTime = LocalTime(10, 0))
+        VisitScheduleDomain(startTime = LocalTime(9, 0), endTime = LocalTime(10, 0))
 
     given("a day with two places where the last one has a schedule") {
         val plan = planWith(place("a", schedule), place("b", schedule))

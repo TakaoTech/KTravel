@@ -42,9 +42,9 @@ sealed interface StepsPaneEvent : CircuitUiEvent {
     /** Avvia il flusso di aggiunta trasporto tra due step consecutivi. */
     data class AddTransport(val startPlaceId: String, val endPlaceId: String) : StepsPaneEvent
 
-    /** Imposta l'orario di arrivo dello step luogo indicato. */
-    data class SetArrivalTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
+    /** Imposta l'orario di inizio dello step luogo indicato. */
+    data class SetStartTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
 
-    /** Imposta l'orario di partenza dello step luogo indicato. */
-    data class SetDepartureTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
+    /** Imposta l'orario di fine dello step luogo indicato. */
+    data class SetEndTime(val stepId: String, val time: LocalTime) : StepsPaneEvent
 }

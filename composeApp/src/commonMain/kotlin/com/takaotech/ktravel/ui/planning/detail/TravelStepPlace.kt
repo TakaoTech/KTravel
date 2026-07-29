@@ -91,8 +91,8 @@ private fun TravelStepPlacePreview() {
             lat = 0.0,
             lng = 0.0,
             schedule = VisitScheduleUi(
-                arrivalTime = LocalTime(9, 30),
-                departureTime = LocalTime(11, 0)
+                startTime = LocalTime(9, 30),
+                endTime = LocalTime(11, 0)
             )
         ),
         onStepClick = {},

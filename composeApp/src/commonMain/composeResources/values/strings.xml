@@ -52,13 +52,13 @@
 
     <string name="planning_detail_schedule_title">Schedule</string>
     <string name="planning_detail_time_unset">--:--</string>
-    <string name="planning_detail_arrival_label">Arrival</string>
-    <string name="planning_detail_departure_label">Departure</string>
-    <string name="planning_detail_cd_arrival_time">Arrival time</string>
-    <string name="planning_detail_cd_departure_time">Departure time</string>
-    <string name="planning_detail_arrival_picker_title">Select arrival time</string>
-    <string name="planning_detail_departure_picker_title">Select departure time</string>
-    <string name="planning_detail_departure_before_arrival">Departure cannot be earlier than arrival</string>
+    <string name="planning_detail_start_time_label">Start time</string>
+    <string name="planning_detail_end_time_label">End time</string>
+    <string name="planning_detail_cd_start_time">Start time</string>
+    <string name="planning_detail_cd_end_time">End time</string>
+    <string name="planning_detail_start_picker_title">Select start time</string>
+    <string name="planning_detail_end_picker_title">Select end time</string>
+    <string name="planning_detail_departure_before_arrival">End time cannot be earlier than start time</string>
     <string name="time_picker_confirm">Confirm</string>
     <string name="time_picker_cancel">Cancel</string>
 

@@ -30,10 +30,10 @@ fun List<StepDomain>.scheduleInconsistencies(): List<ScheduleWarning> {
 
     for (step in this) {
         if (step !is StepDomain.Place) continue
-        val time = step.schedule?.arrivalTime ?: continue
+        val time = step.schedule?.startTime ?: continue
 
         val previous = previousScheduled
-        val previousTime = previous?.schedule?.arrivalTime
+        val previousTime = previous?.schedule?.startTime
         if (previousTime != null && time < previousTime) {
             warnings += ScheduleWarning(
                 stepId = step.id,

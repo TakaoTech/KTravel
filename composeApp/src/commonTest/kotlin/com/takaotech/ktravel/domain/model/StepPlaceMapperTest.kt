@@ -34,7 +34,7 @@ class StepPlaceMapperTest : BehaviorSpec({
             name = "Pantheon",
             lat = 41.89,
             lng = 12.47,
-            schedule = VisitScheduleDomain(arrivalTime = LocalTime(10, 30))
+            schedule = VisitScheduleDomain(startTime = LocalTime(10, 30))
         )
 
         `when`("stepToPlace is called") {
@@ -69,7 +69,7 @@ class StepPlaceMapperTest : BehaviorSpec({
             name = "Trevi",
             lat = 0.0,
             lng = 0.0,
-            schedule = VisitScheduleDomain(arrivalTime = LocalTime(9, 0))
+            schedule = VisitScheduleDomain(startTime = LocalTime(9, 0))
         )
 
         `when`("converting it to a place") {
