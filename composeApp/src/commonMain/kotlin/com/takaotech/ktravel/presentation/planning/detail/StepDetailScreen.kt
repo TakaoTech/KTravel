@@ -27,11 +27,6 @@ data class StepDetailScreen(
 data class StepDetailUiState(
     /** Step Place mostrato; `null` finché il flow non emette o se lo step non è un Place. */
     val place: StepUi.Place?,
-    /**
-     * True quando questo step è la destinazione finale del giorno: la destinazione non può avere un
-     * orario, quindi la sezione di inserimento orari non viene mostrata (coerente con la timeline).
-     */
-    val isFinalDestination: Boolean,
     /** True quando è attivo l'editor Markdown (Hyphen); false in sola lettura (rendering mikepenz). */
     val isEditing: Boolean,
     /** True quando l'ultimo tentativo di salvataggio è fallito perché il Markdown non è valido. */
@@ -55,11 +50,11 @@ sealed interface StepDetailEvent : CircuitUiEvent {
     /** Nuovo contenuto Markdown delle note, salvato automaticamente se valido. */
     data class NoteChanged(val note: String) : StepDetailEvent
 
-    /** Imposta l'orario di arrivo dello step. */
-    data class SetArrivalTime(val time: LocalTime) : StepDetailEvent
+    /** Imposta l'orario di inizio dello step. */
+    data class SetStartTime(val time: LocalTime) : StepDetailEvent
 
-    /** Imposta l'orario di partenza dello step. */
-    data class SetDepartureTime(val time: LocalTime) : StepDetailEvent
+    /** Imposta l'orario di fine dello step. */
+    data class SetEndTime(val time: LocalTime) : StepDetailEvent
 
     /** Carica un file nell'inventario dello step. */
     data class AddAttachment(val file: PlatformFile) : StepDetailEvent

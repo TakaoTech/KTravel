@@ -15,11 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.planning_detail_arrival_picker_title
-import ktravel.composeapp.generated.resources.planning_detail_cd_arrival_time
-import ktravel.composeapp.generated.resources.planning_detail_cd_departure_time
+import ktravel.composeapp.generated.resources.planning_detail_cd_end_time
+import ktravel.composeapp.generated.resources.planning_detail_cd_start_time
 import ktravel.composeapp.generated.resources.planning_detail_departure_before_arrival
-import ktravel.composeapp.generated.resources.planning_detail_departure_picker_title
+import ktravel.composeapp.generated.resources.planning_detail_end_picker_title
+import ktravel.composeapp.generated.resources.planning_detail_start_picker_title
 import ktravel.composeapp.generated.resources.planning_detail_time_unset
 import ktravel.composeapp.generated.resources.time_picker_cancel
 import ktravel.composeapp.generated.resources.time_picker_confirm
@@ -36,69 +36,69 @@ internal fun formatScheduleTime(time: LocalTime): String =
  */
 @Stable
 internal class ScheduleTimeEditorScope(
-    val arrivalDisplay: String,
-    val departureDisplay: String,
-    val arrivalContentDescription: String,
-    val departureContentDescription: String,
-    val openArrivalPicker: () -> Unit,
-    val openDeparturePicker: () -> Unit,
+    val startDisplay: String,
+    val endDisplay: String,
+    val startContentDescription: String,
+    val endContentDescription: String,
+    val openStartPicker: () -> Unit,
+    val openEndPicker: () -> Unit,
 )
 
 /**
- * Centralized editor of a place visit schedule (arrival/departure). Owns the two Material3
- * [TimePickerDialog]s, the `departure >= arrival` validation, the open/close state and the time
+ * Centralized editor of a place visit schedule (start/end). Owns the two Material3
+ * [TimePickerDialog]s, the `start >= ebd` validation, the open/close state and the time
  * formatting; the caller only supplies the trigger layout via [content], keeping the logic single
  * sourced between the timeline column and the step detail section.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ScheduleTimeEditor(
-    arrivalTime: LocalTime?,
-    departureTime: LocalTime?,
-    onArrivalConfirm: (LocalTime) -> Unit,
-    onDepartureConfirm: (LocalTime) -> Unit,
+    startTime: LocalTime?,
+    endTime: LocalTime?,
+    onStartConfirm: (LocalTime) -> Unit,
+    onEndConfirm: (LocalTime) -> Unit,
     content: @Composable (ScheduleTimeEditorScope) -> Unit,
 ) {
-    var showArrivalPicker by remember { mutableStateOf(false) }
-    var showDeparturePicker by remember { mutableStateOf(false) }
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker by remember { mutableStateOf(false) }
 
     val placeholder = stringResource(Res.string.planning_detail_time_unset)
     val scope = ScheduleTimeEditorScope(
-        arrivalDisplay = arrivalTime?.let(::formatScheduleTime) ?: placeholder,
-        departureDisplay = departureTime?.let(::formatScheduleTime) ?: placeholder,
-        arrivalContentDescription = stringResource(Res.string.planning_detail_cd_arrival_time),
-        departureContentDescription = stringResource(Res.string.planning_detail_cd_departure_time),
-        openArrivalPicker = { showArrivalPicker = true },
-        openDeparturePicker = { showDeparturePicker = true },
+        startDisplay = startTime?.let(::formatScheduleTime) ?: placeholder,
+        endDisplay = endTime?.let(::formatScheduleTime) ?: placeholder,
+        startContentDescription = stringResource(Res.string.planning_detail_cd_start_time),
+        endContentDescription = stringResource(Res.string.planning_detail_cd_end_time),
+        openStartPicker = { showStartPicker = true },
+        openEndPicker = { showEndPicker = true },
     )
 
     content(scope)
 
-    if (showArrivalPicker) {
+    if (showStartPicker) {
         ScheduleTimePickerDialog(
-            initialTime = arrivalTime,
-            title = stringResource(Res.string.planning_detail_arrival_picker_title),
+            initialTime = startTime,
+            title = stringResource(Res.string.planning_detail_start_picker_title),
             // Arrival cannot be later than an already set departure.
-            isValid = { selected -> departureTime == null || selected <= departureTime },
+            isValid = { selected -> endTime == null || selected <= endTime },
             onConfirm = {
-                onArrivalConfirm(it)
-                showArrivalPicker = false
+                onStartConfirm(it)
+                showStartPicker = false
             },
-            onDismiss = { showArrivalPicker = false }
+            onDismiss = { showStartPicker = false }
         )
     }
 
-    if (showDeparturePicker) {
+    if (showEndPicker) {
         ScheduleTimePickerDialog(
-            initialTime = departureTime,
-            title = stringResource(Res.string.planning_detail_departure_picker_title),
+            initialTime = endTime,
+            title = stringResource(Res.string.planning_detail_end_picker_title),
             // Departure cannot be earlier than an already set arrival.
-            isValid = { selected -> arrivalTime == null || selected >= arrivalTime },
+            isValid = { selected -> startTime == null || selected >= startTime },
             onConfirm = {
-                onDepartureConfirm(it)
-                showDeparturePicker = false
+                onEndConfirm(it)
+                showEndPicker = false
             },
-            onDismiss = { showDeparturePicker = false }
+            onDismiss = { showEndPicker = false }
         )
     }
 }
@@ -141,6 +141,7 @@ internal fun ScheduleTimePickerDialog(
         },
         content = {
             TimePicker(state = state)
+            //TODO Add TimeZone Selection
             if (!valid) {
                 Text(
                     text = stringResource(Res.string.planning_detail_departure_before_arrival),

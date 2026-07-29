@@ -95,8 +95,8 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
         onAddTransportClick = { startPlaceId, endPlaceId ->
             sink(StepsPaneEvent.AddTransport(startPlaceId, endPlaceId))
         },
-        onSetArrivalTime = { stepId, time -> sink(StepsPaneEvent.SetArrivalTime(stepId, time)) },
-        onSetDepartureTime = { stepId, time -> sink(StepsPaneEvent.SetDepartureTime(stepId, time)) }
+        onSetArrivalTime = { stepId, time -> sink(StepsPaneEvent.SetStartTime(stepId, time)) },
+        onSetDepartureTime = { stepId, time -> sink(StepsPaneEvent.SetEndTime(stepId, time)) }
     )
 }
 
@@ -188,27 +188,23 @@ internal fun StepsPaneContent(
                                 TimelineRow(
                                     isFirst = isFirst,
                                     isLast = isLast,
-                                    timeColumn = if (isDestination) {
-                                        null
-                                    } else {
-                                        {
-                                            ScheduleTimeColumn(
-                                                arrivalTime = step.schedule?.arrivalTime,
-                                                departureTime = step.schedule?.departureTime,
-                                                onArrivalConfirm = {
-                                                    onSetArrivalTime(
-                                                        step.id,
-                                                        it
-                                                    )
-                                                },
-                                                onDepartureConfirm = {
-                                                    onSetDepartureTime(
-                                                        step.id,
-                                                        it
-                                                    )
-                                                }
-                                            )
-                                        }
+                                    timeColumn = {
+                                        ScheduleTimeColumn(
+                                            arrivalTime = step.schedule?.startTime,
+                                            departureTime = step.schedule?.endTime,
+                                            onArrivalConfirm = {
+                                                onSetArrivalTime(
+                                                    step.id,
+                                                    it
+                                                )
+                                            },
+                                            onDepartureConfirm = {
+                                                onSetDepartureTime(
+                                                    step.id,
+                                                    it
+                                                )
+                                            }
+                                        )
                                     },
                                     node = {
                                         if (isDestination) DestinationNode() else PlaceNode()
@@ -412,10 +408,10 @@ private fun ScheduleTimeColumn(
     modifier: Modifier = Modifier,
 ) {
     ScheduleTimeEditor(
-        arrivalTime = arrivalTime,
-        departureTime = departureTime,
-        onArrivalConfirm = onArrivalConfirm,
-        onDepartureConfirm = onDepartureConfirm
+        startTime = arrivalTime,
+        endTime = departureTime,
+        onStartConfirm = onArrivalConfirm,
+        onEndConfirm = onDepartureConfirm
     ) { scope ->
         Column(
             modifier = modifier,
@@ -423,19 +419,19 @@ private fun ScheduleTimeColumn(
         ) {
             Text(
                 modifier = Modifier
-                    .clickable(onClick = scope.openArrivalPicker)
+                    .clickable(onClick = scope.openStartPicker)
                     .minimumInteractiveComponentSize()
-                    .semantics { contentDescription = scope.arrivalContentDescription },
-                text = scope.arrivalDisplay,
+                    .semantics { contentDescription = scope.startContentDescription },
+                text = scope.startDisplay,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 modifier = Modifier
-                    .clickable(onClick = scope.openDeparturePicker)
+                    .clickable(onClick = scope.openEndPicker)
                     .minimumInteractiveComponentSize()
-                    .semantics { contentDescription = scope.departureContentDescription },
-                text = scope.departureDisplay,
+                    .semantics { contentDescription = scope.endContentDescription },
+                text = scope.endDisplay,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

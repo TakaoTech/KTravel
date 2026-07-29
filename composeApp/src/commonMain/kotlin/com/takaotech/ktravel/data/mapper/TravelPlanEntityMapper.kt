@@ -59,10 +59,10 @@ object TravelPlanEntityMapper {
 
     fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
         dateEpochDays = date?.toEpochDays()?.toInt(),
-        arrivalTimeHour = arrivalTime?.hour,
-        arrivalTimeMinute = arrivalTime?.minute,
-        departureTimeHour = departureTime?.hour,
-        departureTimeMinute = departureTime?.minute
+        startTimeHour = startTime?.hour,
+        startTimeMinute = startTime?.minute,
+        endTimeHour = endTime?.hour,
+        endTimeMinute = endTime?.minute
     )
 
     fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
@@ -150,8 +150,8 @@ object TravelPlanEntityMapper {
 
     fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
         date = dateEpochDays?.let { LocalDate.fromEpochDays(it) },
-        arrivalTime = localTimeOrNull(arrivalTimeHour, arrivalTimeMinute),
-        departureTime = localTimeOrNull(departureTimeHour, departureTimeMinute)
+        startTime = localTimeOrNull(startTimeHour, startTimeMinute),
+        endTime = localTimeOrNull(endTimeHour, endTimeMinute)
     )
 
     private fun localTimeOrNull(hour: Int?, minute: Int?): LocalTime? =

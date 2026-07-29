@@ -26,9 +26,9 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceArrivalTime
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceDepartureTime
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceEndTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceStartTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -108,11 +108,11 @@ class TravelPlanRepositoryImpl(
     override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) =
         mutate { it.updatePlaceNote(dayId, stepId, note) }
 
-    override suspend fun updatePlaceArrivalTime(dayId: String, stepId: String, time: LocalTime) =
-        mutate { it.updatePlaceArrivalTime(dayId, stepId, time) }
+    override suspend fun updatePlaceStartTime(dayId: String, stepId: String, time: LocalTime) =
+        mutate { it.updatePlaceStartTime(dayId, stepId, time) }
 
-    override suspend fun updatePlaceDepartureTime(dayId: String, stepId: String, time: LocalTime) =
-        mutate { it.updatePlaceDepartureTime(dayId, stepId, time) }
+    override suspend fun updatePlaceEndTime(dayId: String, stepId: String, time: LocalTime) =
+        mutate { it.updatePlaceEndTime(dayId, stepId, time) }
 
     override suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile) {
         // Prima il file su disco, poi i metadati: evita riferimenti a file inesistenti.

@@ -44,8 +44,8 @@ object TravelPlanUiMapper {
 
     private fun VisitScheduleDomain.toUiSchedule(): VisitScheduleUi = VisitScheduleUi(
         date = date,
-        arrivalTime = arrivalTime,
-        departureTime = departureTime
+        startTime = startTime,
+        endTime = endTime
     )
 
     private fun AttachmentDomain.toUi(): AttachmentUi = AttachmentUi(

@@ -162,13 +162,13 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
     override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) = Unit
-    override suspend fun updatePlaceArrivalTime(
+    override suspend fun updatePlaceStartTime(
         dayId: String,
         stepId: String,
         time: kotlinx.datetime.LocalTime
     ) = Unit
 
-    override suspend fun updatePlaceDepartureTime(
+    override suspend fun updatePlaceEndTime(
         dayId: String,
         stepId: String,
         time: kotlinx.datetime.LocalTime

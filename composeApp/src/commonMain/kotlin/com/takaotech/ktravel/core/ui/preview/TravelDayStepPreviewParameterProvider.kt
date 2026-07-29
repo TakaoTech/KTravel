@@ -25,8 +25,8 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
             lat = 45.0 + index * 0.1,
             lng = 9.0 + index * 0.1,
             schedule = VisitScheduleUi(
-                arrivalTime = LocalTime(8 + index, 0),
-                departureTime = LocalTime(8 + index, 30)
+                startTime = LocalTime(8 + index, 0),
+                endTime = LocalTime(8 + index, 30)
             )
         )
     }

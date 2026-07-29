@@ -66,15 +66,15 @@ import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.check
 import ktravel.composeapp.generated.resources.edit
 import ktravel.composeapp.generated.resources.error
-import ktravel.composeapp.generated.resources.planning_detail_arrival_label
 import ktravel.composeapp.generated.resources.planning_detail_attachment_open_error
 import ktravel.composeapp.generated.resources.planning_detail_attachments_missing
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
 import ktravel.composeapp.generated.resources.planning_detail_cd_done_note
 import ktravel.composeapp.generated.resources.planning_detail_cd_edit_note
 import ktravel.composeapp.generated.resources.planning_detail_cd_note_invalid
-import ktravel.composeapp.generated.resources.planning_detail_departure_label
+import ktravel.composeapp.generated.resources.planning_detail_end_time_label
 import ktravel.composeapp.generated.resources.planning_detail_schedule_title
+import ktravel.composeapp.generated.resources.planning_detail_start_time_label
 import ktravel.composeapp.generated.resources.planning_detail_step_note_empty
 import ktravel.composeapp.generated.resources.planning_detail_step_note_label
 import ktravel.composeapp.generated.resources.planning_detail_step_note_title
@@ -106,7 +106,6 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
     } else {
         StepDetailPlaceContent(
             place = place,
-            isFinalDestination = state.isFinalDestination,
             isEditing = state.isEditing,
             noteInvalid = state.noteInvalid,
             missingReferences = state.missingReferences,
@@ -117,8 +116,8 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
             onNoteChanged = { sink(StepDetailEvent.NoteChanged(it)) },
             onAddAttachment = { sink(StepDetailEvent.AddAttachment(it)) },
             onRemoveAttachment = { sink(StepDetailEvent.RemoveAttachment(it)) },
-            onSetArrivalTime = { sink(StepDetailEvent.SetArrivalTime(it)) },
-            onSetDepartureTime = { sink(StepDetailEvent.SetDepartureTime(it)) }
+            onSetStartTime = { sink(StepDetailEvent.SetStartTime(it)) },
+            onSetEndTime = { sink(StepDetailEvent.SetEndTime(it)) }
         )
     }
 }
@@ -143,7 +142,6 @@ private fun StepDetailLoading(onBack: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 internal fun StepDetailPlaceContent(
     place: StepUi.Place,
-    isFinalDestination: Boolean,
     isEditing: Boolean,
     noteInvalid: Boolean,
     missingReferences: List<String>,
@@ -153,8 +151,8 @@ internal fun StepDetailPlaceContent(
     onNoteChanged: (String) -> Unit,
     onAddAttachment: (PlatformFile) -> Unit,
     onRemoveAttachment: (String) -> Unit,
-    onSetArrivalTime: (LocalTime) -> Unit,
-    onSetDepartureTime: (LocalTime) -> Unit,
+    onSetStartTime: (LocalTime) -> Unit,
+    onSetEndTime: (LocalTime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Controller condiviso: pilota l'editor e riceve gli inserimenti al cursore dall'inventario.
@@ -268,15 +266,11 @@ internal fun StepDetailPlaceContent(
                 marker = LatLng(lat = place.lat, lng = place.lng)
             )
 
-            // The final destination is the arrival point of the journey: it cannot hold a schedule,
-            // so the time-input section is hidden (consistent with the timeline column).
-            if (!isFinalDestination) {
-                ScheduleSection(
-                    schedule = place.schedule,
-                    onSetArrivalTime = onSetArrivalTime,
-                    onSetDepartureTime = onSetDepartureTime
-                )
-            }
+            ScheduleSection(
+                schedule = place.schedule,
+                onSetStartTime = onSetStartTime,
+                onSetEndTime = onSetEndTime
+            )
 
             NotesSection(
                 note = place.note,
@@ -384,18 +378,17 @@ private fun NotesSection(
 @Composable
 private fun ScheduleSection(
     schedule: VisitScheduleUi?,
-    onSetArrivalTime: (LocalTime) -> Unit,
-    onSetDepartureTime: (LocalTime) -> Unit,
+    onSetStartTime: (LocalTime) -> Unit,
+    onSetEndTime: (LocalTime) -> Unit,
 ) {
     ScheduleTimeEditor(
-        arrivalTime = schedule?.arrivalTime,
-        departureTime = schedule?.departureTime,
-        onArrivalConfirm = onSetArrivalTime,
-        onDepartureConfirm = onSetDepartureTime
+        startTime = schedule?.startTime,
+        endTime = schedule?.endTime,
+        onStartConfirm = onSetStartTime,
+        onEndConfirm = onSetEndTime
     ) { scope ->
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
-
 
             Text(
                 text = stringResource(Res.string.planning_detail_schedule_title),
@@ -415,15 +408,15 @@ private fun ScheduleSection(
 
                 ScheduleField(
                     modifier = modifier,
-                    label = stringResource(Res.string.planning_detail_arrival_label),
-                    value = scope.arrivalDisplay,
-                    onClick = scope.openArrivalPicker
+                    label = stringResource(Res.string.planning_detail_start_time_label),
+                    value = scope.startDisplay,
+                    onClick = scope.openStartPicker
                 )
                 ScheduleField(
                     modifier = modifier,
-                    label = stringResource(Res.string.planning_detail_departure_label),
-                    value = scope.departureDisplay,
-                    onClick = scope.openDeparturePicker
+                    label = stringResource(Res.string.planning_detail_end_time_label),
+                    value = scope.endDisplay,
+                    onClick = scope.openEndPicker
                 )
             }
         }
@@ -474,12 +467,11 @@ private fun StepDetailPlaceContentPreview() {
             lat = 35.6586,
             lng = 139.7454,
             schedule = VisitScheduleUi(
-                arrivalTime = LocalTime(9, 30),
-                departureTime = LocalTime(11, 0)
+                startTime = LocalTime(9, 30),
+                endTime = LocalTime(11, 0)
             ),
             note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto"
         ),
-        isFinalDestination = false,
         isEditing = false,
         noteInvalid = false,
         missingReferences = emptyList(),
@@ -489,8 +481,8 @@ private fun StepDetailPlaceContentPreview() {
         onNoteChanged = {},
         onAddAttachment = {},
         onRemoveAttachment = {},
-        onSetArrivalTime = {},
-        onSetDepartureTime = {}
+        onSetStartTime = {},
+        onSetEndTime = {}
     )
 }
 
@@ -499,7 +491,6 @@ private fun StepDetailPlaceContentPreview() {
 private fun StepDetailPlaceContentEmptyNotePreview() {
     StepDetailPlaceContent(
         place = StepUi.Place(name = "Shibuya Crossing", lat = 35.6595, lng = 139.7005),
-        isFinalDestination = false,
         isEditing = false,
         noteInvalid = true,
         missingReferences = listOf("t1/s1/missing.jpg"),
@@ -509,7 +500,7 @@ private fun StepDetailPlaceContentEmptyNotePreview() {
         onNoteChanged = {},
         onAddAttachment = {},
         onRemoveAttachment = {},
-        onSetArrivalTime = {},
-        onSetDepartureTime = {}
+        onSetStartTime = {},
+        onSetEndTime = {}
     )
 }
