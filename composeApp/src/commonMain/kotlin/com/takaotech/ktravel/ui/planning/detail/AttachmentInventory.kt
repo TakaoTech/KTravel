@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planning.AttachmentUi
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.io.files.Path
 import ktravel.composeapp.generated.resources.Res
@@ -210,7 +211,7 @@ private fun AttachmentThumbnail(
 
 @Preview
 @Composable
-private fun AttachmentInventorySectionPreview() {
+private fun AttachmentInventorySectionPreview() = KTravelTheme {
     AttachmentInventorySection(
         attachments = listOf(
             AttachmentUi(
@@ -239,7 +240,7 @@ private fun AttachmentInventorySectionPreview() {
 
 @Preview
 @Composable
-private fun AttachmentInventorySectionEmptyPreview() {
+private fun AttachmentInventorySectionEmptyPreview() = KTravelTheme {
     AttachmentInventorySection(
         attachments = emptyList(),
         resolveFile = { PlatformFile(Path(it)) },

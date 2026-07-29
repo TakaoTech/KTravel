@@ -25,6 +25,7 @@ import com.takaotech.ktravel.presentation.planning.detail.PlacesBacklogUiState
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ktravel.composeapp.generated.resources.Res
@@ -177,7 +178,7 @@ internal fun PlacesBacklogContent(
 
 @Preview
 @Composable
-private fun PlacesBacklogContentPreview() {
+private fun PlacesBacklogContentPreview() = KTravelTheme {
     PlacesBacklogContent(
         places = persistentListOf(
             PlaceUi(name = "Tokyo Tower", lat = 0.0, lng = 0.0),

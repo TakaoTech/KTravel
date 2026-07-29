@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.presentation.intro.TravelCreationViewModel
 import com.takaotech.ktravel.ui.planning.trip.TravelDateRangePicker
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
@@ -252,7 +253,7 @@ private fun TravelCreationPage(
 
 @PreviewScreenSizes
 @Composable
-private fun TravelCreationPagePreview() {
+private fun TravelCreationPagePreview() = KTravelTheme {
     TravelCreationPage(
         travelName = KFieldState(value = TextFieldValue("Viaggio a Tokyo")),
         startDateMillis = (Clock.System.now() - 1.days).toEpochMilliseconds(),

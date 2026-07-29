@@ -56,6 +56,7 @@ import com.takaotech.ktravel.presentation.intro.TravelSelectionViewModel
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.PersistentList
@@ -452,7 +453,7 @@ private val previewTravelList = persistentListOf(
 
 @PreviewScreenSizes
 @Composable
-private fun TravelSelectionPagePreview() {
+private fun TravelSelectionPagePreview() = KTravelTheme {
     TravelSelectionPage(
         travelList = previewTravelList,
         onTravelClick = {},
@@ -462,7 +463,7 @@ private fun TravelSelectionPagePreview() {
 
 @PreviewScreenSizes
 @Composable
-private fun TravelSelectionPageSelectionModePreview() {
+private fun TravelSelectionPageSelectionModePreview() = KTravelTheme {
     TravelSelectionPage(
         travelList = previewTravelList,
         isSelectionMode = true,

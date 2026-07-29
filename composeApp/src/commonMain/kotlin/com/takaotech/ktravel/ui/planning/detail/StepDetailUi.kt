@@ -50,6 +50,7 @@ import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailUiState
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.os_map.LatLng
 import com.takaotech.os_map.RouteMap
 import io.github.vinceglb.filekit.FileKit
@@ -460,7 +461,7 @@ private fun BackButton(onClick: () -> Unit) {
 
 @PreviewScreenSizes
 @Composable
-private fun StepDetailPlaceContentPreview() {
+private fun StepDetailPlaceContentPreview() = KTravelTheme {
     StepDetailPlaceContent(
         place = StepUi.Place(
             name = "Tokyo Tower",
@@ -488,7 +489,7 @@ private fun StepDetailPlaceContentPreview() {
 
 @PreviewScreenSizes
 @Composable
-private fun StepDetailPlaceContentEmptyNotePreview() {
+private fun StepDetailPlaceContentEmptyNotePreview() = KTravelTheme {
     StepDetailPlaceContent(
         place = StepUi.Place(name = "Shibuya Crossing", lat = 35.6595, lng = 139.7005),
         isEditing = false,

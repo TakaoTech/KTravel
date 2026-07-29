@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.KFieldState
 import com.takaotech.ktravel.presentation.place.PlaceInputMode
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.place_insert_latlng_label
 import ktravel.composeapp.generated.resources.place_insert_search_label
@@ -256,7 +257,7 @@ fun SearchPlaceInsert(
 @Composable
 @Preview(showBackground = true)
 private fun PlaceInsertPreview() {
-    MaterialTheme {
+    KTravelTheme {
         PlaceInsert(
             placeName = KFieldState(),
             placeLat = KFieldState(),
@@ -277,7 +278,7 @@ private fun PlaceInsertPreview() {
 @Composable
 @Preview(showBackground = true)
 private fun SearchPlaceInsertPreview() {
-    MaterialTheme {
+    KTravelTheme {
         SearchPlaceInsert(
             searchQuery = TextFieldValue(),
             onSearchQueryChange = { },

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.char
@@ -40,7 +41,7 @@ fun PlanDayItem(
 
 @Preview
 @Composable
-private fun PlanItemPreview() {
+private fun PlanItemPreview() = KTravelTheme {
     PlanDayItem(
         day = LocalDate(2023, 1, 1),
         onDateClicked = {}

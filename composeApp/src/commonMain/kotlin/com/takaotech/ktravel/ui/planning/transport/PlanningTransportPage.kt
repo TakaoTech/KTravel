@@ -44,6 +44,7 @@ import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportVi
 import com.takaotech.ktravel.ui.planning.transport.settings.GMapsProviderSettings
 import com.takaotech.ktravel.ui.planning.transport.settings.HereProviderSettings
 import com.takaotech.ktravel.ui.planning.transport.settings.LocalProviderSettings
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -266,7 +267,7 @@ private fun PlaceDestination(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningTransportPagePreview() {
+private fun PlanningTransportPagePreview() = KTravelTheme {
     PlanningTransportPage(
         uiState = PlanningTransportUiState(
             startPlace = StepUi.Place(

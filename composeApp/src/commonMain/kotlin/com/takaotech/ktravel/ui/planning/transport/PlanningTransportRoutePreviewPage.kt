@@ -39,6 +39,7 @@ import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.navigation.common.GeoJsonConverter
 import com.takaotech.navigation.common.PolylineEncoderDecoder
 import com.takaotech.os_map.RouteMap
@@ -358,7 +359,7 @@ fun RouteStep(
 @Composable
 private fun PlanningRoutePreviewPagePreview(
     @PreviewParameter(RoutesPreviewParameterProvider::class) routes: Routes
-) {
+) = KTravelTheme {
     KTravelPlatform {
         PlanningTransportPreviewMobile(
             selectedRouteIndex = 0,
@@ -374,7 +375,7 @@ private fun PlanningRoutePreviewPagePreview(
 
 @PreviewScreenSizes
 @Composable
-private fun RouteStepPreview() {
+private fun RouteStepPreview() = KTravelTheme {
     Scaffold {
         RouteStep(
             modifier = Modifier.padding(it),

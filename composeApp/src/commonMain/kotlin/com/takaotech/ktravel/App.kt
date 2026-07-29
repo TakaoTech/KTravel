@@ -1,6 +1,5 @@
 package com.takaotech.ktravel
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -49,6 +48,7 @@ import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -74,7 +74,7 @@ fun App() {
     val appGraph = remember { createAppGraph() }
 
     KTravelPlatform {
-        MaterialTheme {
+        KTravelTheme {
             val navController = rememberNavController()
 
             CompositionLocalProvider(LocalMetroViewModelFactory provides appGraph.metroViewModelFactory) {
