@@ -15,4 +15,9 @@ interface TravelManagerRepository {
      * Crea un nuovo piano di viaggio con i dati forniti
      */
     suspend fun createTravelPlan(name: String, periodStart: LocalDate, periodEnd: LocalDate): String
+
+    /**
+     * Elimina definitivamente un piano di viaggio e tutti i suoi allegati
+     */
+    suspend fun deleteTravelPlan(id: String)
 }

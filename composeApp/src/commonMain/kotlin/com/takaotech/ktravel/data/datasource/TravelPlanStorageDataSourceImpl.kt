@@ -67,8 +67,8 @@ class TravelPlanStorageDataSourceImpl(
         }
     }
 
-    override fun deleteTravelPlan(id: String) {
-        storageRepository.scope.launch {
+    override suspend fun deleteTravelPlan(id: String) {
+        withContext(storageRepository.writeContext) {
             travelCollection.getDocument(id)?.let { document ->
                 travelCollection.delete(document)
             }

@@ -40,4 +40,8 @@ class TravelManagerRepositoryImpl(
 
         return id
     }
+
+    override suspend fun deleteTravelPlan(id: String) {
+        dataSource.deleteTravelPlan(id)
+    }
 }
