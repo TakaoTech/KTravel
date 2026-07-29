@@ -42,6 +42,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel when repository returns an empty list") {
             everySuspend { mockRepository.getAllTravelPlans() } returns emptyList()
             val viewModel = TravelSelectionViewModel(mockRepository)
+            viewModel.loadTravelPlans()
 
             then("travelList should be empty after loading") {
                 eventually(1.seconds) {
@@ -65,6 +66,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel when repository returns a single travel plan") {
             everySuspend { mockRepository.getAllTravelPlans() } returns listOf(samplePlan1)
             val viewModel = TravelSelectionViewModel(mockRepository)
+            viewModel.loadTravelPlans()
 
             then("travelList should contain one item") {
                 eventually(1.seconds) {
@@ -102,6 +104,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 samplePlan3
             )
             val viewModel = TravelSelectionViewModel(mockRepository)
+            viewModel.loadTravelPlans()
 
             then("travelList should contain all plans") {
                 eventually(1.seconds) {
@@ -131,6 +134,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel when repository throws an exception") {
             everySuspend { mockRepository.getAllTravelPlans() } calls { throw RuntimeException("Network error") }
             val viewModel = TravelSelectionViewModel(mockRepository)
+            viewModel.loadTravelPlans()
 
             then("error should be set to exception message") {
                 eventually(1.seconds) {
@@ -157,6 +161,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 samplePlan2
             )
             val viewModel = TravelSelectionViewModel(mockRepository)
+            viewModel.loadTravelPlans()
 
             `when`("loadTravelPlans() is called again with a single updated plan") {
                 eventually(1.seconds) {

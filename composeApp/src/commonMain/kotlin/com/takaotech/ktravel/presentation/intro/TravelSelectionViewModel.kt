@@ -24,10 +24,6 @@ class TravelSelectionViewModel(
     private val _uiState = MutableStateFlow(TravelSelectionUiState())
     val uiState: StateFlow<TravelSelectionUiState> = _uiState.asStateFlow()
 
-    init {
-        loadTravelPlans()
-    }
-
     fun loadTravelPlans() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
