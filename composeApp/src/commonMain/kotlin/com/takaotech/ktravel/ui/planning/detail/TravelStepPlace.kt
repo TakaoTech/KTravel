@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_downward
@@ -84,7 +85,7 @@ internal fun TravelStepPlace(
 
 @Preview
 @Composable
-private fun TravelStepPlacePreview() {
+private fun TravelStepPlacePreview() = KTravelTheme {
     TravelStepPlace(
         step = StepUi.Place(
             name = "Tokyo Tower",

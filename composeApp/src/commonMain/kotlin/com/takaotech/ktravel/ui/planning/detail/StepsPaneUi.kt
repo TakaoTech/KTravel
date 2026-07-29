@@ -46,6 +46,7 @@ import com.takaotech.ktravel.presentation.planning.detail.StepsPaneEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepsPaneScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepsPaneUiState
 import com.takaotech.ktravel.presentation.planning.detail.buildStepRows
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
@@ -441,7 +442,7 @@ private fun ScheduleTimeColumn(
 
 @Preview
 @Composable
-private fun StepsPaneContentPreview() {
+private fun StepsPaneContentPreview() = KTravelTheme {
     StepsPaneContent(
         rows = buildStepRows(TravelDayStepPreviewParameterProvider(8).values.toList()),
         onNavigationBackClick = {},

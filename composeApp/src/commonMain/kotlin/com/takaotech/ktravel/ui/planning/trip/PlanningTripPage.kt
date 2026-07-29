@@ -32,6 +32,7 @@ import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.place.PlaceItem
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -222,7 +223,7 @@ private fun PlanningTripPage(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningPagePreview() {
+private fun PlanningPagePreview() = KTravelTheme {
     LoremIpsum(10).values.first()
     PlanningTripPage(
         planHeader = PlanHeader(
