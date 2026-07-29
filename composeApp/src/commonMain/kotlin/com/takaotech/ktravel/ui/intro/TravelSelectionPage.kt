@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.presentation.intro.TravelSelectionViewModel
@@ -61,6 +62,12 @@ fun TravelSelectionPage(
 ) {
     val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Reloads the saved travel plans every time the page becomes visible again.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.loadTravelPlans()
+        onPauseOrDispose { }
+    }
 
     TravelSelectionPage(
         travelList = uiState.travelList,
