@@ -15,9 +15,7 @@
     <string name="place_delete_permanent">Permanent Delete</string>
 
     <string name="permanent_delete_dialog_title">Permanent Delete</string>
-    <string name="permanent_delete_dialog_message">Are you sure you want to permanently delete this item? This action
-        cannot be undone.
-    </string>
+    <string name="permanent_delete_dialog_message">Are you sure you want to permanently delete this item?\nThis action cannot be undone.</string>
     <string name="permanent_delete_dialog_confirm">Delete</string>
     <string name="permanent_delete_dialog_cancel">Cancel</string>
 
@@ -77,4 +75,13 @@
     <string name="travel_creation_destinations_subtitle">Puoi aggiungerle anche più tardi</string>
     <string name="travel_creation_button">Crea Viaggio</string>
     <string name="travel_creation_name_empty_error">Il nome del viaggio non può essere vuoto</string>
+
+    <string name="travel_selection_title">I miei viaggi</string>
+    <string name="travel_selection_cd_exit_selection">Esci dalla selezione</string>
+    <string name="travel_selection_cd_delete_selected">Elimina i viaggi selezionati</string>
+    <string name="travel_selection_cd_swipe_delete">Elimina viaggio</string>
+    <plurals name="travel_selection_selected_count">
+        <item quantity="one">%1$d selezionato</item>
+        <item quantity="other">%1$d selezionati</item>
+    </plurals>
 </resources>

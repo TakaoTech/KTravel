@@ -5,9 +5,14 @@ import com.takaotech.ktravel.domain.repository.TravelManagerRepository
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode.Companion.exactly
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.LocalDate
@@ -180,6 +185,188 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 then("travelList should contain only the new plan") {
                     eventually(1.seconds) {
                         viewModel.uiState.value.travelList.first().id shouldBe samplePlan3.id
+                    }
+                }
+            }
+        }
+
+        given("a TravelSelectionViewModel not in selection mode") {
+            val repository: TravelManagerRepository = mock()
+            everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
+            val viewModel = TravelSelectionViewModel(repository)
+            viewModel.loadTravelPlans()
+
+            `when`("enterSelectionMode is called on an item") {
+                viewModel.enterSelectionMode(samplePlan1.id)
+
+                then("selection mode should be active with that item selected") {
+                    viewModel.uiState.value.isSelectionMode shouldBe true
+                    viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
+                        samplePlan1.id
+                    )
+                }
+            }
+
+            `when`("toggleSelection is called on another item") {
+                viewModel.toggleSelection(samplePlan2.id)
+
+                then("both items should be selected") {
+                    viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
+                        samplePlan1.id,
+                        samplePlan2.id
+                    )
+                }
+            }
+
+            `when`("toggleSelection is called again on an already selected item") {
+                viewModel.toggleSelection(samplePlan2.id)
+
+                then("that item should be deselected while selection mode stays active") {
+                    viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
+                        samplePlan1.id
+                    )
+                    viewModel.uiState.value.isSelectionMode shouldBe true
+                }
+            }
+
+            `when`("the last selected item is deselected") {
+                viewModel.toggleSelection(samplePlan1.id)
+
+                then("selection mode should be left automatically") {
+                    viewModel.uiState.value.isSelectionMode shouldBe false
+                    viewModel.uiState.value.selectedIds.shouldBeEmpty()
+                }
+            }
+        }
+
+        given("a TravelSelectionViewModel in selection mode") {
+            val repository: TravelManagerRepository = mock()
+            everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
+            val viewModel = TravelSelectionViewModel(repository)
+            viewModel.loadTravelPlans()
+            viewModel.enterSelectionMode(samplePlan1.id)
+
+            `when`("exitSelectionMode is called") {
+                viewModel.exitSelectionMode()
+
+                then("selection mode should be inactive and the selection cleared") {
+                    viewModel.uiState.value.isSelectionMode shouldBe false
+                    viewModel.uiState.value.selectedIds.shouldBeEmpty()
+                }
+            }
+        }
+
+        given("a TravelSelectionViewModel with two loaded plans") {
+            val repository: TravelManagerRepository = mock()
+            everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
+            everySuspend { repository.deleteTravelPlan(any()) } returns Unit
+            val viewModel = TravelSelectionViewModel(repository)
+            viewModel.loadTravelPlans()
+
+            `when`("deleteTravels is called with a single id") {
+                eventually(1.seconds) {
+                    viewModel.uiState.value.travelList shouldHaveSize 2
+                }
+
+                everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan2)
+                viewModel.deleteTravels(setOf(samplePlan1.id))
+
+                then("the plan should be deleted from the repository") {
+                    eventually(1.seconds) {
+                        verifySuspend { repository.deleteTravelPlan(samplePlan1.id) }
+                    }
+                }
+
+                then("the list should be reloaded without the deleted plan") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.travelList shouldHaveSize 1
+                        viewModel.uiState.value.travelList.first().id shouldBe samplePlan2.id
+                    }
+                }
+
+                then("isLoading should be false and no error should be reported") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.isLoading shouldBe false
+                        viewModel.uiState.value.error shouldBe null
+                    }
+                }
+            }
+        }
+
+        given("a TravelSelectionViewModel with three selected plans") {
+            val repository: TravelManagerRepository = mock()
+            everySuspend { repository.getAllTravelPlans() } returns listOf(
+                samplePlan1,
+                samplePlan2,
+                samplePlan3
+            )
+            everySuspend { repository.deleteTravelPlan(any()) } returns Unit
+            val viewModel = TravelSelectionViewModel(repository)
+            viewModel.loadTravelPlans()
+            viewModel.enterSelectionMode(samplePlan1.id)
+            viewModel.toggleSelection(samplePlan2.id)
+
+            `when`("deleteTravels is called with the selected ids") {
+                eventually(1.seconds) {
+                    viewModel.uiState.value.travelList shouldHaveSize 3
+                }
+
+                everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan3)
+                viewModel.deleteTravels(viewModel.uiState.value.selectedIds)
+
+                then("every selected plan should be deleted") {
+                    eventually(1.seconds) {
+                        verifySuspend { repository.deleteTravelPlan(samplePlan1.id) }
+                        verifySuspend { repository.deleteTravelPlan(samplePlan2.id) }
+                    }
+                }
+
+                then("the list should be reloaded only once after the deletions") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.travelList shouldHaveSize 1
+                    }
+                    // One call for the initial load, one for the refresh after the deletions.
+                    verifySuspend(exactly(2)) { repository.getAllTravelPlans() }
+                }
+
+                then("selection mode should be left") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.isSelectionMode shouldBe false
+                        viewModel.uiState.value.selectedIds.shouldBeEmpty()
+                    }
+                }
+            }
+        }
+
+        given("a TravelSelectionViewModel whose repository fails to delete") {
+            val repository: TravelManagerRepository = mock()
+            everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
+            everySuspend { repository.deleteTravelPlan(any()) } calls { throw RuntimeException("Delete failed") }
+            val viewModel = TravelSelectionViewModel(repository)
+            viewModel.loadTravelPlans()
+
+            `when`("deleteTravels is called") {
+                eventually(1.seconds) {
+                    viewModel.uiState.value.travelList shouldHaveSize 2
+                }
+
+                viewModel.deleteTravels(setOf(samplePlan1.id))
+
+                then("error should be set to the exception message") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.error shouldBe "Delete failed"
+                    }
+                }
+
+                then("isLoading should be false after the failure") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.isLoading shouldBe false
+                    }
+                }
+
+                then("the list should stay unchanged") {
+                    eventually(1.seconds) {
+                        viewModel.uiState.value.travelList shouldHaveSize 2
                     }
                 }
             }

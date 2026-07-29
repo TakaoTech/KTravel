@@ -3,9 +3,12 @@ package com.takaotech.ktravel.data.datasource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
 import com.takaotech.ktravel.testutil.tempdir
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.write
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -13,7 +16,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.datetime.LocalDate
 
 private fun sampleEntity(id: String, name: String = "Test Plan") = TravelPlanEntity(
@@ -32,6 +34,8 @@ class TravelPlanStorageDataSourceImplTest : BehaviorSpec({
     lateinit var dataSource: TravelPlanStorageDataSourceImpl
     lateinit var provider: DatabaseProvider
     lateinit var testScope: TestScope
+    lateinit var attachmentRoot: PlatformFile
+    lateinit var attachmentDataSource: AttachmentDataSourceImpl
 
     beforeTest {
         val testDir = (tempDir / it.name.name.replace(Regex("\\W+"), "_"))
@@ -42,10 +46,9 @@ class TravelPlanStorageDataSourceImplTest : BehaviorSpec({
             directory = testDir.path,
             scope = testScope
         )
-        dataSource = TravelPlanStorageDataSourceImpl(
-            provider,
-            AttachmentDataSourceImpl(testDir / "attachments")
-        )
+        attachmentRoot = testDir / "attachments"
+        attachmentDataSource = AttachmentDataSourceImpl(attachmentRoot)
+        dataSource = TravelPlanStorageDataSourceImpl(provider, attachmentDataSource)
     }
 
     afterTest {
@@ -110,8 +113,28 @@ class TravelPlanStorageDataSourceImplTest : BehaviorSpec({
             then("getAllTravelPlans should return an empty list") {
                 dataSource.saveTravelPlan(sampleEntity("to-delete"))
                 dataSource.deleteTravelPlan("to-delete")
-                testScope.advanceUntilIdle()
                 dataSource.getAllTravelPlans().shouldBeEmpty()
+            }
+
+            then("the attachments folder of the travel plan should be removed") {
+                dataSource.saveTravelPlan(sampleEntity("to-delete"))
+                val source =
+                    (tempDir / "attachment-source.png").also { it.write(byteArrayOf(1, 2, 3)) }
+                attachmentDataSource.saveAttachment("to-delete", "step-1", source)
+                (attachmentRoot / "to-delete").exists() shouldBe true
+
+                dataSource.deleteTravelPlan("to-delete")
+
+                (attachmentRoot / "to-delete").exists() shouldBe false
+            }
+
+            then("other travel plans should be left untouched") {
+                dataSource.saveTravelPlan(sampleEntity("to-delete"))
+                dataSource.saveTravelPlan(sampleEntity("to-keep"))
+
+                dataSource.deleteTravelPlan("to-delete")
+
+                dataSource.getAllTravelPlans().map { it.id } shouldBe listOf("to-keep")
             }
         }
     }

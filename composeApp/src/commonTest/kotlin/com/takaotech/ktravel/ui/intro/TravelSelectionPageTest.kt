@@ -2,14 +2,21 @@ package com.takaotech.ktravel.ui.intro
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalTestApi::class)
@@ -165,6 +172,177 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         onNodeWithTag(TravelSelectionTestTags.FAB_NEW_TRAVEL).performClick()
                     }
                     newTravelClicked shouldBe true
+                }
+            }
+        }
+
+        given("TravelSelectionPage when a travel item is long pressed") {
+            `when`("the long press gesture completes") {
+                then("onTravelLongClick should be called with that item's id") {
+                    var longClickedId: String? = null
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1, travel2),
+                                onTravelClick = {},
+                                onTravelLongClick = { longClickedId = it },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id))
+                            .performTouchInput { longClick() }
+                    }
+                    longClickedId shouldBe travel2.id
+                }
+            }
+        }
+
+        given("TravelSelectionPage when a travel item is swiped") {
+            `when`("the item is swiped towards the end of the layout") {
+                then("onSwipeToDelete should be called with that item's id") {
+                    var swipedId: String? = null
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1, travel2),
+                                onTravelClick = {},
+                                onSwipeToDelete = { swipedId = it },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id))
+                            .performTouchInput { swipeLeft() }
+                        waitForIdle()
+                    }
+                    swipedId shouldBe travel1.id
+                }
+            }
+
+            `when`("the swipe is not confirmed") {
+                then("the item should still be displayed") {
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1),
+                                onTravelClick = {},
+                                onSwipeToDelete = {},
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id))
+                            .performTouchInput { swipeLeft() }
+                        waitForIdle()
+                        onNodeWithText(travel1.name).assertIsDisplayed()
+                    }
+                }
+            }
+        }
+
+        given("TravelSelectionPage in selection mode") {
+            then("the selected item should be marked as selected") {
+                runComposeUiTest {
+                    setContent {
+                        TravelSelectionPage(
+                            travelList = persistentListOf(travel1, travel2),
+                            isSelectionMode = true,
+                            selectedIds = persistentSetOf(travel1.id),
+                            onTravelClick = {},
+                            newTravelClick = {}
+                        )
+                    }
+                    onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id)).assertIsSelected()
+                    onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id)).assertIsNotSelected()
+                }
+            }
+
+            then("the FAB should be hidden") {
+                runComposeUiTest {
+                    setContent {
+                        TravelSelectionPage(
+                            travelList = persistentListOf(travel1),
+                            isSelectionMode = true,
+                            selectedIds = persistentSetOf(travel1.id),
+                            onTravelClick = {},
+                            newTravelClick = {}
+                        )
+                    }
+                    onNodeWithTag(TravelSelectionTestTags.FAB_NEW_TRAVEL).assertDoesNotExist()
+                }
+            }
+
+            `when`("the delete action is clicked") {
+                then("onDeleteSelectedClick should be invoked") {
+                    var deleteClicked = false
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1, travel2),
+                                isSelectionMode = true,
+                                selectedIds = persistentSetOf(travel1.id),
+                                onTravelClick = {},
+                                onDeleteSelectedClick = { deleteClicked = true },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.TOP_BAR_DELETE_SELECTED).performClick()
+                    }
+                    deleteClicked shouldBe true
+                }
+            }
+
+            `when`("nothing is selected") {
+                then("the delete action should be disabled") {
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1),
+                                isSelectionMode = true,
+                                selectedIds = persistentSetOf(),
+                                onTravelClick = {},
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.TOP_BAR_DELETE_SELECTED).assertIsNotEnabled()
+                    }
+                }
+            }
+
+            `when`("the exit action is clicked") {
+                then("onExitSelectionMode should be invoked") {
+                    var exitClicked = false
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1),
+                                isSelectionMode = true,
+                                selectedIds = persistentSetOf(travel1.id),
+                                onTravelClick = {},
+                                onExitSelectionMode = { exitClicked = true },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.TOP_BAR_EXIT_SELECTION).performClick()
+                    }
+                    exitClicked shouldBe true
+                }
+            }
+
+            `when`("an item is clicked") {
+                then("onTravelClick should still receive that item's id so the caller can toggle it") {
+                    var clickedId: String? = null
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(travel1, travel2),
+                                isSelectionMode = true,
+                                selectedIds = persistentSetOf(travel1.id),
+                                onTravelClick = { clickedId = it },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id)).performClick()
+                    }
+                    clickedId shouldBe travel2.id
                 }
             }
         }
