@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DateRangePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -30,6 +32,9 @@ import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.datetime.LocalDate
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.date_range
+import ktravel.composeapp.generated.resources.edit
+import ktravel.composeapp.generated.resources.planning_page_trip_name_label
+import ktravel.composeapp.generated.resources.planning_trip_cd_edit_name
 import ktravel.composeapp.generated.resources.travel_creation_period_label
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -58,10 +63,35 @@ fun PlanningHeader(
 
     Column(modifier = modifier) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp),
             value = name,
             onValueChange = onNameChange,
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
+            textStyle = MaterialTheme.typography.titleMedium,
+            label = {
+                Text(
+                    text = stringResource(Res.string.planning_page_trip_name_label),
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(Res.drawable.edit),
+                    contentDescription = stringResource(Res.string.planning_trip_cd_edit_name),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            // The field reads as a plain surface row: the container carries the affordance, not an
+            // underline.
+//            colors = TextFieldDefaults.colors(
+//                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+//                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent,
+//                disabledIndicatorColor = Color.Transparent,
+//            ),
         )
 
         Spacer(Modifier.height(16.dp))
@@ -169,7 +199,7 @@ fun TravelDateRangePicker(
 }
 
 @OptIn(ExperimentalTime::class)
-@Preview(showBackground = true)
+@Preview(showSystemUi = true)
 @Composable
 private fun PlannerHeaderPreview() = KTravelTheme {
     val loremIpsum = LoremIpsum(10).values.first()
