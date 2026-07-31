@@ -10,6 +10,7 @@
     <string name="place_insert_error_lat_invalid_format">Invalid latitude format</string>
     <string name="place_insert_error_lng_invalid_format">Invalid longitude format</string>
 
+    <string name="planning_page_trip_name_label">Nome del viaggio</string>
 
     <string name="place_delete">Delete</string>
     <string name="place_delete_permanent">Permanent Delete</string>
@@ -59,6 +60,18 @@
     <string name="planning_detail_departure_before_arrival">End time cannot be earlier than start time</string>
     <string name="time_picker_confirm">Confirm</string>
     <string name="time_picker_cancel">Cancel</string>
+
+    <string name="planning_trip_add_place">Aggiungi tappa</string>
+    <string name="planning_trip_itinerary_title">Itinerario</string>
+    <string name="planning_trip_day_empty">Nessuna tappa — apri per costruire l'itinerario.</string>
+    <string name="planning_trip_places_title">Tappe da assegnare</string>
+    <string name="planning_trip_cd_back">Torna indietro</string>
+    <string name="planning_trip_cd_settings">Impostazioni</string>
+    <string name="planning_trip_cd_save">Salva viaggio</string>
+    <string name="planning_trip_cd_edit_name">Modifica il nome del viaggio</string>
+    <string name="planning_trip_cd_delete_place">Elimina tappa</string>
+    <string name="planning_trip_cd_expand_day">Espandi le tappe del giorno</string>
+    <string name="planning_trip_cd_collapse_day">Comprimi le tappe del giorno</string>
 
     <string name="planning_transport_provider_name_local">Local</string>
     <string name="planning_transport_provider_name_here">Here</string>

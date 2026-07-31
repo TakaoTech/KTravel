@@ -133,6 +133,11 @@ fun App() {
 
                             PlanningTripPage(
                                 viewModel = viewModel,
+                                onBackClick = {
+                                    if (backStackEntry.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
+                                },
                                 onAddPlaceClicked = {
                                     navController.navigate(PlaceInsertNavigation())
                                 },

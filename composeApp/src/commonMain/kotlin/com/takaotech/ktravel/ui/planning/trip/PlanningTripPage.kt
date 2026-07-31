@@ -1,25 +1,36 @@
 package com.takaotech.ktravel.ui.planning.trip
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
@@ -31,7 +42,6 @@ import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
-import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
@@ -41,9 +51,19 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
+import ktravel.composeapp.generated.resources.arrow_back
+import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.planning_trip_add_place
+import ktravel.composeapp.generated.resources.planning_trip_cd_back
+import ktravel.composeapp.generated.resources.planning_trip_cd_delete_place
+import ktravel.composeapp.generated.resources.planning_trip_cd_save
+import ktravel.composeapp.generated.resources.planning_trip_cd_settings
+import ktravel.composeapp.generated.resources.planning_trip_itinerary_title
+import ktravel.composeapp.generated.resources.planning_trip_places_title
 import ktravel.composeapp.generated.resources.save
 import ktravel.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.ExperimentalTime
 
 @Serializable
@@ -54,6 +74,7 @@ data class PlanningTripPageNavigation(val travelId: String)
 fun PlanningTripPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
     onSettingClicked: () -> Unit,
     onAddPlaceClicked: () -> Unit,
@@ -77,6 +98,7 @@ fun PlanningTripPage(
         planHeader = planHeader,
         places = uiState.places,
         days = days,
+        onBackClick = onBackClick,
         onSaveClick = onSaveClick,
         onPlanNameChange = {
             viewModel.onPlanNameChanged(it)
@@ -104,6 +126,7 @@ private fun PlanningTripPage(
     days: ImmutableList<TravelDayUi>,
     modifier: Modifier = Modifier,
 
+    onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
 
     onSettingClicked: () -> Unit,
@@ -122,28 +145,48 @@ private fun PlanningTripPage(
         topBar = {
             TopAppBar(
                 title = { },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            painter = painterResource(Res.drawable.arrow_back),
+                            contentDescription = stringResource(Res.string.planning_trip_cd_back)
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = onSaveClick) {
                         Icon(
                             painter = painterResource(Res.drawable.save),
-                            contentDescription = null
+                            contentDescription = stringResource(Res.string.planning_trip_cd_save)
                         )
                     }
                     IconButton(onClick = onSettingClicked) {
-                        Icon(painter = painterResource(Res.drawable.settings), contentDescription = null)
+                        Icon(
+                            painter = painterResource(Res.drawable.settings),
+                            contentDescription = stringResource(Res.string.planning_trip_cd_settings)
+                        )
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddPlaceClicked
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.add),
-                    contentDescription = null
-                )
-            }
+            ExtendedFloatingActionButton(
+                onClick = onAddPlaceClicked,
+                expanded = currentWindowAdaptiveInfoV2().windowSizeClass.isWidthAtLeastBreakpoint(
+                    WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
+                ),
+                text = {
+                    Text(
+                        text = stringResource(Res.string.planning_trip_add_place)
+                    )
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.add),
+                        contentDescription = stringResource(Res.string.planning_trip_add_place)
+                    )
+                }
+            )
         }
     ) {
         val dragAndDropState = rememberDragAndDropState<PlaceUi>()
@@ -154,7 +197,11 @@ private fun PlanningTripPage(
                 .padding(it),
             state = dragAndDropState,
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 item {
                     PlanningHeader(
                         name = planHeader.name,
@@ -163,6 +210,12 @@ private fun PlanningTripPage(
                         endDateMillis = planHeader.period.end,
                         onPlanDateRangeChanged = onPlanDateRangeChanged
                     )
+                }
+
+                if (places.isNotEmpty()) {
+                    item {
+                        SectionTitle(text = stringResource(Res.string.planning_trip_places_title))
+                    }
                 }
 
                 itemsIndexed(
@@ -176,10 +229,9 @@ private fun PlanningTripPage(
                         key = place.id, // Unique key for each draggable item
                         data = place,
                     ) {
-                        PlaceItem(
-                            modifier = Modifier.padding(16.dp),
+                        TripPlaceRow(
                             name = place.name,
-                            onPermanentDeleteClick = {
+                            onDeleteClick = {
                                 onDeletePermanentPlaceClick(place.id)
                             }
                         )
@@ -187,11 +239,7 @@ private fun PlanningTripPage(
                 }
 
                 item {
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = "Itinerario",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    SectionTitle(text = stringResource(Res.string.planning_trip_itinerary_title))
                 }
 
                 itemsIndexed(
@@ -211,6 +259,7 @@ private fun PlanningTripPage(
                             }
                         ),
                         day = day.date,
+                        placeSteps = day.placeSteps,
                         onDateClicked = {
                             onDateClicked(day.id)
                         }
@@ -221,21 +270,80 @@ private fun PlanningTripPage(
     }
 }
 
+@Composable
+private fun SectionTitle(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        modifier = modifier,
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold
+    )
+}
+
+/**
+ * A place of the trip backlog, not assigned to any day yet. It is dragged onto a [PlanDayItem] to
+ * plan it.
+ */
+@Composable
+private fun TripPlaceRow(
+    name: String,
+    modifier: Modifier = Modifier,
+    onDeleteClick: () -> Unit,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .heightIn(min = 56.dp)
+                .padding(start = 18.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = name,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = stringResource(Res.string.planning_trip_cd_delete_place)
+                )
+            }
+        }
+    }
+}
+
 @PreviewScreenSizes
+@PreviewLightDark
 @Composable
 private fun PlanningPagePreview() = KTravelTheme {
-    LoremIpsum(10).values.first()
     PlanningTripPage(
         planHeader = PlanHeader(
             name = TextFieldValue("Viaggio in Italia"),
         ),
-        places = persistentListOf(),
+        places = persistentListOf(
+            PlaceUi(id = "1", name = "Binasco", lat = 45.3328, lng = 9.1010),
+            PlaceUi(id = "2", name = "Assago", lat = 45.4030, lng = 9.1290)
+        ),
         days = persistentListOf(
             TravelDayUi(
                 date = LocalDate(2024, 6, 15),
                 steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList()
+            ),
+            TravelDayUi(
+                date = LocalDate(2024, 6, 16)
             )
         ),
+        onBackClick = {},
         onPlanNameChange = {},
         onDeletePermanentPlaceClick = {},
         onPlanDateRangeChanged = { start, end -> },

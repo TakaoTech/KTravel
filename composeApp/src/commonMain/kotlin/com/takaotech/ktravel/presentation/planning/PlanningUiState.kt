@@ -66,6 +66,12 @@ data class TravelDayUi(
     val steps: PersistentList<StepUi> = persistentListOf(),
     val places: PersistentList<PlaceUi> = persistentListOf()
 ) {
+
+    //TODO Review this variable place
+    /** Place stops of the day: transport steps are only shown in the day detail. */
+    val placeSteps: PersistentList<StepUi.Place> =
+        steps.filterIsInstance<StepUi.Place>().toPersistentList()
+
     companion object {
         val EMPTY = TravelDayUi(
             id = "",
