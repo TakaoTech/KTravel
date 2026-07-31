@@ -1,0 +1,101 @@
+<resources>
+    <string name="app_name">KTravel</string>
+
+    <string name="place_insert_latlng_label">Lat - Lng</string>
+    <string name="place_insert_search_label">Cerca</string>
+
+    <string name="place_insert_error_name_empty">Il nome non può essere vuoto</string>
+    <string name="place_insert_error_lat_empty">La latitudine non può essere vuota</string>
+    <string name="place_insert_error_lng_empty">La longitudine non può essere vuota</string>
+    <string name="place_insert_error_lat_invalid_format">Formato latitudine non valido</string>
+    <string name="place_insert_error_lng_invalid_format">Formato longitudine non valido</string>
+
+    <string name="planning_page_trip_name_label">Nome del viaggio</string>
+
+    <string name="place_delete">Elimina</string>
+    <string name="place_delete_permanent">Elimina definitivamente</string>
+
+    <string name="permanent_delete_dialog_title">Elimina definitivamente</string>
+    <string name="permanent_delete_dialog_message">Vuoi eliminare definitivamente questo elemento?\nL'azione non può essere annullata.</string>
+    <string name="permanent_delete_dialog_confirm">Elimina</string>
+    <string name="permanent_delete_dialog_cancel">Annulla</string>
+
+    <string name="planning_detail_places_title">Panoramica tappe</string>
+    <string name="planning_detail_places_empty">Nessuna tappa aggiunta</string>
+    <string name="planning_detail_steps_empty">Nessuna attività pianificata</string>
+    <string name="planning_detail_add_transport">Aggiungi trasporto</string>
+    <string name="planning_detail_transport_duration">Durata %1$s</string>
+    <string name="planning_detail_cd_back">Torna indietro</string>
+    <string name="planning_detail_cd_open_backlog">Apri la panoramica delle tappe</string>
+    <string name="planning_detail_cd_close_backlog">Chiudi la panoramica delle tappe</string>
+    <string name="planning_detail_cd_delete_step">Elimina attività</string>
+    <string name="planning_detail_cd_move_step_up">Sposta l'attività in alto</string>
+    <string name="planning_detail_cd_move_step_down">Sposta l'attività in basso</string>
+    <string name="planning_detail_cd_step_time">Orario pianificato</string>
+    <string name="planning_detail_cd_move_place_to_steps">Aggiungi la tappa all'itinerario</string>
+    <string name="planning_detail_cd_open_step_detail">Apri il dettaglio dell'attività</string>
+    <string name="planning_detail_step_note_title">Note</string>
+    <string name="planning_detail_step_note_empty">Nessuna nota</string>
+    <string name="planning_detail_step_note_label">Note (Markdown)</string>
+    <string name="planning_detail_cd_edit_note">Modifica le note</string>
+    <string name="planning_detail_cd_done_note">Termina la modifica delle note</string>
+    <string name="planning_detail_cd_note_invalid">Markdown non valido: note non salvate</string>
+    <string name="planning_detail_attachments_title">File</string>
+    <string name="planning_detail_attachments_empty">Nessun file</string>
+    <string name="planning_detail_cd_add_attachment">Aggiungi file</string>
+    <string name="planning_detail_cd_insert_attachment">Inserisci nelle note</string>
+    <string name="planning_detail_cd_open_attachment">Apri file</string>
+    <string name="planning_detail_cd_remove_attachment">Rimuovi il file dall'inventario</string>
+    <string name="planning_detail_attachment_open_error">Impossibile aprire il file</string>
+    <string name="planning_detail_attachments_missing">Alcune note fanno riferimento a file non più presenti nell'inventario</string>
+
+    <string name="planning_detail_schedule_title">Orari</string>
+    <string name="planning_detail_time_unset">--:--</string>
+    <string name="planning_detail_start_time_label">Orario di inizio</string>
+    <string name="planning_detail_end_time_label">Orario di fine</string>
+    <string name="planning_detail_cd_start_time">Orario di inizio</string>
+    <string name="planning_detail_cd_end_time">Orario di fine</string>
+    <string name="planning_detail_start_picker_title">Seleziona l'orario di inizio</string>
+    <string name="planning_detail_end_picker_title">Seleziona l'orario di fine</string>
+    <string name="planning_detail_departure_before_arrival">L'orario di fine non può precedere quello di inizio</string>
+    <string name="time_picker_confirm">Conferma</string>
+    <string name="time_picker_cancel">Annulla</string>
+
+    <string name="planning_trip_add_place">Aggiungi tappa</string>
+    <string name="planning_trip_itinerary_title">Itinerario</string>
+    <string name="planning_trip_day_empty">Nessuna tappa — apri per costruire l'itinerario.</string>
+    <string name="planning_trip_places_title">Tappe da assegnare</string>
+    <string name="planning_trip_cd_back">Torna indietro</string>
+    <string name="planning_trip_cd_settings">Impostazioni</string>
+    <string name="planning_trip_cd_save">Salva viaggio</string>
+    <string name="planning_trip_cd_edit_name">Modifica il nome del viaggio</string>
+    <string name="planning_trip_cd_delete_place">Elimina tappa</string>
+    <string name="planning_trip_cd_expand_day">Espandi le tappe del giorno</string>
+    <string name="planning_trip_cd_collapse_day">Comprimi le tappe del giorno</string>
+
+    <string name="planning_transport_provider_name_local">Locale</string>
+    <string name="planning_transport_provider_name_here">Here</string>
+    <string name="planning_transport_provider_name_gmaps">Google Maps</string>
+
+    <string name="travel_creation_title">Crea Nuovo Viaggio</string>
+    <string name="travel_creation_hero_subtitle">INIZIA LA TUA AVVENTURA</string>
+    <string name="travel_creation_hero_title">Dove ti porterà il cuore?</string>
+    <string name="travel_creation_name_label">NOME DEL VIAGGIO</string>
+    <string name="travel_creation_name_placeholder">es. Safari in Kenya o Weekend a Parigi</string>
+    <string name="travel_creation_period_label">PERIODO DEL VIAGGIO</string>
+    <string name="travel_creation_period_start">Inizio</string>
+    <string name="travel_creation_period_end">Fine</string>
+    <string name="travel_creation_destinations_title">Aggiungi destinazioni</string>
+    <string name="travel_creation_destinations_subtitle">Puoi aggiungerle anche più tardi</string>
+    <string name="travel_creation_button">Crea Viaggio</string>
+    <string name="travel_creation_name_empty_error">Il nome del viaggio non può essere vuoto</string>
+
+    <string name="travel_selection_title">I miei viaggi</string>
+    <string name="travel_selection_cd_exit_selection">Esci dalla selezione</string>
+    <string name="travel_selection_cd_delete_selected">Elimina i viaggi selezionati</string>
+    <string name="travel_selection_cd_swipe_delete">Elimina viaggio</string>
+    <plurals name="travel_selection_selected_count">
+        <item quantity="one">%1$d selezionato</item>
+        <item quantity="other">%1$d selezionati</item>
+    </plurals>
+</resources>

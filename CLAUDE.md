@@ -141,6 +141,7 @@ Open `/iosApp` directory in Xcode and run from there.
 - Keep composables focused and composable
 - Place new label strings in `strings.xml` and use id for string references
 - Use Immutable package instead of standard List
+- For anything touching `strings.xml` or translations, use the `localizing-strings` skill
 
 ## Development Workflow
 
