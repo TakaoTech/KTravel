@@ -166,6 +166,16 @@ Open `/iosApp` directory in Xcode and run from there.
 - Keep composables focused and composable
 - Place new label strings in `strings.xml` and use id for string references
 
+### Localization Guidelines
+
+- `composeResources/values/strings.xml` is the default resource file and MUST contain **English only
+  **
+- Localized translations live in language-qualified folders, e.g.
+  `composeResources/values-it/strings.xml` for Italian
+- Every key added to `values/strings.xml` must also be added to each localized file; keep the key
+  order and the section grouping identical across all files so they stay easy to diff
+- Never leave a non-English literal in `values/strings.xml`
+
 ## Development Workflow
 
 1. **Before Making Changes:**
