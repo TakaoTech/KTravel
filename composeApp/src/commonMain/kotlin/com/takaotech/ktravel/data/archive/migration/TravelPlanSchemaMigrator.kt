@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonObject
  * migrazioni registrate.
  */
 internal class TravelPlanSchemaMigrator(
-    private val migrations: List<TravelPlanJsonMigration> = TravelPlanMigrations.ALL,
+    private val migrations: TravelPlanMigrationFactory = TravelPlanMigrations,
     private val currentVersion: Int = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
     private val minSupportedVersion: Int = TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION
 ) {
@@ -31,8 +31,11 @@ internal class TravelPlanSchemaMigrator(
             )
         }
 
+        // Built after the guards on purpose: an out of range version allocates nothing.
+        val chain = migrations.migrationsFrom(fromVersion, currentVersion)
+
         return (fromVersion until currentVersion).fold(plan) { migrated, version ->
-            val migration = migrations.firstOrNull { it.fromVersion == version }
+            val migration = chain.firstOrNull { it.fromVersion == version }
                 ?: throw TravelArchiveException(
                     TravelArchiveError.MigrationFailed(
                         fromVersion = version,

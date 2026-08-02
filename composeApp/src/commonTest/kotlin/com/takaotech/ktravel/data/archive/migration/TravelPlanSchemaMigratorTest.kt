@@ -32,13 +32,21 @@ private class FailingMigration(override val fromVersion: Int) : TravelPlanJsonMi
     override fun migrate(plan: JsonObject): JsonObject = error("boom")
 }
 
+/** Hands out the given fakes the way the real registry does: only the steps in range, in order. */
+private fun migrationsOf(vararg migrations: TravelPlanJsonMigration) =
+    TravelPlanMigrationFactory { fromVersion, toVersion ->
+        (fromVersion until toVersion).mapNotNull { version ->
+            migrations.firstOrNull { it.fromVersion == version }
+        }
+    }
+
 class TravelPlanSchemaMigratorTest : BehaviorSpec({
 
     val plan = buildJsonObject { put("name", "Tokyo") }
 
     given("a migrator with a v1->v2 and a v2->v3 migration") {
         val migrator = TravelPlanSchemaMigrator(
-            migrations = listOf(TracingMigration(1), TracingMigration(2)),
+            migrations = migrationsOf(TracingMigration(1), TracingMigration(2)),
             currentVersion = 3,
             minSupportedVersion = 1
         )
@@ -79,7 +87,7 @@ class TravelPlanSchemaMigratorTest : BehaviorSpec({
 
     given("a migrator whose oldest supported version is 2") {
         val migrator = TravelPlanSchemaMigrator(
-            migrations = listOf(TracingMigration(2)),
+            migrations = migrationsOf(TracingMigration(2)),
             currentVersion = 3,
             minSupportedVersion = 2
         )
@@ -99,7 +107,7 @@ class TravelPlanSchemaMigratorTest : BehaviorSpec({
 
     given("a migrator with a gap in the migration chain") {
         val migrator = TravelPlanSchemaMigrator(
-            migrations = listOf(TracingMigration(1)),
+            migrations = migrationsOf(TracingMigration(1)),
             currentVersion = 3,
             minSupportedVersion = 1
         )
@@ -120,7 +128,7 @@ class TravelPlanSchemaMigratorTest : BehaviorSpec({
 
     given("a migrator whose migration throws") {
         val migrator = TravelPlanSchemaMigrator(
-            migrations = listOf(FailingMigration(1)),
+            migrations = migrationsOf(FailingMigration(1)),
             currentVersion = 2,
             minSupportedVersion = 1
         )
