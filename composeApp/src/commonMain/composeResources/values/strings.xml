@@ -67,7 +67,9 @@
     <string name="planning_trip_places_title">Places to assign</string>
     <string name="planning_trip_cd_back">Navigate back</string>
     <string name="planning_trip_cd_settings">Settings</string>
-    <string name="planning_trip_cd_save">Save trip</string>
+    <string name="planning_trip_cd_export">Export trip</string>
+    <string name="planning_trip_export_success">Trip exported</string>
+    <string name="planning_trip_export_success_partial">Trip exported, %1$d missing files were skipped</string>
     <string name="planning_trip_cd_edit_name">Edit trip name</string>
     <string name="planning_trip_cd_delete_place">Delete place</string>
     <string name="planning_trip_cd_expand_day">Expand day places</string>
@@ -94,8 +96,28 @@
     <string name="travel_selection_cd_exit_selection">Exit selection</string>
     <string name="travel_selection_cd_delete_selected">Delete selected trips</string>
     <string name="travel_selection_cd_swipe_delete">Delete trip</string>
+    <string name="travel_selection_cd_import">Import trip</string>
+    <string name="travel_selection_import_reading">Reading archive…</string>
+    <string name="travel_selection_import_success">%1$s imported</string>
+    <string name="travel_selection_import_duplicate_name">%1$s (copy)</string>
     <plurals name="travel_selection_selected_count">
         <item quantity="one">%1$d selected</item>
         <item quantity="other">%1$d selected</item>
     </plurals>
+
+    <string name="travel_import_conflict_title">Trip already present</string>
+    <string name="travel_import_conflict_message">A trip with the same id is already saved as “%1$s”. Replace it or import a copy?</string>
+    <string name="travel_import_conflict_duplicate">Duplicate</string>
+    <string name="travel_import_conflict_replace">Replace</string>
+    <string name="travel_import_conflict_cancel">Cancel</string>
+
+    <string name="travel_archive_error_corrupted">The archive is damaged or is not a KTravel file.</string>
+    <string name="travel_archive_error_invalid_manifest">The archive does not contain valid KTravel data.</string>
+    <string name="travel_archive_error_missing_entry">The archive is incomplete: %1$s is missing.</string>
+    <string name="travel_archive_error_too_old">This archive comes from a version of KTravel that is too old and can no longer be imported.</string>
+    <string name="travel_archive_error_too_new">This archive comes from a newer version of KTravel. Update the app to import it.</string>
+    <string name="travel_archive_error_migration_failed">The archive could not be converted to the current format.</string>
+    <string name="travel_archive_error_malformed_plan">The trip data in the archive is unreadable.</string>
+    <string name="travel_archive_error_missing_attachment">A file used by the trip is missing from the archive: %1$s.</string>
+    <string name="travel_archive_error_io">The file could not be read or written.</string>
 </resources>

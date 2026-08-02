@@ -6,7 +6,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,9 +51,6 @@ import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import dev.zacsweers.metrox.viewmodel.metroViewModel
-import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
-import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 
@@ -116,16 +112,15 @@ fun App() {
                                     viewModelStoreOwner = backStackEntry,
                                     key = args.travelId
                                 ) { _ -> create(args.travelId) }
-                            val coroutine = rememberCoroutineScope()
 
-                            val launcher =
-                                rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { _ -> }
 
                             NavigationBackHandler(
                                 state = rememberNavigationEventState(NavigationEventInfo.None),
+                                //TODO Meanwhile export phase block back
                                 isBackEnabled = true,
                                 onBackCompleted = {
                                     if (backStackEntry.lifecycleIsResumed()) {
+                                        appGraph.planningGraphStore.release(args.travelId)
                                         navController.navigateUp()
                                     }
                                 }
@@ -135,6 +130,7 @@ fun App() {
                                 viewModel = viewModel,
                                 onBackClick = {
                                     if (backStackEntry.lifecycleIsResumed()) {
+                                        appGraph.planningGraphStore.release(args.travelId)
                                         navController.navigateUp()
                                     }
                                 },
@@ -146,14 +142,6 @@ fun App() {
                                 },
                                 onSettingClicked = {
                                     navController.navigate(SettingsNavigation)
-                                },
-                                onSaveClick = {
-                                    coroutine.launch {
-                                        launcher.launch(
-                                            viewModel.uiState.value.planHeader.name.text,
-                                            "json"
-                                        )
-                                    }
                                 }
                             )
                         }

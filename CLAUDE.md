@@ -111,13 +111,24 @@ Open `/iosApp` directory in Xcode and run from there.
 
 ## Code Style Guidelines
 
+### Language Rule (non-negotiable)
+
+**Everything that ends up in this repository is written in English.** This includes function, class
+and variable names, comments, KDoc, test names (`Given ... When ... Then ...`), commit messages and
+PR descriptions.
+
+Other languages (like Italian) is used in exactly two places, and nowhere else:
+
+1. The conversation with the user.
+2. Translation *values* in `composeResources/values-**/strings.xml` (see the `localizing-strings`
+   skill). `composeResources/values/strings.xml` stays English-only.
+
 ### General Principles
 
 - Write idiomatic Kotlin code
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
 - Keep functions small and focused on a single responsibility
-- Write method name, comment, and documentation in English
 
 ### Architecture Guidelines
 

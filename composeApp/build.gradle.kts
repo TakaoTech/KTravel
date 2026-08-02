@@ -154,6 +154,10 @@ kotlin {
 
                 implementation(libs.couchbase.lite)
 
+                // L'astrazione zip (data/archive/zip) parla kotlinx.io.files.Path: dichiarato
+                // esplicitamente per non dipendere dalla versione che filekit trascina.
+                implementation(libs.kotlinx.io.core)
+
                 api(libs.circuit.foundation)
                 api(libs.circuit.runtime)
                 api(libs.circuit.runtime.presenter)
@@ -169,9 +173,30 @@ kotlin {
                 implementation(libs.hyphen)
             }
         }
-        iosMain.dependencies {
-//            implementation(libs.kotzilla.sdk.compose)
-            implementation(libs.ktor.client.darwin)
+
+        // kzip non ha una variante androidJvm, quindi la dipendenza non può stare in un source set
+        // intermedio (risolto come metadata): la si dichiara nei source set leaf, usando l'artefatto
+        // jvm su Android/Desktop (regola di compatibilità KGP jvm -> androidJvm) e il modulo KMP su
+        // iOS. L'API è identica, quindi l'unica implementazione `actual` è condivisa via srcDir.
+        androidMain {
+            kotlin.srcDir("src/kzipMain/kotlin")
+            dependencies {
+                implementation(libs.kzip.jvm)
+            }
+        }
+        jvmMain {
+            kotlin.srcDir("src/kzipMain/kotlin")
+            dependencies {
+                implementation(libs.kzip.jvm)
+            }
+        }
+        iosMain {
+            kotlin.srcDir("src/kzipMain/kotlin")
+            dependencies {
+//                implementation(libs.kotzilla.sdk.compose)
+                implementation(libs.ktor.client.darwin)
+                implementation(libs.kzip)
+            }
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -285,6 +310,10 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
+    // Detekt 1.23.x gira in-process nel daemon Gradle e non supporta JVM 23+: va lanciato con un
+    // JDK <= 22 (`./gradlew detekt` con JAVA_HOME su JDK 21), oppure aggiornando detekt.
+    jvmTarget = JvmTarget.JVM_21.target
+
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
         md.required.set(true)

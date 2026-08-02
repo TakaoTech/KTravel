@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.v2.runComposeUiTest
+import com.takaotech.ktravel.presentation.intro.ImportUiState
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -73,6 +74,55 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id)).assertDoesNotExist()
+                }
+            }
+        }
+
+        given("TravelSelectionPage outside selection mode") {
+            then("the import action should be displayed") {
+                runComposeUiTest {
+                    setContent {
+                        TravelSelectionPage(
+                            travelList = persistentListOf(),
+                            onTravelClick = {},
+                            newTravelClick = {}
+                        )
+                    }
+                    onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).assertIsDisplayed()
+                }
+            }
+
+            `when`("the import action is clicked") {
+                then("onImportClick should be invoked") {
+                    var clicked = 0
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(),
+                                onTravelClick = {},
+                                onImportClick = { clicked++ },
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).performClick()
+                    }
+                    clicked shouldBe 1
+                }
+            }
+
+            `when`("an import is already running") {
+                then("the import action should be disabled") {
+                    runComposeUiTest {
+                        setContent {
+                            TravelSelectionPage(
+                                travelList = persistentListOf(),
+                                importState = ImportUiState.Importing,
+                                onTravelClick = {},
+                                newTravelClick = {}
+                            )
+                        }
+                        onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).assertIsNotEnabled()
+                    }
                 }
             }
         }

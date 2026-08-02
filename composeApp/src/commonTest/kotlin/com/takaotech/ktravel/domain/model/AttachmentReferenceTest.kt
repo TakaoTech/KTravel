@@ -83,5 +83,65 @@ class AttachmentReferenceTest : BehaviorSpec({
                 missing shouldContainExactly listOf("t1/s1/doc.pdf")
             }
         }
+
+        `when`("references are rewritten with a full mapping") {
+            val rewritten = AttachmentReference.rewriteReferences(
+                markdown,
+                mapping = mapOf(
+                    "t1/s1/img.jpg" to "t9/s9/img.jpg",
+                    "t1/s1/doc.pdf" to "t9/s9/doc.pdf"
+                )
+            )
+
+            then("every reference points to the new path") {
+                AttachmentReference.extractRelativePaths(rewritten) shouldContainExactly listOf(
+                    "t9/s9/img.jpg",
+                    "t9/s9/doc.pdf"
+                )
+            }
+
+            then("the surrounding markdown is preserved") {
+                rewritten.contains("[external](https://example.com)") shouldBe true
+                rewritten.startsWith("# Notes") shouldBe true
+            }
+        }
+
+        `when`("references are rewritten with a partial mapping") {
+            val rewritten = AttachmentReference.rewriteReferences(
+                markdown,
+                mapping = mapOf("t1/s1/img.jpg" to "t9/s9/img.jpg")
+            )
+
+            then("unmapped references are left untouched") {
+                AttachmentReference.extractRelativePaths(rewritten) shouldContainExactly listOf(
+                    "t9/s9/img.jpg",
+                    "t1/s1/doc.pdf"
+                )
+            }
+        }
+
+        `when`("references are rewritten with an empty mapping") {
+            then("the markdown is returned unchanged") {
+                AttachmentReference.rewriteReferences(
+                    markdown,
+                    mapping = emptyMap()
+                ) shouldBe markdown
+            }
+        }
+    }
+
+    given("a markdown whose paths contain regex replacement metacharacters") {
+        val markdown = "![](ktravel://attachment/t1/s1/a\$b.jpg)"
+
+        `when`("the reference is rewritten") {
+            val rewritten = AttachmentReference.rewriteReferences(
+                markdown,
+                mapping = mapOf("t1/s1/a\$b.jpg" to "t2/s2/c\$d.jpg")
+            )
+
+            then("the metacharacters are not interpreted as group references") {
+                rewritten shouldBe "![](ktravel://attachment/t2/s2/c\$d.jpg)"
+            }
+        }
     }
 })

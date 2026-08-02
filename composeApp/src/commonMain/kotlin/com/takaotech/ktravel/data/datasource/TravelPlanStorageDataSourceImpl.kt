@@ -32,12 +32,21 @@ class TravelPlanStorageDataSourceImpl(
     private val travelCollection = storageRepository.database.createCollection("travel_plans")
 
     override suspend fun saveTravelPlan(entity: TravelPlanEntity) {
-        val jsonString = json.encodeToString(TravelPlanEntity.serializer(), entity)
-        val existingDoc = travelCollection.getDocument(entity.id)
-        val docToSave = existingDoc?.toMutable()?.also { it.setJSON(jsonString) }
-            ?: MutableDocument(entity.id, jsonString)
+        val docToSave = documentOf(entity)
         storageRepository.scope.launch {
             travelCollection.save(docToSave)
+        }
+    }
+
+    private fun documentOf(entity: TravelPlanEntity): MutableDocument {
+        val jsonString = json.encodeToString(TravelPlanEntity.serializer(), entity)
+        return travelCollection.getDocument(entity.id)?.toMutable()?.also { it.setJSON(jsonString) }
+            ?: MutableDocument(entity.id, jsonString)
+    }
+
+    override suspend fun insertTravelPlan(entity: TravelPlanEntity) {
+        withContext(storageRepository.writeContext) {
+            travelCollection.save(documentOf(entity))
         }
     }
 
@@ -46,6 +55,13 @@ class TravelPlanStorageDataSourceImpl(
         val map = travelCollection.getDocument(id)!!
         return json.decodeFromString<TravelPlanEntity>(map.toJSON())
     }
+
+    override suspend fun getTravelPlanNameOrNull(id: String): String? =
+        withContext(storageRepository.readContext) {
+            travelCollection.getDocument(id)
+                ?.toJSON()
+                ?.let { json.decodeFromString<TravelPlanEntity>(it).name }
+        }
 
     override suspend fun getAllTravelPlans(): List<TravelPlanEntity> {
         return withContext(storageRepository.readContext) {

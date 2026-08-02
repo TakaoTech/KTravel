@@ -36,6 +36,9 @@ filekit = "0.13.0"
 kotbase = "3.2.4-1.2.0"
 circuit = "0.34.0"
 
+kzip = "2.0.0"
+kotlinx-io = "0.9.1"
+
 detekt = "1.23.8"
 compottie = "2.2.4"
 
@@ -127,6 +130,12 @@ platformtools-core = { module = "io.github.kdroidfilter:platformtools.core", ver
 dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version = "0.4.0" }
 
 couchbase-lite = { module = "dev.kotbase:couchbase-lite", version.ref = "kotbase" }
+
+# kzip non pubblica un artefatto per il target androidJvm: su Android/JVM si usa la variante jvm,
+# consentita dalla regola di compatibilità KGP jvm -> androidJvm (vedi sourceSet jvmZipMain).
+kzip = { module = "de.jonasbroeckmann.kzip:kzip", version.ref = "kzip" }
+kzip-jvm = { module = "de.jonasbroeckmann.kzip:kzip-jvm", version.ref = "kzip" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 
 circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }
 circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = "circuit" }

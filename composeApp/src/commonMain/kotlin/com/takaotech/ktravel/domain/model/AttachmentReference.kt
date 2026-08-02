@@ -42,4 +42,23 @@ object AttachmentReference {
         val inventory = inventoryRelativePaths.toSet()
         return extractRelativePaths(markdown).filter { it !in inventory }.distinct()
     }
+
+    /**
+     * Riscrive i riferimenti `ktravel://attachment/<old>` nel [markdown] secondo [mapping].
+     *
+     * I path assenti dalla mappa restano invariati, così i riferimenti già dangling non vengono
+     * alterati. Serve all'import di un archivio quando gli id vengono rigenerati e i file finiscono
+     * sotto un nuovo path relativo.
+     */
+    fun rewriteReferences(markdown: String, mapping: Map<String, String>): String =
+        if (mapping.isEmpty()) {
+            markdown
+        } else {
+            // Forma con lambda obbligatoria: l'overload con String interpreterebbe `$` e `\`
+            // presenti nei path come riferimenti a gruppi di cattura.
+            REGEX.replace(markdown) { match ->
+                val relativePath = match.groupValues[1]
+                URI_PREFIX + (mapping[relativePath] ?: relativePath)
+            }
+        }
 }
