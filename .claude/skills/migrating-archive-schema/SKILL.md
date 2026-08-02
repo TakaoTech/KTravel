@@ -1,6 +1,6 @@
 ---
 name: migrating-archive-schema
-description: Evolve the `.ktravel` archive schema when `TravelPlanEntity` changes, by adding a `TravelPlanJsonMigration` step so archives exported by older builds stay importable. Encodes the four-step procedure (write the migration, register it, bump `CURRENT_SCHEMA_VERSION`, test it), the rule that migrations operate on raw `JsonObject` and never on data classes, and how to drop support for versions that are too old. Use when changing, renaming, or removing a field in `TravelPlanEntity` / `TravelDayEntity` / `StepEntity` / `PlaceEntity` / `AttachmentEntity` / `RouteEntity`; when adding a new `@SerialName`; or when the user mentions schema version, archive migration, `TravelPlanJsonMigration`, `TravelPlanMigrations`, `TravelPlanSchemaMigrator`, `CURRENT_SCHEMA_VERSION`, `MIN_SUPPORTED_SCHEMA_VERSION`, `MalformedPlanJson`, `UnsupportedSchemaVersion`, or "old .ktravel file cannot be imported".
+description: Evolve the `.ktravel` archive schema when `TravelPlanEntity` changes, by adding a `TravelPlanJsonMigration` step so archives exported by older builds stay importable. Encodes the five-step procedure (recover the shipped shape and diff it, write the migration, register it, bump `CURRENT_SCHEMA_VERSION`, test it), the rule that migrations operate on raw `JsonObject` and never on data classes, and how to drop support for versions that are too old. Use when changing, renaming, or removing a field in `TravelPlanEntity` / `TravelDayEntity` / `StepEntity` / `PlaceEntity` / `AttachmentEntity` / `RouteEntity`; when adding a new `@SerialName`; or when the user mentions schema version, archive migration, `TravelPlanJsonMigration`, `TravelPlanMigrations`, `TravelPlanSchemaMigrator`, `CURRENT_SCHEMA_VERSION`, `MIN_SUPPORTED_SCHEMA_VERSION`, `MalformedPlanJson`, `UnsupportedSchemaVersion`, or "old .ktravel file cannot be imported".
 ---
 
 # Migrating the `.ktravel` archive schema
@@ -26,12 +26,71 @@ fail to deserialize or, worse, deserialize into something wrong:
 
 If in doubt, write the migration: a no-op migration is cheap, an unreadable archive is not.
 
-## The four steps
+## The five steps
 
 Everything lives in
 `composeApp/src/commonMain/kotlin/com/takaotech/ktravel/data/archive/migration/`.
 
-### 1. Write the migration
+### 1. Recover the shipped shape and diff it
+
+A migration is a **delta**: it rewrites the JSON the previous build wrote into the JSON this build
+reads. You cannot write it without both shapes in front of you, and the old one is the problem —
+nothing in the working tree holds it. `TravelPlanEntity.kt` describes only today, and
+`ArchiveTestFixtures` builds entities from today's classes, so it follows every refactor instead of
+recording anything. Once the entities are edited, the shipped shape survives only in git history.
+
+**Do this before touching the entities**, or you will be reconstructing it afterwards from memory.
+
+**a. Find the anchor** — the commit that set the schema version you are migrating *from*. Search for
+the value you are leaving behind, not the new one:
+
+```bash
+ANCHOR=$(git log -1 --format=%H -S 'CURRENT_SCHEMA_VERSION: Int = 1' -- \
+    composeApp/src/commonMain/kotlin/com/takaotech/ktravel/data/archive/TravelArchiveFormat.kt)
+```
+
+**b. Diff the entities against it.** `TravelPlanEntity.kt` is the only file that matters: every
+class
+serialized into `travel.json` lives there (`TravelPlanEntity`, `TravelDayEntity`, `StepEntity`,
+`PlaceEntity`, `VisitScheduleEntity`, `AttachmentEntity`, `RouteEntity`, `RouteSectionEntity`,
+`RouteActionEntity`).
+
+```bash
+git diff "$ANCHOR" -- \
+    composeApp/src/commonMain/kotlin/com/takaotech/ktravel/data/entity/TravelPlanEntity.kt
+```
+
+The delta is **cumulative**: if the entities changed across five commits since the anchor, one
+migration covers all of it. One step per *version bump*, never one per commit.
+
+**c. Read the diff for wire changes only.** Most of what a rename touches is invisible to the
+archive. Cross-check each hunk against the table above and keep only:
+
+| In the diff                                      | On the wire                             |
+|--------------------------------------------------|-----------------------------------------|
+| `@SerialName` string changed                     | **key renamed** — migrate               |
+| new property, no `= default`                     | **key required** — migrate              |
+| new property with a default                      | nothing                                 |
+| property removed                                 | nothing (`ignoreUnknownKeys`)           |
+| Kotlin property renamed, `@SerialName` untouched | **nothing** — the wire name never moved |
+| type / nullability / unit changed                | **migrate**                             |
+| `@SerialName` on a sealed subclass changed       | **discriminator moved** — migrate       |
+
+`fedc287` ("Rename arrival and departure times to start and end times") is the shape to expect: 24
+files changed, and the only four lines that would have mattered are the `@SerialName` renames
+`arrival_time_hour` → `start_time_hour` and friends in `VisitScheduleEntity`. It landed *before* the
+archive shipped, so it owed no migration — which is exactly why the anchor commit, not "the last
+change to the entities", is what bounds the diff.
+
+**d. Freeze the old shape as a fixture** — this is the input your test will run the migration on.
+Best source is a real archive: export a trip with the **shipped** build and read `travel.json` out
+of the zip (a `.ktravel` is a plain zip). Failing that, before editing the entities, serialize
+`ArchiveTestFixtures.plan()` once and keep the output.
+
+Either way, paste the result into the test as a **literal JSON string**. Capturing it by serializing
+entities is fine; *generating it at test runtime* is not — see [Tests](#tests).
+
+### 2. Write the migration
 
 One class per version step, named after the transition:
 
@@ -93,20 +152,25 @@ and the key name is whatever the `Json` configuration uses (`"type"` by default)
 `fromVersion` is the version read **in**; the migration always produces `fromVersion + 1`. Never
 skip a step: to go from 1 to 3 you write two migrations, and `TravelPlanSchemaMigrator` chains them.
 
-### 2. Register it
+### 3. Register it
+
+`TravelPlanMigrations` is a factory, not a stored list: it builds only the steps needed to go from a
+given version to the current one, when they are asked for. Registering a migration means adding one
+branch — never a field, or the instance would live for the whole process.
 
 ```kotlin
-internal object TravelPlanMigrations {
-    val ALL: List<TravelPlanJsonMigration> = listOf(
-        TravelPlanMigrationV1ToV2(),
-    )
+private fun migrationFrom(version: Int): TravelPlanJsonMigration? = when (version) {
+    1 -> TravelPlanMigrationV1ToV2()
+    else -> null
 }
 ```
 
-A gap in the chain is not silent: the migrator raises
-`TravelArchiveError.MigrationFailed(from, to, "no migration registered")`.
+A gap in the chain is not silent: an unregistered step is left out of the chain, and the migrator
+raises `TravelArchiveError.MigrationFailed(from, to, "no migration registered")`.
+`TravelPlanMigrationsTest`
+catches the same mistake at build time by asserting the registry covers every supported version.
 
-### 3. Bump the version
+### 4. Bump the version
 
 In `data/archive/TravelArchiveFormat.kt`:
 
@@ -117,9 +181,10 @@ const val CURRENT_SCHEMA_VERSION: Int = 2
 Nothing else changes. The exporter stamps the new version into `manifest.json`, and the importer
 migrates anything older up to it.
 
-### 4. Test it
+### 5. Test it
 
-See [Tests](#tests) below — a migration without a test is not done.
+See [Tests](#tests) below — a migration without a test is not done, and the fixture frozen in step 1
+is what it runs on.
 
 ## Non-negotiable rules
 
@@ -229,9 +294,13 @@ class TravelPlanMigrationV1ToV2Test : BehaviorSpec({
 ```
 
 The third assertion is the one that matters: a migration is correct only if its output feeds the
-**current** entity. Keep the v1 fixture as a **literal JSON string** in the test — never generate it
-by serializing today's entities, or the fixture silently follows your refactors and stops testing
-anything.
+**current** entity. `V1_FIXTURE` is the shape frozen in step 1, kept as a **literal JSON string**:
+capturing it once by serializing the entities of the day is how you get it, but the test must never
+build it at runtime, or the fixture silently follows your refactors and stops testing anything.
+
+Verify the fixture against the diff before trusting it: it has to actually *contain* the keys the
+migration moves. A migration tested on JSON that never had `arrival_time_hour` passes while doing
+nothing.
 
 Also extend `TravelArchiveCorruptionTest`, which builds archives by hand, with a case at the new
 boundary: `schema_version = MIN_SUPPORTED - 1` must still yield `UnsupportedSchemaVersion`.
