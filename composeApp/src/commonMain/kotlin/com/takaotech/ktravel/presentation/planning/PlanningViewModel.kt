@@ -5,12 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.domain.archive.TravelArchiveExporter
+import com.takaotech.ktravel.domain.archive.asTravelArchiveError
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +26,7 @@ import kotlinx.coroutines.launch
 class PlanningViewModel(
     @Assisted private val travelId: String,
     private val planningGraphStore: PlanningGraphStore,
+    private val archiveExporter: TravelArchiveExporter,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -42,7 +46,10 @@ class PlanningViewModel(
             .onEach { domainState ->
                 val domainName = domainState.name
                 _uiState.update { current ->
+                    // The mapper rebuilds the whole state, so anything not coming from the domain
+                    // (export progress) must be carried over explicitly.
                     val mappedState = with(TravelPlanUiMapper) { domainState.toUiState() }
+                        .copy(export = current.export)
                     if (domainName != current.planHeader.name.text) {
                         // External change — safe to replace TextFieldValue
                         mappedState
@@ -82,5 +89,30 @@ class PlanningViewModel(
         viewModelScope.launch {
             repository.deletePlace(placeId, null)
         }
+    }
+
+    /** Esporta il viaggio nel file scelto dall'utente, che può essere un `content://` Android. */
+    fun exportTravel(destination: PlatformFile) {
+        if (_uiState.value.export is ExportUiState.InProgress) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(export = ExportUiState.InProgress) }
+            archiveExporter.export(travelId, destination)
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(export = ExportUiState.Completed(result.skippedAttachments.size))
+                    }
+                }
+                .onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(export = ExportUiState.Failed(throwable.asTravelArchiveError()))
+                    }
+                }
+        }
+    }
+
+    /** Da chiamare dopo aver mostrato l'esito dell'export, per non ripeterlo a ogni ricomposizione. */
+    fun onExportMessageShown() {
+        _uiState.update { it.copy(export = ExportUiState.Idle) }
     }
 }

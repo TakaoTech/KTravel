@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.ui.planning.trip
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,15 +16,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -36,13 +43,18 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
+import com.takaotech.ktravel.data.archive.TravelArchiveFormat
+import com.takaotech.ktravel.presentation.planning.ExportUiState
 import com.takaotech.ktravel.presentation.planning.PlaceUi
 import com.takaotech.ktravel.presentation.planning.PlanHeader
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
+import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -53,14 +65,16 @@ import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.file_export
 import ktravel.composeapp.generated.resources.planning_trip_add_place
 import ktravel.composeapp.generated.resources.planning_trip_cd_back
 import ktravel.composeapp.generated.resources.planning_trip_cd_delete_place
-import ktravel.composeapp.generated.resources.planning_trip_cd_save
+import ktravel.composeapp.generated.resources.planning_trip_cd_export
 import ktravel.composeapp.generated.resources.planning_trip_cd_settings
+import ktravel.composeapp.generated.resources.planning_trip_export_success
+import ktravel.composeapp.generated.resources.planning_trip_export_success_partial
 import ktravel.composeapp.generated.resources.planning_trip_itinerary_title
 import ktravel.composeapp.generated.resources.planning_trip_places_title
-import ktravel.composeapp.generated.resources.save
 import ktravel.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -69,13 +83,36 @@ import kotlin.time.ExperimentalTime
 @Serializable
 data class PlanningTripPageNavigation(val travelId: String)
 
+internal object PlanningTripTestTags {
+    const val EXPORT = "planning_trip_export"
+}
+
+/** Messaggio da mostrare all'utente, o null se non c'è nulla da comunicare. */
+@Composable
+private fun ExportUiState.message(): String? = when (this) {
+    ExportUiState.Idle, ExportUiState.InProgress -> null
+    is ExportUiState.Completed -> if (skippedAttachments == 0) {
+        stringResource(Res.string.planning_trip_export_success)
+    } else {
+        stringResource(Res.string.planning_trip_export_success_partial, skippedAttachments)
+    }
+
+    is ExportUiState.Failed -> error.message()
+}
+
+/**
+ * Nome file proposto dal saver: il nome del viaggio è testo libero e su alcune piattaforme un
+ * separatore di percorso lo rende inutilizzabile.
+ */
+internal fun String.toArchiveFileName(): String =
+    replace(Regex("""[^\p{L}\p{N} _-]"""), "").trim().ifEmpty { "travel" }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanningTripPage(
     viewModel: PlanningViewModel,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
-    onSaveClick: () -> Unit,
     onSettingClicked: () -> Unit,
     onAddPlaceClicked: () -> Unit,
     onDateClicked: (id: String) -> Unit,
@@ -93,13 +130,26 @@ fun PlanningTripPage(
         state = deleteDialogState
     )
 
+    // Il file saver appartiene alla pagina: la destinazione scelta va consegnata al ViewModel, che
+    // è l'unico a sapere quale viaggio esportare.
+    val exportLauncher = rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
+        file?.let(viewModel::exportTravel)
+    }
+
     PlanningTripPage(
         modifier = modifier,
         planHeader = planHeader,
         places = uiState.places,
         days = days,
+        exportState = uiState.export,
         onBackClick = onBackClick,
-        onSaveClick = onSaveClick,
+        onExportClick = {
+            exportLauncher.launch(
+                suggestedName = planHeader.name.text.toArchiveFileName(),
+                extension = TravelArchiveFormat.FILE_EXTENSION
+            )
+        },
+        onExportMessageShown = viewModel::onExportMessageShown,
         onPlanNameChange = {
             viewModel.onPlanNameChanged(it)
         },
@@ -126,8 +176,11 @@ private fun PlanningTripPage(
     days: ImmutableList<TravelDayUi>,
     modifier: Modifier = Modifier,
 
+    exportState: ExportUiState = ExportUiState.Idle,
+
     onBackClick: () -> Unit,
-    onSaveClick: () -> Unit,
+    onExportClick: () -> Unit,
+    onExportMessageShown: () -> Unit,
 
     onSettingClicked: () -> Unit,
 
@@ -140,34 +193,55 @@ private fun PlanningTripPage(
     onDateClicked: (id: String) -> Unit,
     onPlaceMovedToDay: (placeId: String, dayId: String) -> Unit,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val exportMessage = exportState.message()
+
+    LaunchedEffect(exportMessage) {
+        exportMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onExportMessageShown()
+        }
+    }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_back)
-                        )
+            Column {
+                TopAppBar(
+                    title = { },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                painter = painterResource(Res.drawable.arrow_back),
+                                contentDescription = stringResource(Res.string.planning_trip_cd_back)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            modifier = Modifier.testTag(PlanningTripTestTags.EXPORT),
+                            onClick = onExportClick,
+                            enabled = exportState !is ExportUiState.InProgress
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.file_export),
+                                contentDescription = stringResource(Res.string.planning_trip_cd_export)
+                            )
+                        }
+                        IconButton(onClick = onSettingClicked) {
+                            Icon(
+                                painter = painterResource(Res.drawable.settings),
+                                contentDescription = stringResource(Res.string.planning_trip_cd_settings)
+                            )
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = onSaveClick) {
-                        Icon(
-                            painter = painterResource(Res.drawable.save),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_save)
-                        )
-                    }
-                    IconButton(onClick = onSettingClicked) {
-                        Icon(
-                            painter = painterResource(Res.drawable.settings),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_settings)
-                        )
-                    }
+                )
+
+                if (exportState is ExportUiState.InProgress) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
-            )
+            }
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -351,6 +425,7 @@ private fun PlanningPagePreview() = KTravelTheme {
         onDateClicked = {},
         onPlaceMovedToDay = { _, _ -> },
         onSettingClicked = {},
-        onSaveClick = {}
+        onExportClick = {},
+        onExportMessageShown = {}
     )
 }

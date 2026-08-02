@@ -2,9 +2,11 @@
 
 package com.takaotech.ktravel.presentation.planning
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.toLocalDate
+import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.routing.model.Route
 import kotlinx.collections.immutable.PersistentList
@@ -23,7 +25,8 @@ import kotlin.uuid.Uuid
 data class PlanningUiState(
     val planHeader: PlanHeader = PlanHeader(),
     val days: PersistentList<TravelDayUi> = persistentListOf(),
-    val places: PersistentList<PlaceUi> = persistentListOf()
+    val places: PersistentList<PlaceUi> = persistentListOf(),
+    val export: ExportUiState = ExportUiState.Idle
 ) {
     fun setPeriod(
         start: Instant,
@@ -43,6 +46,17 @@ data class PlanningUiState(
             )
         }
     }
+}
+
+/** Avanzamento dell'export del viaggio verso un file scelto dall'utente. */
+@Immutable
+sealed interface ExportUiState {
+    data object Idle : ExportUiState
+    data object InProgress : ExportUiState
+
+    /** [skippedAttachments] conta i file referenziati dal piano ma non più presenti su disco. */
+    data class Completed(val skippedAttachments: Int) : ExportUiState
+    data class Failed(val error: TravelArchiveError) : ExportUiState
 }
 
 @Stable

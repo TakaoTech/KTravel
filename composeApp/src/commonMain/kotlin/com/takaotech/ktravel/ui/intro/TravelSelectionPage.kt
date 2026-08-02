@@ -25,10 +25,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults.InputField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -36,6 +39,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,12 +56,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.core.toLocalDate
+import com.takaotech.ktravel.data.archive.TravelArchiveFormat
+import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
+import com.takaotech.ktravel.presentation.intro.ImportUiState
 import com.takaotech.ktravel.presentation.intro.TravelSelectionViewModel
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
+import com.takaotech.ktravel.ui.common.ImportConflictDialog
+import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.PersistentSet
@@ -69,9 +80,13 @@ import ktravel.composeapp.generated.resources.add
 import ktravel.composeapp.generated.resources.close
 import ktravel.composeapp.generated.resources.date_range
 import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.file_open
 import ktravel.composeapp.generated.resources.travel_selection_cd_delete_selected
 import ktravel.composeapp.generated.resources.travel_selection_cd_exit_selection
+import ktravel.composeapp.generated.resources.travel_selection_cd_import
 import ktravel.composeapp.generated.resources.travel_selection_cd_swipe_delete
+import ktravel.composeapp.generated.resources.travel_selection_import_duplicate_name
+import ktravel.composeapp.generated.resources.travel_selection_import_success
 import ktravel.composeapp.generated.resources.travel_selection_selected_count
 import ktravel.composeapp.generated.resources.travel_selection_title
 import org.jetbrains.compose.resources.painterResource
@@ -87,7 +102,31 @@ internal object TravelSelectionTestTags {
     const val FAB_NEW_TRAVEL = "travel_selection_fab"
     const val TOP_BAR_EXIT_SELECTION = "travel_selection_exit_selection"
     const val TOP_BAR_DELETE_SELECTED = "travel_selection_delete_selected"
+    const val TOP_BAR_IMPORT = "travel_selection_import"
     fun travelItemTag(id: String) = "travel_item_$id"
+}
+
+/** True finché nessuna operazione di import è in corso o in attesa di una scelta. */
+private val ImportUiState.isIdle: Boolean
+    get() = this !is ImportUiState.Reading &&
+            this !is ImportUiState.Importing &&
+            this !is ImportUiState.AwaitingConflictChoice
+
+private val ImportUiState.isRunning: Boolean
+    get() = this is ImportUiState.Reading || this is ImportUiState.Importing
+
+/** Messaggio da mostrare all'utente, o null se non c'è nulla da comunicare. */
+@Composable
+private fun ImportUiState.message(): String? = when (this) {
+    ImportUiState.Idle,
+    ImportUiState.Reading,
+    ImportUiState.Importing,
+    is ImportUiState.AwaitingConflictChoice -> null
+
+    is ImportUiState.Completed ->
+        stringResource(Res.string.travel_selection_import_success, travelName)
+
+    is ImportUiState.Failed -> error.message()
 }
 
 @Composable
@@ -110,10 +149,36 @@ fun TravelSelectionPage(
 
     DisruptiveOperationDialog(state = deleteDialogState)
 
+    val importLauncher = rememberFilePickerLauncher(
+        type = FileKitType.File(TravelArchiveFormat.ACCEPTED_EXTENSIONS)
+    ) { file ->
+        file?.let(viewModel::stageImport)
+    }
+
+    val importState = uiState.import
+    if (importState is ImportUiState.AwaitingConflictChoice) {
+        // Il nome della copia si formatta qui: stringResource non è invocabile dal ViewModel.
+        val duplicateName = stringResource(
+            Res.string.travel_selection_import_duplicate_name,
+            importState.importedName
+        )
+        ImportConflictDialog(
+            existingName = importState.existingName,
+            onDuplicate = {
+                viewModel.confirmImport(ImportConflictStrategy.DUPLICATE, duplicateName)
+            },
+            onReplace = {
+                viewModel.confirmImport(ImportConflictStrategy.REPLACE, duplicateName)
+            },
+            onDismiss = viewModel::cancelImport
+        )
+    }
+
     TravelSelectionPage(
         travelList = uiState.travelList,
         isSelectionMode = uiState.isSelectionMode,
         selectedIds = uiState.selectedIds,
+        importState = importState,
         onTravelClick = { id ->
             if (uiState.isSelectionMode) viewModel.toggleSelection(id) else onTravelClick(id)
         },
@@ -121,6 +186,8 @@ fun TravelSelectionPage(
         onExitSelectionMode = viewModel::exitSelectionMode,
         onDeleteSelectedClick = { deleteDialogState.show(uiState.selectedIds) },
         onSwipeToDelete = { id -> deleteDialogState.show(persistentSetOf(id)) },
+        onImportClick = { importLauncher.launch() },
+        onImportMessageShown = viewModel::onImportMessageShown,
         newTravelClick = onNewTravelClick
     )
 }
@@ -132,15 +199,29 @@ internal fun TravelSelectionPage(
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
     selectedIds: ImmutableSet<String> = persistentSetOf(),
+    importState: ImportUiState = ImportUiState.Idle,
     onTravelClick: (id: String) -> Unit,
     onTravelLongClick: (id: String) -> Unit = {},
     onExitSelectionMode: () -> Unit = {},
     onDeleteSelectedClick: () -> Unit = {},
     onSwipeToDelete: (id: String) -> Unit = {},
+    onImportClick: () -> Unit = {},
+    onImportMessageShown: () -> Unit = {},
     newTravelClick: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val importMessage = importState.message()
+
+    LaunchedEffect(importMessage) {
+        importMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onImportMessageShown()
+        }
+    }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (isSelectionMode) {
                 SelectionModeTopBar(
@@ -149,9 +230,29 @@ internal fun TravelSelectionPage(
                     onDeleteSelectedClick = onDeleteSelectedClick
                 )
             } else {
-                TopAppBar(
-                    title = { Text(text = stringResource(Res.string.travel_selection_title)) }
-                )
+                Column {
+                    TopAppBar(
+                        title = { Text(text = stringResource(Res.string.travel_selection_title)) },
+                        actions = {
+                            IconButton(
+                                modifier = Modifier.testTag(TravelSelectionTestTags.TOP_BAR_IMPORT),
+                                onClick = onImportClick,
+                                enabled = importState.isIdle
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.file_open),
+                                    contentDescription = stringResource(
+                                        Res.string.travel_selection_cd_import
+                                    )
+                                )
+                            }
+                        }
+                    )
+
+                    if (importState.isRunning) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                }
             }
         },
         floatingActionButton = {

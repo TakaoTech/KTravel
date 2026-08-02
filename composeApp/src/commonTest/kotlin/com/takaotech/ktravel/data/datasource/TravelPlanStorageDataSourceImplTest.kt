@@ -98,6 +98,37 @@ class TravelPlanStorageDataSourceImplTest : BehaviorSpec({
         }
     }
 
+    given("a travel plan inserted awaiting the write") {
+        `when`("insertTravelPlan returns") {
+            then("the plan is immediately visible to a subsequent read") {
+                dataSource.insertTravelPlan(sampleEntity("inserted", "Imported Trip"))
+                dataSource.getAllTravelPlans().map { it.id } shouldBe listOf("inserted")
+            }
+
+            then("inserting twice with the same id replaces the document") {
+                dataSource.insertTravelPlan(sampleEntity("inserted", "First"))
+                dataSource.insertTravelPlan(sampleEntity("inserted", "Second"))
+                dataSource.getAllTravelPlans() shouldHaveSize 1
+                dataSource.getTravelPlan("inserted").name shouldBe "Second"
+            }
+        }
+    }
+
+    given("a database queried for a travel plan name") {
+        `when`("the plan exists") {
+            then("its name is returned") {
+                dataSource.insertTravelPlan(sampleEntity("plan-1", "My Trip"))
+                dataSource.getTravelPlanNameOrNull("plan-1") shouldBe "My Trip"
+            }
+        }
+
+        `when`("the plan does not exist") {
+            then("null is returned instead of throwing") {
+                dataSource.getTravelPlanNameOrNull("unknown") shouldBe null
+            }
+        }
+    }
+
     given("a database with two saved travel plans") {
         `when`("getAllTravelPlans is called") {
             then("should return all saved entities") {

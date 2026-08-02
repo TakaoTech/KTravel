@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.datasource
 
+import com.takaotech.ktravel.core.io.deleteRecursively
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.di.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -14,8 +15,6 @@ import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.delete
 import io.github.vinceglb.filekit.div
 import io.github.vinceglb.filekit.filesDir
-import io.github.vinceglb.filekit.isDirectory
-import io.github.vinceglb.filekit.list
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.size
 import kotlin.uuid.ExperimentalUuidApi
@@ -69,11 +68,6 @@ class AttachmentDataSourceImpl private constructor(
 
     override suspend fun deleteTravelAttachments(travelId: String) {
         (root / travelId).deleteRecursively()
-    }
-
-    private suspend fun PlatformFile.deleteRecursively() {
-        if (isDirectory()) list().forEach { it.deleteRecursively() }
-        delete(mustExist = false)
     }
 
     companion object {

@@ -67,7 +67,9 @@
     <string name="planning_trip_places_title">Tappe da assegnare</string>
     <string name="planning_trip_cd_back">Torna indietro</string>
     <string name="planning_trip_cd_settings">Impostazioni</string>
-    <string name="planning_trip_cd_save">Salva viaggio</string>
+    <string name="planning_trip_cd_export">Esporta viaggio</string>
+    <string name="planning_trip_export_success">Viaggio esportato</string>
+    <string name="planning_trip_export_success_partial">Viaggio esportato, %1$d file mancanti sono stati saltati</string>
     <string name="planning_trip_cd_edit_name">Modifica il nome del viaggio</string>
     <string name="planning_trip_cd_delete_place">Elimina tappa</string>
     <string name="planning_trip_cd_expand_day">Espandi le tappe del giorno</string>
@@ -94,8 +96,28 @@
     <string name="travel_selection_cd_exit_selection">Esci dalla selezione</string>
     <string name="travel_selection_cd_delete_selected">Elimina i viaggi selezionati</string>
     <string name="travel_selection_cd_swipe_delete">Elimina viaggio</string>
+    <string name="travel_selection_cd_import">Importa viaggio</string>
+    <string name="travel_selection_import_reading">Lettura dell'archivio…</string>
+    <string name="travel_selection_import_success">%1$s importato</string>
+    <string name="travel_selection_import_duplicate_name">%1$s (copia)</string>
     <plurals name="travel_selection_selected_count">
         <item quantity="one">%1$d selezionato</item>
         <item quantity="other">%1$d selezionati</item>
     </plurals>
+
+    <string name="travel_import_conflict_title">Viaggio già presente</string>
+    <string name="travel_import_conflict_message">Un viaggio con lo stesso id è già salvato come “%1$s”. Vuoi sostituirlo o importarne una copia?</string>
+    <string name="travel_import_conflict_duplicate">Duplica</string>
+    <string name="travel_import_conflict_replace">Sostituisci</string>
+    <string name="travel_import_conflict_cancel">Annulla</string>
+
+    <string name="travel_archive_error_corrupted">L'archivio è danneggiato o non è un file KTravel.</string>
+    <string name="travel_archive_error_invalid_manifest">L'archivio non contiene dati KTravel validi.</string>
+    <string name="travel_archive_error_missing_entry">L'archivio è incompleto: manca %1$s.</string>
+    <string name="travel_archive_error_too_old">Questo archivio proviene da una versione di KTravel troppo vecchia e non può più essere importato.</string>
+    <string name="travel_archive_error_too_new">Questo archivio proviene da una versione più recente di KTravel. Aggiorna l'app per importarlo.</string>
+    <string name="travel_archive_error_migration_failed">Non è stato possibile convertire l'archivio al formato attuale.</string>
+    <string name="travel_archive_error_malformed_plan">I dati del viaggio nell'archivio non sono leggibili.</string>
+    <string name="travel_archive_error_missing_attachment">Un file usato dal viaggio non è presente nell'archivio: %1$s.</string>
+    <string name="travel_archive_error_io">Non è stato possibile leggere o scrivere il file.</string>
 </resources>
