@@ -68,6 +68,9 @@
     <string name="planning_trip_cd_back">Navigate back</string>
     <string name="planning_trip_cd_settings">Settings</string>
     <string name="planning_trip_cd_export">Export trip</string>
+    <string name="planning_trip_export_in_progress">Exporting trip…</string>
+    <string name="planning_trip_cd_export_animation">Trip export in progress</string>
+    <string name="planning_trip_cd_export_completed_animation">Trip export completed</string>
     <string name="planning_trip_export_success">Trip exported</string>
     <string name="planning_trip_export_success_partial">Trip exported, %1$d missing files were skipped</string>
     <string name="planning_trip_cd_edit_name">Edit trip name</string>

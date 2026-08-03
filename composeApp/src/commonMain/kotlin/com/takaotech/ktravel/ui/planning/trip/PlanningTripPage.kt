@@ -1,9 +1,15 @@
 package com.takaotech.ktravel.ui.planning.trip
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -16,26 +22,32 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
@@ -53,6 +65,12 @@ import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieComposition
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieAnimatable
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.collections.immutable.ImmutableList
@@ -70,7 +88,10 @@ import ktravel.composeapp.generated.resources.planning_trip_add_place
 import ktravel.composeapp.generated.resources.planning_trip_cd_back
 import ktravel.composeapp.generated.resources.planning_trip_cd_delete_place
 import ktravel.composeapp.generated.resources.planning_trip_cd_export
+import ktravel.composeapp.generated.resources.planning_trip_cd_export_animation
+import ktravel.composeapp.generated.resources.planning_trip_cd_export_completed_animation
 import ktravel.composeapp.generated.resources.planning_trip_cd_settings
+import ktravel.composeapp.generated.resources.planning_trip_export_in_progress
 import ktravel.composeapp.generated.resources.planning_trip_export_success
 import ktravel.composeapp.generated.resources.planning_trip_export_success_partial
 import ktravel.composeapp.generated.resources.planning_trip_itinerary_title
@@ -196,52 +217,69 @@ private fun PlanningTripPage(
     val snackbarHostState = remember { SnackbarHostState() }
     val exportMessage = exportState.message()
 
-    LaunchedEffect(exportMessage) {
+    // The dialog outlives the InProgress state: on success it stays up until the arrival animation
+    // has played through. A failure has nothing to celebrate, so it closes right away.
+    var isExportDialogVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(exportState) {
+        when (exportState) {
+            is ExportUiState.InProgress -> isExportDialogVisible = true
+            is ExportUiState.Failed -> isExportDialogVisible = false
+            ExportUiState.Idle, is ExportUiState.Completed -> Unit
+        }
+    }
+
+    // The snackbar would sit behind the dialog scrim, so the outcome is announced only once the
+    // dialog is gone.
+    LaunchedEffect(exportMessage, isExportDialogVisible) {
+        if (isExportDialogVisible) return@LaunchedEffect
+
         exportMessage?.let {
             snackbarHostState.showSnackbar(it)
             onExportMessageShown()
         }
     }
 
+    if (isExportDialogVisible) {
+        ExportLoadingDialog(
+            isCompleted = exportState is ExportUiState.Completed,
+            onCompletionAnimationEnd = { isExportDialogVisible = false }
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            Column {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                painter = painterResource(Res.drawable.arrow_back),
-                                contentDescription = stringResource(Res.string.planning_trip_cd_back)
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            modifier = Modifier.testTag(PlanningTripTestTags.EXPORT),
-                            onClick = onExportClick,
-                            enabled = exportState !is ExportUiState.InProgress
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.file_export),
-                                contentDescription = stringResource(Res.string.planning_trip_cd_export)
-                            )
-                        }
-                        IconButton(onClick = onSettingClicked) {
-                            Icon(
-                                painter = painterResource(Res.drawable.settings),
-                                contentDescription = stringResource(Res.string.planning_trip_cd_settings)
-                            )
-                        }
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            painter = painterResource(Res.drawable.arrow_back),
+                            contentDescription = stringResource(Res.string.planning_trip_cd_back)
+                        )
                     }
-                )
-
-                if (exportState is ExportUiState.InProgress) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                },
+                actions = {
+                    IconButton(
+                        modifier = Modifier.testTag(PlanningTripTestTags.EXPORT),
+                        onClick = onExportClick,
+                        enabled = exportState !is ExportUiState.InProgress
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.file_export),
+                            contentDescription = stringResource(Res.string.planning_trip_cd_export)
+                        )
+                    }
+                    IconButton(onClick = onSettingClicked) {
+                        Icon(
+                            painter = painterResource(Res.drawable.settings),
+                            contentDescription = stringResource(Res.string.planning_trip_cd_settings)
+                        )
+                    }
                 }
-            }
+            )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -344,6 +382,134 @@ private fun PlanningTripPage(
     }
 }
 
+/**
+ * Native size of `files/train_export.json` and `files/train_station_export.json`, so the animations
+ * render without empty margins.
+ */
+private const val EXPORT_ANIMATION_ASPECT_RATIO = 1920f / 651f
+
+/**
+ * Blocking feedback while the archive is being written: the export cannot be cancelled, so the
+ * dialog ignores back press and outside taps.
+ *
+ * When [isCompleted] turns true the running train slides to the right and is replaced by the train
+ * arriving at the station; [onCompletionAnimationEnd] fires once that arrival has played through,
+ * so the caller can dismiss the dialog.
+ */
+@Composable
+private fun ExportLoadingDialog(
+    isCompleted: Boolean,
+    onCompletionAnimationEnd: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            // Both compositions are loaded upfront: the arrival must be ready when the transition
+            // starts, otherwise the slide would carry an empty frame.
+            val inProgressComposition by rememberLottieComposition {
+                LottieCompositionSpec.JsonString(
+                    Res.readBytes("files/train_export.json").decodeToString()
+                )
+            }
+            val completedComposition by rememberLottieComposition {
+                LottieCompositionSpec.JsonString(
+                    Res.readBytes("files/train_station_export.json").decodeToString()
+                )
+            }
+
+            AnimatedContent(
+                targetState = isCompleted,
+                transitionSpec = {
+                    // The train keeps travelling to the right: the arrival enters from the left
+                    // while the running train leaves through the right edge.
+                    slideInHorizontally { width -> -width } togetherWith
+                            slideOutHorizontally { width -> width }
+                }
+            ) { completed ->
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (completed) {
+                        ExportTrainAnimation(
+                            composition = completedComposition,
+                            iterations = 1,
+                            contentDescription = stringResource(
+                                Res.string.planning_trip_cd_export_completed_animation
+                            ),
+                            onAnimationEnd = onCompletionAnimationEnd
+                        )
+
+                        Text(
+                            text = stringResource(Res.string.planning_trip_export_success),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    } else {
+                        ExportTrainAnimation(
+                            composition = inProgressComposition,
+                            iterations = Compottie.IterateForever,
+                            contentDescription = stringResource(
+                                Res.string.planning_trip_cd_export_animation
+                            )
+                        )
+
+                        Text(
+                            text = stringResource(Res.string.planning_trip_export_in_progress),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Plays [composition] for [iterations] and notifies [onAnimationEnd] when the playback is over.
+ * The callback never fires for [Compottie.IterateForever] nor when the animation is cancelled by
+ * leaving the composition.
+ */
+@Composable
+private fun ExportTrainAnimation(
+    composition: LottieComposition?,
+    iterations: Int,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    onAnimationEnd: () -> Unit = { }
+) {
+    val animatable = rememberLottieAnimatable()
+    val currentOnAnimationEnd by rememberUpdatedState(onAnimationEnd)
+
+    LaunchedEffect(composition, iterations) {
+        animatable.animate(
+            composition = composition ?: return@LaunchedEffect,
+            iterations = iterations
+        )
+        currentOnAnimationEnd()
+    }
+
+    Image(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(EXPORT_ANIMATION_ASPECT_RATIO)
+            .clip(MaterialTheme.shapes.large),
+        painter = rememberLottiePainter(
+            composition = composition,
+            progress = animatable::value
+        ),
+        contentDescription = contentDescription
+    )
+}
+
 @Composable
 private fun SectionTitle(
     text: String,
@@ -427,5 +593,23 @@ private fun PlanningPagePreview() = KTravelTheme {
         onSettingClicked = {},
         onExportClick = {},
         onExportMessageShown = {}
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun ExportLoadingDialogPreview() = KTravelTheme {
+    ExportLoadingDialog(
+        isCompleted = false,
+        onCompletionAnimationEnd = {}
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun ExportCompletedDialogPreview() = KTravelTheme {
+    ExportLoadingDialog(
+        isCompleted = true,
+        onCompletionAnimationEnd = {}
     )
 }
