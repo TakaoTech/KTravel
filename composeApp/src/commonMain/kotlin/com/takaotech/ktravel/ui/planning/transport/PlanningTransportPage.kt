@@ -150,7 +150,7 @@ private fun PlanningTransportPage(
 
                     val composition by rememberLottieComposition {
                         LottieCompositionSpec.JsonString(
-                            Res.readBytes("files/paper_airplane.json").decodeToString()
+                            Res.readBytes("files/lottie_paper_airplane.json").decodeToString()
                         )
                     }
 
