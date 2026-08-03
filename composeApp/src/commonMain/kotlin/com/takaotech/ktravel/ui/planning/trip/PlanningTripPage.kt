@@ -383,7 +383,7 @@ private fun PlanningTripPage(
 }
 
 /**
- * Native size of `files/train_export.json` and `files/train_station_export.json`, so the animations
+ * Native size of `files/lottie_train_export.json` and `files/lottie_train_station_export.json`, so the animations
  * render without empty margins.
  */
 private const val EXPORT_ANIMATION_ASPECT_RATIO = 1920f / 651f
@@ -416,12 +416,12 @@ private fun ExportLoadingDialog(
             // starts, otherwise the slide would carry an empty frame.
             val inProgressComposition by rememberLottieComposition {
                 LottieCompositionSpec.JsonString(
-                    Res.readBytes("files/train_export.json").decodeToString()
+                    Res.readBytes("files/lottie_train_export.json").decodeToString()
                 )
             }
             val completedComposition by rememberLottieComposition {
                 LottieCompositionSpec.JsonString(
-                    Res.readBytes("files/train_station_export.json").decodeToString()
+                    Res.readBytes("files/lottie_train_station_export.json").decodeToString()
                 )
             }
 
