@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.detekt)
-    id("io.github.frankois944.spmForKmp") version "1.9.2"
+    id("io.github.frankois944.spmForKmp") version "1.9.4"
 }
 
 kotlin {
