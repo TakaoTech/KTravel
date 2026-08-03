@@ -14,6 +14,7 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @AssistedInject
 class PlanningViewModel(
@@ -97,8 +99,12 @@ class PlanningViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(export = ExportUiState.InProgress) }
-            archiveExporter.export(travelId, destination)
+            val export = archiveExporter.export(travelId, destination)
+
+            export
                 .onSuccess { result ->
+                    //Avoid flicker for high speed export
+                    delay(1.seconds)
                     _uiState.update {
                         it.copy(export = ExportUiState.Completed(result.skippedAttachments.size))
                     }

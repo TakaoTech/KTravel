@@ -68,6 +68,9 @@
     <string name="planning_trip_cd_back">Torna indietro</string>
     <string name="planning_trip_cd_settings">Impostazioni</string>
     <string name="planning_trip_cd_export">Esporta viaggio</string>
+    <string name="planning_trip_export_in_progress">Esportazione del viaggio in corso…</string>
+    <string name="planning_trip_cd_export_animation">Esportazione del viaggio in corso</string>
+    <string name="planning_trip_cd_export_completed_animation">Esportazione del viaggio completata</string>
     <string name="planning_trip_export_success">Viaggio esportato</string>
     <string name="planning_trip_export_success_partial">Viaggio esportato, %1$d file mancanti sono stati saltati</string>
     <string name="planning_trip_cd_edit_name">Modifica il nome del viaggio</string>
