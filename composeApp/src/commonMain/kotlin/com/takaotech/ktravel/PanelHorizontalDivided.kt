@@ -21,7 +21,6 @@ fun PanelHorizontalDivided(
     modifier: Modifier = Modifier,
     scaffoldNavigator: ThreePaneScaffoldNavigator<Any> = rememberSupportingPaneScaffoldNavigator(),
     paneExpansionState: PaneExpansionState = rememberPaneExpansionState(keyProvider = scaffoldNavigator.scaffoldValue),
-
     extraPane: (@Composable ThreePaneScaffoldPaneScope.() -> Unit)? = null,
     mainPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
     supportingPane: @Composable ThreePaneScaffoldPaneScope.() -> Unit,
@@ -42,10 +41,10 @@ fun PanelHorizontalDivided(
                     .paneExpansionDraggable(
                         state,
                         LocalMinimumInteractiveComponentSize.current,
-                        interactionSource
+                        interactionSource,
                     ),
-                interactionSource = interactionSource
+                interactionSource = interactionSource,
             )
-        }
+        },
     )
 }

@@ -22,30 +22,30 @@ object TravelPlanUiMapper {
             mPeriod = PlanHeader.Period(
                 start = periodStart.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
                 end = periodEnd.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
-            )
+            ),
         ),
         days = days.map { it.toUiDay() }.toPersistentList(),
-        places = places.map { it.toUiPlace() }.toPersistentList()
+        places = places.map { it.toUiPlace() }.toPersistentList(),
     )
 
     fun TravelDayDomain.toUiDay(): TravelDayUi = TravelDayUi(
         id = id,
         date = date,
         steps = steps.map { it.toUiStep() }.toPersistentList(),
-        places = places.map { it.toUiPlace() }.toPersistentList()
+        places = places.map { it.toUiPlace() }.toPersistentList(),
     )
 
     fun PlaceDomain.toUiPlace(): PlaceUi = PlaceUi(
         id = id,
         name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
     )
 
     private fun VisitScheduleDomain.toUiSchedule(): VisitScheduleUi = VisitScheduleUi(
         date = date,
         startTime = startTime,
-        endTime = endTime
+        endTime = endTime,
     )
 
     private fun AttachmentDomain.toUi(): AttachmentUi = AttachmentUi(
@@ -53,7 +53,7 @@ object TravelPlanUiMapper {
         relativePath = relativePath,
         originalName = originalName,
         mimeType = mimeType,
-        isImage = isImage
+        isImage = isImage,
     )
 
     fun StepDomain.toUiStep(): StepUi = when (this) {
@@ -64,28 +64,27 @@ object TravelPlanUiMapper {
             lng = lng,
             schedule = schedule?.toUiSchedule(),
             note = note,
-            attachments = attachments.map { it.toUi() }.toPersistentList()
+            attachments = attachments.map { it.toUi() }.toPersistentList(),
         )
 
         is StepDomain.Transport -> StepUi.Transport(
             id = id,
             type = type,
-            route = route
+            route = route,
         )
     }
-
 
     fun PlaceUi.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
     )
 
     fun StepUi.Transport.toDomainStep(): StepDomain.Transport = StepDomain.Transport(
         id = id,
         type = type,
-        route = route
+        route = route,
     )
 
     fun StepDomain.Place.toUiStepPlace(): StepUi.Place = StepUi.Place(
@@ -95,12 +94,12 @@ object TravelPlanUiMapper {
         lng = lng,
         schedule = schedule?.toUiSchedule(),
         note = note,
-        attachments = attachments.map { it.toUi() }.toPersistentList()
+        attachments = attachments.map { it.toUi() }.toPersistentList(),
     )
 
     fun uiFieldsToDomain(name: String, lat: Double, lng: Double): PlaceDomain = PlaceDomain(
         name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
     )
 }

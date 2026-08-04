@@ -32,7 +32,7 @@ import ktravel.composeapp.generated.resources.place_insert_error_name_empty
 class PlaceInsertViewModel(
     @Assisted private val travelId: String,
     @Assisted private val dayId: String?,
-    private val planningGraphStore: PlanningGraphStore
+    private val planningGraphStore: PlanningGraphStore,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -58,8 +58,9 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeName = it.placeName.copy(
-                    value = name, validationState = FieldValidationState.None
-                )
+                    value = name,
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
     }
@@ -69,8 +70,9 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
-                    value = lat, validationState = FieldValidationState.None
-                )
+                    value = lat,
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
     }
@@ -80,8 +82,9 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLng = it.placeLng.copy(
-                    value = lng, validationState = FieldValidationState.None
-                )
+                    value = lng,
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
     }
@@ -92,10 +95,13 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
-                    value = TextFieldValue(lat), validationState = FieldValidationState.None
-                ), placeLng = it.placeLng.copy(
-                    value = TextFieldValue(lng), validationState = FieldValidationState.None
-                )
+                    value = TextFieldValue(lat),
+                    validationState = FieldValidationState.None,
+                ),
+                placeLng = it.placeLng.copy(
+                    value = TextFieldValue(lng),
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
         return true
@@ -116,8 +122,9 @@ class PlaceInsertViewModel(
         _uiState.update {
             it.copy(
                 searchQuery = it.searchQuery.copy(
-                    value = query, validationState = FieldValidationState.None
-                )
+                    value = query,
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
     }
@@ -146,41 +153,41 @@ class PlaceInsertViewModel(
                         copy(
                             validationState = if (value.text.isBlank()) {
                                 FieldValidationState.BaseNotValid(
-                                    Res.string.place_insert_error_name_empty.toTextPayload()
+                                    Res.string.place_insert_error_name_empty.toTextPayload(),
                                 )
                             } else {
                                 FieldValidationState.Valid
-                            }
+                            },
                         )
                     },
                     placeLat = with(it.placeLat) {
                         copy(
                             validationState = if (value.text.isBlank()) {
                                 FieldValidationState.BaseNotValid(
-                                    Res.string.place_insert_error_lat_empty.toTextPayload()
+                                    Res.string.place_insert_error_lat_empty.toTextPayload(),
                                 )
                             } else if (!latRegex.matches(value.text)) {
                                 FieldValidationState.BaseNotValid(
-                                    Res.string.place_insert_error_lat_invalid_format.toTextPayload()
+                                    Res.string.place_insert_error_lat_invalid_format.toTextPayload(),
                                 )
                             } else {
                                 FieldValidationState.Valid
-                            }
+                            },
                         )
                     },
                     placeLng = with(it.placeLng) {
                         copy(
                             validationState = if (value.text.isBlank()) {
                                 FieldValidationState.BaseNotValid(
-                                    Res.string.place_insert_error_lng_empty.toTextPayload()
+                                    Res.string.place_insert_error_lng_empty.toTextPayload(),
                                 )
                             } else if (!lngRegex.matches(value.text)) {
                                 FieldValidationState.BaseNotValid(
-                                    Res.string.place_insert_error_lng_invalid_format.toTextPayload()
+                                    Res.string.place_insert_error_lng_invalid_format.toTextPayload(),
                                 )
                             } else {
                                 FieldValidationState.Valid
-                            }
+                            },
                         )
                     },
                 )
@@ -200,7 +207,7 @@ class PlaceInsertViewModel(
                         name = name.value.text,
                         lat = lat.value.text.toDoubleOrNull() ?: 0.0,
                         lng = lng.value.text.toDoubleOrNull() ?: 0.0,
-                        dayId = dayId
+                        dayId = dayId,
                     )
 
                 if (newUiState.isBulk) {
@@ -209,7 +216,7 @@ class PlaceInsertViewModel(
                             placeName = KFieldState(),
                             placeLat = KFieldState(),
                             placeLng = KFieldState(),
-                            searchQuery = KFieldState()
+                            searchQuery = KFieldState(),
                         )
                     }
                 }

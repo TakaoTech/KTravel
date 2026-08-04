@@ -35,7 +35,7 @@ internal fun ImportConflictDialog(
     existingName: String,
     onDuplicate: () -> Unit,
     onReplace: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -48,26 +48,26 @@ internal fun ImportConflictDialog(
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 TextButton(
                     modifier = Modifier.testTag(ImportConflictDialogTestTags.CANCEL),
-                    onClick = onDismiss
+                    onClick = onDismiss,
                 ) {
                     Text(text = stringResource(Res.string.travel_import_conflict_cancel))
                 }
                 TextButton(
                     modifier = Modifier.testTag(ImportConflictDialogTestTags.REPLACE),
-                    onClick = onReplace
+                    onClick = onReplace,
                 ) {
                     Text(
                         text = stringResource(Res.string.travel_import_conflict_replace),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
                 TextButton(
                     modifier = Modifier.testTag(ImportConflictDialogTestTags.DUPLICATE),
-                    onClick = onDuplicate
+                    onClick = onDuplicate,
                 ) {
                     Text(text = stringResource(Res.string.travel_import_conflict_duplicate))
                 }
             }
-        }
+        },
     )
 }

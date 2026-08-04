@@ -12,5 +12,5 @@ enum class RoadInfoType {
     URBAN,
 
     @SerialName("highway")
-    HIGHWAY
+    HIGHWAY,
 }

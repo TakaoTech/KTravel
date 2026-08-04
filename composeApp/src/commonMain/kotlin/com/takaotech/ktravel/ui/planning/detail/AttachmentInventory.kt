@@ -72,21 +72,21 @@ internal fun AttachmentInventorySection(
         modifier = modifier
             .fillMaxWidth()
             .testTag(AttachmentInventoryTestTags.SECTION),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(Res.string.planning_detail_attachments_title),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             IconButton(
                 modifier = Modifier.testTag(AttachmentInventoryTestTags.ADD),
-                onClick = onAdd
+                onClick = onAdd,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.add),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_add_attachment)
+                    contentDescription = stringResource(Res.string.planning_detail_cd_add_attachment),
                 )
             }
         }
@@ -95,11 +95,11 @@ internal fun AttachmentInventorySection(
             Text(
                 text = stringResource(Res.string.planning_detail_attachments_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(attachments) { attachment ->
                     AttachmentRow(
@@ -108,7 +108,7 @@ internal fun AttachmentInventorySection(
                         resolveFile = resolveFile,
                         onInsert = { onInsert(attachment) },
                         onOpen = { onOpen(attachment) },
-                        onRemove = { onRemove(attachment) }
+                        onRemove = { onRemove(attachment) },
                     )
                 }
             }
@@ -128,7 +128,7 @@ private fun AttachmentRow(
     Row(
         modifier = Modifier.fillMaxWidth().testTag(AttachmentInventoryTestTags.ITEM),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         AttachmentThumbnail(attachment = attachment, resolveFile = resolveFile)
 
@@ -137,62 +137,60 @@ private fun AttachmentRow(
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         if (isEditing) {
             IconButton(onClick = onInsert) {
                 Icon(
                     painter = painterResource(Res.drawable.arrow_right_alt),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_insert_attachment)
+                    contentDescription = stringResource(Res.string.planning_detail_cd_insert_attachment),
                 )
             }
         }
 
-
         IconButton(onClick = onOpen) {
             Icon(
                 painter = painterResource(Res.drawable.open_in_new),
-                contentDescription = stringResource(Res.string.planning_detail_cd_open_attachment)
+                contentDescription = stringResource(Res.string.planning_detail_cd_open_attachment),
             )
         }
         IconButton(onClick = onRemove) {
             Icon(
                 painter = painterResource(Res.drawable.delete),
-                contentDescription = stringResource(Res.string.planning_detail_cd_remove_attachment)
+                contentDescription = stringResource(Res.string.planning_detail_cd_remove_attachment),
             )
         }
     }
 }
 
 @Composable
-private fun AttachmentThumbnail(
-    attachment: AttachmentUi,
-    resolveFile: (String) -> PlatformFile,
-) {
+private fun AttachmentThumbnail(attachment: AttachmentUi, resolveFile: (String) -> PlatformFile) {
     // In preview i file reali non esistono: si evita la lettura da disco e si mostra un placeholder.
     val isPreview = LocalInspectionMode.current
     Surface(
         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Box(contentAlignment = Alignment.Center) {
             when {
                 attachment.isImage && !isPreview -> {
-                    when (val image =
-                        rememberAttachmentImage(resolveFile(attachment.relativePath))) {
+                    when (
+                        val image =
+                            rememberAttachmentImage(resolveFile(attachment.relativePath))
+                    ) {
                         is AttachmentImage.Loaded -> Image(
                             painter = image.painter,
                             contentDescription = attachment.originalName,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(48.dp),
                         )
 
                         AttachmentImage.Error -> Icon(
                             painter = painterResource(Res.drawable.error),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(12.dp)
+                            modifier = Modifier.padding(12.dp),
                         )
 
                         AttachmentImage.Loading -> Unit
@@ -202,7 +200,7 @@ private fun AttachmentThumbnail(
                 else -> Icon(
                     painter = painterResource(Res.drawable.description),
                     contentDescription = null,
-                    modifier = Modifier.padding(12.dp)
+                    modifier = Modifier.padding(12.dp),
                 )
             }
         }
@@ -219,22 +217,22 @@ private fun AttachmentInventorySectionPreview() = KTravelTheme {
                 relativePath = "t1/s1/tokyo.jpg",
                 originalName = "tokyo-tower.jpg",
                 mimeType = "image/jpeg",
-                isImage = true
+                isImage = true,
             ),
             AttachmentUi(
                 id = "a2",
                 relativePath = "t1/s1/ticket.pdf",
                 originalName = "ticket.pdf",
                 mimeType = "application/pdf",
-                isImage = false
-            )
+                isImage = false,
+            ),
         ),
         resolveFile = { PlatformFile(Path(it)) },
         onAdd = {},
         onInsert = {},
         onOpen = {},
         onRemove = {},
-        isEditing = true
+        isEditing = true,
     )
 }
 
@@ -248,6 +246,6 @@ private fun AttachmentInventorySectionEmptyPreview() = KTravelTheme {
         onInsert = {},
         onOpen = {},
         onRemove = {},
-        isEditing = true
+        isEditing = true,
     )
 }

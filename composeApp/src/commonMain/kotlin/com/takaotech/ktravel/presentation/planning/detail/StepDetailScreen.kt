@@ -18,11 +18,7 @@ import kotlinx.datetime.LocalTime
  * repository (vincolo V3); [dayId] individua il giorno e [stepId] lo step mostrato.
  */
 @Parcelize
-data class StepDetailScreen(
-    val travelId: String,
-    val dayId: String,
-    val stepId: String
-) : Screen
+data class StepDetailScreen(val travelId: String, val dayId: String, val stepId: String) : Screen
 
 data class StepDetailUiState(
     /** Step Place mostrato; `null` finché il flow non emette o se lo step non è un Place. */
@@ -38,7 +34,7 @@ data class StepDetailUiState(
     val missingReferences: List<String>,
     /** Risolve un path relativo dell'inventario nel file assoluto, per rendering/apertura. */
     val resolveFile: (String) -> PlatformFile,
-    val eventSink: (StepDetailEvent) -> Unit
+    val eventSink: (StepDetailEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface StepDetailEvent : CircuitUiEvent {

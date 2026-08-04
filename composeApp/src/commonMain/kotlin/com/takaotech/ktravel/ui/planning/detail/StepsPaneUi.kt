@@ -102,7 +102,7 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
             sink(StepsPaneEvent.AddTransport(startPlaceId, endPlaceId))
         },
         onSetArrivalTime = { stepId, time -> sink(StepsPaneEvent.SetStartTime(stepId, time)) },
-        onSetDepartureTime = { stepId, time -> sink(StepsPaneEvent.SetEndTime(stepId, time)) }
+        onSetDepartureTime = { stepId, time -> sink(StepsPaneEvent.SetEndTime(stepId, time)) },
     )
 }
 
@@ -134,38 +134,38 @@ internal fun StepsPaneContent(
                 navigationIcon = {
                     IconButton(
                         modifier = Modifier.testTag(StepsPaneTestTags.BACK_BUTTON),
-                        onClick = onNavigationBackClick
+                        onClick = onNavigationBackClick,
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = stringResource(Res.string.planning_detail_cd_back)
+                            contentDescription = stringResource(Res.string.planning_detail_cd_back),
                         )
                     }
                 },
                 actions = {
                     IconButton(
                         modifier = Modifier.testTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON),
-                        onClick = onOpenBacklogClick
+                        onClick = onOpenBacklogClick,
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.flight),
-                            contentDescription = stringResource(Res.string.planning_detail_cd_open_backlog)
+                            contentDescription = stringResource(Res.string.planning_detail_cd_open_backlog),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         if (rows.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     modifier = Modifier.testTag(StepsPaneTestTags.EMPTY),
                     text = stringResource(Res.string.planning_detail_steps_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         } else {
@@ -180,7 +180,7 @@ internal fun StepsPaneContent(
                 }
             }
             LazyColumn(
-                modifier = Modifier.padding(padding).testTag(StepsPaneTestTags.LIST)
+                modifier = Modifier.padding(padding).testTag(StepsPaneTestTags.LIST),
             ) {
                 itemsIndexed(items = rows, key = { _, row -> row.key }) { index, row ->
                     val isFirst = index == 0
@@ -201,27 +201,27 @@ internal fun StepsPaneContent(
                                             onArrivalConfirm = {
                                                 onSetArrivalTime(
                                                     step.id,
-                                                    it
+                                                    it,
                                                 )
                                             },
                                             onDepartureConfirm = {
                                                 onSetDepartureTime(
                                                     step.id,
-                                                    it
+                                                    it,
                                                 )
-                                            }
+                                            },
                                         )
                                     },
                                     node = {
                                         if (isDestination) DestinationNode() else PlaceNode()
-                                    }
+                                    },
                                 ) {
                                     TravelStepPlace(
                                         step = step,
                                         onStepClick = onStepClick,
                                         onStepDeleteClicked = { onDeleteStepClick(step) },
                                         onStepMoveUp = onMoveStepUpClick,
-                                        onStepMoveDown = onMoveStepDownClick
+                                        onStepMoveDown = onMoveStepDownClick,
                                     )
                                 }
                             }
@@ -229,12 +229,12 @@ internal fun StepsPaneContent(
                             is StepUi.Transport -> TimelineRow(
                                 isFirst = isFirst,
                                 isLast = isLast,
-                                node = { TransportNode(step) }
+                                node = { TransportNode(step) },
                             ) {
                                 TravelStepTransport(
                                     modifier = Modifier.fillMaxWidth(),
                                     step = step,
-                                    onStepDeleteClicked = { onDeleteStepClick(step) }
+                                    onStepDeleteClicked = { onDeleteStepClick(step) },
                                 )
                             }
                         }
@@ -242,16 +242,16 @@ internal fun StepsPaneContent(
                         is StepRow.AddTransportSlot -> TimelineRow(
                             isFirst = isFirst,
                             isLast = isLast,
-                            node = { AddTransportNode() }
+                            node = { AddTransportNode() },
                         ) {
                             TravelTransportStepAdd(
                                 modifier = Modifier.testTag(
                                     StepsPaneTestTags.addTransportTag(
                                         row.startPlaceId,
-                                        row.endPlaceId
-                                    )
+                                        row.endPlaceId,
+                                    ),
                                 ),
-                                onClick = { onAddTransportClick(row.startPlaceId, row.endPlaceId) }
+                                onClick = { onAddTransportClick(row.startPlaceId, row.endPlaceId) },
                             )
                         }
                     }
@@ -276,7 +276,7 @@ private fun TimelineRow(
 ) {
     val lineColor = MaterialTheme.colorScheme.outlineVariant
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
     ) {
         Box(modifier = Modifier.width(TimeColumnWidth).fillMaxHeight()) {
             if (timeColumn != null) {
@@ -285,8 +285,8 @@ private fun TimelineRow(
                         .align(Alignment.TopEnd)
                         .padding(
                             top = NodeCenterY - 16.dp,
-                            end = 4.dp
-                        )
+                            end = 4.dp,
+                        ),
                 ) {
                     timeColumn()
                 }
@@ -298,7 +298,7 @@ private fun TimelineRow(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(LineThickness)
-                    .align(Alignment.TopCenter)
+                    .align(Alignment.TopCenter),
             ) {
                 val centerY = NodeCenterY.toPx()
                 val top = if (isFirst) centerY else 0f
@@ -307,7 +307,7 @@ private fun TimelineRow(
                     color = lineColor,
                     start = Offset(size.width / 2f, top),
                     end = Offset(size.width / 2f, bottom),
-                    strokeWidth = size.width
+                    strokeWidth = size.width,
                 )
             }
 
@@ -317,7 +317,7 @@ private fun TimelineRow(
                     .padding(top = NodeCenterY - NodeSize / 2)
                     .size(NodeSize),
                 contentAlignment = Alignment.Center,
-                content = node
+                content = node,
             )
         }
 
@@ -325,7 +325,7 @@ private fun TimelineRow(
             modifier = Modifier
                 .weight(1f)
                 .padding(vertical = 8.dp)
-                .padding(end = 16.dp)
+                .padding(end = 16.dp),
         ) {
             content()
         }
@@ -340,13 +340,13 @@ private fun BoxScope.PlaceNode() {
             .fillMaxSize()
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             modifier = Modifier.size(18.dp),
             painter = painterResource(Res.drawable.place),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimary
+            tint = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -359,13 +359,13 @@ private fun BoxScope.DestinationNode() {
             .fillMaxSize()
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.tertiary),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             modifier = Modifier.size(18.dp),
             painter = painterResource(Res.drawable.flag),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onTertiary
+            tint = MaterialTheme.colorScheme.onTertiary,
         )
     }
 }
@@ -378,13 +378,13 @@ private fun TransportNode(step: StepUi.Transport) {
             .fillMaxSize()
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surface),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             modifier = Modifier.size(20.dp),
             painter = painterResource(step.type.toIcon()),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -396,7 +396,7 @@ private fun AddTransportNode() {
         modifier = Modifier
             .size(10.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.outlineVariant)
+            .background(MaterialTheme.colorScheme.outlineVariant),
     )
 }
 
@@ -417,11 +417,11 @@ private fun ScheduleTimeColumn(
         startTime = arrivalTime,
         endTime = departureTime,
         onStartConfirm = onArrivalConfirm,
-        onEndConfirm = onDepartureConfirm
+        onEndConfirm = onDepartureConfirm,
     ) { scope ->
         Column(
             modifier = modifier,
-            horizontalAlignment = Alignment.End
+            horizontalAlignment = Alignment.End,
         ) {
             Text(
                 modifier = Modifier
@@ -430,7 +430,7 @@ private fun ScheduleTimeColumn(
                     .semantics { contentDescription = scope.startContentDescription },
                 text = scope.startDisplay,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 modifier = Modifier
@@ -439,7 +439,7 @@ private fun ScheduleTimeColumn(
                     .semantics { contentDescription = scope.endContentDescription },
                 text = scope.endDisplay,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -458,6 +458,6 @@ private fun StepsPaneContentPreview() = KTravelTheme {
         onMoveStepDownClick = {},
         onAddTransportClick = { _, _ -> },
         onSetArrivalTime = { _, _ -> },
-        onSetDepartureTime = { _, _ -> }
+        onSetDepartureTime = { _, _ -> },
     )
 }

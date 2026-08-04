@@ -63,8 +63,19 @@ The project follows **Clean Architecture** principles:
 - **All JVM tests:** `./gradlew jvmTest`
 - **All tests:** `./gradlew test`
 - **Platform-specific tests:**
-    - Android: `./gradlew :composeApp:testDebugUnitTest`
+    - Android: `./gradlew :composeApp:testAndroidHostTest`
     - Desktop: `./gradlew :composeApp:jvmTest`
+
+The `commonTest` suites run on both JVM flavours: `jvmTest` (desktop) and `testAndroidHostTest`
+(the Android local unit test compilation, enabled by `withHostTestBuilder` in the module). There is
+no `testDebugUnitTest`: these are AGP *KMP library* modules, not classic Android libraries.
+
+A local Android unit test has no real Android runtime behind it, so a few suites are compiled out
+of the Android compilation in `composeApp/build.gradle.kts` and verified on the JVM target only:
+`ui/**` (Compose UI tests need Robolectric, which Kotest specs cannot opt into because `@RunWith`
+is JVM-only and `commonTest` also compiles for iOS) and the three suites that open the Couchbase
+database (its Android artifact needs a `Context`). When adding a test that touches either area,
+expect it to run on the JVM target only.
 
 ### Coverage (Kover)
 

@@ -17,7 +17,7 @@ data class TravelSelectionUiState(
     /** When true the list is in multi selection mode and taps select items instead of opening them. */
     val isSelectionMode: Boolean = false,
     val selectedIds: PersistentSet<String> = persistentSetOf(),
-    val import: ImportUiState = ImportUiState.Idle
+    val import: ImportUiState = ImportUiState.Idle,
 )
 
 /**
@@ -32,10 +32,8 @@ sealed interface ImportUiState {
     data object Reading : ImportUiState
 
     /** Un viaggio con lo stesso id è già presente: serve una scelta dell'utente. */
-    data class AwaitingConflictChoice(
-        val importedName: String,
-        val existingName: String
-    ) : ImportUiState
+    data class AwaitingConflictChoice(val importedName: String, val existingName: String) :
+        ImportUiState
 
     data object Importing : ImportUiState
     data class Completed(val travelName: String) : ImportUiState
@@ -47,5 +45,5 @@ data class TravelSummaryUiState(
     val id: String,
     val name: String,
     val periodStart: LocalDate,
-    val periodEnd: LocalDate,
+    val periodEnd: LocalDate
 )

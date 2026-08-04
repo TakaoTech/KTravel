@@ -18,136 +18,140 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration.Companion.minutes
 
-class SaveTransportStepUseCaseTest : BehaviorSpec({
+class SaveTransportStepUseCaseTest :
+    BehaviorSpec({
 
-    given("a SaveTransportStepUseCase") {
-        `when`("invoked with a route whose first section mode is TRAIN") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("TRAIN")
+        given("a SaveTransportStepUseCase") {
+            `when`("invoked with a route whose first section mode is TRAIN") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("TRAIN")
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type TRAIN") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.TRAIN
+                then("should save a Transport step with type TRAIN") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.TRAIN
+                }
             }
-        }
 
-        `when`("invoked with a route whose first section mode is BUS") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("BUS")
+            `when`("invoked with a route whose first section mode is BUS") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("BUS")
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type BUS") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.BUS
+                then("should save a Transport step with type BUS") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.BUS
+                }
             }
-        }
 
-        `when`("invoked with a route whose first section mode is FLIGHT") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("FLIGHT")
+            `when`("invoked with a route whose first section mode is FLIGHT") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("FLIGHT")
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type FLIGHT") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.FLIGHT
+                then("should save a Transport step with type FLIGHT") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.FLIGHT
+                }
             }
-        }
 
-        `when`("invoked with a route whose first section mode is lowercase 'train'") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("train")
+            `when`("invoked with a route whose first section mode is lowercase 'train'") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("train")
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type TRAIN (case-insensitive)") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.TRAIN
+                then("should save a Transport step with type TRAIN (case-insensitive)") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.TRAIN
+                }
             }
-        }
 
-        `when`("invoked with a route whose first section mode is unknown") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("FERRY")
+            `when`("invoked with a route whose first section mode is unknown") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("FERRY")
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type CAR as default") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.CAR
+                then("should save a Transport step with type CAR as default") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.CAR
+                }
             }
-        }
 
-        `when`("invoked with a route that has no sections") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = Route(sections = emptyList())
+            `when`("invoked with a route that has no sections") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = Route(sections = emptyList())
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type CAR as default") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.CAR
+                then("should save a Transport step with type CAR as default") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.CAR
+                }
             }
-        }
 
-        `when`("invoked with a route whose first section has no transport info") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = Route(
-                sections = listOf(
-                    RouteSection(
-                        summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
-                        transport = null
-                    )
+            `when`("invoked with a route whose first section has no transport info") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = Route(
+                    sections = listOf(
+                        RouteSection(
+                            summary = RouteSummary(
+                                durationSeconds = 30.minutes,
+                                distanceMeters = 1000
+                            ),
+                            transport = null,
+                        ),
+                    ),
                 )
-            )
 
-            useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route)
 
-            then("should save a Transport step with type CAR as default") {
-                val saved = fakeRepository.savedStep
-                saved.shouldBeInstanceOf<StepDomain.Transport>()
-                saved.type shouldBe TransportType.CAR
+                then("should save a Transport step with type CAR as default") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.CAR
+                }
+            }
+
+            `when`("invoked with specific dayId and afterStepId") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+                val route = routeWithMode("CAR")
+
+                useCase("my-day", "my-step", route)
+
+                then("should pass the correct dayId and afterStepId to the repository") {
+                    fakeRepository.savedDayId shouldBe "my-day"
+                    fakeRepository.savedAfterStepId shouldBe "my-step"
+                }
             }
         }
-
-        `when`("invoked with specific dayId and afterStepId") {
-            val fakeRepository = FakeTravelPlanRepositoryForTransport()
-            val useCase = SaveTransportStepUseCase(fakeRepository)
-            val route = routeWithMode("CAR")
-
-            useCase("my-day", "my-step", route)
-
-            then("should pass the correct dayId and afterStepId to the repository") {
-                fakeRepository.savedDayId shouldBe "my-day"
-                fakeRepository.savedAfterStepId shouldBe "my-step"
-            }
-        }
-    }
-})
+    })
 
 private fun routeWithMode(mode: String) = Route(
     sections = listOf(
         RouteSection(
             summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
-            transport = RouteTransport(mode = mode)
-        )
-    )
+            transport = RouteTransport(mode = mode),
+        ),
+    ),
 )
 
 private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
@@ -178,7 +182,8 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
         dayId: String,
         stepId: String,
         source: io.github.vinceglb.filekit.PlatformFile
-    ) = Unit
+    ) =
+        Unit
 
     override suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String) =
         Unit

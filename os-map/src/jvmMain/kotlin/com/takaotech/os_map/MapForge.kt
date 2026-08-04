@@ -40,7 +40,6 @@ import javax.swing.JPanel
 import kotlin.io.path.Path
 import kotlin.math.roundToInt
 
-
 @Composable
 fun MapForge(
     modifier: Modifier,
@@ -70,7 +69,7 @@ fun MapForge(
                     mapView.model.displayModel.tileSize,
                     mapView.model.frameBufferModel.overdrawFactor,
                     1,
-                    Path(".").toFile()
+                    Path(".").toFile(),
                 )
 
                 val tileSource = OpenStreetMapMapnik.INSTANCE.apply {
@@ -81,7 +80,7 @@ fun MapForge(
                     tileCache,
                     mapView.model.mapViewPosition,
                     tileSource,
-                    AwtGraphicFactory.INSTANCE
+                    AwtGraphicFactory.INSTANCE,
                 )
 
                 mapView.layerManager.layers.add(downloadLayer)
@@ -98,7 +97,7 @@ fun MapForge(
             panel.isEnabled = enable
             panel.cameraState = cameraState
             panel.updateGeoJson(geoJsonPath)
-        }
+        },
     )
 }
 
@@ -124,6 +123,7 @@ private fun computeLatLngBounds(geoJson: String): LatLngBounds? = runCatching {
         fun processGeometry(geometry: JsonObject) {
             when (geometry["type"]?.jsonPrimitive?.contentOrNull) {
                 "LineString" -> geometry["coordinates"]?.jsonArray?.let { addCoords(it) }
+
                 "MultiLineString" -> geometry["coordinates"]?.jsonArray?.forEach { line ->
                     addCoords(line.jsonArray)
                 }
@@ -135,6 +135,7 @@ private fun computeLatLngBounds(geoJson: String): LatLngBounds? = runCatching {
             }
 
             "Feature" -> obj["geometry"]?.jsonObject?.let { processGeometry(it) }
+
             else -> processGeometry(obj)
         }
         return result
@@ -142,19 +143,21 @@ private fun computeLatLngBounds(geoJson: String): LatLngBounds? = runCatching {
 
     val coords = extractCoords(root)
     if (coords.isEmpty()) return null
-    var minLng = Double.MAX_VALUE;
+    var minLng = Double.MAX_VALUE
     var maxLng = -Double.MAX_VALUE
-    var minLat = Double.MAX_VALUE;
+    var minLat = Double.MAX_VALUE
     var maxLat = -Double.MAX_VALUE
     coords.forEach { (lng, lat) ->
-        if (lng < minLng) minLng = lng; if (lng > maxLng) maxLng = lng
-        if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat
+        if (lng < minLng) minLng = lng
+        if (lng > maxLng) maxLng = lng
+        if (lat < minLat) minLat = lat
+        if (lat > maxLat) maxLat = lat
     }
     LatLngBounds(
         centerLat = (minLat + maxLat) / 2,
         centerLng = (minLng + maxLng) / 2,
         spanLat = maxLat - minLat,
-        spanLng = maxLng - minLng
+        spanLng = maxLng - minLng,
     )
 }.getOrNull()
 
@@ -185,11 +188,10 @@ private fun buildPolylines(geoJson: String): List<Polyline> {
         paint.setStrokeCap(Cap.ROUND)
     }
 
-    fun coordsToLatLongs(coords: JsonArray): List<LatLong> =
-        coords.map { elem ->
-            val c = elem.jsonArray
-            LatLong(c[1].jsonPrimitive.double, c[0].jsonPrimitive.double)
-        }
+    fun coordsToLatLongs(coords: JsonArray): List<LatLong> = coords.map { elem ->
+        val c = elem.jsonArray
+        LatLong(c[1].jsonPrimitive.double, c[0].jsonPrimitive.double)
+    }
 
     fun addPolyline(coords: JsonArray) {
         val polyline = Polyline(makePaint(), AwtGraphicFactory.INSTANCE)
@@ -200,6 +202,7 @@ private fun buildPolylines(geoJson: String): List<Polyline> {
     fun processGeometry(geometry: JsonObject) {
         when (geometry["type"]?.jsonPrimitive?.contentOrNull) {
             "LineString" -> geometry["coordinates"]?.jsonArray?.let { addPolyline(it) }
+
             "MultiLineString" -> geometry["coordinates"]?.jsonArray?.forEach { line ->
                 addPolyline(line.jsonArray)
             }
@@ -213,6 +216,7 @@ private fun buildPolylines(geoJson: String): List<Polyline> {
             }
 
             "Feature" -> obj["geometry"]?.jsonObject?.let { processGeometry(it) }
+
             else -> processGeometry(obj)
         }
     }
@@ -223,16 +227,16 @@ private fun buildPolylines(geoJson: String): List<Polyline> {
     return result
 }
 
-private class MapForgePanel(
-    var cameraState: CameraState
-) : JPanel(), MouseListener, MouseWheelListener, MouseMotionListener {
+private class MapForgePanel(var cameraState: CameraState) :
+    JPanel(),
+    MouseListener,
+    MouseWheelListener,
+    MouseMotionListener {
     private lateinit var mapView: MapView
     private val geoJsonLayers = mutableListOf<Polyline>()
     private var suppressObserver = false
 
-    override fun isEnabled(): Boolean {
-        return mapView.isEnabled
-    }
+    override fun isEnabled(): Boolean = mapView.isEnabled
 
     override fun setEnabled(enabled: Boolean) {
         mapView.isEnabled = enabled
@@ -249,7 +253,7 @@ private class MapForgePanel(
             if (!suppressObserver) {
                 val pos = toCameraPosition(
                     mapView.model.mapViewPosition.center,
-                    mapView.model.mapViewPosition.zoomLevel
+                    mapView.model.mapViewPosition.zoomLevel,
                 )
                 cameraState.position = pos
             }
@@ -262,7 +266,9 @@ private class MapForgePanel(
         val targetZoom = pos.toZoomByte()
         if (mapView.model.mapViewPosition.center == targetCenter &&
             mapView.model.mapViewPosition.zoomLevel == targetZoom
-        ) return
+        ) {
+            return
+        }
         suppressObserver = true
         mapView.model.mapViewPosition.center = targetCenter
         mapView.model.mapViewPosition.zoomLevel = targetZoom
@@ -305,7 +311,6 @@ private class MapForgePanel(
         component.removeMouseMotionListener(this)
         component.removeMouseWheelListener(this)
     }
-
 
     private fun dispatchToCompose(e: MouseEvent) {
         if (e.id == MouseEvent.MOUSE_ENTERED || e.id == MouseEvent.MOUSE_EXITED) return

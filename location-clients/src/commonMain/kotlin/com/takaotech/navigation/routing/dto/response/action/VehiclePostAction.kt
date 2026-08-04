@@ -18,5 +18,5 @@ data class VehiclePostAction(
     @SerialName("duration") val duration: Int? = null,
     @SerialName("length") val length: Int? = null,
     @SerialName("instruction") val instruction: String? = null,
-    @SerialName("offset") val offset: Int? = null
+    @SerialName("offset") val offset: Int? = null,
 )

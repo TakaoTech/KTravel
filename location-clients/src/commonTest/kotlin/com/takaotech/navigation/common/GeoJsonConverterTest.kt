@@ -29,7 +29,7 @@ class GeoJsonConverterTest {
             listOf(8.69821, 50.10228),
             listOf(8.69567, 50.10201),
             listOf(8.69150, 50.10063),
-            listOf(8.68752, 50.09878)
+            listOf(8.68752, 50.09878),
         )
 
         val geoJson = GeoJsonConverter.polylineToGeoJson(encoded)
@@ -56,7 +56,7 @@ class GeoJsonConverterTest {
 
     @Test
     fun `Given two valid polylines When merging Then coordinate count equals sum of both`() {
-        val first = "BFoz5xJ67i1B1B7PzIhaxL7Y"   // 4 points
+        val first = "BFoz5xJ67i1B1B7PzIhaxL7Y" // 4 points
         val second = "BF05xgKuy2xCx9B7vUl0OhnR54EqSzpEl-HxjD3pBiGnyGi2CvwFsgD3nD4vB6e" // 10 points
 
         val geoJson = GeoJsonConverter.mergePolylinesToGeoJson(listOf(first, second))
@@ -84,12 +84,12 @@ class GeoJsonConverterTest {
         assertEquals(
             firstExpectedFirstLng,
             coords[0].jsonArray[0].jsonPrimitive.content.toDouble(),
-            0.00001
+            0.00001,
         )
         assertEquals(
             secondExpectedFirstLng,
             coords[4].jsonArray[0].jsonPrimitive.content.toDouble(),
-            0.00001
+            0.00001,
         )
     }
 

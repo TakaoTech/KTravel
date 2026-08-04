@@ -10,8 +10,4 @@ import kotlinx.serialization.Serializable
  * @property charge Estimated vehicle battery charge in kWh.
  */
 @Serializable
-data class VehicleDeparture(
-    val place: Place,
-    val time: String? = null,
-    val charge: Double? = null
-)
+data class VehicleDeparture(val place: Place, val time: String? = null, val charge: Double? = null)

@@ -1,7 +1,9 @@
 # KTravel
 
-[![Detekt](https://github.com/TakaoTech/KTravel/actions/workflows/detekt.yaml/badge.svg?branch=main)](https://github.com/TakaoTech/KTravel/actions/workflows/detekt.yaml)
+[![CI](https://github.com/TakaoTech/KTravel/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/TakaoTech/KTravel/actions/workflows/ci.yaml)
 [![Release](https://github.com/TakaoTech/KTravel/actions/workflows/release.yaml/badge.svg)](https://github.com/TakaoTech/KTravel/actions/workflows/release.yaml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=TakaoTech_KTravel&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TakaoTech_KTravel)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TakaoTech_KTravel&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TakaoTech_KTravel)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-4285F4.svg)](https://github.com/JetBrains/compose-multiplatform)
@@ -196,14 +198,19 @@ Keep shrinking rules next to the module that needs them:
 ## Tests
 
 ```bash
-./gradlew jvmTest                     # all JVM tests
-./gradlew test                        # all test tasks
-./gradlew :composeApp:jvmTest         # desktop/shared tests
-./gradlew :composeApp:testDebugUnitTest   # Android unit tests
+./gradlew jvmTest                          # all JVM tests
+./gradlew test                             # all test tasks
+./gradlew :composeApp:jvmTest              # desktop/shared tests
+./gradlew :composeApp:testAndroidHostTest  # the same suites, on the Android JVM
 ```
 
 Shared tests live in `composeApp/src/commonTest/kotlin` and use Kotest as the runner. Test names are
 written in English and follow the `Given ... When ... Then ...` pattern.
+
+The same suites run twice, once per JVM flavour, so shared logic is verified against the Android
+variant as well. Two groups are the exception and run on the JVM target only, because a local
+Android unit test provides no Android runtime: the Compose UI tests under `ui/**`, and the suites
+that open the Couchbase database. See `composeApp/build.gradle.kts` for the exclusion list.
 
 ## Coverage
 
@@ -226,8 +233,9 @@ threshold, declare a `verify { rule { minBound(...) } }` inside `reports.total`.
 ## Static analysis
 
 ```bash
-./gradlew detektAll                       # every subproject, then merges the reports
-./gradlew :composeApp:detekt              # a single module
+./gradlew detektAll                             # every subproject, then merges the reports
+./gradlew :composeApp:detekt                    # a single module
+./gradlew detektFormat -Pdetekt.autocorrect=true # rewrite sources with the ktlint rules
 ```
 
 `detektAll` merges the Checkstyle-XML and SARIF reports into `build/reports/detekt/merge.xml` and
@@ -236,7 +244,19 @@ understands those two formats — so the per-source-set HTML, Markdown, XML and 
 each module's own `build/reports/detekt/`.
 
 The shared ruleset is `config/detekt/detekt.yml`. Every module sets `ignoreFailures = true`, so
-Detekt never breaks the build: read the reports.
+Detekt never breaks the build: read the reports, or look at SonarCloud, which imports them.
+
+### Formatting
+
+The `ktlint` rule set (wrapped by `detekt-rules-ktlint-wrapper`) is the only one that can rewrite
+code — the default Detekt rules never do. `detektFormat` applies it; without
+`-Pdetekt.autocorrect=true` it only reports.
+
+`detektFormat` deliberately covers the per-source-set tasks and not the type-resolving ones
+(`detektMainJvm`, `detektMainAndroid`, ...). Correcting and resolving types in the same build is
+contradictory: once a file is rewritten, the FIR model those tasks hold no longer matches what is
+on disk and they fail with `FirDeclaration was not found`. The ktlint rules are purely syntactic,
+so nothing is lost. CI therefore formats in one job and analyses in another.
 
 ## Continuous integration
 
@@ -244,16 +264,34 @@ Workflows are written as Kotlin scripts with
 [github-workflows-kt](https://github.com/typesafegithub/github-workflows-kt) and generate the YAML
 next to them:
 
-| Workflow                             | Trigger                       | What it does                                                                                       |
-|--------------------------------------|-------------------------------|----------------------------------------------------------------------------------------------------|
-| `.github/workflows/detekt.main.kts`  | push to `main` / `dev`        | runs `detektAll`                                                                                   |
-| `.github/workflows/release.main.kts` | manual dispatch or a `v*` tag | builds the Android APK/AAB + R8 mapping and the desktop distributions on macOS, Windows and Ubuntu |
+| Workflow                             | Trigger                          | What it does                                                                                        |
+|--------------------------------------|----------------------------------|-----------------------------------------------------------------------------------------------------|
+| `.github/workflows/ci.main.kts`      | push to `main` / `dev`, every PR | `format` auto-formats and commits the result, then `verify` runs the tests, Kover, Detekt and Sonar |
+| `.github/workflows/release.main.kts` | manual dispatch or a `v*` tag    | runs the tests first, then builds the Android APK/AAB + R8 mapping and the desktop distributions    |
 
-After editing a `*.main.kts` file, regenerate the YAML:
+The `format` job commits with the default `GITHUB_TOKEN`, whose pushes do not trigger further
+workflow runs — no CI loop. On a pull request opened from a fork the token is read-only, so those
+runs format and report but cannot push the result back. If `dev` is ever put behind branch
+protection, `github-actions[bot]` needs an exception or the auto-commit will be rejected.
+
+After editing a `*.main.kts` file, regenerate the YAML — nothing checks that the two stay in sync:
 
 ```bash
+kotlin .github/workflows/ci.main.kts
 kotlin .github/workflows/release.main.kts
 ```
+
+### SonarCloud
+
+`verify` publishes coverage (`build/reports/kover/report.xml`, JaCoCo schema) and the Detekt issues
+(`build/reports/detekt/merge.xml`, Checkstyle schema) to
+[SonarCloud](https://sonarcloud.io/summary/new_code?id=TakaoTech_KTravel). The scanner plugin does
+not support Gradle's configuration cache, which this build enables, hence
+`./gradlew sonar --no-configuration-cache`.
+
+Setting it up on a fresh organisation needs, on the SonarCloud side: importing the repository,
+turning **Automatic Analysis off** (it would override the CI-based one), and adding the generated
+token as the `SONAR_TOKEN` repository secret.
 
 ## Contributing
 

@@ -37,7 +37,7 @@ object PolylineEncoderDecoder {
         62, -1, -1, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1,
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
         22, 23, 24, 25, -1, -1, -1, -1, 63, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-        36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+        36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
     )
 
     /**
@@ -56,7 +56,7 @@ object PolylineEncoderDecoder {
         coordinates: List<LatLngZ>,
         precision: Int,
         thirdDimension: ThirdDimension,
-        thirdDimPrecision: Int
+        thirdDimPrecision: Int,
     ): String {
         require(coordinates.isNotEmpty()) { "Invalid coordinates!" }
         val enc = Encoder(precision, thirdDimension, thirdDimPrecision)
@@ -100,7 +100,9 @@ object PolylineEncoderDecoder {
     fun getCoordinateAtOffset(encoded: String, offset: Int): LatLngZ {
         require(offset >= 0) { "Offset must be non-negative" }
         val coordinates = decode(encoded)
-        require(offset < coordinates.size) { "Offset $offset is out of bounds for polyline with ${coordinates.size} points" }
+        require(
+            offset < coordinates.size,
+        ) { "Offset $offset is out of bounds for polyline with ${coordinates.size} points" }
         return coordinates[offset]
     }
 
@@ -109,9 +111,7 @@ object PolylineEncoderDecoder {
      * @param encoded URL-safe encoded coordinate triples String
      * @return type of [ThirdDimension]
      */
-    fun getThirdDimension(encoded: String): ThirdDimension {
-        return Decoder(encoded).thirdDimension
-    }
+    fun getThirdDimension(encoded: String): ThirdDimension = Decoder(encoded).thirdDimension
 
     fun getVersion(): Byte = FORMAT_VERSION
 
@@ -152,11 +152,11 @@ object PolylineEncoderDecoder {
             val res = (thirdDimPrecision shl 7) or (thirdDimensionValue shl 4) or precision
             Converter.encodeUnsignedVarint(
                 FORMAT_VERSION.toLong(),
-                result
+                result,
             )
             Converter.encodeUnsignedVarint(
                 res.toLong(),
-                result
+                result,
             )
         }
 
@@ -194,7 +194,7 @@ object PolylineEncoderDecoder {
             val precision = header and 0x0f
             thirdDimension =
                 ThirdDimension.fromNum(
-                    (header shr 4) and 0x07
+                    (header shr 4) and 0x07,
                 )
                     ?: throw IllegalArgumentException("Invalid third dimension value")
             val thirdDimPrecision = (header shr 7) and 0x0f
@@ -208,13 +208,13 @@ object PolylineEncoderDecoder {
         private fun decodeHeader(): Int {
             val version =
                 Converter.decodeUnsignedVarint(
-                    iterator
+                    iterator,
                 )
             require(version == FORMAT_VERSION.toLong()) { "Invalid format version" }
 
             // Decode the polyline header
             return Converter.decodeUnsignedVarint(
-                iterator
+                iterator,
             ).toInt()
         }
 
@@ -285,14 +285,14 @@ object PolylineEncoderDecoder {
             }
             encodeUnsignedVarint(
                 delta,
-                result
+                result,
             )
         }
 
         fun decodeValue(iterator: StringIterator): Double {
             var l =
                 decodeUnsignedVarint(
-                    iterator
+                    iterator,
                 )
             if ((l and 1L) != 0L) {
                 l = l.inv()
@@ -349,23 +349,18 @@ object PolylineEncoderDecoder {
         RESERVED1(4),
         RESERVED2(5),
         CUSTOM1(6),
-        CUSTOM2(7);
+        CUSTOM2(7),
+        ;
 
         companion object {
-            fun fromNum(value: Int): ThirdDimension? {
-                return entries.find { it.num == value }
-            }
+            fun fromNum(value: Int): ThirdDimension? = entries.find { it.num == value }
         }
     }
 
     /**
      * Coordinate triple
      */
-    data class LatLngZ(
-        val lat: Double,
-        val lng: Double,
-        val z: Double = 0.0
-    ) {
+    data class LatLngZ(val lat: Double, val lng: Double, val z: Double = 0.0) {
         override fun toString(): String = "LatLngZ [lat=$lat, lng=$lng, z=$z]"
     }
 }

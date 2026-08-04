@@ -63,7 +63,7 @@ internal fun MobileRouteMapContent(
         if (marker != null) {
             cameraState.position = CameraPosition(
                 target = Position(longitude = marker.lng, latitude = marker.lat),
-                zoom = 14.0
+                zoom = 14.0,
             )
         }
     }
@@ -71,19 +71,19 @@ internal fun MobileRouteMapContent(
     MaplibreMap(
         modifier = modifier,
         baseStyle = BaseStyle.Uri(styleUri),
-        cameraState = cameraState
+        cameraState = cameraState,
     ) {
         if (geoJsonPath != null) {
             val pathLine = rememberGeoJsonSource(
-                data = GeoJsonData.JsonString(geoJsonPath)
+                data = GeoJsonData.JsonString(geoJsonPath),
             )
             LineLayer("path", source = pathLine)
         }
         if (marker != null) {
             val markerSource = rememberGeoJsonSource(
                 data = GeoJsonData.Features(
-                    Point(Position(longitude = marker.lng, latitude = marker.lat))
-                )
+                    Point(Position(longitude = marker.lng, latitude = marker.lat)),
+                ),
             )
             CircleLayer(
                 id = "marker",
@@ -91,12 +91,11 @@ internal fun MobileRouteMapContent(
                 radius = const(8.dp),
                 color = const(Color.Red),
                 strokeColor = const(Color.White),
-                strokeWidth = const(2.dp)
+                strokeWidth = const(2.dp),
             )
         }
     }
 }
-
 
 private fun computeBoundingBox(geoJson: String): BoundingBox? = runCatching {
     val root = Json.parseToJsonElement(geoJson).jsonObject

@@ -69,11 +69,8 @@ fun PlanningTransportRoutePreviewPage(
         }
     }
 
-
     val onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit = {
-
     }
-
 
     if (platform == Platform.JVM) {
         PlanningTransportRouteDesktop(
@@ -83,7 +80,7 @@ fun PlanningTransportRoutePreviewPage(
             selectedRouteIndex = selectedRouteIndex,
             onRouteChange = onRouteChange,
             selectedRoute = selectedRoute,
-            onStepClick = onStepClick
+            onStepClick = onStepClick,
         )
     } else {
         PlanningTransportPreviewMobile(
@@ -93,7 +90,7 @@ fun PlanningTransportRoutePreviewPage(
             onRouteChange = onRouteChange,
             onRouteConfirm = onRouteConfirm,
             selectedRoute = selectedRoute,
-            onStepClick = onStepClick
+            onStepClick = onStepClick,
         )
     }
 }
@@ -111,7 +108,7 @@ private fun PlanningTransportRouteDesktop(
     Scaffold(
         topBar = {
             RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
-        }
+        },
     ) {
         Row(modifier = modifier.padding(it)) {
             RouteStepsPreview(
@@ -119,7 +116,7 @@ private fun PlanningTransportRouteDesktop(
                 routes = routes,
                 selectedRouteIndex = selectedRouteIndex,
                 onRouteChange = onRouteChange,
-                onStepClick = onStepClick
+                onStepClick = onStepClick,
             )
 
             RoutePreviewMap(
@@ -156,12 +153,12 @@ private fun PlanningTransportPreviewMobile(
                 routes = routes,
                 selectedRouteIndex = selectedRouteIndex,
                 onRouteChange = onRouteChange,
-                onStepClick = onStepClick
+                onStepClick = onStepClick,
             )
         },
         topBar = {
             RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
-        }
+        },
     ) {
         val mapEnable by remember(sheetState.bottomSheetState.hasExpandedState) {
             derivedStateOf {
@@ -187,14 +184,14 @@ private fun RoutePreviewTopBar(onRouteConfirm: () -> Unit) {
         actions = {
             IconButton(
                 modifier = Modifier,
-                onClick = onRouteConfirm
+                onClick = onRouteConfirm,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.check),
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
-        }
+        },
     )
 }
 
@@ -204,22 +201,22 @@ private fun RouteStepsPreview(
     selectedRouteIndex: Int,
     modifier: Modifier = Modifier,
     onRouteChange: (Int) -> Unit,
-    onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit
+    onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
 ) {
     LazyColumn(
-        modifier = modifier
+        modifier = modifier,
     ) {
         if (routes.routes.size > 1) {
             stickyHeader {
                 PrimaryScrollableTabRow(
                     selectedTabIndex = selectedRouteIndex,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     routes.routes.forEachIndexed { index, _ ->
                         Tab(
                             selected = index == selectedRouteIndex,
                             onClick = { onRouteChange(index) },
-                            text = { Text("Route ${index + 1}") }
+                            text = { Text("Route ${index + 1}") },
                         )
                     }
                 }
@@ -235,13 +232,8 @@ private fun RouteStepsPreview(
     }
 }
 
-
 @Composable
-fun RoutePreviewMap(
-    enable: Boolean,
-    sections: List<RouteSection>,
-    modifier: Modifier = Modifier,
-) {
+fun RoutePreviewMap(enable: Boolean, sections: List<RouteSection>, modifier: Modifier = Modifier) {
     val path by remember(sections) {
         derivedStateOf {
             sections.mapNotNull { it.polyline }
@@ -277,12 +269,14 @@ fun RouteStepSection(
                             onActionClick(coord)
                         }
                     }
-                } else null
+                } else {
+                    null
+                }
             }
 
             RouteStep(
                 action = action,
-                onActionClick = resolvedClick
+                onActionClick = resolvedClick,
             )
         }
     }
@@ -292,7 +286,7 @@ fun RouteStepSection(
 fun RouteStep(
     action: RouteAction,
     onActionClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val distanceM = (action.distanceMeters `in` Length.meters).roundToInt()
     val distanceText = if (distanceM >= 1000) {
@@ -306,48 +300,48 @@ fun RouteStep(
 
     Column(
         modifier = modifier
-            .then(if (onActionClick != null) Modifier.clickable(onClick = onActionClick) else Modifier)
+            .then(if (onActionClick != null) Modifier.clickable(onClick = onActionClick) else Modifier),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = action.action.replaceFirstChar { it.uppercaseChar() },
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 if (!action.instruction.isNullOrBlank()) {
                     Text(
                         text = action.instruction,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 if (!action.direction.isNullOrBlank()) {
                     Text(
                         text = action.direction,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
             ) {
                 Text(
                     text = distanceText,
                     style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     text = action.durationSeconds.toString(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -357,21 +351,20 @@ fun RouteStep(
 
 @PreviewScreenSizes
 @Composable
-private fun PlanningRoutePreviewPagePreview(
-    @PreviewParameter(RoutesPreviewParameterProvider::class) routes: Routes
-) = KTravelTheme {
-    KTravelPlatform {
-        PlanningTransportPreviewMobile(
-            selectedRouteIndex = 0,
-            onRouteChange = {},
-            onRouteConfirm = {},
-            routes = routes,
-            modifier = Modifier.fillMaxSize(),
-            selectedRoute = routes.routes.first(),
-            onStepClick = {}
-        )
+private fun PlanningRoutePreviewPagePreview(@PreviewParameter(RoutesPreviewParameterProvider::class) routes: Routes) =
+    KTravelTheme {
+        KTravelPlatform {
+            PlanningTransportPreviewMobile(
+                selectedRouteIndex = 0,
+                onRouteChange = {},
+                onRouteConfirm = {},
+                routes = routes,
+                modifier = Modifier.fillMaxSize(),
+                selectedRoute = routes.routes.first(),
+                onStepClick = {},
+            )
+        }
     }
-}
 
 @PreviewScreenSizes
 @Composable
@@ -385,8 +378,8 @@ private fun RouteStepPreview() = KTravelTheme {
                 distanceMeters = 320 * Length.meters,
                 instruction = "Turn right onto Via Roma",
                 direction = "right",
-                severity = "normal"
-            )
+                severity = "normal",
+            ),
         )
     }
 }
@@ -400,7 +393,7 @@ class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
                         RouteSection(
                             summary = RouteSummary(
                                 durationSeconds = 1800.seconds,
-                                distanceMeters = 15000
+                                distanceMeters = 15000,
                             ),
                             actions = buildList {
                                 add(
@@ -410,8 +403,8 @@ class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
                                         distanceMeters = 500 * Length.meters,
                                         instruction = "Head north on Via del Corso",
                                         direction = "north",
-                                        severity = "normal"
-                                    )
+                                        severity = "normal",
+                                    ),
                                 )
                                 repeat(10) {
                                     add(
@@ -421,8 +414,8 @@ class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
                                             distanceMeters = 320 * Length.meters,
                                             instruction = "Turn right onto Via Roma",
                                             direction = "right",
-                                            severity = "normal"
-                                        )
+                                            severity = "normal",
+                                        ),
                                     )
                                 }
                                 add(
@@ -431,19 +424,19 @@ class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
                                         durationSeconds = 0.seconds,
                                         distanceMeters = 0 * Length.meters,
                                         instruction = "Arrive at destination",
-                                        severity = "normal"
-                                    )
+                                        severity = "normal",
+                                    ),
                                 )
-                            }.toPersistentList()
-                        )
-                    ).toPersistentList()
+                            }.toPersistentList(),
+                        ),
+                    ).toPersistentList(),
                 ),
                 Route(
                     sections = listOf(
                         RouteSection(
                             summary = RouteSummary(
                                 durationSeconds = 2400.seconds,
-                                distanceMeters = 18000
+                                distanceMeters = 18000,
                             ),
                             actions = listOf(
                                 RouteAction(
@@ -452,20 +445,20 @@ class RoutesPreviewParameterProvider : PreviewParameterProvider<Routes> {
                                     distanceMeters = 800 * Length.meters,
                                     instruction = "Head south on Via Appia",
                                     direction = "south",
-                                    severity = "normal"
+                                    severity = "normal",
                                 ),
                                 RouteAction(
                                     action = "arrive",
                                     durationSeconds = 0.seconds,
                                     distanceMeters = 0 * Length.meters,
                                     instruction = "Arrive at destination",
-                                    severity = "normal"
-                                )
-                            ).toPersistentList()
-                        )
-                    ).toPersistentList()
-                )
-            ).toPersistentList()
-        )
+                                    severity = "normal",
+                                ),
+                            ).toPersistentList(),
+                        ),
+                    ).toPersistentList(),
+                ),
+            ).toPersistentList(),
+        ),
     )
 }

@@ -21,5 +21,5 @@ data class Place(
     val displayLocation: Location? = null,
     val name: String? = null,
     val waypoint: Int? = null,
-    val sideOfStreet: String? = null
+    val sideOfStreet: String? = null,
 )

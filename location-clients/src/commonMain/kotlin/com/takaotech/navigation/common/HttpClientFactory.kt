@@ -1,11 +1,13 @@
 package com.takaotech.navigation.common
 
-import io.ktor.client.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 /**
@@ -34,8 +36,8 @@ fun createHereHttpClient(
     baseUrl: String,
     apiKey: String,
     enableLogging: Boolean = false
-): HttpClient {
-    return createPlatformHttpClient().config {
+): HttpClient =
+    createPlatformHttpClient().config {
         install(ContentNegotiation) {
             json(hereApiJson)
         }
@@ -52,4 +54,3 @@ fun createHereHttpClient(
             url.parameters.append("apiKey", apiKey)
         }
     }
-}

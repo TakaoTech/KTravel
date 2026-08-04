@@ -8,6 +8,4 @@ import kotlinx.serialization.Serializable
  * @property mode Transport mode of the vehicle.
  */
 @Serializable
-data class VehicleTransport(
-    val mode: com.takaotech.navigation.routing.model.TransportMode
-)
+data class VehicleTransport(val mode: com.takaotech.navigation.routing.model.TransportMode)

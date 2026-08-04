@@ -10,5 +10,5 @@ data class TransitDeparture(
     val time: String? = null,
     val place: TransitPlace? = null,
     val delay: Int? = null,
-    val platform: String? = null
+    val platform: String? = null,
 )

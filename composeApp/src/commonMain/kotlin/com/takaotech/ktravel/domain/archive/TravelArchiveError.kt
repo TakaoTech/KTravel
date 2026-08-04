@@ -23,11 +23,8 @@ sealed interface TravelArchiveError {
     /** Schema prodotto da una versione futura dell'app. */
     data class FutureSchemaVersion(val found: Int, val current: Int) : TravelArchiveError
 
-    data class MigrationFailed(
-        val fromVersion: Int,
-        val toVersion: Int,
-        val reason: String
-    ) : TravelArchiveError
+    data class MigrationFailed(val fromVersion: Int, val toVersion: Int, val reason: String) :
+        TravelArchiveError
 
     /** Il piano non è deserializzabile nel formato corrente, nemmeno dopo la migrazione. */
     data class MalformedPlanJson(val reason: String) : TravelArchiveError
@@ -46,9 +43,8 @@ class TravelArchiveException(val error: TravelArchiveError) : Exception(error.to
  * Normalizza un throwable in un [TravelArchiveError], così la UI può fare un `when` esaustivo anche
  * sui fallimenti imprevisti.
  */
-fun Throwable.asTravelArchiveError(): TravelArchiveError =
-    (this as? TravelArchiveException)?.error
-        ?: TravelArchiveError.Io(message ?: this::class.simpleName.orEmpty())
+fun Throwable.asTravelArchiveError(): TravelArchiveError = (this as? TravelArchiveException)?.error
+    ?: TravelArchiveError.Io(message ?: this::class.simpleName.orEmpty())
 
 /** Riporta un throwable qualsiasi al tipo di failure usato da tutte le API di archivio. */
 internal fun Throwable.asTravelArchiveException(): TravelArchiveException =

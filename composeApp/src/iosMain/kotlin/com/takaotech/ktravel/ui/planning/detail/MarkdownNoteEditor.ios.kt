@@ -14,12 +14,12 @@ import androidx.compose.ui.Modifier
 actual fun MarkdownNoteEditor(
     controller: MarkdownEditorController,
     label: String,
-    modifier: Modifier,
+    modifier: Modifier
 ) {
     OutlinedTextField(
         value = controller.fieldValue,
         onValueChange = { controller.onFieldValueChange(it) },
         modifier = modifier,
-        label = { Text(label) }
+        label = { Text(label) },
     )
 }

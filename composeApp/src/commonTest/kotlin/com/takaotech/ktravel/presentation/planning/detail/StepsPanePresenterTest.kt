@@ -48,8 +48,8 @@ class StepsPanePresenterTest : BehaviorSpec() {
         date = LocalDate(2024, 3, 1),
         steps = listOf(
             StepDomain.Place(id = "step-a", name = "Tokyo Tower", lat = 0.0, lng = 0.0),
-            StepDomain.Place(id = "step-b", name = "Shibuya Crossing", lat = 0.0, lng = 0.0)
-        )
+            StepDomain.Place(id = "step-b", name = "Shibuya Crossing", lat = 0.0, lng = 0.0),
+        ),
     )
 
     private suspend fun com.slack.circuit.test.CircuitReceiveTurbine<StepsPaneUiState>.awaitLoadedState(): StepsPaneUiState {

@@ -29,5 +29,5 @@ data class TravelArchiveExportResult(
      * fallire l'export, perché un riferimento dangling è una condizione che l'app già tollera e
      * bloccare l'export renderebbe il viaggio inesportabile.
      */
-    val skippedAttachments: List<String>
+    val skippedAttachments: List<String>,
 )

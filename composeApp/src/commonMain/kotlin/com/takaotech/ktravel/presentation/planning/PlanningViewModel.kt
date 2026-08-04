@@ -58,7 +58,7 @@ class PlanningViewModel(
                     } else {
                         // Same text — preserve existing TextFieldValue (cursor/selection intact)
                         mappedState.copy(
-                            planHeader = mappedState.planHeader.copy(name = current.planHeader.name)
+                            planHeader = mappedState.planHeader.copy(name = current.planHeader.name),
                         )
                     }
                 }
@@ -103,7 +103,7 @@ class PlanningViewModel(
 
             export
                 .onSuccess { result ->
-                    //Avoid flicker for high speed export
+                    // Avoid flicker for high speed export
                     delay(1.seconds)
                     _uiState.update {
                         it.copy(export = ExportUiState.Completed(result.skippedAttachments.size))

@@ -16,5 +16,5 @@ data class TravelCreationUiState(
         .atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val createdTravelId: String? = null
+    val createdTravelId: String? = null,
 )

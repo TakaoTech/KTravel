@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class DynamicSpeedInfo(
     @SerialName("trafficSpeed") val trafficSpeed: Double,
     @SerialName("baseSpeed") val baseSpeed: Double,
-    @SerialName("turnTime") val turnTime: Int
+    @SerialName("turnTime") val turnTime: Int,
 )

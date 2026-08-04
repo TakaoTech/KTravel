@@ -8,12 +8,10 @@ data class TransitMode(
      * Converts a list of transit modes to a comma-separated query string.
      * Supports exclusion by prefixing with '-'.
      */
-    fun toQueryString(): String {
-        return buildList {
-            include.forEach { add(it.toQueryString()) }
-            exclude.forEach { add("-${it.toQueryString()}") }
-        }.joinToString(",") { it }
-    }
+    fun toQueryString(): String = buildList {
+        include.forEach { add(it.toQueryString()) }
+        exclude.forEach { add("-${it.toQueryString()}") }
+    }.joinToString(",") { it }
 }
 
 /**
@@ -34,7 +32,8 @@ enum class TransitModeType(val value: String) {
     AERIAL("aerial"),
     BUS_RAPID("busRapid"),
     MONORAIL("monorail"),
-    FLIGHT("flight");
+    FLIGHT("flight"),
+    ;
 
     /**
      * Converts the enum to the query string format expected by the API.

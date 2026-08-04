@@ -36,7 +36,9 @@ enum class ReturnAttribute {
     SOURCE_FEED_MAPPING,
 
     @SerialName("serviceTimes")
-    SERVICE_TIMES;
+    SERVICE_TIMES,
+
+    ;
 
     fun toQueryString(): String = when (this) {
         INTERMEDIATE -> "intermediate"

@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 fun StepsPanePresenter(
     screen: StepsPaneScreen,
     navigator: Navigator,
-    planningGraphStore: PlanningGraphStore
+    planningGraphStore: PlanningGraphStore,
 ): StepsPaneUiState {
     val repository = remember(screen.travelId) {
         planningGraphStore.getOrCreate(screen.travelId).travelPlanRepository
@@ -50,11 +50,11 @@ fun StepsPanePresenter(
             StepsPaneEvent.NavigateBack -> navigator.pop()
 
             StepsPaneEvent.OpenBacklog -> navigator.goTo(
-                PlacesBacklogScreen(screen.travelId, screen.dayId)
+                PlacesBacklogScreen(screen.travelId, screen.dayId),
             )
 
             is StepsPaneEvent.OpenStepDetail -> navigator.goTo(
-                StepDetailScreen(screen.travelId, screen.dayId, event.stepId)
+                StepDetailScreen(screen.travelId, screen.dayId, event.stepId),
             )
 
             is StepsPaneEvent.DeleteStep -> scope.launch {
@@ -70,7 +70,7 @@ fun StepsPanePresenter(
             }
 
             is StepsPaneEvent.AddTransport -> navigator.goTo(
-                AddTransportScreen(screen.dayId, event.startPlaceId, event.endPlaceId)
+                AddTransportScreen(screen.dayId, event.startPlaceId, event.endPlaceId),
             )
 
             is StepsPaneEvent.SetStartTime -> scope.launch {

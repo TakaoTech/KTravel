@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LicensePlateRestriction(
     @SerialName("type") val type: String? = null,
-    @SerialName("forbiddenCharacters") val forbiddenCharacters: List<String>? = null
+    @SerialName("forbiddenCharacters") val forbiddenCharacters: List<String>? = null,
 )

@@ -11,11 +11,7 @@ import kotlinx.serialization.Serializable
  * @property severity Severity level (critical, info, warning)
  */
 @Serializable
-data class Notice(
-    val title: String,
-    val code: NoticeCode? = null,
-    val severity: String? = null
-)
+data class Notice(val title: String, val code: NoticeCode? = null, val severity: String? = null)
 
 @Serializable
 enum class NoticeCode {
@@ -83,5 +79,5 @@ enum class NoticeCode {
     CURRENT_WEIGHT_CHANGE_NO_CURRENT_WEIGHT,
 
     @SerialName("currentWeightChangeNoGrossWeight")
-    CURRENT_WEIGHT_CHANGE_NO_GROSS_WEIGHT
+    CURRENT_WEIGHT_CHANGE_NO_GROSS_WEIGHT,
 }

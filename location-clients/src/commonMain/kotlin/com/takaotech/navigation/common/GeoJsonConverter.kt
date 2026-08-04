@@ -21,10 +21,12 @@ object GeoJsonConverter {
         val coordsArray = buildJsonArray {
             coordinates.forEach { point ->
                 // GeoJSON coordinate order is [longitude, latitude] per RFC 7946
-                add(buildJsonArray {
-                    add(JsonPrimitive(point.lng))
-                    add(JsonPrimitive(point.lat))
-                })
+                add(
+                    buildJsonArray {
+                        add(JsonPrimitive(point.lng))
+                        add(JsonPrimitive(point.lat))
+                    },
+                )
             }
         }
         return buildJsonObject {

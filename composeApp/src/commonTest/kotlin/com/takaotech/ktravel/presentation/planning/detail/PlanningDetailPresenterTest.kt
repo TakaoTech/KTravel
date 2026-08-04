@@ -36,7 +36,7 @@ class PlanningDetailPresenterTest : BehaviorSpec() {
                         val state = awaitItem()
 
                         state.eventSink(
-                            PlanningDetailEvent.ChildNav(NavEvent.GoTo(AddPlaceScreen(DAY_ID)))
+                            PlanningDetailEvent.ChildNav(NavEvent.GoTo(AddPlaceScreen(DAY_ID))),
                         )
 
                         navigator.awaitNextScreen() shouldBe AddPlaceScreen(DAY_ID)

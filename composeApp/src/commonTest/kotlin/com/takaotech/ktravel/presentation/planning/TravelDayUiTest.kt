@@ -15,13 +15,13 @@ class TravelDayUiTest : BehaviorSpec() {
     private fun transport(id: String) = StepUi.Transport(
         id = id,
         type = TransportType.TRAIN,
-        route = Route(sections = emptyList())
+        route = Route(sections = emptyList()),
     )
 
     private fun day(vararg steps: StepUi) = TravelDayUi(
         id = "day",
         date = LocalDate(2024, 6, 15),
-        steps = persistentListOf(*steps)
+        steps = persistentListOf(*steps),
     )
 
     init {

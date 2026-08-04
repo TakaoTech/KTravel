@@ -8,9 +8,8 @@ package com.takaotech.navigation.routing.model
 enum class RoutingMode(val type: String) {
     FAST("fast"),
 
-    SHORT("short");
+    SHORT("short"),
+    ;
 
-    override fun toString(): String {
-        return type
-    }
+    override fun toString(): String = type
 }

@@ -56,13 +56,13 @@ data class RoutesRequest(
     val arrivalTime: String? = null,
     val units: Units = Units.METRIC,
     val lang: Locale? = Locale.from(Locales.currentLocaleString()),
-    val returnAttributes: List<ReturnAttribute>? = null
+    val returnAttributes: List<ReturnAttribute>? = null,
 ) {
     init {
         // Validate return attributes combinations
         returnAttributes?.let {
             ReturnAttribute.validate(
-                it
+                it,
             )
         }
     }
@@ -82,16 +82,16 @@ data class RoutesRequest(
         arrivalTime: String? = null,
         units: Units = Units.METRIC,
         lang: Locale? = null,
-        returnAttributes: List<ReturnAttribute>? = null
+        returnAttributes: List<ReturnAttribute>? = null,
     ) : this(
         origin = Waypoint.fromString(origin),
         destination = Waypoint.fromString(
-            destination
+            destination,
         ),
         transportMode = transportMode,
         via = via?.map {
             Waypoint.fromString(
-                it
+                it,
             )
         },
         routingMode = routingMode,
@@ -100,7 +100,6 @@ data class RoutesRequest(
         arrivalTime = arrivalTime,
         units = units,
         lang = lang,
-        returnAttributes = returnAttributes
+        returnAttributes = returnAttributes,
     )
-
 }

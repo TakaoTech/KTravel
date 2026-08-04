@@ -130,7 +130,8 @@ enum class ReturnAttribute(val value: String) {
      * Include information about the parts of the route that are not allowed to be driven through,
      * i.e. route can only start, end, or have an intermediate via waypoint here.
      */
-    NO_THROUGH_RESTRICTIONS("noThroughRestrictions");
+    NO_THROUGH_RESTRICTIONS("noThroughRestrictions"),
+    ;
 
     override fun toString(): String = value
 
@@ -178,7 +179,7 @@ enum class ReturnAttribute(val value: String) {
                 INSTRUCTIONS,
                 SUMMARY,
                 TRAVEL_SUMMARY,
-                ROUTE_HANDLE
+                ROUTE_HANDLE,
             )
         }
 

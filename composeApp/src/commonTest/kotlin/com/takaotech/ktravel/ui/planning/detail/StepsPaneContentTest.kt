@@ -38,11 +38,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                 RouteSection(
                     summary = RouteSummary(
                         durationSeconds = 30.minutes,
-                        distanceMeters = 1000
-                    )
-                )
-            )
-        )
+                        distanceMeters = 1000,
+                    ),
+                ),
+            ),
+        ),
     )
 
     init {
@@ -60,7 +60,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onMoveStepDownClick = {},
                             onAddTransportClick = { _, _ -> },
                             onSetArrivalTime = { _, _ -> },
-                            onSetDepartureTime = { _, _ -> }
+                            onSetDepartureTime = { _, _ -> },
                         )
                     }
                     onNodeWithTag(StepsPaneTestTags.EMPTY).assertIsDisplayed()
@@ -84,7 +84,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onMoveStepDownClick = {},
                             onAddTransportClick = { _, _ -> },
                             onSetArrivalTime = { _, _ -> },
-                            onSetDepartureTime = { _, _ -> }
+                            onSetDepartureTime = { _, _ -> },
                         )
                     }
                     onNodeWithText(placeA.name).assertIsDisplayed()
@@ -105,7 +105,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onMoveStepDownClick = {},
                             onAddTransportClick = { _, _ -> },
                             onSetArrivalTime = { _, _ -> },
-                            onSetDepartureTime = { _, _ -> }
+                            onSetDepartureTime = { _, _ -> },
                         )
                     }
                     // The route sections aggregate to "30m"; the surrounding wording comes from the
@@ -135,11 +135,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = {},
                                 onAddTransportClick = { start, end -> clicked = start to end },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(
-                            StepsPaneTestTags.addTransportTag(placeA.id, placeB.id)
+                            StepsPaneTestTags.addTransportTag(placeA.id, placeB.id),
                         ).performClick()
                     }
                     clicked shouldBe (placeA.id to placeB.id)
@@ -165,11 +165,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = {},
                                 onAddTransportClick = { _, _ -> },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(
-                            StepsPaneTestTags.deleteStepTag(placeA.id)
+                            StepsPaneTestTags.deleteStepTag(placeA.id),
                         ).performClick()
                     }
                     deleted shouldBe placeA
@@ -191,11 +191,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = {},
                                 onAddTransportClick = { _, _ -> },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(
-                            StepsPaneTestTags.moveStepUpTag(placeA.id)
+                            StepsPaneTestTags.moveStepUpTag(placeA.id),
                         ).performClick()
                     }
                     movedUp shouldBe placeA.id
@@ -217,11 +217,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = { movedDown = it },
                                 onAddTransportClick = { _, _ -> },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(
-                            StepsPaneTestTags.moveStepDownTag(placeA.id)
+                            StepsPaneTestTags.moveStepDownTag(placeA.id),
                         ).performClick()
                     }
                     movedDown shouldBe placeA.id
@@ -245,7 +245,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = {},
                                 onAddTransportClick = { _, _ -> },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(StepsPaneTestTags.BACK_BUTTON).performClick()
@@ -269,7 +269,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onMoveStepDownClick = {},
                                 onAddTransportClick = { _, _ -> },
                                 onSetArrivalTime = { _, _ -> },
-                                onSetDepartureTime = { _, _ -> }
+                                onSetDepartureTime = { _, _ -> },
                             )
                         }
                         onNodeWithTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON).performClick()

@@ -17,9 +17,7 @@ import kotlinx.coroutines.launch
 @ContributesIntoMap(AppScope::class)
 @ViewModelKey
 @Inject
-class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
-) : ViewModel() {
+class SettingsViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()

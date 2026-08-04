@@ -61,10 +61,7 @@ object TravelCreationPage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TravelCreationPage(
-    onBackClick: () -> Unit,
-    onNavigateToPlanning: (id: String) -> Unit
-) {
+fun TravelCreationPage(onBackClick: () -> Unit, onNavigateToPlanning: (id: String) -> Unit) {
     val viewModel: TravelCreationViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -85,7 +82,7 @@ fun TravelCreationPage(
         },
         onBackClick = onBackClick,
         onConfirmClick = { viewModel.createTravelPlan() },
-        onDismissError = { viewModel.clearError() }
+        onDismissError = { viewModel.clearError() },
     )
 }
 
@@ -115,7 +112,7 @@ private fun TravelCreationPage(
 
     val dateRangePickerState = rememberDateRangePickerState(
         initialSelectedStartDateMillis = startDateMillis ?: 0L,
-        initialSelectedEndDateMillis = endDateMillis ?: 0L
+        initialSelectedEndDateMillis = endDateMillis ?: 0L,
     )
 
     Scaffold(
@@ -126,10 +123,10 @@ private fun TravelCreationPage(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -137,7 +134,7 @@ private fun TravelCreationPage(
             BottomAppBar(
                 modifier = Modifier
                     .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp),
             ) {
                 Button(
                     onClick = onConfirmClick,
@@ -148,18 +145,17 @@ private fun TravelCreationPage(
                     // TODO Change icon to add with background circle
                     Icon(
                         painter = painterResource(Res.drawable.add),
-                        contentDescription = null
+                        contentDescription = null,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(Res.string.travel_creation_button),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
-
                 }
             }
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -167,7 +163,7 @@ private fun TravelCreationPage(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Hero image
 //            Box(
@@ -208,7 +204,7 @@ private fun TravelCreationPage(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedTextField(
                     value = travelName.value,
@@ -217,14 +213,14 @@ private fun TravelCreationPage(
                     placeholder = {
                         Text(
                             text = stringResource(Res.string.travel_creation_name_placeholder),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(Res.drawable.flight),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
                     isError = travelName.validationState.isError,
@@ -242,7 +238,7 @@ private fun TravelCreationPage(
                 showDateRangePicker = showDateRangePicker,
                 dateRangePickerState = dateRangePickerState,
                 onShowDateRangePicker = { showDateRangePicker = it },
-                onPlanDateRangeChanged = { start, end -> onPlanDateRangeChanged(start, end) }
+                onPlanDateRangeChanged = { start, end -> onPlanDateRangeChanged(start, end) },
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -262,6 +258,6 @@ private fun TravelCreationPagePreview() = KTravelTheme {
         onBackClick = {},
         onPlanDateRangeChanged = { start, end -> },
         onConfirmClick = {},
-        onDismissError = {}
+        onDismissError = {},
     )
 }

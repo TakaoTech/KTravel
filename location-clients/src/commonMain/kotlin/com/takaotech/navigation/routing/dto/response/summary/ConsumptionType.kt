@@ -30,5 +30,5 @@ enum class ConsumptionType {
     PROPANE,
 
     @SerialName("hydrogen")
-    HYDROGEN
+    HYDROGEN,
 }

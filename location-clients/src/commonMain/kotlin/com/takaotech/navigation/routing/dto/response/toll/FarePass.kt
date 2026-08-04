@@ -18,7 +18,7 @@ data class FarePass(
     @SerialName("validityPeriod") val validityPeriod: FarePassValidityPeriod? = null,
     @SerialName("travels") val travels: Int? = null,
     @SerialName("transfers") val transfers: Int? = null,
-    @SerialName("seniorPass") val seniorPass: Boolean? = null
+    @SerialName("seniorPass") val seniorPass: Boolean? = null,
 )
 
 /**

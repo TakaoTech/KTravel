@@ -5,9 +5,7 @@ import dev.zacsweers.metro.SingleIn
 
 @SingleIn(AppScope::class)
 @Inject
-class PlanningGraphStore(
-    private val factory: PlanningGraph.Factory
-) {
+class PlanningGraphStore(private val factory: PlanningGraph.Factory) {
     private val graphs = mutableMapOf<String, PlanningGraph>()
 
     fun getOrCreate(travelId: String): PlanningGraph =

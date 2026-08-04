@@ -37,7 +37,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @OptIn(ExperimentalEncodingApi::class)
 @Composable
 fun PlaceItem(
-    //TODO
+    // TODO
     name: String,
     hour: String? = null,
     modifier: Modifier = Modifier,
@@ -45,7 +45,7 @@ fun PlaceItem(
     image: String? = null,
     actions: @Composable () -> Unit = {},
     onDeleteClick: (() -> Unit)? = null,
-    onPermanentDeleteClick: () -> Unit
+    onPermanentDeleteClick: () -> Unit,
 ) {
     val showImage by remember(expanded, image) {
         derivedStateOf {
@@ -60,7 +60,7 @@ fun PlaceItem(
     ConstraintLayout(modifier = modifier) {
         val (imageRef, nameRef, hourRef, actionsRef) = createRefs()
 
-        //TODO Remove Hour
+        // TODO Remove Hour
 
         Text(
             modifier = Modifier.constrainAs(hourRef) {
@@ -104,12 +104,12 @@ fun PlaceItem(
 
         Text(
             modifier = textModifier
-                //TODO Adapt light-dark
+                // TODO Adapt light-dark
                 .background(
                     color = Color.White.copy(alpha = 0.7f),
-                    shape = RoundedCornerShape(topEnd = 8.dp)
+                    shape = RoundedCornerShape(topEnd = 8.dp),
                 ),
-            text = name
+            text = name,
         )
 
         Row(
@@ -120,7 +120,7 @@ fun PlaceItem(
                 end.linkTo(parent.end)
                 width = Dimension.fillToConstraints
             },
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
         ) {
             // TODO Modificare layout per avere la compressione delle azioni
             var expanded by remember { mutableStateOf(false) }
@@ -131,20 +131,19 @@ fun PlaceItem(
                     } else {
                         expanded = true
                     }
-                }
+                },
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
 
             actions()
 
-
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
             ) {
                 DeleteMode.entries.forEach { option ->
                     DropdownMenuItem(
@@ -155,18 +154,19 @@ fun PlaceItem(
                                     MaterialTheme.colorScheme.error
                                 } else {
                                     Color.Unspecified
-                                }
+                                },
                             )
                         },
                         onClick = {
                             when (option) {
                                 DeleteMode.GENERAL -> onDeleteClick?.invoke()
+
                                 DeleteMode.PERMANENT -> {
                                     expanded = false
                                     onPermanentDeleteClick()
                                 }
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -189,6 +189,6 @@ private fun PlaceItemPreview() = KTravelTheme {
         name = "Test",
         image = null,
         onDeleteClick = {},
-        onPermanentDeleteClick = {}
+        onPermanentDeleteClick = {},
     )
 }

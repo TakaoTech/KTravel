@@ -23,7 +23,7 @@ internal object TravelArchiveIdRemapper {
     data class Remapped(
         val plan: TravelPlanEntity,
         /** vecchio relativePath -> nuovo relativePath, per estrarre i file e riscrivere le note. */
-        val attachmentPathMapping: Map<String, String>
+        val attachmentPathMapping: Map<String, String>,
     )
 
     /**
@@ -33,7 +33,7 @@ internal object TravelArchiveIdRemapper {
     fun remap(
         plan: TravelPlanEntity,
         newTravelId: String,
-        newId: () -> String = { Uuid.random().toString() }
+        newId: () -> String = { Uuid.random().toString() },
     ): Remapped {
         val pathMapping = mutableMapOf<String, String>()
 
@@ -54,9 +54,9 @@ internal object TravelArchiveIdRemapper {
             plan = plan.copy(
                 id = newTravelId,
                 days = days,
-                places = plan.places.remapIds(newId)
+                places = plan.places.remapIds(newId),
             ),
-            attachmentPathMapping = pathMapping
+            attachmentPathMapping = pathMapping,
         )
     }
 
@@ -66,18 +66,19 @@ internal object TravelArchiveIdRemapper {
     private fun StepEntity.remapIds(
         newTravelId: String,
         newId: () -> String,
-        pathMapping: MutableMap<String, String>
+        pathMapping: MutableMap<String, String>,
     ): StepEntity {
         val newStepId = newId()
         return when (this) {
             is StepEntity.Transport -> copy(id = newStepId)
+
             is StepEntity.Place -> copy(
                 id = newStepId,
                 attachments = attachments.map { attachment ->
                     val newPath = attachment.relativePath.movedTo(newTravelId, newStepId)
                     pathMapping[attachment.relativePath] = newPath
                     attachment.copy(id = newId(), relativePath = newPath)
-                }
+                },
             )
         }
     }

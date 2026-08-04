@@ -121,7 +121,8 @@ private fun ImportUiState.message(): String? = when (this) {
     ImportUiState.Idle,
     ImportUiState.Reading,
     ImportUiState.Importing,
-    is ImportUiState.AwaitingConflictChoice -> null
+    is ImportUiState.AwaitingConflictChoice,
+        -> null
 
     is ImportUiState.Completed ->
         stringResource(Res.string.travel_selection_import_success, travelName)
@@ -130,10 +131,7 @@ private fun ImportUiState.message(): String? = when (this) {
 }
 
 @Composable
-fun TravelSelectionPage(
-    onTravelClick: (id: String) -> Unit,
-    onNewTravelClick: () -> Unit
-) {
+fun TravelSelectionPage(onTravelClick: (id: String) -> Unit, onNewTravelClick: () -> Unit) {
     val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -150,7 +148,7 @@ fun TravelSelectionPage(
     DisruptiveOperationDialog(state = deleteDialogState)
 
     val importLauncher = rememberFilePickerLauncher(
-        type = FileKitType.File(TravelArchiveFormat.ACCEPTED_EXTENSIONS)
+        type = FileKitType.File(TravelArchiveFormat.ACCEPTED_EXTENSIONS),
     ) { file ->
         file?.let(viewModel::stageImport)
     }
@@ -160,7 +158,7 @@ fun TravelSelectionPage(
         // Il nome della copia si formatta qui: stringResource non è invocabile dal ViewModel.
         val duplicateName = stringResource(
             Res.string.travel_selection_import_duplicate_name,
-            importState.importedName
+            importState.importedName,
         )
         ImportConflictDialog(
             existingName = importState.existingName,
@@ -170,7 +168,7 @@ fun TravelSelectionPage(
             onReplace = {
                 viewModel.confirmImport(ImportConflictStrategy.REPLACE, duplicateName)
             },
-            onDismiss = viewModel::cancelImport
+            onDismiss = viewModel::cancelImport,
         )
     }
 
@@ -188,7 +186,7 @@ fun TravelSelectionPage(
         onSwipeToDelete = { id -> deleteDialogState.show(persistentSetOf(id)) },
         onImportClick = { importLauncher.launch() },
         onImportMessageShown = viewModel::onImportMessageShown,
-        newTravelClick = onNewTravelClick
+        newTravelClick = onNewTravelClick,
     )
 }
 
@@ -207,7 +205,7 @@ internal fun TravelSelectionPage(
     onSwipeToDelete: (id: String) -> Unit = {},
     onImportClick: () -> Unit = {},
     onImportMessageShown: () -> Unit = {},
-    newTravelClick: () -> Unit
+    newTravelClick: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val importMessage = importState.message()
@@ -227,7 +225,7 @@ internal fun TravelSelectionPage(
                 SelectionModeTopBar(
                     selectedCount = selectedIds.size,
                     onExitSelectionMode = onExitSelectionMode,
-                    onDeleteSelectedClick = onDeleteSelectedClick
+                    onDeleteSelectedClick = onDeleteSelectedClick,
                 )
             } else {
                 Column {
@@ -237,16 +235,16 @@ internal fun TravelSelectionPage(
                             IconButton(
                                 modifier = Modifier.testTag(TravelSelectionTestTags.TOP_BAR_IMPORT),
                                 onClick = onImportClick,
-                                enabled = importState.isIdle
+                                enabled = importState.isIdle,
                             ) {
                                 Icon(
                                     painter = painterResource(Res.drawable.file_open),
                                     contentDescription = stringResource(
-                                        Res.string.travel_selection_cd_import
-                                    )
+                                        Res.string.travel_selection_cd_import,
+                                    ),
                                 )
                             }
-                        }
+                        },
                     )
 
                     if (importState.isRunning) {
@@ -259,19 +257,19 @@ internal fun TravelSelectionPage(
             AnimatedVisibility(
                 visible = !isSelectionMode,
                 enter = scaleIn(),
-                exit = scaleOut()
+                exit = scaleOut(),
             ) {
                 FloatingActionButton(
                     modifier = Modifier.testTag(TravelSelectionTestTags.FAB_NEW_TRAVEL),
-                    onClick = newTravelClick
+                    onClick = newTravelClick,
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.add),
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
             }
-        }
+        },
     ) {
         LazyColumn(
             modifier = Modifier
@@ -295,18 +293,17 @@ internal fun TravelSelectionPage(
                             textFieldState = textFieldState,
                             searchBarState = searchBarState,
                             onSearch = {
-
-                            }
+                            },
                         )
-                    }
+                    },
                 )
             }
 
             items(
                 key = { travel -> travel.id },
-                items = travelList
+                items = travelList,
             ) { travel ->
-                //TODO Format date correctly
+                // TODO Format date correctly
                 TravelItem(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -325,13 +322,11 @@ internal fun TravelSelectionPage(
                     },
                     onSwipeToDelete = {
                         onSwipeToDelete(travel.id)
-                    }
+                    },
                 )
             }
         }
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -339,7 +334,7 @@ internal fun TravelSelectionPage(
 private fun SelectionModeTopBar(
     selectedCount: Int,
     onExitSelectionMode: () -> Unit,
-    onDeleteSelectedClick: () -> Unit
+    onDeleteSelectedClick: () -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -347,18 +342,18 @@ private fun SelectionModeTopBar(
                 text = pluralStringResource(
                     Res.plurals.travel_selection_selected_count,
                     selectedCount,
-                    selectedCount
-                )
+                    selectedCount,
+                ),
             )
         },
         navigationIcon = {
             IconButton(
                 modifier = Modifier.testTag(TravelSelectionTestTags.TOP_BAR_EXIT_SELECTION),
-                onClick = onExitSelectionMode
+                onClick = onExitSelectionMode,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.close),
-                    contentDescription = stringResource(Res.string.travel_selection_cd_exit_selection)
+                    contentDescription = stringResource(Res.string.travel_selection_cd_exit_selection),
                 )
             }
         },
@@ -366,14 +361,14 @@ private fun SelectionModeTopBar(
             IconButton(
                 modifier = Modifier.testTag(TravelSelectionTestTags.TOP_BAR_DELETE_SELECTED),
                 enabled = selectedCount > 0,
-                onClick = onDeleteSelectedClick
+                onClick = onDeleteSelectedClick,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),
-                    contentDescription = stringResource(Res.string.travel_selection_cd_delete_selected)
+                    contentDescription = stringResource(Res.string.travel_selection_cd_delete_selected),
                 )
             }
-        }
+        },
     )
 }
 
@@ -387,7 +382,7 @@ internal fun TravelItem(
     selected: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
-    onSwipeToDelete: () -> Unit = {}
+    onSwipeToDelete: () -> Unit = {},
 ) {
     val itemModifier = modifier.semantics { this.selected = selected }
 
@@ -401,12 +396,12 @@ internal fun TravelItem(
             isSelectionMode = true,
             selected = selected,
             onClick = onClick,
-            onLongClick = onLongClick
+            onLongClick = onLongClick,
         )
     } else {
         SwipeToDeleteBox(
             modifier = itemModifier,
-            onSwipeToDelete = onSwipeToDelete
+            onSwipeToDelete = onSwipeToDelete,
         ) {
             TravelItemCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -416,7 +411,7 @@ internal fun TravelItem(
                 isSelectionMode = false,
                 selected = selected,
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             )
         }
     }
@@ -432,7 +427,7 @@ internal fun TravelItem(
 private fun SwipeToDeleteBox(
     onSwipeToDelete: () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val currentOnSwipeToDelete by rememberUpdatedState(onSwipeToDelete)
     val dismissState = rememberSwipeToDismissBoxState(
@@ -443,7 +438,7 @@ private fun SwipeToDeleteBox(
                 currentOnSwipeToDelete()
             }
             false
-        }
+        },
     )
 
     SwipeToDismissBox(
@@ -459,16 +454,16 @@ private fun SwipeToDeleteBox(
                     .background(MaterialTheme.colorScheme.errorContainer)
                     .padding(horizontal = 24.dp),
                 // Alignment.CenterEnd mirrors itself on right to left layouts, matching the gesture.
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = Alignment.CenterEnd,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),
                     contentDescription = stringResource(Res.string.travel_selection_cd_swipe_delete),
-                    tint = MaterialTheme.colorScheme.onErrorContainer
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
         },
-        content = { content() }
+        content = { content() },
     )
 }
 
@@ -482,18 +477,18 @@ private fun TravelItemCard(
     selected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.combinedClickable(
             onClick = onClick,
-            onLongClick = onLongClick
+            onLongClick = onLongClick,
         ),
         colors = if (selected) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
         } else {
             CardDefaults.cardColors()
-        }
+        },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (isSelectionMode) {
@@ -501,7 +496,7 @@ private fun TravelItemCard(
                     modifier = Modifier.padding(start = 8.dp),
                     checked = selected,
                     // The whole card toggles the selection, the checkbox is only an indicator.
-                    onCheckedChange = null
+                    onCheckedChange = null,
                 )
             }
 
@@ -518,7 +513,7 @@ private fun TravelItemCard(
 
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.date_range),
@@ -542,14 +537,14 @@ private val previewTravelList = persistentListOf(
         id = "1",
         name = "Viaggio a Tokyo",
         periodStart = Clock.System.now().toLocalDate(),
-        periodEnd = Clock.System.now().toLocalDate()
+        periodEnd = Clock.System.now().toLocalDate(),
     ),
     TravelSummaryUiState(
         id = "2",
         name = "Weekend a Roma",
         periodStart = Clock.System.now().toLocalDate(),
-        periodEnd = Clock.System.now().toLocalDate()
-    )
+        periodEnd = Clock.System.now().toLocalDate(),
+    ),
 )
 
 @PreviewScreenSizes
@@ -558,7 +553,7 @@ private fun TravelSelectionPagePreview() = KTravelTheme {
     TravelSelectionPage(
         travelList = previewTravelList,
         onTravelClick = {},
-        newTravelClick = {}
+        newTravelClick = {},
     )
 }
 
@@ -570,6 +565,6 @@ private fun TravelSelectionPageSelectionModePreview() = KTravelTheme {
         isSelectionMode = true,
         selectedIds = persistentSetOf("1"),
         onTravelClick = {},
-        newTravelClick = {}
+        newTravelClick = {},
     )
 }

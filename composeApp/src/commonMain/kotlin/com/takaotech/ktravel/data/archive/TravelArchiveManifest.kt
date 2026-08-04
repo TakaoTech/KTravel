@@ -22,5 +22,5 @@ data class TravelArchiveManifest(
     // Esplicito, così una versione futura può spostare il file del piano senza rompere i reader
     // vecchi, che leggono questo campo invece della costante.
     @SerialName("plan_entry") val planEntry: String = TravelArchiveFormat.PLAN_ENTRY,
-    @SerialName("attachments") val attachments: List<String> = emptyList()
+    @SerialName("attachments") val attachments: List<String> = emptyList(),
 )

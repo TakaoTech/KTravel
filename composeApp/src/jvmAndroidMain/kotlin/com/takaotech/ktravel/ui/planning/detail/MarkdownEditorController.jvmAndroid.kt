@@ -13,9 +13,7 @@ import kotlinx.coroutines.flow.Flow
  * cursore usa `HyphenTextState.insertText`, che applica anche i controlli Markdown/trigger.
  */
 @Stable
-actual class MarkdownEditorController internal constructor(
-    internal val state: HyphenTextState
-) {
+actual class MarkdownEditorController internal constructor(internal val state: HyphenTextState) {
     actual val markdownFlow: Flow<String> = state.markdownFlow
 
     actual fun insertAtCursor(text: String) {

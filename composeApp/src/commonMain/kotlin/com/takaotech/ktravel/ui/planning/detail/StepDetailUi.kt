@@ -118,7 +118,7 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
             onAddAttachment = { sink(StepDetailEvent.AddAttachment(it)) },
             onRemoveAttachment = { sink(StepDetailEvent.RemoveAttachment(it)) },
             onSetStartTime = { sink(StepDetailEvent.SetStartTime(it)) },
-            onSetEndTime = { sink(StepDetailEvent.SetEndTime(it)) }
+            onSetEndTime = { sink(StepDetailEvent.SetEndTime(it)) },
         )
     }
 }
@@ -128,11 +128,11 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
 private fun StepDetailLoading(onBack: () -> Unit, modifier: Modifier = Modifier) {
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = {}, navigationIcon = { BackButton(onBack) }) }
+        topBar = { TopAppBar(title = {}, navigationIcon = { BackButton(onBack) }) },
     ) { padding ->
         Box(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator()
         }
@@ -203,8 +203,11 @@ internal fun StepDetailPlaceContent(
         object : UriHandler {
             override fun openUri(uri: String) {
                 val relativePath = AttachmentReference.relativePathOf(uri)
-                if (relativePath != null) openAttachment(relativePath)
-                else defaultUriHandler.openUri(uri)
+                if (relativePath != null) {
+                    openAttachment(relativePath)
+                } else {
+                    defaultUriHandler.openUri(uri)
+                }
             }
         }
     }
@@ -216,7 +219,7 @@ internal fun StepDetailPlaceContent(
             SnackbarHost(
                 modifier = Modifier
                     .navigationBarsPadding(),
-                hostState = it
+                hostState = it,
             )
         },
         topBar = {
@@ -225,12 +228,12 @@ internal fun StepDetailPlaceContent(
                     Text(
                         text = place.name,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = {
                     BackButton(onClick = onBack)
-                }
+                },
             )
         },
         sheetContent = {
@@ -246,7 +249,7 @@ internal fun StepDetailPlaceContent(
                     onToggleEdit(true)
                 },
                 onOpen = { attachment -> openAttachment(attachment.relativePath) },
-                onRemove = { attachment -> onRemoveAttachment(attachment.id) }
+                onRemove = { attachment -> onRemoveAttachment(attachment.id) },
             )
         },
     ) { padding ->
@@ -256,7 +259,7 @@ internal fun StepDetailPlaceContent(
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             RouteMap(
                 modifier = Modifier
@@ -264,13 +267,13 @@ internal fun StepDetailPlaceContent(
                     .height(240.dp)
                     .testTag(StepDetailTestTags.MAP),
                 enable = true,
-                marker = LatLng(lat = place.lat, lng = place.lng)
+                marker = LatLng(lat = place.lat, lng = place.lng),
             )
 
             ScheduleSection(
                 schedule = place.schedule,
                 onSetStartTime = onSetStartTime,
-                onSetEndTime = onSetEndTime
+                onSetEndTime = onSetEndTime,
             )
 
             NotesSection(
@@ -281,7 +284,7 @@ internal fun StepDetailPlaceContent(
                 controller = controller,
                 imageTransformer = imageTransformer,
                 uriHandler = uriHandler,
-                onToggleEdit = onToggleEdit
+                onToggleEdit = onToggleEdit,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -305,29 +308,29 @@ private fun NotesSection(
             Text(
                 text = stringResource(Res.string.planning_detail_step_note_title),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             if (noteInvalid) {
                 Icon(
                     modifier = Modifier.testTag(StepDetailTestTags.NOTE_ALERT),
                     painter = painterResource(Res.drawable.error),
                     contentDescription = stringResource(Res.string.planning_detail_cd_note_invalid),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
             IconButton(
                 modifier = Modifier.testTag(StepDetailTestTags.EDIT_TOGGLE),
-                onClick = { onToggleEdit(!isEditing) }
+                onClick = { onToggleEdit(!isEditing) },
             ) {
                 if (isEditing) {
                     Icon(
                         painter = painterResource(Res.drawable.check),
-                        contentDescription = stringResource(Res.string.planning_detail_cd_done_note)
+                        contentDescription = stringResource(Res.string.planning_detail_cd_done_note),
                     )
                 } else {
                     Icon(
                         painter = painterResource(Res.drawable.edit),
-                        contentDescription = stringResource(Res.string.planning_detail_cd_edit_note)
+                        contentDescription = stringResource(Res.string.planning_detail_cd_edit_note),
                     )
                 }
             }
@@ -338,7 +341,7 @@ private fun NotesSection(
                 modifier = Modifier.testTag(StepDetailTestTags.MISSING_REFERENCES),
                 text = stringResource(Res.string.planning_detail_attachments_missing),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
 
@@ -348,14 +351,14 @@ private fun NotesSection(
                 label = stringResource(Res.string.planning_detail_step_note_label),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag(StepDetailTestTags.NOTE_EDITOR)
+                    .testTag(StepDetailTestTags.NOTE_EDITOR),
             )
         } else if (note.isBlank()) {
             Text(
                 modifier = Modifier.testTag(StepDetailTestTags.NOTE_VIEW),
                 text = stringResource(Res.string.planning_detail_step_note_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
             CompositionLocalProvider(LocalUriHandler provides uriHandler) {
@@ -364,7 +367,7 @@ private fun NotesSection(
                     imageTransformer = imageTransformer,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag(StepDetailTestTags.NOTE_VIEW)
+                        .testTag(StepDetailTestTags.NOTE_VIEW),
                 )
             }
         }
@@ -386,20 +389,20 @@ private fun ScheduleSection(
         startTime = schedule?.startTime,
         endTime = schedule?.endTime,
         onStartConfirm = onSetStartTime,
-        onEndConfirm = onSetEndTime
+        onEndConfirm = onSetEndTime,
     ) { scope ->
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
 
             Text(
                 text = stringResource(Res.string.planning_detail_schedule_title),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 val modifier = if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
-                        WIDTH_DP_MEDIUM_LOWER_BOUND
+                        WIDTH_DP_MEDIUM_LOWER_BOUND,
                     )
                 ) {
                     Modifier
@@ -411,13 +414,13 @@ private fun ScheduleSection(
                     modifier = modifier,
                     label = stringResource(Res.string.planning_detail_start_time_label),
                     value = scope.startDisplay,
-                    onClick = scope.openStartPicker
+                    onClick = scope.openStartPicker,
                 )
                 ScheduleField(
                     modifier = modifier,
                     label = stringResource(Res.string.planning_detail_end_time_label),
                     value = scope.endDisplay,
-                    onClick = scope.openEndPicker
+                    onClick = scope.openEndPicker,
                 )
             }
         }
@@ -433,7 +436,7 @@ private fun ScheduleField(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Text(text = label)
         Spacer(modifier = Modifier.width(8.dp))
@@ -442,19 +445,21 @@ private fun ScheduleField(
 }
 
 /** Snippet Markdown per referenziare l'allegato: immagine inline o link a file. */
-private fun AttachmentUi.toMarkdownReference(): String =
-    if (isImage) AttachmentReference.imageMarkdown(relativePath, altText = originalName)
-    else AttachmentReference.fileMarkdown(relativePath, label = originalName)
+private fun AttachmentUi.toMarkdownReference(): String = if (isImage) {
+    AttachmentReference.imageMarkdown(relativePath, altText = originalName)
+} else {
+    AttachmentReference.fileMarkdown(relativePath, label = originalName)
+}
 
 @Composable
 private fun BackButton(onClick: () -> Unit) {
     IconButton(
         modifier = Modifier.testTag(StepDetailTestTags.BACK_BUTTON),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Icon(
             painter = painterResource(Res.drawable.arrow_back),
-            contentDescription = stringResource(Res.string.planning_detail_cd_back)
+            contentDescription = stringResource(Res.string.planning_detail_cd_back),
         )
     }
 }
@@ -469,9 +474,9 @@ private fun StepDetailPlaceContentPreview() = KTravelTheme {
             lng = 139.7454,
             schedule = VisitScheduleUi(
                 startTime = LocalTime(9, 30),
-                endTime = LocalTime(11, 0)
+                endTime = LocalTime(11, 0),
             ),
-            note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto"
+            note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto",
         ),
         isEditing = false,
         noteInvalid = false,
@@ -483,7 +488,7 @@ private fun StepDetailPlaceContentPreview() = KTravelTheme {
         onAddAttachment = {},
         onRemoveAttachment = {},
         onSetStartTime = {},
-        onSetEndTime = {}
+        onSetEndTime = {},
     )
 }
 
@@ -502,6 +507,6 @@ private fun StepDetailPlaceContentEmptyNotePreview() = KTravelTheme {
         onAddAttachment = {},
         onRemoveAttachment = {},
         onSetStartTime = {},
-        onSetEndTime = {}
+        onSetEndTime = {},
     )
 }

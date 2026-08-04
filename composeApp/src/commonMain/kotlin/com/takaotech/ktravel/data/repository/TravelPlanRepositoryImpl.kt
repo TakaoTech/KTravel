@@ -52,13 +52,13 @@ import kotlin.time.Instant
 class TravelPlanRepositoryImpl(
     @param:Named("travelId") private val travelId: String,
     private val dataSource: TravelPlanStorageDataSource,
-    private val attachmentDataSource: AttachmentDataSource
+    private val attachmentDataSource: AttachmentDataSource,
 ) : TravelPlanRepository {
 
     private val travelPlanId: String = travelId
     private val _planningState =
         MutableStateFlow(
-            dataSource.getTravelPlan(travelPlanId).toDomain().clearFinalDestinationSchedules()
+            dataSource.getTravelPlan(travelPlanId).toDomain().clearFinalDestinationSchedules(),
         )
     override val planningState: StateFlow<TravelPlanDomain> = _planningState.asStateFlow()
 
@@ -81,24 +81,23 @@ class TravelPlanRepositoryImpl(
             days.firstOrNull { it.date == newDate } ?: TravelDayDomain(date = newDate)
         }
 
-        //TODO Pass Zone?
+        // TODO Pass Zone?
         return copy(
             periodStart = start.toLocalDate(),
             periodEnd = end.toLocalDate(),
-            days = newDays
+            days = newDays,
         )
     }
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> {
-        return planningState.map { state ->
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> =
+        planningState.map { state ->
             state.days.firstOrNull { it.id == dayId } ?: TravelDayDomain.EMPTY
-        }
     }
 
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = mutate {
         it.setPeriod(
             start = Instant.fromEpochMilliseconds(startMillis),
-            end = Instant.fromEpochMilliseconds(endMillis)
+            end = Instant.fromEpochMilliseconds(endMillis),
         )
     }
 

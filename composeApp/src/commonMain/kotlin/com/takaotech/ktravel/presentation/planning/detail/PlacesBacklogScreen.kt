@@ -21,7 +21,7 @@ data class PlacesBacklogUiState(
     val places: ImmutableList<PlaceUi>,
     /** Posto in attesa di conferma di eliminazione definitiva; non-null => dialog visibile. */
     val pendingPermanentDelete: PlaceUi?,
-    val eventSink: (PlacesBacklogEvent) -> Unit
+    val eventSink: (PlacesBacklogEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface PlacesBacklogEvent : CircuitUiEvent {

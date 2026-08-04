@@ -68,6 +68,8 @@ data class RouterSection(
     @SerialName("tollSystems") val tollSystems: List<TollSystem>? = null,
     @SerialName("tolls") val tolls: List<TollCost>? = null,
     @SerialName("consumptionType") val consumptionType: ConsumptionType? = null,
-    @SerialName("noThroughRestrictions") val noThroughRestrictions: List<VehicleNoticeDetail.VehicleRestriction>? = null,
-    @SerialName("transport") val transport: VehicleTransport
+    @SerialName(
+        "noThroughRestrictions",
+    ) val noThroughRestrictions: List<VehicleNoticeDetail.VehicleRestriction>? = null,
+    @SerialName("transport") val transport: VehicleTransport,
 )

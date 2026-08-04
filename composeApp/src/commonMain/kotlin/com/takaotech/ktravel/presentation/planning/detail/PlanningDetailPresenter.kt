@@ -18,13 +18,12 @@ import com.takaotech.ktravel.di.AppScope
 fun PlanningDetailPresenter(
     screen: PlanningDetailScreen,
     navigator: Navigator
-): PlanningDetailUiState {
-    return PlanningDetailUiState(
+): PlanningDetailUiState =
+    PlanningDetailUiState(
         stepsPaneScreen = StepsPaneScreen(screen.travelId, screen.dayId),
-        placesBacklogScreen = PlacesBacklogScreen(screen.travelId, screen.dayId)
+        placesBacklogScreen = PlacesBacklogScreen(screen.travelId, screen.dayId),
     ) { event ->
         when (event) {
             is PlanningDetailEvent.ChildNav -> navigator.onNavEvent(event.navEvent)
         }
     }
-}

@@ -17,5 +17,5 @@ data class VehicleSummary(
     val length: Int,
     val baseDuration: Int? = null,
     val typicalDuration: Int? = null,
-    val consumption: Double? = null
+    val consumption: Double? = null,
 )

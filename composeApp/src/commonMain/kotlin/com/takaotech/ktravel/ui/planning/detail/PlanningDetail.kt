@@ -38,10 +38,7 @@ data class PlanningDetailPageNavigation(val id: String)
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun PlanningDetailPage(
-    state: PlanningDetailUiState,
-    modifier: Modifier = Modifier,
-) {
+fun PlanningDetailPage(state: PlanningDetailUiState, modifier: Modifier = Modifier) {
     val coroutine = rememberCoroutineScope()
     val windowAdaptiveInfo = currentWindowAdaptiveInfo()
     val directive = calculatePaneScaffoldDirective(windowAdaptiveInfo)
@@ -57,7 +54,7 @@ fun PlanningDetailPage(
             coroutine.launch {
                 scaffoldNavigator.navigateBack()
             }
-        }
+        },
     )
 
     PanelHorizontalDivided(
@@ -76,7 +73,7 @@ fun PlanningDetailPage(
                         } else {
                             state.eventSink(PlanningDetailEvent.ChildNav(event))
                         }
-                    }
+                    },
                 )
             }
         },
@@ -93,9 +90,9 @@ fun PlanningDetailPage(
                         } else {
                             state.eventSink(PlanningDetailEvent.ChildNav(event))
                         }
-                    }
+                    },
                 )
             }
-        }
+        },
     )
 }

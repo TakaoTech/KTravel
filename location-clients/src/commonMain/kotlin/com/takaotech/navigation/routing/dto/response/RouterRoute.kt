@@ -15,5 +15,5 @@ data class RouterRoute(
     val id: String,
     val sections: List<RouterSection>,
     val notices: List<Notice>? = null,
-    val routeHandle: String? = null
+    val routeHandle: String? = null,
 )

@@ -7,7 +7,7 @@ package com.takaotech.ktravel.core
  * esso, il gating è sempre e solo su `schema_version`.
  */
 
-//TODO Replace with BuildKonfig
+// TODO Replace with BuildKonfig
 object KTravelBuildInfo {
     const val VERSION: String = "1.0.0"
 }

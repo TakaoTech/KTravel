@@ -31,220 +31,230 @@ import kotlinx.serialization.json.Json
  * questi casi sono il motivo per cui l'import è diviso in `stage` e `import`.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class TravelArchiveCorruptionTest : BehaviorSpec({
+class TravelArchiveCorruptionTest :
+    BehaviorSpec({
 
-    val tempDir = tempdir("archive-corruption")
-    val zipFactory = createZipArchiveFactory()
-    val json = Json { encodeDefaults = true }
+        val tempDir = tempdir("archive-corruption")
+        val zipFactory = createZipArchiveFactory()
+        val json = Json { encodeDefaults = true }
 
-    val root = (tempDir / "installation").also { it.createDirectories() }
-    val stagingRoot = root / "staging"
-    val storage = TravelPlanStorageDataSourceImpl(
-        DatabaseProvider(
-            databaseName = "corruption-test",
-            directory = root.path,
-            scope = TestScope(UnconfinedTestDispatcher())
-        ),
-        AttachmentDataSourceImpl(root / "attachments")
-    )
-    val importer = TravelArchiveImporterImpl(
-        storage = storage,
-        attachments = AttachmentDataSourceImpl(root / "attachments"),
-        zipFactory = zipFactory,
-        stagingRoot = stagingRoot
-    )
-
-    /** Costruisce a mano un archivio con manifest e piano arbitrari. */
-    fun buildArchive(
-        name: String,
-        manifest: String?,
-        plan: String?,
-        extraEntries: Map<String, ByteArray> = emptyMap()
-    ): PlatformFile {
-        val file = tempDir / name
-        zipFactory.writer(file.toKotlinxIoPath()).use { writer ->
-            manifest?.let {
-                writer.writeEntry(TravelArchiveFormat.MANIFEST_ENTRY, it.encodeToByteArray())
-            }
-            plan?.let { writer.writeEntry(TravelArchiveFormat.PLAN_ENTRY, it.encodeToByteArray()) }
-            extraEntries.forEach { (path, bytes) -> writer.writeEntry(path, bytes) }
-        }
-        return file
-    }
-
-    fun manifestJson(
-        schemaVersion: Int = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
-        travelId: String = "t1"
-    ): String = json.encodeToString(
-        TravelArchiveManifest.serializer(),
-        TravelArchiveManifest(
-            schemaVersion = schemaVersion,
-            travelId = travelId,
-            travelName = "Tokyo"
+        val root = (tempDir / "installation").also { it.createDirectories() }
+        val stagingRoot = root / "staging"
+        val storage = TravelPlanStorageDataSourceImpl(
+            DatabaseProvider(
+                databaseName = "corruption-test",
+                directory = root.path,
+                scope = TestScope(UnconfinedTestDispatcher()),
+            ),
+            AttachmentDataSourceImpl(root / "attachments"),
         )
-    )
+        val importer = TravelArchiveImporterImpl(
+            storage = storage,
+            attachments = AttachmentDataSourceImpl(root / "attachments"),
+            zipFactory = zipFactory,
+            stagingRoot = stagingRoot,
+        )
 
-    fun planJson(plan: TravelPlanEntity = ArchiveTestFixtures.plan().withoutAttachments()): String =
-        json.encodeToString(TravelPlanEntity.serializer(), plan)
-
-    suspend fun stageError(file: PlatformFile): TravelArchiveError {
-        val exception = importer.stage(file).exceptionOrNull()
-        exception.shouldBeInstanceOf<TravelArchiveException>()
-        return exception.error
-    }
-
-    given("a file that is not a zip archive") {
-        val file =
-            (tempDir / "garbage.ktravel").also { it.write(ByteArray(256) { i -> i.toByte() }) }
-
-        `when`("it is staged") {
-            then("it is reported as a corrupted archive") {
-                stageError(file).shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
+        /** Costruisce a mano un archivio con manifest e piano arbitrari. */
+        fun buildArchive(
+            name: String,
+            manifest: String?,
+            plan: String?,
+            extraEntries: Map<String, ByteArray> = emptyMap(),
+        ): PlatformFile {
+            val file = tempDir / name
+            zipFactory.writer(file.toKotlinxIoPath()).use { writer ->
+                manifest?.let {
+                    writer.writeEntry(TravelArchiveFormat.MANIFEST_ENTRY, it.encodeToByteArray())
+                }
+                plan?.let {
+                    writer.writeEntry(
+                        TravelArchiveFormat.PLAN_ENTRY,
+                        it.encodeToByteArray()
+                    )
+                }
+                extraEntries.forEach { (path, bytes) -> writer.writeEntry(path, bytes) }
             }
+            return file
+        }
 
-            then("no staging leftover is kept") {
-                importer.stage(file)
-                stagingRoot.list().shouldBeEmpty()
+        fun manifestJson(
+            schemaVersion: Int = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
+            travelId: String = "t1",
+        ): String = json.encodeToString(
+            TravelArchiveManifest.serializer(),
+            TravelArchiveManifest(
+                schemaVersion = schemaVersion,
+                travelId = travelId,
+                travelName = "Tokyo",
+            ),
+        )
+
+        fun planJson(
+            plan: TravelPlanEntity = ArchiveTestFixtures.plan().withoutAttachments()
+        ): String =
+            json.encodeToString(TravelPlanEntity.serializer(), plan)
+
+        suspend fun stageError(file: PlatformFile): TravelArchiveError {
+            val exception = importer.stage(file).exceptionOrNull()
+            exception.shouldBeInstanceOf<TravelArchiveException>()
+            return exception.error
+        }
+
+        given("a file that is not a zip archive") {
+            val file =
+                (tempDir / "garbage.ktravel").also { it.write(ByteArray(256) { i -> i.toByte() }) }
+
+            `when`("it is staged") {
+                then("it is reported as a corrupted archive") {
+                    stageError(file).shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
+                }
+
+                then("no staging leftover is kept") {
+                    importer.stage(file)
+                    stagingRoot.list().shouldBeEmpty()
+                }
             }
         }
-    }
 
-    given("an archive without a manifest") {
-        val file = buildArchive("no-manifest.ktravel", manifest = null, plan = planJson())
+        given("an archive without a manifest") {
+            val file = buildArchive("no-manifest.ktravel", manifest = null, plan = planJson())
 
-        `when`("it is staged") {
-            then("the missing manifest entry is reported") {
-                stageError(file) shouldBe
+            `when`("it is staged") {
+                then("the missing manifest entry is reported") {
+                    stageError(file) shouldBe
                         TravelArchiveError.MissingEntry(TravelArchiveFormat.MANIFEST_ENTRY)
+                }
             }
         }
-    }
 
-    given("an archive without the plan entry") {
-        val file = buildArchive("no-plan.ktravel", manifest = manifestJson(), plan = null)
+        given("an archive without the plan entry") {
+            val file = buildArchive("no-plan.ktravel", manifest = manifestJson(), plan = null)
 
-        `when`("it is staged") {
-            then("the missing plan entry is reported") {
-                stageError(file) shouldBe
+            `when`("it is staged") {
+                then("the missing plan entry is reported") {
+                    stageError(file) shouldBe
                         TravelArchiveError.MissingEntry(TravelArchiveFormat.PLAN_ENTRY)
+                }
             }
         }
-    }
 
-    given("an archive whose manifest is not valid json") {
-        val file = buildArchive("bad-manifest.ktravel", manifest = "not json", plan = planJson())
+        given("an archive whose manifest is not valid json") {
+            val file =
+                buildArchive("bad-manifest.ktravel", manifest = "not json", plan = planJson())
 
-        `when`("it is staged") {
-            then("the manifest is reported as invalid") {
-                stageError(file).shouldBeInstanceOf<TravelArchiveError.InvalidManifest>()
+            `when`("it is staged") {
+                then("the manifest is reported as invalid") {
+                    stageError(file).shouldBeInstanceOf<TravelArchiveError.InvalidManifest>()
+                }
             }
         }
-    }
 
-    given("an archive whose manifest has no schema version") {
-        val file = buildArchive(
-            "no-version.ktravel",
-            manifest = """{"travel_id":"t1","travel_name":"Tokyo"}""",
-            plan = planJson()
-        )
-
-        `when`("it is staged") {
-            then("the manifest is reported as invalid") {
-                stageError(file).shouldBeInstanceOf<TravelArchiveError.InvalidManifest>()
-            }
-        }
-    }
-
-    given("an archive produced by an older, unsupported app version") {
-        val file = buildArchive(
-            "too-old.ktravel",
-            manifest = manifestJson(schemaVersion = 0),
-            plan = planJson()
-        )
-
-        `when`("it is staged") {
-            then("it is rejected as unsupported") {
-                stageError(file) shouldBe TravelArchiveError.UnsupportedSchemaVersion(
-                    found = 0,
-                    minSupported = TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION
-                )
-            }
-        }
-    }
-
-    given("an archive produced by a newer app version") {
-        val file = buildArchive(
-            "too-new.ktravel",
-            manifest = manifestJson(schemaVersion = 99),
-            plan = planJson()
-        )
-
-        `when`("it is staged") {
-            then("it is rejected as a future version") {
-                stageError(file) shouldBe TravelArchiveError.FutureSchemaVersion(
-                    found = 99,
-                    current = TravelArchiveFormat.CURRENT_SCHEMA_VERSION
-                )
-            }
-        }
-    }
-
-    given("an archive whose plan does not match the current schema") {
-        val file = buildArchive(
-            "bad-plan.ktravel",
-            manifest = manifestJson(),
-            plan = """{"name":"Tokyo"}"""
-        )
-
-        `when`("it is staged") {
-            then("the plan is reported as malformed") {
-                stageError(file).shouldBeInstanceOf<TravelArchiveError.MalformedPlanJson>()
-            }
-        }
-    }
-
-    given("an archive whose plan entry is not a json object") {
-        val file = buildArchive("array-plan.ktravel", manifest = manifestJson(), plan = "[1,2,3]")
-
-        `when`("it is staged") {
-            then("the plan is reported as malformed") {
-                stageError(file).shouldBeInstanceOf<TravelArchiveError.MalformedPlanJson>()
-            }
-        }
-    }
-
-    given("an archive referencing an attachment it does not contain") {
-        val file = buildArchive(
-            "missing-attachment.ktravel",
-            manifest = manifestJson(),
-            plan = planJson(ArchiveTestFixtures.plan())
-        )
-
-        `when`("it is staged") {
-            then("the missing attachment is reported") {
-                stageError(file) shouldBe
-                        TravelArchiveError.MissingAttachment(ArchiveTestFixtures.PHOTO_PATH)
-            }
-        }
-    }
-
-    given("an archive whose attachment path escapes the attachments root") {
-        val evilPath = "../../evil.txt"
-        val file = buildArchive(
-            "zip-slip.ktravel",
-            manifest = manifestJson(),
-            plan = planJson(ArchiveTestFixtures.plan().withAttachmentPath(evilPath)),
-            extraEntries = mapOf(
-                TravelArchiveFormat.attachmentEntry(evilPath) to byteArrayOf(1, 2, 3)
+        given("an archive whose manifest has no schema version") {
+            val file = buildArchive(
+                "no-version.ktravel",
+                manifest = """{"travel_id":"t1","travel_name":"Tokyo"}""",
+                plan = planJson(),
             )
-        )
 
-        `when`("it is staged") {
-            then("it is rejected before anything is written to disk") {
-                val error = stageError(file)
-                error.shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
-                error.reason.contains("unsafe attachment path") shouldBe true
+            `when`("it is staged") {
+                then("the manifest is reported as invalid") {
+                    stageError(file).shouldBeInstanceOf<TravelArchiveError.InvalidManifest>()
+                }
             }
         }
-    }
-})
+
+        given("an archive produced by an older, unsupported app version") {
+            val file = buildArchive(
+                "too-old.ktravel",
+                manifest = manifestJson(schemaVersion = 0),
+                plan = planJson(),
+            )
+
+            `when`("it is staged") {
+                then("it is rejected as unsupported") {
+                    stageError(file) shouldBe TravelArchiveError.UnsupportedSchemaVersion(
+                        found = 0,
+                        minSupported = TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION,
+                    )
+                }
+            }
+        }
+
+        given("an archive produced by a newer app version") {
+            val file = buildArchive(
+                "too-new.ktravel",
+                manifest = manifestJson(schemaVersion = 99),
+                plan = planJson(),
+            )
+
+            `when`("it is staged") {
+                then("it is rejected as a future version") {
+                    stageError(file) shouldBe TravelArchiveError.FutureSchemaVersion(
+                        found = 99,
+                        current = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
+                    )
+                }
+            }
+        }
+
+        given("an archive whose plan does not match the current schema") {
+            val file = buildArchive(
+                "bad-plan.ktravel",
+                manifest = manifestJson(),
+                plan = """{"name":"Tokyo"}""",
+            )
+
+            `when`("it is staged") {
+                then("the plan is reported as malformed") {
+                    stageError(file).shouldBeInstanceOf<TravelArchiveError.MalformedPlanJson>()
+                }
+            }
+        }
+
+        given("an archive whose plan entry is not a json object") {
+            val file =
+                buildArchive("array-plan.ktravel", manifest = manifestJson(), plan = "[1,2,3]")
+
+            `when`("it is staged") {
+                then("the plan is reported as malformed") {
+                    stageError(file).shouldBeInstanceOf<TravelArchiveError.MalformedPlanJson>()
+                }
+            }
+        }
+
+        given("an archive referencing an attachment it does not contain") {
+            val file = buildArchive(
+                "missing-attachment.ktravel",
+                manifest = manifestJson(),
+                plan = planJson(ArchiveTestFixtures.plan()),
+            )
+
+            `when`("it is staged") {
+                then("the missing attachment is reported") {
+                    stageError(file) shouldBe
+                        TravelArchiveError.MissingAttachment(ArchiveTestFixtures.PHOTO_PATH)
+                }
+            }
+        }
+
+        given("an archive whose attachment path escapes the attachments root") {
+            val evilPath = "../../evil.txt"
+            val file = buildArchive(
+                "zip-slip.ktravel",
+                manifest = manifestJson(),
+                plan = planJson(ArchiveTestFixtures.plan().withAttachmentPath(evilPath)),
+                extraEntries = mapOf(
+                    TravelArchiveFormat.attachmentEntry(evilPath) to byteArrayOf(1, 2, 3),
+                ),
+            )
+
+            `when`("it is staged") {
+                then("it is rejected before anything is written to disk") {
+                    val error = stageError(file)
+                    error.shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
+                    error.reason.contains("unsafe attachment path") shouldBe true
+                }
+            }
+        }
+    })

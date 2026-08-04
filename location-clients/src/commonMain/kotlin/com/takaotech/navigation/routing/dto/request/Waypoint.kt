@@ -39,8 +39,7 @@ data class Waypoint(
         /**
          * Creates a simple waypoint with just coordinates.
          */
-        fun simple(lat: Double, lng: Double): Waypoint =
-            Waypoint(lat, lng)
+        fun simple(lat: Double, lng: Double): Waypoint = Waypoint(lat, lng)
 
         /**
          * Creates a waypoint from a coordinate string "lat,lng".
@@ -51,7 +50,7 @@ data class Waypoint(
             require(parts.size >= 2) { "Invalid coordinate format. Expected 'lat,lng'" }
             return Waypoint(
                 lat = parts[0].toDouble(),
-                lng = parts[1].toDouble()
+                lng = parts[1].toDouble(),
             )
         }
     }
@@ -65,7 +64,7 @@ enum class UTurnPermission(val value: String) {
     ALLOW("allow"),
 
     /** Avoid making a U-Turn at this stop-over waypoint */
-    AVOID("avoid")
+    AVOID("avoid"),
 }
 
 /**
@@ -76,7 +75,7 @@ enum class MatchSideOfStreet(val value: String) {
     ALWAYS("always"),
 
     /** Only prefer using side of street in case the street has dividers (default) */
-    ONLY_IF_DIVIDED("onlyIfDivided")
+    ONLY_IF_DIVIDED("onlyIfDivided"),
 }
 
 /**
@@ -157,7 +156,7 @@ data class PlaceOptions(
     val minCourseDistance: Int? = null,
     val customizationIndex: Int? = null,
     val segmentIdHint: String? = null,
-    val onRoadThreshold: Int? = null
+    val onRoadThreshold: Int? = null,
 ) {
     init {
         // Validation based on HERE API constraints
@@ -226,10 +225,7 @@ data class PlaceOptions(
 /**
  * Represents a simple coordinate (latitude, longitude).
  */
-data class Coordinate(
-    val lat: Double,
-    val lng: Double
-) {
+data class Coordinate(val lat: Double, val lng: Double) {
     override fun toString(): String = "$lat,$lng"
 }
 
@@ -244,7 +240,7 @@ enum class ChargingSupplyType(val value: String) {
     AC_THREE("acThree"),
 
     /** DC */
-    DC("dc")
+    DC("dc"),
 }
 
 /**
@@ -267,7 +263,7 @@ data class ChargingOptions(
     val voltage: Double,
     val supplyType: ChargingSupplyType,
     val minDuration: Int? = null,
-    val maxDuration: Int? = null
+    val maxDuration: Int? = null,
 ) {
     init {
         require(minDuration != null || maxDuration != null) {
@@ -338,7 +334,7 @@ data class WaypointOptions(
     val stopDuration: Int? = null,
     val passThrough: Boolean? = null,
     val charging: ChargingOptions? = null,
-    val currentWeightChange: Int? = null
+    val currentWeightChange: Int? = null,
 ) {
     init {
         stopDuration?.let {

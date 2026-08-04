@@ -45,6 +45,16 @@ kotlin {
             enable = true
         }
 
+        // Runs the commonTest specs on the Android JVM as well, so the shared logic is verified
+        // against the Android variant and not only against the desktop one. Kotest specs are
+        // discovered through the JUnit Platform, which is why no per-class annotation is needed:
+        // instrumented tests would require @RunWith(KotestTestRunner::class), an annotation that
+        // cannot live in commonTest because that source set also compiles for iOS.
+        withHostTestBuilder { }.configure {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+        }
+
         // Keep rules shipped to consumers that minify (see androidApp). `publish` is required:
         // consumer rules of a KMP library are not published by default.
         // The desktop counterpart lives in proguard-desktop-rules.pro, wired below.
@@ -234,6 +244,13 @@ kotlin {
             implementation(libs.kotest.runner.junit5)
             implementation(libs.bundles.mockk)
         }
+        // Mirrors jvmTest: the JUnit Platform runner that discovers the Kotest specs, plus the
+        // Android flavour of mockk (the plain artifact cannot instrument the Android JVM).
+        // Created by withHostTestBuilder above, so there is no generated accessor for it.
+        getByName("androidHostTest").dependencies {
+            implementation(libs.kotest.runner.junit5)
+            implementation(libs.bundles.mockk.android)
+        }
 
         targets.configureEach {
             if (platformType == KotlinPlatformType.androidJvm) {
@@ -313,16 +330,37 @@ compose.desktop {
     }
 }
 
-tasks.withType<Test>().configureEach {
-    logger.lifecycle("UP-TO-DATE check for $name is disabled, forcing it to run.")
-    outputs.upToDateWhen { false }
+// commonTest also compiles for the Android host test compilation, but a local unit test has no
+// real Android runtime behind it: there is no Robolectric here, and Kotest specs cannot opt into
+// it because @RunWith / @RobolectricTest are JVM-only annotations that commonTest — which also
+// compiles for iOS — cannot carry. The two groups below need that runtime and are therefore
+// verified on the JVM target only:
+//   - ui/**: Compose UI tests read android.os.Build.FINGERPRINT to pick an idling strategy,
+//     which is null without Robolectric.
+//   - the three specs that open the database: Couchbase Lite fails with "Did you forget to call
+//     CouchbaseLite.init()?" because the Android artifact needs a Context to initialise.
+// Everything else — domain, presentation, mappers, the rest of data — runs on both targets.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    if (name == "compileAndroidHostTest") {
+        exclude(
+            "**/ui/**",
+            "**/TravelArchiveRoundTripTest.kt",
+            "**/TravelArchiveCorruptionTest.kt",
+            "**/TravelPlanStorageDataSourceImplTest.kt",
+        )
+    }
 }
 
-tasks.named<Test>("jvmTest") {
+// Covers jvmTest and testAndroidHostTest alike. `tasks.named("testAndroidHostTest")` is not an
+// option: with AGP 9 that name is not resolvable at configuration time.
+tasks.withType<Test>().configureEach {
+    // Kotest runs on the JUnit Platform; without this the specs are not discovered at all.
     useJUnitPlatform()
     filter {
         isFailOnNoMatchingTests = false
     }
+    logger.lifecycle("UP-TO-DATE check for $name is disabled, forcing it to run.")
+    outputs.upToDateWhen { false }
 }
 
 // kotzilla {

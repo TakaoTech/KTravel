@@ -19,17 +19,15 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
             if (it % 2 == 0) generateTransportStep(it) else generatePlaceStep(it)
         }.asSequence()
 
-    private fun generatePlaceStep(index: Int): StepUi.Place {
-        return StepUi.Place(
-            name = "Place $index",
-            lat = 45.0 + index * 0.1,
-            lng = 9.0 + index * 0.1,
-            schedule = VisitScheduleUi(
-                startTime = LocalTime(8 + index, 0),
-                endTime = LocalTime(8 + index, 30)
-            )
-        )
-    }
+    private fun generatePlaceStep(index: Int): StepUi.Place = StepUi.Place(
+        name = "Place $index",
+        lat = 45.0 + index * 0.1,
+        lng = 9.0 + index * 0.1,
+        schedule = VisitScheduleUi(
+            startTime = LocalTime(8 + index, 0),
+            endTime = LocalTime(8 + index, 30),
+        ),
+    )
 
     private fun generateTransportStep(index: Int): StepUi.Transport {
         val type = TransportType.entries[index % TransportType.entries.size]
@@ -38,26 +36,26 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
                 RouteSection(
                     summary = RouteSummary(
                         durationSeconds = (30 * index).minutes,
-                        distanceMeters = 1000 * index
+                        distanceMeters = 1000 * index,
                     ),
                     departure = RouteDeparture(
                         location = RouteLocation(
                             lat = 45.0 + index * 0.1,
-                            lng = 9.0 + index * 0.1
-                        )
+                            lng = 9.0 + index * 0.1,
+                        ),
                     ),
                     arrival = RouteDeparture(
                         location = RouteLocation(
                             lat = 45.0 + (index + 1) * 0.1,
-                            lng = 9.0 + (index + 1) * 0.1
-                        )
-                    )
-                )
-            )
+                            lng = 9.0 + (index + 1) * 0.1,
+                        ),
+                    ),
+                ),
+            ),
         )
         return StepUi.Transport(
             type = type,
-            route = route
+            route = route,
         )
     }
 }

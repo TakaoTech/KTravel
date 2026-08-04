@@ -25,7 +25,7 @@ interface TravelArchiveImporter {
     suspend fun import(
         staged: StagedTravelArchive,
         strategy: ImportConflictStrategy,
-        nameOverride: String? = null
+        nameOverride: String? = null,
     ): Result<TravelPlanSummary>
 
     /** Rilascia lo staging di un archivio non importato (annullamento dell'utente o errore). */
@@ -37,7 +37,7 @@ enum class ImportConflictStrategy {
     DUPLICATE,
 
     /** Sostituisce il viaggio esistente con lo stesso id. */
-    REPLACE
+    REPLACE,
 }
 
 /**
@@ -62,5 +62,5 @@ class StagedTravelArchive internal constructor(
     val conflictingTravelName: String?,
     internal val archive: PlatformFile,
     internal val stagingDir: PlatformFile,
-    internal val payload: StagedPlanPayload
+    internal val payload: StagedPlanPayload,
 )

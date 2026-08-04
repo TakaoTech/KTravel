@@ -34,5 +34,5 @@ data class TransitRoutesRequest(
     val pedestrianSpeed: Double? = null,
     val pedestrianMaxDistance: Int? = null,
     val accessibility: List<String>? = null,
-    val returnAttributes: List<com.takaotech.navigation.publictransit.model.ReturnAttribute>? = null
+    val returnAttributes: List<com.takaotech.navigation.publictransit.model.ReturnAttribute>? = null,
 )

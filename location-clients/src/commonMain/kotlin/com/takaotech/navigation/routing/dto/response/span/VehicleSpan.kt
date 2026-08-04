@@ -17,5 +17,5 @@ data class VehicleSpan(
     @SerialName("tollSystems") val tollSystems: List<Int>? = null,
     @SerialName("tolls") val tolls: List<Int>? = null,
     @SerialName("countryCode") val countryCode: String? = null,
-    @SerialName("stateCode") val stateCode: String? = null
+    @SerialName("stateCode") val stateCode: String? = null,
 )

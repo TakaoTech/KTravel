@@ -2,7 +2,14 @@ package com.takaotech.ktravel.ui.place
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -20,9 +27,7 @@ import org.jetbrains.compose.resources.painterResource
  * Pass null for insert place to root.
  */
 @Serializable
-data class PlaceInsertNavigation(
-    val dayId: String? = null
-)
+data class PlaceInsertNavigation(val dayId: String? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +38,7 @@ fun PlaceInsertPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    //TODO Adapt Layout cross devices
+    // TODO Adapt Layout cross devices
 
     Scaffold(
         topBar = {
@@ -41,11 +46,11 @@ fun PlaceInsertPage(
                 title = { Text("Place Insert") },
                 navigationIcon = {
                     IconButton(
-                        onClick = onExit
+                        onClick = onExit,
                     ) {
                         Icon(painter = painterResource(Res.drawable.close), contentDescription = null)
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -57,12 +62,12 @@ fun PlaceInsertPage(
                         if (!uiState.isBulk) {
                             onSaveClicked()
                         }
-                    }
+                    },
                 ) {
                     Text("Save")
                 }
             }
-        }
+        },
     ) {
         PlaceInsert(
             placeName = uiState.placeName,
@@ -84,7 +89,7 @@ fun PlaceInsertPage(
             onInputModeChange = { viewModel.onInputModeChanged(it) },
             searchQuery = uiState.searchQuery.value,
             isBulk = uiState.isBulk,
-            onBulkChanged = { isBulk -> viewModel.onBulkChanged(isBulk) }
+            onBulkChanged = { isBulk -> viewModel.onBulkChanged(isBulk) },
         )
     }
 }

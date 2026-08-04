@@ -5,7 +5,6 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceStartTime
 import kotlinx.datetime.LocalTime
 
-
 /**
  * Operazioni di mutazione **pure** su [TravelPlanDomain].
  *
@@ -18,7 +17,7 @@ object TravelPlanEditor {
 
     private fun TravelPlanDomain.updateDay(
         dayId: String,
-        transform: (TravelDayDomain) -> TravelDayDomain
+        transform: (TravelDayDomain) -> TravelDayDomain,
     ): TravelPlanDomain {
         val index = days.indexOfFirst { it.id == dayId }
         if (index == -1) return this
@@ -37,11 +36,15 @@ object TravelPlanEditor {
         dayId: String,
         stepId: String,
         updatedStep: StepDomain
-    ): TravelPlanDomain = updateDay(dayId) { day ->
-        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        if (stepIndex == -1) day
-        else day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = updatedStep })
-    }
+    ): TravelPlanDomain =
+        updateDay(dayId) { day ->
+            val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+            if (stepIndex == -1) {
+                day
+            } else {
+                day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = updatedStep })
+            }
+        }
 
     /**
      * Aggiorna le note (Markdown) di uno [StepDomain.Place]. Operazione totale: se il giorno o lo
@@ -51,11 +54,13 @@ object TravelPlanEditor {
         dayId: String,
         stepId: String,
         note: String
-    ): TravelPlanDomain = updateDay(dayId) { day ->
-        val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
-        day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) })
-    }
+    ): TravelPlanDomain =
+        updateDay(dayId) { day ->
+            val stepIndex = day.steps.indexOfFirst { it.id == stepId }
+            val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
+            day.copy(
+                steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) })
+        }
 
     /**
      * Imposta l'orario di inizio di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
@@ -66,7 +71,8 @@ object TravelPlanEditor {
         dayId: String,
         stepId: String,
         time: LocalTime
-    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(startTime = time) }
+    ): TravelPlanDomain =
+        updatePlaceSchedule(dayId, stepId) { it.copy(startTime = time) }
 
     /**
      * Imposta l'orario di fine di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
@@ -76,19 +82,20 @@ object TravelPlanEditor {
         dayId: String,
         stepId: String,
         time: LocalTime
-    ): TravelPlanDomain = updatePlaceSchedule(dayId, stepId) { it.copy(endTime = time) }
+    ): TravelPlanDomain =
+        updatePlaceSchedule(dayId, stepId) { it.copy(endTime = time) }
 
     private fun TravelPlanDomain.updatePlaceSchedule(
         dayId: String,
         stepId: String,
-        transform: (VisitScheduleDomain) -> VisitScheduleDomain
+        transform: (VisitScheduleDomain) -> VisitScheduleDomain,
     ): TravelPlanDomain = updateDay(dayId) { day ->
         val stepIndex = day.steps.indexOfFirst { it.id == stepId }
         val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
         val schedule = transform(step.schedule ?: VisitScheduleDomain())
         day.copy(
             steps = day.steps.toMutableList()
-                .also { it[stepIndex] = step.copy(schedule = schedule) }
+                .also { it[stepIndex] = step.copy(schedule = schedule) },
         )
     }
 
@@ -115,7 +122,7 @@ object TravelPlanEditor {
         val destination = steps.getOrNull(index) as? StepDomain.Place ?: return this
         if (destination.schedule == null) return this
         return copy(
-            steps = steps.toMutableList().also { it[index] = destination.copy(schedule = null) }
+            steps = steps.toMutableList().also { it[index] = destination.copy(schedule = null) },
         )
     }
 
@@ -126,7 +133,7 @@ object TravelPlanEditor {
     fun TravelPlanDomain.addPlaceAttachment(
         dayId: String,
         stepId: String,
-        attachment: AttachmentDomain
+        attachment: AttachmentDomain,
     ): TravelPlanDomain =
         updatePlaceStep(dayId, stepId) { it.copy(attachments = it.attachments + attachment) }
 
@@ -138,15 +145,16 @@ object TravelPlanEditor {
         dayId: String,
         stepId: String,
         attachmentId: String
-    ): TravelPlanDomain = updatePlaceStep(dayId, stepId) {
-        it.copy(attachments = it.attachments.filter { a -> a.id != attachmentId })
-    }
+    ): TravelPlanDomain =
+        updatePlaceStep(dayId, stepId) {
+            it.copy(attachments = it.attachments.filter { a -> a.id != attachmentId })
+        }
 
     /** Applica [transform] allo [StepDomain.Place] indicato, se esiste; altrimenti no-op. */
     private fun TravelPlanDomain.updatePlaceStep(
         dayId: String,
         stepId: String,
-        transform: (StepDomain.Place) -> StepDomain.Place
+        transform: (StepDomain.Place) -> StepDomain.Place,
     ): TravelPlanDomain = updateDay(dayId) { day ->
         val stepIndex = day.steps.indexOfFirst { it.id == stepId }
         val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
@@ -174,7 +182,7 @@ object TravelPlanEditor {
             val place = day.places.firstOrNull { it.id == placeId } ?: return@updateDay day
             day.copy(
                 places = day.places.filter { it.id != placeId },
-                steps = day.steps + StepPlaceMapper.placeToStep(place)
+                steps = day.steps + StepPlaceMapper.placeToStep(place),
             )
         }
 
@@ -185,39 +193,53 @@ object TravelPlanEditor {
                 ?: return@updateDay day
             day.copy(
                 steps = day.steps.filter { it.id != stepId },
-                places = day.places + StepPlaceMapper.stepToPlace(step)
+                places = day.places + StepPlaceMapper.stepToPlace(step),
             )
         }
 
     fun TravelPlanDomain.moveStepUp(stepId: String, dayId: String): TravelPlanDomain =
         updateDay(dayId) { day ->
             val index = day.steps.indexOfFirst { it.id == stepId }
-            if (index <= 0) day
-            else day.copy(steps = day.steps.toMutableList().also {
-                it[index - 1] = day.steps[index]
-                it[index] = day.steps[index - 1]
-            })
+            if (index <= 0) {
+                day
+            } else {
+                day.copy(
+                    steps = day.steps.toMutableList().also {
+                        it[index - 1] = day.steps[index]
+                        it[index] = day.steps[index - 1]
+                    },
+                )
+            }
         }
 
     fun TravelPlanDomain.moveStepDown(stepId: String, dayId: String): TravelPlanDomain =
         updateDay(dayId) { day ->
             val index = day.steps.indexOfFirst { it.id == stepId }
-            if (index == -1 || index >= day.steps.size - 1) day
-            else day.copy(steps = day.steps.toMutableList().also {
-                it[index + 1] = day.steps[index]
-                it[index] = day.steps[index + 1]
-            })
+            if (index == -1 || index >= day.steps.size - 1) {
+                day
+            } else {
+                day.copy(
+                    steps = day.steps.toMutableList().also {
+                        it[index + 1] = day.steps[index]
+                        it[index] = day.steps[index + 1]
+                    },
+                )
+            }
         }
 
     fun TravelPlanDomain.addTransportStep(
         dayId: String,
         afterStepId: String,
         step: StepDomain
-    ): TravelPlanDomain = updateDay(dayId) { day ->
-        val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
-        if (afterIndex == -1) day
-        else day.copy(steps = day.steps.toMutableList().also { it.add(afterIndex + 1, step) })
-    }
+    ): TravelPlanDomain =
+        updateDay(dayId) { day ->
+            val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
+            if (afterIndex == -1) {
+                day
+            } else {
+                day.copy(steps = day.steps.toMutableList().also { it.add(afterIndex + 1, step) })
+            }
+        }
 
     fun TravelPlanDomain.deleteStep(stepId: String, dayId: String): TravelPlanDomain =
         updateDay(dayId) { it.copy(steps = it.steps.filter { s -> s.id != stepId }) }

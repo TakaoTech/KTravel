@@ -12,10 +12,7 @@ import androidx.compose.runtime.Composable
  * the KTravel brand automatically.
  */
 @Composable
-fun KTravelTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
+fun KTravelTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = if (darkTheme) KTravelDarkColors else KTravelLightColors,
         typography = KTravelTypography,

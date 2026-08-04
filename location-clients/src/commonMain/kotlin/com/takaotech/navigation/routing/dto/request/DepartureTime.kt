@@ -64,10 +64,7 @@ sealed class DepartureTime {
      * @property dateTime The local date and time of departure
      * @property offset The UTC offset for the time
      */
-    data class WithOffset(
-        val dateTime: LocalDateTime,
-        val offset: UtcOffset
-    ) : DepartureTime() {
+    data class WithOffset(val dateTime: LocalDateTime, val offset: UtcOffset) : DepartureTime() {
         override fun toQueryString(): String {
             // Format with offset: 2019-06-24T01:23:45+02:00
             return "${dateTime}${formatOffset(offset)}"
@@ -97,8 +94,7 @@ sealed class DepartureTime {
          *
          * @param dateTime The local date and time of departure
          */
-        fun fromLocalDateTime(dateTime: LocalDateTime): DepartureTime =
-            Local(dateTime)
+        fun fromLocalDateTime(dateTime: LocalDateTime): DepartureTime = Local(dateTime)
 
         /**
          * Creates a DepartureTime from a LocalDateTime with a UTC offset.
@@ -106,10 +102,7 @@ sealed class DepartureTime {
          * @param dateTime The local date and time of departure
          * @param offset The UTC offset
          */
-        fun fromLocalDateTime(
-            dateTime: LocalDateTime,
-            offset: UtcOffset
-        ): DepartureTime =
+        fun fromLocalDateTime(dateTime: LocalDateTime, offset: UtcOffset): DepartureTime =
             WithOffset(dateTime, offset)
 
         /**
@@ -120,10 +113,7 @@ sealed class DepartureTime {
          * @param instant The instant of departure
          * @param timeZone The timezone
          */
-        fun fromInstant(
-            instant: Instant,
-            timeZone: TimeZone
-        ): DepartureTime {
+        fun fromInstant(instant: Instant, timeZone: TimeZone): DepartureTime {
             val localDateTime = instant.toLocalDateTime(timeZone)
             // For simplicity, we return without offset since the local time is already converted
             return Local(localDateTime)

@@ -10,8 +10,4 @@ import kotlinx.serialization.Serializable
  * @property elv Ellipsoid (geodetic) height in meters (optional)
  */
 @Serializable
-data class Location(
-    val lat: Double,
-    val lng: Double,
-    val elv: Double? = null
-)
+data class Location(val lat: Double, val lng: Double, val elv: Double? = null)

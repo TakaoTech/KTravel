@@ -42,26 +42,26 @@ internal fun TravelStepPlace(
     onStepDeleteClicked: () -> Unit,
     onStepMoveUp: (String) -> Unit,
     onStepMoveDown: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         onClick = { onStepClick(step.id) },
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column {
             Row(
                 modifier = Modifier.padding(start = 16.dp, end = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     modifier = Modifier.weight(1f).padding(vertical = 12.dp),
                     text = step.name,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
                 )
 
                 IconButton(
                     modifier = Modifier.testTag(StepsPaneTestTags.deleteStepTag(step.id)),
-                    onClick = onStepDeleteClicked
+                    onClick = onStepDeleteClicked,
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.delete),
@@ -71,7 +71,7 @@ internal fun TravelStepPlace(
 
                 IconButton(
                     modifier = Modifier.testTag(StepsPaneTestTags.moveStepUpTag(step.id)),
-                    onClick = { onStepMoveUp(step.id) }
+                    onClick = { onStepMoveUp(step.id) },
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.arrow_upward),
@@ -81,7 +81,7 @@ internal fun TravelStepPlace(
 
                 IconButton(
                     modifier = Modifier.testTag(StepsPaneTestTags.moveStepDownTag(step.id)),
-                    onClick = { onStepMoveDown(step.id) }
+                    onClick = { onStepMoveDown(step.id) },
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.arrow_downward),
@@ -103,24 +103,21 @@ private fun TravelStepPlacePreview() = KTravelTheme {
             lng = 0.0,
             schedule = VisitScheduleUi(
                 startTime = LocalTime(9, 30),
-                endTime = LocalTime(11, 0)
-            )
+                endTime = LocalTime(11, 0),
+            ),
         ),
         onStepClick = {},
         onStepDeleteClicked = {},
         onStepMoveDown = {},
-        onStepMoveUp = {}
+        onStepMoveUp = {},
     )
 }
 
 @Composable
-fun TravelTransportStepAdd(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+fun TravelTransportStepAdd(modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(
         modifier = modifier,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Text(stringResource(Res.string.planning_detail_add_transport))
     }

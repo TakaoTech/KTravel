@@ -25,7 +25,7 @@ sealed class FarePrice {
         @SerialName("estimated") val estimated: Boolean = false,
         @SerialName("currency") val currency: String,
         @SerialName("unit") val unit: Int? = null,
-        @SerialName("value") val value: Double
+        @SerialName("value") val value: Double,
     ) : FarePrice()
 
     /**
@@ -46,6 +46,6 @@ sealed class FarePrice {
         @SerialName("currency") val currency: String,
         @SerialName("unit") val unit: Int? = null,
         @SerialName("minimum") val minimum: Double,
-        @SerialName("maximum") val maximum: Double
+        @SerialName("maximum") val maximum: Double,
     ) : FarePrice()
 }

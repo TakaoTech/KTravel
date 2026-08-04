@@ -822,3 +822,320 @@ Compose:
   DefaultsVisibility:
     active: false
     # Check visibility of defaults objects
+
+# Formatting rules, wrapped from ktlint by detekt-rules-ktlint-wrapper.
+# This is the only rule set that supports auto correction: the default detekt rule sets never
+# rewrite code. CI formats with `./gradlew detektAll -Pdetekt.autocorrect=true`.
+# Rules that overlap an already active detekt rule are disabled here, so a single problem is not
+# reported twice (once by detekt, once by ktlint) on SonarCloud.
+ktlint:
+  active: true
+  # Matches kotlin.code.style=official in gradle.properties. 'ktlint_official' would be far more
+  # invasive on a code base that has never been formatted by this rule set.
+  code_style: 'intellij_idea'
+  indentStyle: 'space'
+  autoCorrect: true
+  AnnotationOnSeparateLine:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  AnnotationSpacing:
+    active: true
+    autoCorrect: true
+  ArgumentListWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+    ignoreRuleParameterThreshold: 8
+  BackingPropertyNaming:
+    active: false  # naming/VariableNaming already covers backing properties
+  BinaryExpressionWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  BlankLineBeforeDeclaration:
+    active: false
+  BlankLineBetweenWhenConditions:
+    active: true
+    autoCorrect: true
+    lineBreakAfterWhenEntries: true
+  BlockCommentInitialStarAlignment:
+    active: true
+    autoCorrect: true
+  ChainMethodContinuation:
+    active: false
+  ChainWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ClassName:
+    active: false  # naming/ClassNaming
+  ClassSignature:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  CommentSpacing:
+    active: true
+    autoCorrect: true
+  CommentWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ConditionWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ContextReceiverListWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ContextReceiverMapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  EnumEntryNameCase:
+    active: false  # naming/EnumNaming, with pattern '[A-Z][_a-zA-Z0-9]*'
+  EnumWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ExpressionOperandWrapping:
+    active: false
+  Filename:
+    active: false  # naming/MatchingDeclarationName
+  FinalNewline:
+    active: true
+    autoCorrect: true
+    insertFinalNewLine: true
+  FunKeywordSpacing:
+    active: true
+    autoCorrect: true
+  FunctionExpressionBody:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  FunctionLiteral:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  FunctionName:
+    active: false  # naming/FunctionNaming
+  FunctionReturnTypeSpacing:
+    active: true
+    autoCorrect: true
+  FunctionSignature:
+    active: true
+    autoCorrect: true
+    forceMultilineWhenParameterCountGreaterOrEqualThan: 2147483647
+    functionBodyExpressionWrapping: 'default'
+    indentSize: 4
+  FunctionStartOfBodySpacing:
+    active: true
+    autoCorrect: true
+  FunctionTypeModifierSpacing:
+    active: true
+    autoCorrect: true
+  FunctionTypeReferenceSpacing:
+    active: true
+    autoCorrect: true
+  IfElseBracing:
+    active: false
+  IfElseWrapping:
+    active: false
+  ImportOrdering:
+    active: true
+    autoCorrect: true
+  Indentation:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+    indentWhenArrowOnNewLine: false
+  Kdoc:
+    active: true
+  KdocWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  MaximumLineLength:
+    active: false  # style/MaxLineLength, set to 120
+  MixedConditionOperators:
+    active: true
+  ModifierListSpacing:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ModifierOrdering:
+    active: true
+    autoCorrect: true
+  MultiLineIfElse:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  MultilineExpressionWrapping:
+    active: false
+  MultilineLoop:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  NoBlankLineBeforeRbrace:
+    active: true
+    autoCorrect: true
+  NoBlankLineInList:
+    active: false
+  NoBlankLinesInChainedMethodCalls:
+    active: true
+    autoCorrect: true
+  NoConsecutiveBlankLines:
+    active: true
+    autoCorrect: true
+  NoConsecutiveComments:
+    active: false
+  NoEmptyClassBody:
+    active: true
+    autoCorrect: true
+  NoEmptyFile:
+    active: true
+  NoEmptyFirstLineInClassBody:
+    active: false
+  NoEmptyFirstLineInMethodBlock:
+    active: true
+    autoCorrect: true
+  NoLineBreakAfterElse:
+    active: true
+    autoCorrect: true
+  NoLineBreakBeforeAssignment:
+    active: true
+    autoCorrect: true
+  NoMultipleSpaces:
+    active: true
+    autoCorrect: true
+  NoSemicolons:
+    active: true
+    autoCorrect: true
+  NoSingleLineBlockComment:
+    active: false
+  NoTrailingSpaces:
+    active: true
+    autoCorrect: true
+  NoUnitReturn:
+    active: true
+    autoCorrect: true
+  # No detekt counterpart in this config, and it auto corrects: kept on.
+  NoUnusedImports:
+    active: true
+    autoCorrect: true
+  NoWildcardImports:
+    active: false  # style/WildcardImport, which allows java.util.* and kotlinx.coroutines.*
+  NullableTypeSpacing:
+    active: true
+    autoCorrect: true
+  PackageName:
+    active: false  # naming/PackageNaming
+  ParameterListSpacing:
+    active: true
+    autoCorrect: true
+  ParameterListWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  ParameterWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  PropertyName:
+    active: false  # naming/ObjectPropertyNaming and naming/TopLevelPropertyNaming
+  PropertyWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  SpacingAroundAngleBrackets:
+    active: true
+    autoCorrect: true
+  SpacingAroundColon:
+    active: true
+    autoCorrect: true
+  SpacingAroundComma:
+    active: true
+    autoCorrect: true
+  SpacingAroundCurly:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  SpacingAroundDot:
+    active: true
+    autoCorrect: true
+  SpacingAroundDoubleColon:
+    active: true
+    autoCorrect: true
+  SpacingAroundKeyword:
+    active: true
+    autoCorrect: true
+  SpacingAroundOperators:
+    active: true
+    autoCorrect: true
+  SpacingAroundParens:
+    active: true
+    autoCorrect: true
+  SpacingAroundRangeOperator:
+    active: true
+    autoCorrect: true
+  SpacingAroundSquareBrackets:
+    active: true
+    autoCorrect: true
+  SpacingAroundUnaryOperator:
+    active: true
+    autoCorrect: true
+  SpacingBetweenDeclarationsWithAnnotations:
+    active: true
+    autoCorrect: true
+  SpacingBetweenDeclarationsWithComments:
+    active: true
+    autoCorrect: true
+  SpacingBetweenFunctionNameAndOpeningParenthesis:
+    active: true
+    autoCorrect: true
+  StatementWrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  StringTemplate:
+    active: true
+    autoCorrect: true
+  StringTemplateIndent:
+    active: false
+  ThenSpacing:
+    active: true
+    autoCorrect: true
+  TrailingCommaOnCallSite:
+    active: true
+    autoCorrect: true
+  TrailingCommaOnDeclarationSite:
+    active: true
+    autoCorrect: true
+  TryCatchFinallySpacing:
+    active: false
+  TypeArgumentComment:
+    active: true
+  TypeArgumentListSpacing:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  TypeParameterComment:
+    active: true
+  TypeParameterListSpacing:
+    active: true
+    autoCorrect: true
+    indentSize: 4
+  UnnecessaryParenthesesBeforeTrailingLambda:
+    active: true
+    autoCorrect: true
+  ValueArgumentComment:
+    active: true
+  ValueParameterComment:
+    active: true
+  WhenEntryBracing:
+    active: false
+  Wrapping:
+    active: true
+    autoCorrect: true
+    indentSize: 4

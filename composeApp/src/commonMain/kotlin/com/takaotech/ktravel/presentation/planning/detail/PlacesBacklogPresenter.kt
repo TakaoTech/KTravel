@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 fun PlacesBacklogPresenter(
     screen: PlacesBacklogScreen,
     navigator: Navigator,
-    planningGraphStore: PlanningGraphStore
+    planningGraphStore: PlanningGraphStore,
 ): PlacesBacklogUiState {
     val repository = remember(screen.travelId) {
         planningGraphStore.getOrCreate(screen.travelId).travelPlanRepository
@@ -49,7 +49,7 @@ fun PlacesBacklogPresenter(
 
     return PlacesBacklogUiState(
         places = day.places,
-        pendingPermanentDelete = pendingPermanentDelete
+        pendingPermanentDelete = pendingPermanentDelete,
     ) { event ->
         when (event) {
             PlacesBacklogEvent.Close -> navigator.pop()

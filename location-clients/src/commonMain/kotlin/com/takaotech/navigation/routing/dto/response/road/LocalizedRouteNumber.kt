@@ -8,5 +8,5 @@ data class LocalizedRouteNumber(
     @SerialName("value") val value: String,
     @SerialName("language") val language: String? = null,
     @SerialName("direction") val direction: String? = null,
-    @SerialName("routeType") val routeType: Int? = null
+    @SerialName("routeType") val routeType: Int? = null,
 )

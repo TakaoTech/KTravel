@@ -38,7 +38,7 @@ fun StepDetailPresenter(
     screen: StepDetailScreen,
     navigator: Navigator,
     planningGraphStore: PlanningGraphStore,
-    attachmentDataSource: AttachmentDataSource
+    attachmentDataSource: AttachmentDataSource,
 ): StepDetailUiState {
     val repository = remember(screen.travelId) {
         planningGraphStore.getOrCreate(screen.travelId).travelPlanRepository
@@ -81,7 +81,7 @@ fun StepDetailPresenter(
         isEditing = isEditing,
         noteInvalid = noteInvalid,
         missingReferences = missingReferences,
-        resolveFile = attachmentDataSource::resolveFile
+        resolveFile = attachmentDataSource::resolveFile,
     ) { event ->
         when (event) {
             StepDetailEvent.NavigateBack -> navigator.pop()
@@ -94,7 +94,9 @@ fun StepDetailPresenter(
                     if (note != null && note != place?.note) {
                         scope.launch {
                             noteInvalid = !repository.persistNoteIfValid(
-                                screen.dayId, screen.stepId, note
+                                screen.dayId,
+                                screen.stepId,
+                                note,
                             )
                         }
                     }
@@ -142,12 +144,13 @@ private suspend fun TravelPlanRepository.persistNoteIfValid(
     dayId: String,
     stepId: String,
     note: String
-): Boolean = if (isValidMarkdown(note)) {
-    updatePlaceNote(dayId, stepId, note)
-    true
-} else {
-    false
-}
+): Boolean =
+    if (isValidMarkdown(note)) {
+        updatePlaceNote(dayId, stepId, note)
+        true
+    } else {
+        false
+    }
 
 /** Valida il Markdown tentandone il parse (parser GFM di mikepenz). */
 internal fun isValidMarkdown(text: String): Boolean =

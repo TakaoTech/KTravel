@@ -2,7 +2,6 @@ package com.takaotech.ktravel.data.archive.migration
 
 import com.takaotech.ktravel.data.archive.migration.TravelPlanMigrations.migrationFrom
 
-
 /**
  * Builds the chain of migrations that takes a plan from one schema version to another.
  *
@@ -35,10 +34,8 @@ internal fun interface TravelPlanMigrationFactory {
  */
 internal object TravelPlanMigrations : TravelPlanMigrationFactory {
 
-    override fun migrationsFrom(
-        fromVersion: Int,
-        toVersion: Int
-    ): List<TravelPlanJsonMigration> = (fromVersion until toVersion).mapNotNull(::migrationFrom)
+    override fun migrationsFrom(fromVersion: Int, toVersion: Int): List<TravelPlanJsonMigration> =
+        (fromVersion until toVersion).mapNotNull(::migrationFrom)
 
     /**
      * The one place a schema step is registered: add a branch, nothing else.

@@ -6,7 +6,8 @@ package com.takaotech.navigation.publictransit.model
 enum class Units(val value: String) {
     METRIC("metric"),
 
-    IMPERIAL("imperial");
+    IMPERIAL("imperial"),
+    ;
 
     fun toQueryString(): String = value
 }

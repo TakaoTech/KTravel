@@ -18,10 +18,7 @@ sealed interface StepRow {
     }
 
     /** Slot per aggiungere un trasporto tra lo step [startPlaceId] e lo step successivo [endPlaceId]. */
-    data class AddTransportSlot(
-        val startPlaceId: String,
-        val endPlaceId: String
-    ) : StepRow {
+    data class AddTransportSlot(val startPlaceId: String, val endPlaceId: String) : StepRow {
         override val key: String get() = "add_transport_${startPlaceId}_$endPlaceId"
     }
 }

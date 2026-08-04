@@ -31,19 +31,19 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
             id = "id-1",
             name = "Viaggio a Tokyo",
             periodStart = LocalDate(2024, 3, 1),
-            periodEnd = LocalDate(2024, 3, 15)
+            periodEnd = LocalDate(2024, 3, 15),
         )
         val samplePlan2 = TravelPlanSummary(
             id = "id-2",
             name = "Weekend a Roma",
             periodStart = LocalDate(2024, 6, 10),
-            periodEnd = LocalDate(2024, 6, 12)
+            periodEnd = LocalDate(2024, 6, 12),
         )
         val samplePlan3 = TravelPlanSummary(
             id = "id-3",
             name = "Vacanza al mare",
             periodStart = LocalDate(2024, 8, 1),
-            periodEnd = LocalDate(2024, 8, 14)
+            periodEnd = LocalDate(2024, 8, 14),
         )
 
         given("a TravelSelectionViewModel when repository returns an empty list") {
@@ -108,7 +108,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
             everySuspend { mockRepository.getAllTravelPlans() } returns listOf(
                 samplePlan1,
                 samplePlan2,
-                samplePlan3
+                samplePlan3,
             )
             val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
             viewModel.loadTravelPlans()
@@ -165,7 +165,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel after initial load with two plans") {
             everySuspend { mockRepository.getAllTravelPlans() } returns listOf(
                 samplePlan1,
-                samplePlan2
+                samplePlan2,
             )
             val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
             viewModel.loadTravelPlans()
@@ -204,7 +204,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 then("selection mode should be active with that item selected") {
                     viewModel.uiState.value.isSelectionMode shouldBe true
                     viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
-                        samplePlan1.id
+                        samplePlan1.id,
                     )
                 }
             }
@@ -215,7 +215,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 then("both items should be selected") {
                     viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
                         samplePlan1.id,
-                        samplePlan2.id
+                        samplePlan2.id,
                     )
                 }
             }
@@ -225,7 +225,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
 
                 then("that item should be deselected while selection mode stays active") {
                     viewModel.uiState.value.selectedIds shouldContainExactlyInAnyOrder setOf(
-                        samplePlan1.id
+                        samplePlan1.id,
                     )
                     viewModel.uiState.value.isSelectionMode shouldBe true
                 }
@@ -300,7 +300,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
             everySuspend { repository.getAllTravelPlans() } returns listOf(
                 samplePlan1,
                 samplePlan2,
-                samplePlan3
+                samplePlan3,
             )
             everySuspend { repository.deleteTravelPlan(any()) } returns Unit
             val viewModel = TravelSelectionViewModel(repository, mockImporter)

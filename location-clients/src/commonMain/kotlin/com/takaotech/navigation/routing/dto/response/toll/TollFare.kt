@@ -9,9 +9,7 @@ import kotlinx.serialization.Serializable
  * @property system Transponder system name.
  */
 @Serializable
-data class TransponderSystem(
-    @SerialName("system") val system: String? = null
-)
+data class TransponderSystem(@SerialName("system") val system: String? = null)
 
 /**
  * Contains information about a single toll fare needed for this section of the route.
@@ -36,5 +34,5 @@ data class TollFare(
     @SerialName("paymentMethods") val paymentMethods: List<String>? = null,
     @SerialName("pass") val pass: FarePass? = null,
     @SerialName("applicableTimes") val applicableTimes: String? = null,
-    @SerialName("transponders") val transponders: List<TransponderSystem>? = null
+    @SerialName("transponders") val transponders: List<TransponderSystem>? = null,
 )

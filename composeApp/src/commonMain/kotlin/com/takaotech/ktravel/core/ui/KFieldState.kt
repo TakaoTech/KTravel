@@ -15,13 +15,10 @@ import org.jetbrains.compose.resources.stringResource
 @Stable
 data class KFieldState(
     val value: TextFieldValue = TextFieldValue(""),
-    val validationState: FieldValidationState = FieldValidationState.None
+    val validationState: FieldValidationState = FieldValidationState.None,
 )
 
-data class TextPayload(
-    val text: StringResource,
-    val args: List<Any> = emptyList()
-)
+data class TextPayload(val text: StringResource, val args: List<Any> = emptyList())
 
 fun StringResource.toTextPayload(): TextPayload = TextPayload(this)
 
@@ -32,7 +29,7 @@ fun StringResource.toTextPayload(): TextPayload = TextPayload(this)
 sealed class FieldValidationState(
     val supportText: String? = null,
     val errorText: TextPayload? = null,
-    val isError: Boolean = false
+    val isError: Boolean = false,
 ) {
     /**
      * Represents a validation state indicating that the associated field is not yet validated.

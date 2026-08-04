@@ -24,7 +24,7 @@ import kotlin.uuid.Uuid
 @ContributesBinding(AppScope::class)
 class AttachmentDataSourceImpl private constructor(
     // Root iniettabile: in produzione deriva da FileKit.filesDir, nei test da una tempdir.
-    private val rootProvider: () -> PlatformFile
+    private val rootProvider: () -> PlatformFile,
 ) : AttachmentDataSource {
 
     @Inject
@@ -44,8 +44,11 @@ class AttachmentDataSourceImpl private constructor(
         stepDir.createDirectories()
 
         val extension = source.name.substringAfterLast('.', "")
-        val fileName = if (extension.isEmpty()) Uuid.random().toString()
-        else "${Uuid.random()}.$extension"
+        val fileName = if (extension.isEmpty()) {
+            Uuid.random().toString()
+        } else {
+            "${Uuid.random()}.$extension"
+        }
 
         val destination = stepDir / fileName
         source.copyTo(destination)
@@ -55,7 +58,7 @@ class AttachmentDataSourceImpl private constructor(
             relativePath = "$travelId/$stepId/$fileName",
             originalName = source.name,
             mimeType = mimeTypeFromExtension(extension),
-            sizeBytes = destination.size()
+            sizeBytes = destination.size(),
         )
     }
 

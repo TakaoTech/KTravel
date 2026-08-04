@@ -48,8 +48,8 @@ class PlacesBacklogPresenterTest : BehaviorSpec() {
         id = DAY_ID,
         date = LocalDate(2024, 3, 1),
         places = listOf(
-            PlaceDomain(id = PLACE_ID, name = "Tokyo Tower", lat = 0.0, lng = 0.0)
-        )
+            PlaceDomain(id = PLACE_ID, name = "Tokyo Tower", lat = 0.0, lng = 0.0),
+        ),
     )
 
     private suspend fun com.slack.circuit.test.CircuitReceiveTurbine<PlacesBacklogUiState>.awaitLoadedState(): PlacesBacklogUiState {

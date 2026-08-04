@@ -10,9 +10,7 @@ import dev.zacsweers.metro.SingleIn
 
 @SingleIn(PlanningGraphScope::class)
 @Inject
-class SaveTransportStepUseCase(
-    private val repository: TravelPlanRepository
-) {
+class SaveTransportStepUseCase(private val repository: TravelPlanRepository) {
     suspend operator fun invoke(dayId: String, afterStepId: String, route: Route) {
         val transportType = route.sections.firstOrNull()?.transport?.mode.toTransportType()
         val step = StepDomain.Transport(type = transportType, route = route)

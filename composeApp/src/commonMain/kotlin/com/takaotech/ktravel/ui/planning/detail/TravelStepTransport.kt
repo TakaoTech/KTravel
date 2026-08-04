@@ -44,16 +44,16 @@ fun TravelStepTransport(
 ) {
     Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             modifier = Modifier.testTag(StepsPaneTestTags.TRANSPORT_DURATION),
             text = stringResource(
                 Res.string.planning_detail_transport_duration,
-                step.totalDuration.toString()
+                step.totalDuration.toString(),
             ),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.weight(1f))

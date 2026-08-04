@@ -7,20 +7,21 @@ sealed interface RoutingProviderSettings {
     data class Local(
         val avoidTolls: Boolean = false,
         val transportMode: LocalTransportMode = LocalTransportMode.CAR
-    ) : RoutingProviderSettings
+    ) :
+        RoutingProviderSettings
 
     data class Here(
         val transportMode: HereTransportMode = HereTransportMode.CAR,
         val routingMode: HereRoutingMode = HereRoutingMode.FAST,
         val alternatives: Int = 1,
         val departureDate: LocalDate? = null,
-        val departureTime: LocalTime? = null
+        val departureTime: LocalTime? = null,
     ) : RoutingProviderSettings {
         enum class HereTransportMode {
             CAR,
             PEDESTRIAN,
             BICYCLE,
-            SCOOTER
+            SCOOTER,
         }
 
         enum class HereRoutingMode { FAST, SHORT }

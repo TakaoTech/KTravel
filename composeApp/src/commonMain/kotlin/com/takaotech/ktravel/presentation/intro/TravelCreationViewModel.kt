@@ -38,8 +38,8 @@ class TravelCreationViewModel(
             it.copy(
                 travelName = it.travelName.copy(
                     value = name,
-                    validationState = FieldValidationState.None
-                )
+                    validationState = FieldValidationState.None,
+                ),
             )
         }
     }
@@ -59,9 +59,9 @@ class TravelCreationViewModel(
                 it.copy(
                     travelName = it.travelName.copy(
                         validationState = FieldValidationState.BaseNotValid(
-                            errorText = Res.string.travel_creation_name_empty_error.toTextPayload()
-                        )
-                    )
+                            errorText = Res.string.travel_creation_name_empty_error.toTextPayload(),
+                        ),
+                    ),
                 )
             }
             return
@@ -78,7 +78,7 @@ class TravelCreationViewModel(
                 repository.createTravelPlan(
                     name = name,
                     periodStart = Instant.fromEpochMilliseconds(start).toLocalDate(),
-                    periodEnd = Instant.fromEpochMilliseconds(end).toLocalDate()
+                    periodEnd = Instant.fromEpochMilliseconds(end).toLocalDate(),
                 )
             }.onSuccess { id ->
                 val planningGraph = planningGraphStore.getOrCreate(id)

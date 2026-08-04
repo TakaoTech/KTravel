@@ -6,14 +6,10 @@ package com.takaotech.ktravel.domain.model
  * È una *segnalazione*, non un errore: la lista [StepDomain] è l'unica titolare della coerenza
  * degli orari (vincolo V2) e la coerenza va mostrata all'utente, non imposta.
  */
-data class ScheduleWarning(
-    val stepId: String,
-    val previousStepId: String,
-    val reason: Reason
-) {
+data class ScheduleWarning(val stepId: String, val previousStepId: String, val reason: Reason) {
     enum class Reason {
         /** L'orario dello step precede quello di uno step schedulato che lo precede nella lista. */
-        OUT_OF_ORDER
+        OUT_OF_ORDER,
     }
 }
 
@@ -38,7 +34,7 @@ fun List<StepDomain>.scheduleInconsistencies(): List<ScheduleWarning> {
             warnings += ScheduleWarning(
                 stepId = step.id,
                 previousStepId = previous.id,
-                reason = ScheduleWarning.Reason.OUT_OF_ORDER
+                reason = ScheduleWarning.Reason.OUT_OF_ORDER,
             )
         }
         previousScheduled = step

@@ -65,7 +65,7 @@ fun PlacesBacklogUi(state: PlacesBacklogUiState, modifier: Modifier = Modifier) 
         onMovePlaceToBacklogClick = { sink(PlacesBacklogEvent.MovePlaceToBacklog(it)) },
         onPermanentDeleteRequest = { sink(PlacesBacklogEvent.PermanentDeleteRequested(it)) },
         onPermanentDeleteConfirm = { sink(PlacesBacklogEvent.PermanentDeleteConfirmed) },
-        onPermanentDeleteDismiss = { sink(PlacesBacklogEvent.PermanentDeleteDismissed) }
+        onPermanentDeleteDismiss = { sink(PlacesBacklogEvent.PermanentDeleteDismissed) },
     )
 }
 
@@ -94,18 +94,18 @@ internal fun PlacesBacklogContent(
         if (pendingPermanentDelete != null) {
             DisruptiveOperationDialog(
                 onConfirm = onPermanentDeleteConfirm,
-                onDismiss = onPermanentDeleteDismiss
+                onDismiss = onPermanentDeleteDismiss,
             )
         }
 
         Column {
             IconButton(
                 modifier = Modifier.testTag(PlacesBacklogTestTags.CLOSE_BUTTON),
-                onClick = onCloseClick
+                onClick = onCloseClick,
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.close),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_close_backlog)
+                    contentDescription = stringResource(Res.string.planning_detail_cd_close_backlog),
                 )
             }
 
@@ -113,12 +113,12 @@ internal fun PlacesBacklogContent(
                 text = stringResource(Res.string.planning_detail_places_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
             )
 
             AddPlaceButton(
                 modifier = Modifier.testTag(PlacesBacklogTestTags.ADD_PLACE_BUTTON),
-                onClick = onAddPlaceClick
+                onClick = onAddPlaceClick,
             )
 
             LazyColumn(
@@ -141,23 +141,23 @@ internal fun PlacesBacklogContent(
                         actions = {
                             IconButton(
                                 modifier = Modifier.testTag(
-                                    PlacesBacklogTestTags.moveToStepsTag(place.id)
+                                    PlacesBacklogTestTags.moveToStepsTag(place.id),
                                 ),
                                 onClick = {
                                     onMovePlaceToStepsClick(place.id)
-                                }
+                                },
                             ) {
                                 Icon(
                                     painter = painterResource(Res.drawable.add),
                                     contentDescription = stringResource(
-                                        Res.string.planning_detail_cd_move_place_to_steps
-                                    )
+                                        Res.string.planning_detail_cd_move_place_to_steps,
+                                    ),
                                 )
                             }
                         },
                         onPermanentDeleteClick = {
                             onPermanentDeleteRequest(place.id)
-                        }
+                        },
                     )
                 }
 
@@ -167,7 +167,7 @@ internal fun PlacesBacklogContent(
                             modifier = Modifier.testTag(PlacesBacklogTestTags.EMPTY),
                             text = stringResource(Res.string.planning_detail_places_empty),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -182,7 +182,7 @@ private fun PlacesBacklogContentPreview() = KTravelTheme {
     PlacesBacklogContent(
         places = persistentListOf(
             PlaceUi(name = "Tokyo Tower", lat = 0.0, lng = 0.0),
-            PlaceUi(name = "Shibuya Crossing", lat = 0.0, lng = 0.0)
+            PlaceUi(name = "Shibuya Crossing", lat = 0.0, lng = 0.0),
         ),
         pendingPermanentDelete = null,
         onCloseClick = {},
@@ -191,6 +191,6 @@ private fun PlacesBacklogContentPreview() = KTravelTheme {
         onMovePlaceToBacklogClick = {},
         onPermanentDeleteRequest = {},
         onPermanentDeleteConfirm = {},
-        onPermanentDeleteDismiss = {}
+        onPermanentDeleteDismiss = {},
     )
 }

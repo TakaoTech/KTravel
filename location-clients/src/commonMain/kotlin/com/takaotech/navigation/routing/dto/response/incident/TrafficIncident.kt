@@ -9,5 +9,5 @@ data class TrafficIncident(
     @SerialName("type") val type: String? = null,
     @SerialName("severity") val severity: String? = null,
     @SerialName("summary") val summary: String? = null,
-    @SerialName("description") val description: String? = null
+    @SerialName("description") val description: String? = null,
 )

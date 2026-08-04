@@ -9,7 +9,4 @@ import kotlinx.serialization.Serializable
  * @property notices Contains a list of issues related to this request. Notices must be carefully evaluated and, if deemed necessary, the response should be discarded accordingly.
  */
 @Serializable
-data class RouterRouteResponse(
-    val routes: List<RouterRoute>,
-    val notices: List<Notice>? = null
-)
+data class RouterRouteResponse(val routes: List<RouterRoute>, val notices: List<Notice>? = null)

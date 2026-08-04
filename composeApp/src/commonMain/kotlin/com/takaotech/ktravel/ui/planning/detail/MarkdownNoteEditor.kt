@@ -15,5 +15,5 @@ import androidx.compose.ui.Modifier
 expect fun MarkdownNoteEditor(
     controller: MarkdownEditorController,
     label: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 )

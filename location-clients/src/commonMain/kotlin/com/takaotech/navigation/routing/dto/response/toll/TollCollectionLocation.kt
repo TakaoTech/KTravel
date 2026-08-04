@@ -17,5 +17,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TollCollectionLocation(
     @SerialName("name") val name: String? = null,
-    @SerialName("location") val location: Location
+    @SerialName("location") val location: Location,
 )

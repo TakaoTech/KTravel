@@ -10,5 +10,5 @@ data class TransitPlace(
     val name: String? = null,
     val type: String? = null,
     val location: Location? = null,
-    val id: String? = null
+    val id: String? = null,
 )

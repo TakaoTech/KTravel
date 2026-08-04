@@ -58,7 +58,7 @@ fun PlanningHeader(
 
     val dateRangePickerState = rememberDateRangePickerState(
         initialSelectedStartDateMillis = startDateMillis,
-        initialSelectedEndDateMillis = endDateMillis
+        initialSelectedEndDateMillis = endDateMillis,
     )
 
     Column(modifier = modifier) {
@@ -80,7 +80,7 @@ fun PlanningHeader(
                 Icon(
                     painter = painterResource(Res.drawable.edit),
                     contentDescription = stringResource(Res.string.planning_trip_cd_edit_name),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
             // The field reads as a plain surface row: the container carries the affordance, not an
@@ -143,13 +143,13 @@ fun TravelDateRangePicker(
     }
 
     Column(
-        modifier = modifier
+        modifier = modifier,
     ) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             label = {
                 Text(
-                    text = stringResource(Res.string.travel_creation_period_label)
+                    text = stringResource(Res.string.travel_creation_period_label),
                 )
             },
             value = dateText,
@@ -159,18 +159,18 @@ fun TravelDateRangePicker(
                 IconButton(
                     onClick = {
                         onShowDateRangePicker(!showDateRangePicker)
-                    }
+                    },
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.date_range),
                         contentDescription = null,
                     )
                 }
-            }
+            },
         )
 
         if (showDateRangePicker) {
-            //TODO Change implementation by platform, use popup for desktop
+            // TODO Change implementation by platform, use popup for desktop
 
             ModalBottomSheet(
                 onDismissRequest = {
@@ -185,11 +185,11 @@ fun TravelDateRangePicker(
                     if (startDateSelected != null && endDateSelected != null) {
                         onPlanDateRangeChanged(startDateSelected, endDateSelected)
                     }
-                }
+                },
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
                 ) {
                     DateRangePicker(state = dateRangePickerState)
                 }
@@ -216,7 +216,6 @@ private fun PlannerHeaderPreview() = KTravelTheme {
         modifier = Modifier.fillMaxWidth(),
         onNameChange = {},
         onPlanDateRangeChanged = { start, end ->
-
-        }
+        },
     )
 }

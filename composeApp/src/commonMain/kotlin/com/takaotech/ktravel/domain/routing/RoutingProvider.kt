@@ -18,5 +18,5 @@ interface RoutingProvider {
 enum class RoutingProviderType(val stringName: StringResource) {
     LOCAL(Res.string.planning_transport_provider_name_local),
     HERE(Res.string.planning_transport_provider_name_here),
-    GMAPS(Res.string.planning_transport_provider_name_gmaps)
+    GMAPS(Res.string.planning_transport_provider_name_gmaps),
 }

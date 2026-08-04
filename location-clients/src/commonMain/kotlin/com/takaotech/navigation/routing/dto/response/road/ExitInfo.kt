@@ -4,6 +4,4 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ExitInfo(
-    @SerialName("number") val number: List<LocalizedString>? = null
-)
+data class ExitInfo(@SerialName("number") val number: List<LocalizedString>? = null)

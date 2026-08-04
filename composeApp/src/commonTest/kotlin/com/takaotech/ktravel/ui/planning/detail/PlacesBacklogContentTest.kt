@@ -38,7 +38,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onMovePlaceToBacklogClick = {},
                             onPermanentDeleteRequest = {},
                             onPermanentDeleteConfirm = {},
-                            onPermanentDeleteDismiss = {}
+                            onPermanentDeleteDismiss = {},
                         )
                     }
                     onNodeWithTag(PlacesBacklogTestTags.EMPTY).assertIsDisplayed()
@@ -59,7 +59,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onMovePlaceToBacklogClick = {},
                             onPermanentDeleteRequest = {},
                             onPermanentDeleteConfirm = {},
-                            onPermanentDeleteDismiss = {}
+                            onPermanentDeleteDismiss = {},
                         )
                     }
                     onNodeWithText(place1.name).assertIsDisplayed()
@@ -81,11 +81,11 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onMovePlaceToBacklogClick = {},
                                 onPermanentDeleteRequest = {},
                                 onPermanentDeleteConfirm = {},
-                                onPermanentDeleteDismiss = {}
+                                onPermanentDeleteDismiss = {},
                             )
                         }
                         onNodeWithTag(
-                            PlacesBacklogTestTags.moveToStepsTag(place2.id)
+                            PlacesBacklogTestTags.moveToStepsTag(place2.id),
                         ).performClick()
                     }
                     movedId shouldBe place2.id
@@ -108,7 +108,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onMovePlaceToBacklogClick = {},
                                 onPermanentDeleteRequest = {},
                                 onPermanentDeleteConfirm = {},
-                                onPermanentDeleteDismiss = {}
+                                onPermanentDeleteDismiss = {},
                             )
                         }
                         onNodeWithTag(PlacesBacklogTestTags.CLOSE_BUTTON).performClick()
@@ -131,7 +131,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onMovePlaceToBacklogClick = {},
                                 onPermanentDeleteRequest = {},
                                 onPermanentDeleteConfirm = {},
-                                onPermanentDeleteDismiss = {}
+                                onPermanentDeleteDismiss = {},
                             )
                         }
                         onNodeWithTag(PlacesBacklogTestTags.ADD_PLACE_BUTTON).performClick()
@@ -154,7 +154,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onMovePlaceToBacklogClick = {},
                             onPermanentDeleteRequest = {},
                             onPermanentDeleteConfirm = {},
-                            onPermanentDeleteDismiss = {}
+                            onPermanentDeleteDismiss = {},
                         )
                     }
                     onNodeWithTag(DisruptiveOperationDialogTestTags.DIALOG).assertDoesNotExist()
@@ -173,7 +173,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onMovePlaceToBacklogClick = {},
                             onPermanentDeleteRequest = {},
                             onPermanentDeleteConfirm = {},
-                            onPermanentDeleteDismiss = {}
+                            onPermanentDeleteDismiss = {},
                         )
                     }
                     onNodeWithTag(DisruptiveOperationDialogTestTags.DIALOG).assertIsDisplayed()
@@ -194,7 +194,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onMovePlaceToBacklogClick = {},
                                 onPermanentDeleteRequest = {},
                                 onPermanentDeleteConfirm = { confirmed = true },
-                                onPermanentDeleteDismiss = {}
+                                onPermanentDeleteDismiss = {},
                             )
                         }
                         onNodeWithTag(DisruptiveOperationDialogTestTags.CONFIRM).performClick()
@@ -217,7 +217,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onMovePlaceToBacklogClick = {},
                                 onPermanentDeleteRequest = {},
                                 onPermanentDeleteConfirm = {},
-                                onPermanentDeleteDismiss = { dismissed = true }
+                                onPermanentDeleteDismiss = { dismissed = true },
                             )
                         }
                         onNodeWithTag(DisruptiveOperationDialogTestTags.CANCEL).performClick()

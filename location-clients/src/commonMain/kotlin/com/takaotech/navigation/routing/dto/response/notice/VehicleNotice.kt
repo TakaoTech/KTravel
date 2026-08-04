@@ -8,5 +8,5 @@ data class VehicleNotice(
     @SerialName("title") val title: String,
     @SerialName("code") val code: String? = null,
     @SerialName("severity") val severity: String? = null,
-    @SerialName("details") val details: List<VehicleNoticeDetail>? = null
+    @SerialName("details") val details: List<VehicleNoticeDetail>? = null,
 )

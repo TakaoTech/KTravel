@@ -15,7 +15,7 @@ class StepRowBuilderTest : BehaviorSpec() {
     private fun transport(id: String) = StepUi.Transport(
         id = id,
         type = TransportType.TRAIN,
-        route = Route(sections = emptyList())
+        route = Route(sections = emptyList()),
     )
 
     init {

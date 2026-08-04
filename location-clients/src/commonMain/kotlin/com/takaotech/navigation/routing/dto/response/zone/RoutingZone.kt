@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class RoutingZone(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String? = null,
-    @SerialName("type") val type: String? = null
+    @SerialName("type") val type: String? = null,
 )

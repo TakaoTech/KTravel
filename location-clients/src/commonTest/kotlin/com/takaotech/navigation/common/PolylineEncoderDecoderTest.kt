@@ -35,7 +35,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(50.1022829, 8.6982122),
             PolylineEncoderDecoder.LatLngZ(50.1020076, 8.6956695),
             PolylineEncoderDecoder.LatLngZ(50.1006313, 8.6914960),
-            PolylineEncoderDecoder.LatLngZ(50.0987800, 8.6875156)
+            PolylineEncoderDecoder.LatLngZ(50.0987800, 8.6875156),
         )
 
         val expected = "BFoz5xJ67i1B1B7PzIhaxL7Y"
@@ -55,7 +55,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(52.3737488, 13.1154604),
             PolylineEncoderDecoder.LatLngZ(52.3875198, 13.0872202),
             PolylineEncoderDecoder.LatLngZ(52.4029388, 13.0706196),
-            PolylineEncoderDecoder.LatLngZ(52.4105797, 13.0755529)
+            PolylineEncoderDecoder.LatLngZ(52.4105797, 13.0755529),
         )
 
         val expected = "BF05xgKuy2xCx9B7vUl0OhnR54EqSzpEl-HxjD3pBiGnyGi2CvwFsgD3nD4vB6e"
@@ -69,7 +69,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(50.1022829, 8.6982122, 10.0),
             PolylineEncoderDecoder.LatLngZ(50.1020076, 8.6956695, 20.0),
             PolylineEncoderDecoder.LatLngZ(50.1006313, 8.6914960, 30.0),
-            PolylineEncoderDecoder.LatLngZ(50.0987800, 8.6875156, 40.0)
+            PolylineEncoderDecoder.LatLngZ(50.0987800, 8.6875156, 40.0),
         )
 
         val expected = "BlBoz5xJ67i1BU1B7PUzIhaUxL7YU"
@@ -86,22 +86,34 @@ class PolylineEncoderDecoderTest {
 
     @Test
     fun `Given encoded string without third dimension When getting third dimension Then should return ABSENT`() {
-        assertTrue(PolylineEncoderDecoder.getThirdDimension("BFoz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.ABSENT)
+        assertTrue(
+            PolylineEncoderDecoder.getThirdDimension("BFoz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.ABSENT,
+        )
     }
 
     @Test
     fun `Given encoded string with level When getting third dimension Then should return LEVEL`() {
-        assertTrue(PolylineEncoderDecoder.getThirdDimension("BVoz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.LEVEL)
+        assertTrue(
+            PolylineEncoderDecoder.getThirdDimension("BVoz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.LEVEL,
+        )
     }
 
     @Test
     fun `Given encoded string with altitude When getting third dimension Then should return ALTITUDE`() {
-        assertTrue(PolylineEncoderDecoder.getThirdDimension("BlBoz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.ALTITUDE)
+        assertTrue(
+            PolylineEncoderDecoder.getThirdDimension(
+                "BlBoz5xJ67i1BU",
+            ) == PolylineEncoderDecoder.ThirdDimension.ALTITUDE,
+        )
     }
 
     @Test
     fun `Given encoded string with elevation When getting third dimension Then should return ELEVATION`() {
-        assertTrue(PolylineEncoderDecoder.getThirdDimension("B1Boz5xJ67i1BU") == PolylineEncoderDecoder.ThirdDimension.ELEVATION)
+        assertTrue(
+            PolylineEncoderDecoder.getThirdDimension(
+                "B1Boz5xJ67i1BU",
+            ) == PolylineEncoderDecoder.ThirdDimension.ELEVATION,
+        )
     }
 
     @Test
@@ -111,7 +123,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(50.10228, 8.69821),
             PolylineEncoderDecoder.LatLngZ(50.10201, 8.69567),
             PolylineEncoderDecoder.LatLngZ(50.10063, 8.69150),
-            PolylineEncoderDecoder.LatLngZ(50.09878, 8.68752)
+            PolylineEncoderDecoder.LatLngZ(50.09878, 8.68752),
         )
 
         assertEquals(expected.size, computed.size)
@@ -134,7 +146,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(52.37375, 13.11546),
             PolylineEncoderDecoder.LatLngZ(52.38752, 13.08722),
             PolylineEncoderDecoder.LatLngZ(52.40294, 13.07062),
-            PolylineEncoderDecoder.LatLngZ(52.41058, 13.07555)
+            PolylineEncoderDecoder.LatLngZ(52.41058, 13.07555),
         )
 
         assertEquals(pairs.size, computed.size)
@@ -150,7 +162,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(50.10228, 8.69821, 10.0),
             PolylineEncoderDecoder.LatLngZ(50.10201, 8.69567, 20.0),
             PolylineEncoderDecoder.LatLngZ(50.10063, 8.69150, 30.0),
-            PolylineEncoderDecoder.LatLngZ(50.09878, 8.68752, 40.0)
+            PolylineEncoderDecoder.LatLngZ(50.09878, 8.68752, 40.0),
         )
 
         assertEquals(tuples.size, computed.size)
@@ -167,7 +179,7 @@ class PolylineEncoderDecoderTest {
             PolylineEncoderDecoder.LatLngZ(
                 random.nextDouble() * 180 - 90,
                 random.nextDouble() * 360 - 180,
-                random.nextDouble() * 1000
+                random.nextDouble() * 1000,
             )
         }
 
@@ -175,7 +187,7 @@ class PolylineEncoderDecoderTest {
             coordinates,
             precision,
             PolylineEncoderDecoder.ThirdDimension.ALTITUDE,
-            precision
+            precision,
         )
         val decoded = PolylineEncoderDecoder.decode(encoded)
 
@@ -186,7 +198,7 @@ class PolylineEncoderDecoderTest {
     fun `Given coordinates When encoding and decoding round trip Then should preserve values within precision`() {
         val coordinates = listOf(
             PolylineEncoderDecoder.LatLngZ(52.5200, 13.4050),
-            PolylineEncoderDecoder.LatLngZ(48.1351, 11.5820)
+            PolylineEncoderDecoder.LatLngZ(48.1351, 11.5820),
         )
 
         val encoded = PolylineEncoderDecoder.encode(coordinates, 5, PolylineEncoderDecoder.ThirdDimension.ABSENT, 0)
@@ -202,8 +214,8 @@ class PolylineEncoderDecoderTest {
     @Test
     fun `Given negative coordinates When encoding and decoding Then should handle correctly`() {
         val coordinates = listOf(
-            PolylineEncoderDecoder.LatLngZ(-33.8688, 151.2093),  // Sydney
-            PolylineEncoderDecoder.LatLngZ(-37.8136, 144.9631)   // Melbourne
+            PolylineEncoderDecoder.LatLngZ(-33.8688, 151.2093), // Sydney
+            PolylineEncoderDecoder.LatLngZ(-37.8136, 144.9631), // Melbourne
         )
 
         val encoded = PolylineEncoderDecoder.encode(coordinates, 5, PolylineEncoderDecoder.ThirdDimension.ABSENT, 0)
@@ -262,7 +274,7 @@ class PolylineEncoderDecoderTest {
     @Test
     fun `Given different precisions When encoding Then should produce different results`() {
         val coordinates = listOf(
-            PolylineEncoderDecoder.LatLngZ(52.5200123, 13.4050456)
+            PolylineEncoderDecoder.LatLngZ(52.5200123, 13.4050456),
         )
 
         val encodedPrecision5 =

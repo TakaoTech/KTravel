@@ -14,14 +14,12 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
     override val descriptor =
         PrimitiveSerialDescriptor("ZonedDateTime", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): ZonedDateTime {
-        return parseZonedDateTime(decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): ZonedDateTime =
+        parseZonedDateTime(decoder.decodeString())
 
     override fun serialize(encoder: Encoder, value: ZonedDateTime) {
         encoder.encodeString(formatZonedDateTime(value))
     }
-
 
     fun parseZonedDateTime(iso: String): ZonedDateTime {
         val zoneId = iso.substringAfter("[", "").substringBefore("]")
@@ -42,8 +40,8 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
         val offsetString = offset.toString() // es: +01:00
 
         return buildString {
-            append(localDateTime)   // yyyy-MM-ddTHH:mm:ss
-            append(offsetString)    // +01:00
+            append(localDateTime) // yyyy-MM-ddTHH:mm:ss
+            append(offsetString) // +01:00
             append("[")
             append(zdt.timeZone.id) // Europe/Rome
             append("]")

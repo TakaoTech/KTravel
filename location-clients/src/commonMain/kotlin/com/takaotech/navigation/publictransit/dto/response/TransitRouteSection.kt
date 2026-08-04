@@ -16,7 +16,7 @@ data class TransitRouteSection(
     val polyline: String? = null,
     val transport: TransitTransport? = null,
     val notices: List<Notice>? = null,
-    val intermediateStops: List<TransitStop>? = null
+    val intermediateStops: List<TransitStop>? = null,
 )
 
 /**
@@ -26,5 +26,5 @@ data class TransitRouteSection(
 data class TransitStop(
     val departure: TransitDeparture? = null,
     val arrival: TransitDeparture? = null,
-    val place: TransitPlace? = null
+    val place: TransitPlace? = null,
 )

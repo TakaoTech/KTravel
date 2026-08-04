@@ -53,7 +53,6 @@ import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class PlanningNavigation(val travelId: String)
 
@@ -85,7 +84,7 @@ fun App() {
                                 navController.navigate(PlanningNavigation(id)) {
                                     popUpTo(TravelSelectionPage) { inclusive = false }
                                 }
-                            }
+                            },
                         )
                     }
 
@@ -100,7 +99,7 @@ fun App() {
                                 navController.navigate(PlanningNavigation(travelId)) {
                                     popUpTo(TravelSelectionPage) { inclusive = false }
                                 }
-                            }
+                            },
                         )
                     }
 
@@ -110,20 +109,19 @@ fun App() {
                             val viewModel =
                                 assistedMetroViewModel<PlanningViewModel, PlanningViewModel.Factory>(
                                     viewModelStoreOwner = backStackEntry,
-                                    key = args.travelId
+                                    key = args.travelId,
                                 ) { _ -> create(args.travelId) }
-
 
                             NavigationBackHandler(
                                 state = rememberNavigationEventState(NavigationEventInfo.None),
-                                //TODO Meanwhile export phase block back
+                                // TODO Meanwhile export phase block back
                                 isBackEnabled = true,
                                 onBackCompleted = {
                                     if (backStackEntry.lifecycleIsResumed()) {
                                         appGraph.planningGraphStore.release(args.travelId)
                                         navController.navigateUp()
                                     }
-                                }
+                                },
                             )
 
                             PlanningTripPage(
@@ -142,7 +140,7 @@ fun App() {
                                 },
                                 onSettingClicked = {
                                     navController.navigate(SettingsNavigation)
-                                }
+                                },
                             )
                         }
 
@@ -165,23 +163,23 @@ fun App() {
 
                                             is NavEvent.GoTo -> when (val screen = event.screen) {
                                                 is AddPlaceScreen -> navController.navigate(
-                                                    PlaceInsertNavigation(screen.dayId)
+                                                    PlaceInsertNavigation(screen.dayId),
                                                 )
 
                                                 is AddTransportScreen -> navController.navigate(
                                                     PlanningTransportPageNavigation(
                                                         screen.dayId,
                                                         screen.startPlaceId,
-                                                        screen.endPlaceId
-                                                    )
+                                                        screen.endPlaceId,
+                                                    ),
                                                 )
 
                                                 is StepDetailScreen -> navController.navigate(
                                                     StepDetailPageNavigation(
                                                         screen.travelId,
                                                         screen.dayId,
-                                                        screen.stepId
-                                                    )
+                                                        screen.stepId,
+                                                    ),
                                                 )
 
                                                 else -> Unit
@@ -189,7 +187,7 @@ fun App() {
 
                                             else -> Unit
                                         }
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -202,7 +200,7 @@ fun App() {
                                     screen = StepDetailScreen(
                                         travelId = args.travelId,
                                         dayId = args.dayId,
-                                        stepId = args.stepId
+                                        stepId = args.stepId,
                                     ),
                                     onNavEvent = { event ->
                                         when (event) {
@@ -214,12 +212,14 @@ fun App() {
 
                                             else -> Unit
                                         }
-                                    }
+                                    },
                                 )
                             }
                         }
 
-                        navigation<PlanningTransportNavigation>(startDestination = PlanningTransportPageNavigation::class) {
+                        navigation<PlanningTransportNavigation>(
+                            startDestination = PlanningTransportPageNavigation::class,
+                        ) {
                             composable<PlanningTransportPageNavigation> { backStackEntry ->
                                 val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
                                 val parentArgs =
@@ -230,13 +230,13 @@ fun App() {
                                 }
                                 val viewModel =
                                     assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
-                                        viewModelStoreOwner = transportEntry
+                                        viewModelStoreOwner = transportEntry,
                                     ) { _ ->
                                         create(
                                             parentArgs.travelId,
                                             args.dayId,
                                             args.startPlaceId,
-                                            args.endPlaceId
+                                            args.endPlaceId,
                                         )
                                     }
 
@@ -248,8 +248,8 @@ fun App() {
                                                     PlanningTransportRoutePreviewPageNavigation(
                                                         args.dayId,
                                                         args.startPlaceId,
-                                                        args.endPlaceId
-                                                    )
+                                                        args.endPlaceId,
+                                                    ),
                                                 )
                                             }
                                         }
@@ -262,7 +262,7 @@ fun App() {
                                         if (backStackEntry.lifecycleIsResumed()) {
                                             navController.navigateUp()
                                         }
-                                    }
+                                    },
                                 )
                             }
 
@@ -282,10 +282,10 @@ fun App() {
                                         onRouteConfirm = {
                                             viewModel.saveSelectedRoute()
                                             navController.popBackStack<PlanningDetailPageNavigation>(
-                                                inclusive = false
+                                                inclusive = false,
                                             )
                                         },
-                                        onRouteChange = { viewModel.selectRoute(it) }
+                                        onRouteChange = { viewModel.selectRoute(it) },
                                     )
                                 }
                             }
@@ -298,7 +298,7 @@ fun App() {
                             .toRoute<PlanningNavigation>().travelId
                         val viewModel =
                             assistedMetroViewModel<PlaceInsertViewModel, PlaceInsertViewModel.Factory>(
-                                key = "place_${travelId}_${args.dayId}"
+                                key = "place_${travelId}_${args.dayId}",
                             ) { _ -> create(travelId, args.dayId) }
 
                         PlaceInsertPage(
@@ -310,7 +310,7 @@ fun App() {
                             },
                             onSaveClicked = {
                                 navController.navigateUp()
-                            }
+                            },
                         )
                     }
 
@@ -323,7 +323,7 @@ fun App() {
                                 if (backStackEntry.lifecycleIsResumed()) {
                                     navController.navigateUp()
                                 }
-                            }
+                            },
                         )
                     }
                 }

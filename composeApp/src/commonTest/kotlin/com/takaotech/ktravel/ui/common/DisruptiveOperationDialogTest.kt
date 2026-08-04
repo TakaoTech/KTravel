@@ -51,7 +51,7 @@ class DisruptiveOperationDialogTest : BehaviorSpec() {
 
                             Button(
                                 modifier = Modifier.testTag(SHOW_BUTTON),
-                                onClick = { dialogState.show("id-1") }
+                                onClick = { dialogState.show("id-1") },
                             ) {
                                 Text(text = "show")
                             }
@@ -86,7 +86,7 @@ class DisruptiveOperationDialogTest : BehaviorSpec() {
 
                             Button(
                                 modifier = Modifier.testTag(SHOW_BUTTON),
-                                onClick = { dialogState.show("id-1") }
+                                onClick = { dialogState.show("id-1") },
                             ) {
                                 Text(text = "show")
                             }
@@ -119,7 +119,7 @@ class DisruptiveOperationDialogTest : BehaviorSpec() {
 
                             Button(
                                 modifier = Modifier.testTag(SHOW_BUTTON),
-                                onClick = { dialogState.show("id-1") }
+                                onClick = { dialogState.show("id-1") },
                             ) {
                                 Text(text = "show")
                             }

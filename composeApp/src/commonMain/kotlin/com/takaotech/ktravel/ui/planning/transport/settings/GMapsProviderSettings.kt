@@ -1,7 +1,16 @@
 package com.takaotech.ktravel.ui.planning.transport.settings
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,18 +23,18 @@ import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 fun GMapsProviderSettings(
     settings: RoutingProviderSettings.GMaps,
     onSettingsChange: (RoutingProviderSettings.GMaps) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Avoid Tolls")
             Spacer(Modifier.weight(1f))
             Switch(
                 checked = settings.avoidTolls,
-                onCheckedChange = { onSettingsChange(settings.copy(avoidTolls = it)) }
+                onCheckedChange = { onSettingsChange(settings.copy(avoidTolls = it)) },
             )
         }
 
@@ -34,7 +43,7 @@ fun GMapsProviderSettings(
             Spacer(Modifier.weight(1f))
             Switch(
                 checked = settings.avoidFerries,
-                onCheckedChange = { onSettingsChange(settings.copy(avoidFerries = it)) }
+                onCheckedChange = { onSettingsChange(settings.copy(avoidFerries = it)) },
             )
         }
 
@@ -46,8 +55,8 @@ fun GMapsProviderSettings(
                     onClick = { onSettingsChange(settings.copy(travelMode = mode)) },
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
-                        count = GMapsTravelMode.entries.size
-                    )
+                        count = GMapsTravelMode.entries.size,
+                    ),
                 ) {
                     Text(mode.name)
                 }

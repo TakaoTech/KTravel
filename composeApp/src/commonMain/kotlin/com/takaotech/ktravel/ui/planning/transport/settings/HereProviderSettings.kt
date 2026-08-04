@@ -46,23 +46,23 @@ import kotlinx.datetime.LocalTime
 fun HereProviderSettings(
     settings: RoutingProviderSettings.Here,
     onSettingsChange: (RoutingProviderSettings.Here) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = null
+        initialSelectedDateMillis = null,
     )
 
     val timePickerState = rememberTimePickerState(
         initialHour = settings.departureTime?.hour ?: 9,
-        initialMinute = settings.departureTime?.minute ?: 0
+        initialMinute = settings.departureTime?.minute ?: 0,
     )
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Transport Mode")
         val transportModes = RoutingProviderSettings.Here.HereTransportMode.entries
@@ -77,10 +77,10 @@ fun HereProviderSettings(
                     Tab(
                         selected = index == selectedTransportIndex,
                         onClick = { onSettingsChange(settings.copy(transportMode = mode)) },
-                        text = { Text(text = mode.name) }
+                        text = { Text(text = mode.name) },
                     )
                 }
-            }
+            },
         )
 
         Text("Routing Mode")
@@ -91,8 +91,8 @@ fun HereProviderSettings(
                     onClick = { onSettingsChange(settings.copy(routingMode = mode)) },
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
-                        count = RoutingProviderSettings.Here.HereRoutingMode.entries.size
-                    )
+                        count = RoutingProviderSettings.Here.HereRoutingMode.entries.size,
+                    ),
                 ) {
                     Text(mode.name)
                 }
@@ -134,7 +134,7 @@ private fun HereDateTime(
     onShowTimePicker: (Boolean) -> Unit,
 ) {
     Column(
-        modifier = modifier
+        modifier = modifier,
     ) {
         Row {
             val timeText = if (settings.departureTime != null) {
@@ -160,7 +160,7 @@ private fun HereDateTime(
                                 }
                             }
                         }
-                    }
+                    },
             )
 
             Spacer(Modifier.width(16.dp))
@@ -181,7 +181,7 @@ private fun HereDateTime(
                                 }
                             }
                         }
-                    }
+                    },
             )
 
             if (showDatePicker) {
@@ -194,7 +194,7 @@ private fun HereDateTime(
                                 val newDate = selectedMillis?.toLocalDate()
                                 onSettingsChange(settings.copy(departureDate = newDate))
                                 onShowDatePicker(false)
-                            }
+                            },
                         ) {
                             Text("Confirm")
                         }
@@ -204,11 +204,11 @@ private fun HereDateTime(
                             onClick = {
                                 onSettingsChange(settings.copy(departureDate = null))
                                 onShowDatePicker(false)
-                            }
+                            },
                         ) {
                             Text("Clear")
                         }
-                    }
+                    },
                 ) {
                     DatePicker(state = datePickerState)
                 }
@@ -225,7 +225,7 @@ private fun HereDateTime(
                                 val newTime = LocalTime(timePickerState.hour, timePickerState.minute)
                                 onSettingsChange(settings.copy(departureTime = newTime))
                                 onShowTimePicker(false)
-                            }
+                            },
                         ) {
                             Text("Confirm")
                         }
@@ -235,15 +235,14 @@ private fun HereDateTime(
                             onClick = {
                                 onSettingsChange(settings.copy(departureTime = null))
                                 onShowTimePicker(false)
-                            }
+                            },
                         ) {
                             Text("Clear")
                         }
-                    }
+                    },
                 )
             }
         }
-
     }
 }
 
@@ -252,6 +251,6 @@ private fun HereDateTime(
 private fun HereProviderSettingsPreview() = KTravelTheme {
     HereProviderSettings(
         settings = RoutingProviderSettings.Here(),
-        onSettingsChange = {}
+        onSettingsChange = {},
     )
 }

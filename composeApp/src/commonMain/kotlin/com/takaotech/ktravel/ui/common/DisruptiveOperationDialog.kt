@@ -52,7 +52,7 @@ fun <T> DisruptiveOperationDialog(
             onDismiss = { state.dismiss() },
             title = title,
             text = text,
-            confirmText = confirmText
+            confirmText = confirmText,
         )
     }
 }
@@ -81,29 +81,27 @@ fun DisruptiveOperationDialog(
         confirmButton = {
             TextButton(
                 modifier = Modifier.testTag(DisruptiveOperationDialogTestTags.CONFIRM),
-                onClick = onConfirm
+                onClick = onConfirm,
             ) {
                 Text(
                     text = confirmText,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         },
         dismissButton = {
             TextButton(
                 modifier = Modifier.testTag(DisruptiveOperationDialogTestTags.CANCEL),
-                onClick = onDismiss
+                onClick = onDismiss,
             ) {
                 Text(text = stringResource(Res.string.permanent_delete_dialog_cancel))
             }
-        }
+        },
     )
 }
 
 @Stable
-class DisruptiveOperationDialogStateHolder<T>(
-    private val onConfirm: (T) -> Unit
-) {
+class DisruptiveOperationDialogStateHolder<T>(private val onConfirm: (T) -> Unit) {
     internal var showDialog by mutableStateOf(false)
         private set
 
@@ -135,9 +133,7 @@ class DisruptiveOperationDialogStateHolder<T>(
  * would silently close an open dialog.
  */
 @Composable
-fun <T> rememberDisruptiveOperationDialog(
-    onConfirm: (T) -> Unit
-): DisruptiveOperationDialogStateHolder<T> {
+fun <T> rememberDisruptiveOperationDialog(onConfirm: (T) -> Unit): DisruptiveOperationDialogStateHolder<T> {
     val currentOnConfirm by rememberUpdatedState(onConfirm)
     return remember {
         DisruptiveOperationDialogStateHolder { payload -> currentOnConfirm(payload) }

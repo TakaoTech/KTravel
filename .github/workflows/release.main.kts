@@ -34,7 +34,31 @@ workflow(
     sourceFile = __FILE__,
     consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled
 ) {
-    job(id = "android", runsOn = RunnerType.UbuntuLatest) {
+    // Gate for both build jobs: no artifact is produced from a tree whose tests do not pass.
+    // Same suites as the CI workflow, on both JVM flavours.
+    val test = job(id = "test", runsOn = RunnerType.UbuntuLatest) {
+        uses(name = "Checkout code", action = Checkout())
+        uses(
+            name = "Set up JDK",
+            action = SetupJava(
+                distribution = SetupJava.Distribution.Corretto,
+                javaVersion = jdkVersion
+            )
+        )
+        uses(name = "Setup Gradle", action = ActionsSetupGradle())
+
+        run(
+            name = "Grant permission to execute gradlew",
+            command = "chmod +x gradlew"
+        )
+
+        run(
+            name = "Run tests",
+            command = "./gradlew jvmTest testAndroidHostTest"
+        )
+    }
+
+    job(id = "android", runsOn = RunnerType.UbuntuLatest, needs = listOf(test)) {
         uses(name = "Checkout code", action = Checkout())
         uses(
             name = "Set up JDK",
@@ -84,6 +108,7 @@ workflow(
     job(
         id = "desktop",
         runsOn = RunnerType.Custom(expr("matrix.os")),
+        needs = listOf(test),
         _customArguments = mapOf(
             "strategy" to mapOf(
                 "fail-fast" to false,

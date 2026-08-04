@@ -22,34 +22,29 @@ data class TravelPlanDomain(
     val periodStart: LocalDate = LocalDate.fromEpochDays(0),
     val periodEnd: LocalDate = LocalDate.fromEpochDays(0),
     val days: List<TravelDayDomain> = emptyList(),
-    val places: List<PlaceDomain> = emptyList()
+    val places: List<PlaceDomain> = emptyList(),
 )
 
 data class TravelDayDomain(
     val id: String = newId(),
     val date: LocalDate,
     val steps: List<StepDomain> = emptyList(),
-    val places: List<PlaceDomain> = emptyList()
+    val places: List<PlaceDomain> = emptyList(),
 ) {
     companion object {
         val EMPTY = TravelDayDomain(
             id = "",
-            date = LocalDate.fromEpochDays(0)
+            date = LocalDate.fromEpochDays(0),
         )
     }
 }
 
-data class PlaceDomain(
-    val id: String = newId(),
-    val name: String,
-    val lat: Double,
-    val lng: Double
-)
+data class PlaceDomain(val id: String = newId(), val name: String, val lat: Double, val lng: Double)
 
 data class VisitScheduleDomain(
     val date: LocalDate? = null,
     val startTime: LocalTime? = null,
-    val endTime: LocalTime? = null
+    val endTime: LocalTime? = null,
 )
 
 /**
@@ -61,7 +56,7 @@ data class AttachmentDomain(
     val relativePath: String,
     val originalName: String,
     val mimeType: String,
-    val sizeBytes: Long
+    val sizeBytes: Long,
 ) {
     val isImage: Boolean get() = mimeType.startsWith("image/")
 }
@@ -82,13 +77,13 @@ sealed class StepDomain(open val id: String = newId()) {
         /** Note libere in formato Markdown associate allo step. */
         val note: String = "",
         /** Inventario file dello step (foto e documenti). */
-        val attachments: List<AttachmentDomain> = emptyList()
+        val attachments: List<AttachmentDomain> = emptyList(),
     ) : StepDomain(id)
 
     data class Transport(
         override val id: String = newId(),
         val type: TransportType,
-        val route: com.takaotech.ktravel.domain.routing.model.Route
+        val route: com.takaotech.ktravel.domain.routing.model.Route,
     ) : StepDomain(id)
 }
 

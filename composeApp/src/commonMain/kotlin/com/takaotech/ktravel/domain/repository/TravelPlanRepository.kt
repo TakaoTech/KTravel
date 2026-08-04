@@ -65,10 +65,10 @@ interface TravelPlanRepository {
      */
     suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String)
 
-
     //endregion Update
 
     //region Move
+
     /**
      * Sposta un Place dalla lista generale a un TravelDay
      */
@@ -78,7 +78,6 @@ interface TravelPlanRepository {
      * Sposta un Place da un TravelDay alla lista generale
      */
     suspend fun movePlaceToGeneral(placeId: String, dayId: String)
-
 
     /**
      * Sposta un Place (presente nella lista places del giorno) nella lista steps

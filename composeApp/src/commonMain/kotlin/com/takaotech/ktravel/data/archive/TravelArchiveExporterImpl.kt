@@ -44,21 +44,21 @@ class TravelArchiveExporterImpl private constructor(
     private val appVersion: String,
     private val clock: Clock,
     // Staging iniettabile: in produzione la cache dir dell'app, nei test una tempdir.
-    private val stagingRootProvider: () -> PlatformFile
+    private val stagingRootProvider: () -> PlatformFile,
 ) : TravelArchiveExporter {
 
     @Inject
     constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
-        zipFactory: ZipArchiveFactory
+        zipFactory: ZipArchiveFactory,
     ) : this(
         storage = storage,
         attachments = attachments,
         zipFactory = zipFactory,
         appVersion = KTravelBuildInfo.VERSION,
         clock = Clock.System,
-        stagingRootProvider = { FileKit.cacheDir / STAGING_DIR }
+        stagingRootProvider = { FileKit.cacheDir / STAGING_DIR },
     )
 
     /** Costruttore per i test: staging esplicito e clock deterministico. */
@@ -68,54 +68,58 @@ class TravelArchiveExporterImpl private constructor(
         zipFactory: ZipArchiveFactory,
         stagingRoot: PlatformFile,
         appVersion: String = "test",
-        clock: Clock = Clock.System
+        clock: Clock = Clock.System,
     ) : this(storage, attachments, zipFactory, appVersion, clock, { stagingRoot })
 
-    private val json = Json { prettyPrint = false; encodeDefaults = true }
+    private val json = Json {
+        prettyPrint = false
+        encodeDefaults = true
+    }
     private val stagingArea = ArchiveStagingArea(stagingRootProvider)
 
     override suspend fun export(
         travelId: String,
         destination: PlatformFile
-    ): Result<TravelArchiveExportResult> = withContext(Dispatchers.IO) {
-        val stagingDir = stagingArea.newSession()
-        try {
-            val plan = readPlan(travelId)
-            val (present, skipped) = plan.allAttachments().partition { attachment ->
-                attachments.resolveFile(attachment.relativePath).exists()
-            }
+    ): Result<TravelArchiveExportResult> =
+        withContext(Dispatchers.IO) {
+            val stagingDir = stagingArea.newSession()
+            try {
+                val plan = readPlan(travelId)
+                val (present, skipped) = plan.allAttachments().partition { attachment ->
+                    attachments.resolveFile(attachment.relativePath).exists()
+                }
 
-            val stagingArchive = stagingDir / "archive.${TravelArchiveFormat.FILE_EXTENSION}"
+                val stagingArchive = stagingDir / "archive.${TravelArchiveFormat.FILE_EXTENSION}"
 
-            // Il piano scritto nell'archivio elenca solo gli allegati effettivamente inclusi:
-            // altrimenti l'archivio sarebbe auto-incoerente e l'import lo rifiuterebbe.
-            writeArchive(stagingArchive, travelId, plan.retainingOnly(present), present)
-            // Unico punto in cui si esce dal filesystem reale: `destination` può essere un
-            // content:// Android, che FileKit gestisce in streaming.
-            stagingArchive.copyTo(destination)
+                // Il piano scritto nell'archivio elenca solo gli allegati effettivamente inclusi:
+                // altrimenti l'archivio sarebbe auto-incoerente e l'import lo rifiuterebbe.
+                writeArchive(stagingArchive, travelId, plan.retainingOnly(present), present)
+                // Unico punto in cui si esce dal filesystem reale: `destination` può essere un
+                // content:// Android, che FileKit gestisce in streaming.
+                stagingArchive.copyTo(destination)
 
-            Result.success(
-                TravelArchiveExportResult(
-                    travelId = travelId,
-                    travelName = plan.name,
-                    attachmentCount = present.size,
-                    skippedAttachments = skipped.map { it.relativePath }
+                Result.success(
+                    TravelArchiveExportResult(
+                        travelId = travelId,
+                        travelName = plan.name,
+                        attachmentCount = present.size,
+                        skippedAttachments = skipped.map { it.relativePath },
+                    ),
                 )
-            )
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (throwable: Throwable) {
-            Result.failure(throwable.asTravelArchiveException())
-        } finally {
-            runCatching { stagingDir.deleteRecursively() }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (throwable: Throwable) {
+                Result.failure(throwable.asTravelArchiveException())
+            } finally {
+                runCatching { stagingDir.deleteRecursively() }
+            }
         }
-    }
 
     private fun readPlan(travelId: String): TravelPlanEntity =
         runCatching { storage.getTravelPlan(travelId).copy(id = travelId) }
             .getOrElse { throwable ->
                 throw TravelArchiveException(
-                    TravelArchiveError.Io("Travel plan $travelId is not readable: ${throwable.message}")
+                    TravelArchiveError.Io("Travel plan $travelId is not readable: ${throwable.message}"),
                 )
             }
 
@@ -123,7 +127,7 @@ class TravelArchiveExporterImpl private constructor(
         archive: PlatformFile,
         travelId: String,
         plan: TravelPlanEntity,
-        attachmentsToWrite: List<AttachmentEntity>
+        attachmentsToWrite: List<AttachmentEntity>,
     ) {
         val manifest = TravelArchiveManifest(
             schemaVersion = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
@@ -134,23 +138,23 @@ class TravelArchiveExporterImpl private constructor(
             planEntry = TravelArchiveFormat.PLAN_ENTRY,
             attachments = attachmentsToWrite.map {
                 TravelArchiveFormat.attachmentEntry(it.relativePath)
-            }
+            },
         )
 
         zipFactory.writer(archive.toKotlinxIoPath()).use { writer ->
             writer.writeEntry(
                 TravelArchiveFormat.MANIFEST_ENTRY,
                 json.encodeToString(TravelArchiveManifest.serializer(), manifest)
-                    .encodeToByteArray()
+                    .encodeToByteArray(),
             )
             writer.writeEntry(
                 TravelArchiveFormat.PLAN_ENTRY,
-                json.encodeToString(TravelPlanEntity.serializer(), plan).encodeToByteArray()
+                json.encodeToString(TravelPlanEntity.serializer(), plan).encodeToByteArray(),
             )
             attachmentsToWrite.forEach { attachment ->
                 writer.writeEntry(
                     TravelArchiveFormat.attachmentEntry(attachment.relativePath),
-                    attachments.resolveFile(attachment.relativePath).toKotlinxIoPath()
+                    attachments.resolveFile(attachment.relativePath).toKotlinxIoPath(),
                 )
             }
         }
@@ -179,12 +183,13 @@ private fun TravelPlanEntity.retainingOnly(retained: List<AttachmentEntity>): Tr
                 steps = day.steps.map { step ->
                     when (step) {
                         is StepEntity.Transport -> step
+
                         is StepEntity.Place -> step.copy(
-                            attachments = step.attachments.filter { it.relativePath in keep }
+                            attachments = step.attachments.filter { it.relativePath in keep },
                         )
                     }
-                }
+                },
             )
-        }
+        },
     )
 }

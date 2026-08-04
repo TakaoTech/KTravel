@@ -15,7 +15,7 @@ fun TestConfiguration.tempdir(
     suffix: String = "",
     keepOnFailure: Boolean = false,
 ): PlatformFile {
-    val dirPath = SystemTemporaryDirectory / "${prefix}_${Random.nextLong().toULong()}${suffix}"
+    val dirPath = SystemTemporaryDirectory / "${prefix}_${Random.nextLong().toULong()}$suffix"
     val dir = PlatformFile(dirPath)
     dir.createDirectories(mustCreate = true)
 

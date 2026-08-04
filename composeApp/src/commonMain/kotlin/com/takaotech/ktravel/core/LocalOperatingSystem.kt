@@ -29,6 +29,6 @@ fun KTravelPlatform(
     CompositionLocalProvider(
         LocalOperatingSystem provides currentOs,
         LocalPlatform provides platform,
-        content = content
+        content = content,
     )
 }

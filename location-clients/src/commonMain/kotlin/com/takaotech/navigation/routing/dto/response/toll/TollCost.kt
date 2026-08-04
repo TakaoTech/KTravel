@@ -25,5 +25,5 @@ data class TollCost(
     @SerialName("tollSystems") val tollSystems: List<Int>? = null,
     @SerialName("countryCode") val countryCode: String? = null,
     @SerialName("tollCollectionLocations") val tollCollectionLocations: List<TollCollectionLocation>? = null,
-    @SerialName("fares") val fares: List<TollFare>
+    @SerialName("fares") val fares: List<TollFare>,
 )

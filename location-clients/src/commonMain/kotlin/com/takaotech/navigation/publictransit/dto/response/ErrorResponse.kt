@@ -12,5 +12,5 @@ data class ErrorResponse(
     val code: String? = null,
     val cause: String? = null,
     val action: String? = null,
-    val correlationId: String? = null
+    val correlationId: String? = null,
 )

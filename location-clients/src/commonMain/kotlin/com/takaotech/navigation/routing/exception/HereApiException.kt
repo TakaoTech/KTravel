@@ -10,7 +10,7 @@ class HereApiException(
     val httpStatusCode: Int,
     val errorResponse: com.takaotech.navigation.routing.dto.response.ErrorResponse? = null,
     message: String = errorResponse?.title ?: "HERE API error: $httpStatusCode",
-    cause: Throwable? = null
+    cause: Throwable? = null,
 ) : Exception(message, cause)
 
 /**
@@ -28,7 +28,7 @@ sealed class HereApiResult<out T> {
     data class Error(
         val httpStatusCode: Int,
         val errorResponse: com.takaotech.navigation.routing.dto.response.ErrorResponse? = null,
-        val exception: Throwable? = null
+        val exception: Throwable? = null,
     ) : HereApiResult<Nothing>()
 
     /**
@@ -44,10 +44,11 @@ sealed class HereApiResult<out T> {
      */
     fun getOrThrow(): T = when (this) {
         is Success -> data
+
         is Error -> throw HereApiException(
             httpStatusCode = httpStatusCode,
             errorResponse = errorResponse,
-            cause = exception
+            cause = exception,
         )
     }
 

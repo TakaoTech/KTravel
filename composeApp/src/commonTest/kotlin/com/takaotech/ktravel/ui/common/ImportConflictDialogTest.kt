@@ -47,7 +47,7 @@ private fun clickAndCollect(tag: String): List<String> {
                 existingName = "Tokyo",
                 onDuplicate = { invoked += "duplicate" },
                 onReplace = { invoked += "replace" },
-                onDismiss = { invoked += "dismiss" }
+                onDismiss = { invoked += "dismiss" },
             )
         }
         onNodeWithTag(tag).performClick()

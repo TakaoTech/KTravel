@@ -12,7 +12,7 @@ import kotlinx.serialization.json.JsonObject
 internal class TravelPlanSchemaMigrator(
     private val migrations: TravelPlanMigrationFactory = TravelPlanMigrations,
     private val currentVersion: Int = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
-    private val minSupportedVersion: Int = TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION
+    private val minSupportedVersion: Int = TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION,
 ) {
 
     /**
@@ -22,12 +22,12 @@ internal class TravelPlanSchemaMigrator(
     fun migrate(plan: JsonObject, fromVersion: Int): JsonObject {
         if (fromVersion < minSupportedVersion) {
             throw TravelArchiveException(
-                TravelArchiveError.UnsupportedSchemaVersion(fromVersion, minSupportedVersion)
+                TravelArchiveError.UnsupportedSchemaVersion(fromVersion, minSupportedVersion),
             )
         }
         if (fromVersion > currentVersion) {
             throw TravelArchiveException(
-                TravelArchiveError.FutureSchemaVersion(fromVersion, currentVersion)
+                TravelArchiveError.FutureSchemaVersion(fromVersion, currentVersion),
             )
         }
 
@@ -40,16 +40,16 @@ internal class TravelPlanSchemaMigrator(
                     TravelArchiveError.MigrationFailed(
                         fromVersion = version,
                         toVersion = version + 1,
-                        reason = "no migration registered"
-                    )
+                        reason = "no migration registered",
+                    ),
                 )
             runCatching { migration.migrate(migrated) }.getOrElse { throwable ->
                 throw TravelArchiveException(
                     TravelArchiveError.MigrationFailed(
                         fromVersion = version,
                         toVersion = version + 1,
-                        reason = throwable.message ?: throwable::class.simpleName.orEmpty()
-                    )
+                        reason = throwable.message ?: throwable::class.simpleName.orEmpty(),
+                    ),
                 )
             }
         }

@@ -10,11 +10,9 @@ open class PlacePreviewParams(val items: Int) : PreviewParameterProvider<PlaceUi
             generatePlace(it)
         }.asSequence()
 
-    private fun generatePlace(index: Int): PlaceUi {
-        return PlaceUi(
-            name = "Place $index",
-            lat = 45.0 + index * 0.1,
-            lng = 9.0 + index * 0.1,
-        )
-    }
+    private fun generatePlace(index: Int): PlaceUi = PlaceUi(
+        name = "Place $index",
+        lat = 45.0 + index * 0.1,
+        lng = 9.0 + index * 0.1,
+    )
 }

@@ -10,17 +10,14 @@ import ktravel.composeapp.generated.resources.add
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun AddPlaceButton(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+fun AddPlaceButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(
         modifier = modifier,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Icon(
             painter = painterResource(Res.drawable.add),
-            contentDescription = null
+            contentDescription = null,
         )
         Text("Add place")
     }

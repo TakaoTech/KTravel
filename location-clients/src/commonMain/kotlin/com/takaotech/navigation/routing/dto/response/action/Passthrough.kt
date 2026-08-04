@@ -18,5 +18,5 @@ data class Passthrough(
     @SerialName("id") val id: String? = null,
     @SerialName("place") val place: Place? = null,
     @SerialName("time") val time: String? = null,
-    @SerialName("matchedLocation") val matchedLocation: Location? = null
+    @SerialName("matchedLocation") val matchedLocation: Location? = null,
 )

@@ -13,7 +13,7 @@ data class TravelPlanEntity(
     @SerialName("period_start") val periodStart: LocalDate,
     @SerialName("period_end") val periodEnd: LocalDate,
     @SerialName("days") val days: List<TravelDayEntity>,
-    @SerialName("places") val places: List<PlaceEntity>
+    @SerialName("places") val places: List<PlaceEntity>,
 ) {
     companion object {
         const val DOCUMENT_TYPE = "travel_plan"
@@ -25,7 +25,7 @@ data class TravelDayEntity(
     @SerialName("id") val id: String,
     @SerialName("date_epoch_days") val date: LocalDate,
     @SerialName("steps") val steps: List<StepEntity>,
-    @SerialName("places") val places: List<PlaceEntity>
+    @SerialName("places") val places: List<PlaceEntity>,
 )
 
 @Serializable
@@ -33,7 +33,7 @@ data class PlaceEntity(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("lat") val lat: Double,
-    @SerialName("lng") val lng: Double
+    @SerialName("lng") val lng: Double,
 )
 
 @Serializable
@@ -42,7 +42,7 @@ data class VisitScheduleEntity(
     @SerialName("start_time_hour") val startTimeHour: Int? = null,
     @SerialName("start_time_minute") val startTimeMinute: Int? = null,
     @SerialName("end_time_hour") val endTimeHour: Int? = null,
-    @SerialName("end_time_minute") val endTimeMinute: Int? = null
+    @SerialName("end_time_minute") val endTimeMinute: Int? = null,
 )
 
 /**
@@ -56,7 +56,7 @@ data class AttachmentEntity(
     @SerialName("relative_path") val relativePath: String,
     @SerialName("original_name") val originalName: String,
     @SerialName("mime_type") val mimeType: String,
-    @SerialName("size_bytes") val sizeBytes: Long
+    @SerialName("size_bytes") val sizeBytes: Long,
 )
 
 @Serializable
@@ -74,7 +74,7 @@ sealed class StepEntity {
         @SerialName("schedule") val schedule: VisitScheduleEntity? = null,
         @SerialName("note") val note: String = "",
         // Inventario file dello step. Default vuoto = retro-compatibile con i documenti già salvati.
-        @SerialName("attachments") val attachments: List<AttachmentEntity> = emptyList()
+        @SerialName("attachments") val attachments: List<AttachmentEntity> = emptyList(),
     ) : StepEntity()
 
     @Serializable
@@ -82,14 +82,12 @@ sealed class StepEntity {
     data class Transport(
         override val id: String,
         @SerialName("transport_type") val transportType: String,
-        @SerialName("route") val route: RouteEntity
+        @SerialName("route") val route: RouteEntity,
     ) : StepEntity()
 }
 
 @Serializable
-data class RouteEntity(
-    @SerialName("sections") val sections: List<RouteSectionEntity>
-)
+data class RouteEntity(@SerialName("sections") val sections: List<RouteSectionEntity>)
 
 @Serializable
 data class RouteSectionEntity(
@@ -101,7 +99,7 @@ data class RouteSectionEntity(
     @SerialName("departure_lng") val departureLng: Double? = null,
     @SerialName("arrival_lat") val arrivalLat: Double? = null,
     @SerialName("arrival_lng") val arrivalLng: Double? = null,
-    @SerialName("actions") val actions: List<RouteActionEntity> = emptyList()
+    @SerialName("actions") val actions: List<RouteActionEntity> = emptyList(),
 )
 
 @Serializable
@@ -111,5 +109,5 @@ data class RouteActionEntity(
     @SerialName("distance_meters") val distanceMeters: Double,
     @SerialName("instruction") val instruction: String? = null,
     @SerialName("direction") val direction: String? = null,
-    @SerialName("severity") val severity: String? = null
+    @SerialName("severity") val severity: String? = null,
 )

@@ -56,30 +56,24 @@ fun PlaceInputMode.label(): String = when (this) {
 @Composable
 fun PlaceInsert(
     placeName: KFieldState,
-
     inputMode: PlaceInputMode,
-
     placeLat: KFieldState,
     placeLng: KFieldState,
-
     searchQuery: TextFieldValue,
     isBulk: Boolean,
-
     onPlaceNameChange: (TextFieldValue) -> Unit,
     onInputModeChange: (PlaceInputMode) -> Unit,
     onPlaceLatChange: (TextFieldValue) -> Unit,
     onPlaceLngChange: (TextFieldValue) -> Unit,
     onBulkChanged: (Boolean) -> Unit,
-
     modifier: Modifier = Modifier,
     timePickerState: TimePickerState? = null,
 ) {
-
     var showTimePicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         val bulkInteractionSource = MutableInteractionSource()
 
@@ -87,12 +81,12 @@ fun PlaceInsert(
             modifier = Modifier.clickable(interactionSource = bulkInteractionSource) {
                 onBulkChanged(!isBulk)
             },
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = isBulk,
                 onCheckedChange = onBulkChanged,
-                interactionSource = bulkInteractionSource
+                interactionSource = bulkInteractionSource,
             )
             Text("Inserimento Multiplo")
         }
@@ -103,10 +97,10 @@ fun PlaceInsert(
                 value = placeName.value,
                 onValueChange = onPlaceNameChange,
                 isError = placeName.validationState is FieldValidationState.BaseNotValid,
-                singleLine = true
+                singleLine = true,
             )
 
-            //TODO Image load
+            // TODO Image load
 
 //            IconButton(
 //                onClick = {
@@ -152,8 +146,6 @@ fun PlaceInsert(
             }
         }
 
-
-
         when (inputMode) {
             PlaceInputMode.LAT_LNG -> {
                 Row {
@@ -163,7 +155,7 @@ fun PlaceInsert(
                         onValueChange = onPlaceLatChange,
                         isError = placeLat.validationState is FieldValidationState.BaseNotValid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     OutlinedTextField(
@@ -172,7 +164,7 @@ fun PlaceInsert(
                         onValueChange = onPlaceLngChange,
                         isError = placeLng.validationState is FieldValidationState.BaseNotValid,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true
+                        singleLine = true,
 
                     )
                 }
@@ -182,12 +174,10 @@ fun PlaceInsert(
                 SearchPlaceInsert(
                     searchQuery = searchQuery,
                     onSearchQueryChange = {
-
                     },
                     onPlaceSelected = { name, lat, lng ->
-
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -207,7 +197,7 @@ fun PlaceInsert(
                                 }
                             }
                         }
-                    }
+                    },
             )
 
             if (showTimePicker) {
@@ -219,7 +209,7 @@ fun PlaceInsert(
                         Button(
                             onClick = {
                                 showTimePicker = false
-                            }
+                            },
                         ) {
                             Text("Confirm")
                         }
@@ -227,7 +217,7 @@ fun PlaceInsert(
                     title = {
                         Text("Select time")
                     },
-                    content = { TimePicker(state = timePickerState) }
+                    content = { TimePicker(state = timePickerState) },
                 )
             }
         }
@@ -239,14 +229,14 @@ fun SearchPlaceInsert(
     searchQuery: TextFieldValue,
     onSearchQueryChange: (TextFieldValue) -> Unit,
     onPlaceSelected: (name: String, lat: Double, lng: Double) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
             label = { Text("Cerca luogo") },
             value = searchQuery,
             onValueChange = onSearchQueryChange,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         // TODO: Implementare lista risultati ricerca
@@ -270,7 +260,7 @@ private fun PlaceInsertPreview() {
             onPlaceLngChange = { },
             inputMode = PlaceInputMode.LAT_LNG,
             onInputModeChange = {},
-            onBulkChanged = {}
+            onBulkChanged = {},
         )
     }
 }

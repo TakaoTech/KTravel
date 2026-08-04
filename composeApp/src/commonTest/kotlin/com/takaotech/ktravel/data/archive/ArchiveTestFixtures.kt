@@ -35,16 +35,16 @@ internal object ArchiveTestFixtures {
                 id = "day-1",
                 date = LocalDate(2026, 4, 1),
                 steps = listOf(placeStep(), transportStep()),
-                places = listOf(PlaceEntity("place-day-1", "Ueno", 35.71, 139.77))
+                places = listOf(PlaceEntity("place-day-1", "Ueno", 35.71, 139.77)),
             ),
             TravelDayEntity(
                 id = "day-2",
                 date = LocalDate(2026, 4, 2),
                 steps = emptyList(),
-                places = emptyList()
-            )
+                places = emptyList(),
+            ),
         ),
-        places = listOf(PlaceEntity("place-backlog", "Odaiba", 35.62, 139.77))
+        places = listOf(PlaceEntity("place-backlog", "Odaiba", 35.62, 139.77)),
     )
 
     private fun placeStep() = StepEntity.Place(
@@ -57,7 +57,7 @@ internal object ArchiveTestFixtures {
             startTimeHour = 9,
             startTimeMinute = 30,
             endTimeHour = 11,
-            endTimeMinute = 0
+            endTimeMinute = 0,
         ),
         note = buildString {
             appendLine("# Senso-ji")
@@ -71,16 +71,16 @@ internal object ArchiveTestFixtures {
                 relativePath = PHOTO_PATH,
                 originalName = "photo.jpg",
                 mimeType = "image/jpeg",
-                sizeBytes = PHOTO_BYTES.size.toLong()
+                sizeBytes = PHOTO_BYTES.size.toLong(),
             ),
             AttachmentEntity(
                 id = "att-2",
                 relativePath = DOC_PATH,
                 originalName = "guide.pdf",
                 mimeType = "application/pdf",
-                sizeBytes = DOC_BYTES.size.toLong()
-            )
-        )
+                sizeBytes = DOC_BYTES.size.toLong(),
+            ),
+        ),
     )
 
     /** Variante senza inventario, per i casi in cui gli allegati non sono il soggetto del test. */
@@ -92,20 +92,20 @@ internal object ArchiveTestFixtures {
     fun TravelPlanEntity.withAttachmentPath(relativePath: String): TravelPlanEntity =
         mapPlaceSteps { step ->
             step.copy(
-                attachments = step.attachments.take(1).map { it.copy(relativePath = relativePath) })
-        }
-
-    private fun TravelPlanEntity.mapPlaceSteps(
-        transform: (StepEntity.Place) -> StepEntity.Place
-    ): TravelPlanEntity = copy(
-        days = days.map { day ->
-            day.copy(
-                steps = day.steps.map { step ->
-                    if (step is StepEntity.Place) transform(step) else step
-                }
+                attachments = step.attachments.take(1).map { it.copy(relativePath = relativePath) },
             )
         }
-    )
+
+    private fun TravelPlanEntity.mapPlaceSteps(transform: (StepEntity.Place) -> StepEntity.Place): TravelPlanEntity =
+        copy(
+            days = days.map { day ->
+                day.copy(
+                    steps = day.steps.map { step ->
+                        if (step is StepEntity.Place) transform(step) else step
+                    },
+                )
+            },
+        )
 
     private fun transportStep() = StepEntity.Transport(
         id = "step-2",
@@ -116,9 +116,9 @@ internal object ArchiveTestFixtures {
                     durationSeconds = 1800,
                     distanceMeters = 12_500.0,
                     polyline = "abc123",
-                    transportMode = "train"
-                )
-            )
-        )
+                    transportMode = "train",
+                ),
+            ),
+        ),
     )
 }

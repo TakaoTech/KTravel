@@ -61,7 +61,7 @@ class TravelSelectionViewModel(
             }
             state.copy(
                 isSelectionMode = selectedIds.isNotEmpty(),
-                selectedIds = selectedIds
+                selectedIds = selectedIds,
             )
         }
     }
@@ -108,8 +108,8 @@ class TravelSelectionViewModel(
                             it.copy(
                                 import = ImportUiState.AwaitingConflictChoice(
                                     importedName = staged.travelName,
-                                    existingName = existingName
-                                )
+                                    existingName = existingName,
+                                ),
                             )
                         }
                     } else {
@@ -130,7 +130,7 @@ class TravelSelectionViewModel(
             runImport(
                 staged = staged,
                 strategy = strategy,
-                nameOverride = duplicateName.takeIf { strategy == ImportConflictStrategy.DUPLICATE }
+                nameOverride = duplicateName.takeIf { strategy == ImportConflictStrategy.DUPLICATE },
             )
         }
     }
@@ -152,7 +152,7 @@ class TravelSelectionViewModel(
     private suspend fun runImport(
         staged: StagedTravelArchive,
         strategy: ImportConflictStrategy,
-        nameOverride: String?
+        nameOverride: String?,
     ) {
         _uiState.update { it.copy(import = ImportUiState.Importing) }
         archiveImporter.import(staged, strategy, nameOverride)
@@ -199,7 +199,7 @@ class TravelSelectionViewModel(
                     isLoading = false,
                     travelList = travelList,
                     isSelectionMode = state.isSelectionMode && selectedIds.isNotEmpty(),
-                    selectedIds = selectedIds
+                    selectedIds = selectedIds,
                 )
             }
         }.onFailure { error ->

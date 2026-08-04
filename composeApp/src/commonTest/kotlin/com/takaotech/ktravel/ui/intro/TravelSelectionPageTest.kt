@@ -27,13 +27,13 @@ class TravelSelectionPageTest : BehaviorSpec() {
         id = "id-1",
         name = "Viaggio a Tokyo",
         periodStart = LocalDate(2024, 3, 1),
-        periodEnd = LocalDate(2024, 3, 15)
+        periodEnd = LocalDate(2024, 3, 15),
     )
     private val travel2 = TravelSummaryUiState(
         id = "id-2",
         name = "Weekend a Roma",
         periodStart = LocalDate(2024, 6, 10),
-        periodEnd = LocalDate(2024, 6, 12)
+        periodEnd = LocalDate(2024, 6, 12),
     )
 
     init {
@@ -44,7 +44,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.SEARCH_BAR).assertIsDisplayed()
@@ -57,7 +57,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.FAB_NEW_TRAVEL).assertIsDisplayed()
@@ -70,7 +70,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id)).assertDoesNotExist()
@@ -85,7 +85,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).assertIsDisplayed()
@@ -101,7 +101,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 travelList = persistentListOf(),
                                 onTravelClick = {},
                                 onImportClick = { clicked++ },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).performClick()
@@ -118,7 +118,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 travelList = persistentListOf(),
                                 importState = ImportUiState.Importing,
                                 onTravelClick = {},
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.TOP_BAR_IMPORT).assertIsNotEnabled()
@@ -134,7 +134,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(travel1),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithText(travel1.name).assertIsDisplayed()
@@ -147,7 +147,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(travel1),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithText("${travel1.periodStart} - ${travel1.periodEnd}").assertIsDisplayed()
@@ -162,7 +162,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                         TravelSelectionPage(
                             travelList = persistentListOf(travel1, travel2),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithText(travel1.name).assertIsDisplayed()
@@ -180,7 +180,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                             TravelSelectionPage(
                                 travelList = persistentListOf(travel1, travel2),
                                 onTravelClick = { clickedId = it },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id)).performClick()
@@ -197,7 +197,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                             TravelSelectionPage(
                                 travelList = persistentListOf(travel1, travel2),
                                 onTravelClick = { clickedId = it },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id)).performClick()
@@ -216,7 +216,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                             TravelSelectionPage(
                                 travelList = persistentListOf(),
                                 onTravelClick = {},
-                                newTravelClick = { newTravelClicked = true }
+                                newTravelClick = { newTravelClicked = true },
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.FAB_NEW_TRAVEL).performClick()
@@ -236,7 +236,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 travelList = persistentListOf(travel1, travel2),
                                 onTravelClick = {},
                                 onTravelLongClick = { longClickedId = it },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id))
@@ -257,7 +257,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 travelList = persistentListOf(travel1, travel2),
                                 onTravelClick = {},
                                 onSwipeToDelete = { swipedId = it },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id))
@@ -276,7 +276,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 travelList = persistentListOf(travel1),
                                 onTravelClick = {},
                                 onSwipeToDelete = {},
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id))
@@ -297,7 +297,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                             isSelectionMode = true,
                             selectedIds = persistentSetOf(travel1.id),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel1.id)).assertIsSelected()
@@ -313,7 +313,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                             isSelectionMode = true,
                             selectedIds = persistentSetOf(travel1.id),
                             onTravelClick = {},
-                            newTravelClick = {}
+                            newTravelClick = {},
                         )
                     }
                     onNodeWithTag(TravelSelectionTestTags.FAB_NEW_TRAVEL).assertDoesNotExist()
@@ -331,7 +331,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 selectedIds = persistentSetOf(travel1.id),
                                 onTravelClick = {},
                                 onDeleteSelectedClick = { deleteClicked = true },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.TOP_BAR_DELETE_SELECTED).performClick()
@@ -349,7 +349,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 isSelectionMode = true,
                                 selectedIds = persistentSetOf(),
                                 onTravelClick = {},
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.TOP_BAR_DELETE_SELECTED).assertIsNotEnabled()
@@ -368,7 +368,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 selectedIds = persistentSetOf(travel1.id),
                                 onTravelClick = {},
                                 onExitSelectionMode = { exitClicked = true },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.TOP_BAR_EXIT_SELECTION).performClick()
@@ -387,7 +387,7 @@ class TravelSelectionPageTest : BehaviorSpec() {
                                 isSelectionMode = true,
                                 selectedIds = persistentSetOf(travel1.id),
                                 onTravelClick = { clickedId = it },
-                                newTravelClick = {}
+                                newTravelClick = {},
                             )
                         }
                         onNodeWithTag(TravelSelectionTestTags.travelItemTag(travel2.id)).performClick()

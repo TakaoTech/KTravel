@@ -306,7 +306,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set name error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeName.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeName.validationState.errorText?.text shouldBe Res.string.place_insert_error_name_empty
+                        viewModel.uiState.value.placeName.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_name_empty
                     }
                 }
 
@@ -332,7 +333,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lat error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_empty
+                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lat_empty
                     }
                 }
 
@@ -358,7 +360,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lng error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_empty
+                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lng_empty
                     }
                 }
 
@@ -385,7 +388,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lat error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_invalid_format
+                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lat_invalid_format
                     }
                 }
 
@@ -412,7 +416,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lng error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_invalid_format
+                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lng_invalid_format
                     }
                 }
 
@@ -439,7 +444,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lat error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe Res.string.place_insert_error_lat_invalid_format
+                        viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lat_invalid_format
                     }
                 }
 
@@ -466,7 +472,8 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 then("should set lng error") {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
-                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe Res.string.place_insert_error_lng_invalid_format
+                        viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
+                                Res.string.place_insert_error_lng_invalid_format
                     }
                 }
 
@@ -520,7 +527,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                                 "Fontana di Trevi",
                                 41.900932,
                                 12.483313,
-                                null
+                                null,
                             )
                         }
                     }

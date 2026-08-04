@@ -10,9 +10,7 @@ import kotlin.time.Duration
  *
  * @property routes List of possible routes from origin to destination
  */
-data class Routes(
-    val routes: List<Route>
-)
+data class Routes(val routes: List<Route>)
 
 /**
  * A single route alternative.
@@ -21,9 +19,7 @@ data class Routes(
  * @property sections Ordered list of navigation steps to follow
  * @property polyline Encoded polyline representing the full route geometry
  */
-data class Route(
-    val sections: List<RouteSection>,
-)
+data class Route(val sections: List<RouteSection>)
 
 /**
  * Summary information for a route.
@@ -31,18 +27,12 @@ data class Route(
  * @property durationSeconds Total estimated duration in seconds
  * @property distanceMeters Total distance in meters
  */
-data class RouteSummary(
-    val durationSeconds: Duration,
-    val distanceMeters: Int
-)
+data class RouteSummary(val durationSeconds: Duration, val distanceMeters: Int)
 
 /**
  * Basic information about a toll system authority.
  */
-data class RouteTollSystem(
-    val id: String,
-    val name: String? = null
-)
+data class RouteTollSystem(val id: String, val name: String? = null)
 
 /**
  * Toll payment details for a section.
@@ -56,7 +46,7 @@ data class RouteTollCost(
     val tollSystem: String,
     val tollSystemRef: Int,
     val tollSystems: List<Int>? = null,
-    val countryCode: String? = null
+    val countryCode: String? = null,
 )
 
 /**
@@ -73,7 +63,7 @@ data class RouteSection(
     val transport: RouteTransport? = null,
     val polyline: String? = null,
     val tollSystems: List<RouteTollSystem> = emptyList(),
-    val tolls: List<RouteTollCost> = emptyList()
+    val tolls: List<RouteTollCost> = emptyList(),
 )
 
 /**
@@ -86,28 +76,20 @@ data class RouteAction(
     val instruction: String? = null,
     val offset: Int? = null,
     val direction: String? = null,
-    val severity: String? = null
+    val severity: String? = null,
 )
 
 /**
  * Departure or arrival details for a route section.
  */
-data class RouteDeparture(
-    val location: RouteLocation,
-    val time: DateTimeComponents? = null
-)
+data class RouteDeparture(val location: RouteLocation, val time: DateTimeComponents? = null)
 
 /**
  * Geographic coordinates.
  */
-data class RouteLocation(
-    val lat: Double,
-    val lng: Double
-)
+data class RouteLocation(val lat: Double, val lng: Double)
 
 /**
  * Transport mode information.
  */
-data class RouteTransport(
-    val mode: String
-)
+data class RouteTransport(val mode: String)

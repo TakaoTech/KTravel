@@ -15,7 +15,7 @@ sealed class PublicTransitApiResult<out T> {
     data class Error(
         val httpStatusCode: Int,
         val errorResponse: com.takaotech.navigation.publictransit.dto.response.ErrorResponse? = null,
-        val exception: Exception? = null
+        val exception: Exception? = null,
     ) : PublicTransitApiResult<Nothing>()
 
     /**
@@ -41,10 +41,12 @@ sealed class PublicTransitApiResult<out T> {
      */
     fun getOrThrow(): T = when (this) {
         is Success -> data
-        is Error -> throw exception
-            ?: PublicTransitApiException(
-                errorResponse,
-                httpStatusCode
-            )
+
+        is Error ->
+            throw exception
+                ?: PublicTransitApiException(
+                    errorResponse,
+                    httpStatusCode,
+                )
     }
 }

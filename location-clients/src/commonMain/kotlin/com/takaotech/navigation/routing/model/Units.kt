@@ -12,5 +12,5 @@ enum class Units {
     METRIC,
 
     @SerialName("imperial")
-    IMPERIAL
+    IMPERIAL,
 }

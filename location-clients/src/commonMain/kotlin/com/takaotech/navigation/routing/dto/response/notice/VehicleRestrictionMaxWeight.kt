@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class VehicleRestrictionMaxWeight(
     @SerialName("value") val value: Int,
-    @SerialName("type") val type: String? = null
+    @SerialName("type") val type: String? = null,
 )

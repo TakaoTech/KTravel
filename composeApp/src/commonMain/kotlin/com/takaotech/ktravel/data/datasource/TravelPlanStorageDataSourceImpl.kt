@@ -21,7 +21,7 @@ import kotlinx.serialization.json.Json
 @Inject
 class TravelPlanStorageDataSourceImpl(
     private val storageRepository: DatabaseProvider,
-    private val attachmentDataSource: AttachmentDataSource
+    private val attachmentDataSource: AttachmentDataSource,
 ) : TravelPlanStorageDataSource {
 
     private val json = Json {
@@ -50,7 +50,7 @@ class TravelPlanStorageDataSourceImpl(
         }
     }
 
-    //TODO Convert to suspend
+    // TODO Convert to suspend
     override fun getTravelPlan(id: String): TravelPlanEntity {
         val map = travelCollection.getDocument(id)!!
         return json.decodeFromString<TravelPlanEntity>(map.toJSON())
@@ -63,14 +63,14 @@ class TravelPlanStorageDataSourceImpl(
                 ?.let { json.decodeFromString<TravelPlanEntity>(it).name }
         }
 
-    override suspend fun getAllTravelPlans(): List<TravelPlanEntity> {
-        return withContext(storageRepository.readContext) {
+    override suspend fun getAllTravelPlans(): List<TravelPlanEntity> =
+        withContext(storageRepository.readContext) {
             QueryBuilder
                 .select(SelectResult.all(), SelectResult.expression(Meta.id).`as`("_id"))
                 .from(DataSource.collection(travelCollection))
                 .where(
                     Expression.property("type")
-                        .equalTo(Expression.string(TravelPlanEntity.DOCUMENT_TYPE))
+                        .equalTo(Expression.string(TravelPlanEntity.DOCUMENT_TYPE)),
                 )
                 .execute()
                 .allResults()
@@ -80,7 +80,6 @@ class TravelPlanStorageDataSourceImpl(
                             .copy(id = result.getString("_id") ?: "")
                     }
                 }
-        }
     }
 
     override suspend fun deleteTravelPlan(id: String) {

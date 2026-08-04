@@ -24,7 +24,7 @@ sealed class VehicleNoticeDetail {
         @SerialName("maxWeight") val maxWeight: VehicleRestrictionMaxWeight? = null,
         @SerialName("timeDependent") val timeDependent: Boolean? = null,
         @SerialName("restrictedTimes") val restrictedTimes: String? = null,
-        @SerialName("unconditional") val unconditional: Boolean? = null
+        @SerialName("unconditional") val unconditional: Boolean? = null,
     ) : VehicleNoticeDetail()
 
     /**
@@ -37,7 +37,7 @@ sealed class VehicleNoticeDetail {
     @SerialName("violatedTransportMode")
     data class ViolatedTransportMode(
         @SerialName("title") val title: String? = null,
-        @SerialName("cause") val cause: String? = null
+        @SerialName("cause") val cause: String? = null,
     ) : VehicleNoticeDetail()
 
     /**
@@ -52,7 +52,7 @@ sealed class VehicleNoticeDetail {
     data class ViolatedTruckRoadType(
         @SerialName("title") val title: String? = null,
         @SerialName("cause") val cause: String? = null,
-        @SerialName("truckRoadType") val truckRoadType: String? = null
+        @SerialName("truckRoadType") val truckRoadType: String? = null,
     ) : VehicleNoticeDetail()
 
     /**
@@ -75,7 +75,7 @@ sealed class VehicleNoticeDetail {
         @SerialName("timeDependent") val timeDependent: Boolean? = null,
         @SerialName("restrictedTimes") val restrictedTimes: String? = null,
         @SerialName("licensePlateRestriction") val licensePlateRestriction: LicensePlateRestriction? = null,
-        @SerialName("maxWeight") val maxWeight: VehicleRestrictionMaxWeight? = null
+        @SerialName("maxWeight") val maxWeight: VehicleRestrictionMaxWeight? = null,
     ) : VehicleNoticeDetail()
 
     /**
@@ -90,6 +90,6 @@ sealed class VehicleNoticeDetail {
     data class ViolatedChargingStationOpeningHours(
         @SerialName("title") val title: String? = null,
         @SerialName("cause") val cause: String? = null,
-        @SerialName("opening_hours") val openingHours: String? = null
+        @SerialName("opening_hours") val openingHours: String? = null,
     ) : VehicleNoticeDetail()
 }

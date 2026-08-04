@@ -112,6 +112,7 @@ internal object PlanningTripTestTags {
 @Composable
 private fun ExportUiState.message(): String? = when (this) {
     ExportUiState.Idle, ExportUiState.InProgress -> null
+
     is ExportUiState.Completed -> if (skippedAttachments == 0) {
         stringResource(Res.string.planning_trip_export_success)
     } else {
@@ -148,7 +149,7 @@ fun PlanningTripPage(
     }
 
     DisruptiveOperationDialog(
-        state = deleteDialogState
+        state = deleteDialogState,
     )
 
     // Il file saver appartiene alla pagina: la destinazione scelta va consegnata al ViewModel, che
@@ -167,7 +168,7 @@ fun PlanningTripPage(
         onExportClick = {
             exportLauncher.launch(
                 suggestedName = planHeader.name.text.toArchiveFileName(),
-                extension = TravelArchiveFormat.FILE_EXTENSION
+                extension = TravelArchiveFormat.FILE_EXTENSION,
             )
         },
         onExportMessageShown = viewModel::onExportMessageShown,
@@ -185,7 +186,7 @@ fun PlanningTripPage(
         onPlaceMovedToDay = { placeId, dayId ->
             viewModel.onPlaceMovedToDate(placeId, dayId)
         },
-        onSettingClicked = onSettingClicked
+        onSettingClicked = onSettingClicked,
     )
 }
 
@@ -196,21 +197,15 @@ private fun PlanningTripPage(
     places: PersistentList<PlaceUi>,
     days: ImmutableList<TravelDayUi>,
     modifier: Modifier = Modifier,
-
     exportState: ExportUiState = ExportUiState.Idle,
-
     onBackClick: () -> Unit,
     onExportClick: () -> Unit,
     onExportMessageShown: () -> Unit,
-
     onSettingClicked: () -> Unit,
-
     onPlanNameChange: (TextFieldValue) -> Unit,
     onPlanDateRangeChanged: (start: Long, end: Long) -> Unit,
-
     onAddPlaceClicked: () -> Unit,
     onDeletePermanentPlaceClick: (String) -> Unit,
-
     onDateClicked: (id: String) -> Unit,
     onPlaceMovedToDay: (placeId: String, dayId: String) -> Unit,
 ) {
@@ -243,7 +238,7 @@ private fun PlanningTripPage(
     if (isExportDialogVisible) {
         ExportLoadingDialog(
             isCompleted = exportState is ExportUiState.Completed,
-            onCompletionAnimationEnd = { isExportDialogVisible = false }
+            onCompletionAnimationEnd = { isExportDialogVisible = false },
         )
     }
 
@@ -257,7 +252,7 @@ private fun PlanningTripPage(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_back)
+                            contentDescription = stringResource(Res.string.planning_trip_cd_back),
                         )
                     }
                 },
@@ -265,41 +260,41 @@ private fun PlanningTripPage(
                     IconButton(
                         modifier = Modifier.testTag(PlanningTripTestTags.EXPORT),
                         onClick = onExportClick,
-                        enabled = exportState !is ExportUiState.InProgress
+                        enabled = exportState !is ExportUiState.InProgress,
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.file_export),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_export)
+                            contentDescription = stringResource(Res.string.planning_trip_cd_export),
                         )
                     }
                     IconButton(onClick = onSettingClicked) {
                         Icon(
                             painter = painterResource(Res.drawable.settings),
-                            contentDescription = stringResource(Res.string.planning_trip_cd_settings)
+                            contentDescription = stringResource(Res.string.planning_trip_cd_settings),
                         )
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddPlaceClicked,
                 expanded = currentWindowAdaptiveInfoV2().windowSizeClass.isWidthAtLeastBreakpoint(
-                    WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND
+                    WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
                 ),
                 text = {
                     Text(
-                        text = stringResource(Res.string.planning_trip_add_place)
+                        text = stringResource(Res.string.planning_trip_add_place),
                     )
                 },
                 icon = {
                     Icon(
                         painter = painterResource(Res.drawable.add),
-                        contentDescription = stringResource(Res.string.planning_trip_add_place)
+                        contentDescription = stringResource(Res.string.planning_trip_add_place),
                     )
-                }
+                },
             )
-        }
+        },
     ) {
         val dragAndDropState = rememberDragAndDropState<PlaceUi>()
 
@@ -312,7 +307,7 @@ private fun PlanningTripPage(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
                     PlanningHeader(
@@ -320,7 +315,7 @@ private fun PlanningTripPage(
                         onNameChange = onPlanNameChange,
                         startDateMillis = planHeader.period.start,
                         endDateMillis = planHeader.period.end,
-                        onPlanDateRangeChanged = onPlanDateRangeChanged
+                        onPlanDateRangeChanged = onPlanDateRangeChanged,
                     )
                 }
 
@@ -334,7 +329,7 @@ private fun PlanningTripPage(
                     items = places,
                     key = { _, place ->
                         place.id
-                    }
+                    },
                 ) { _, place ->
                     DraggableItem(
                         state = dragAndDropState,
@@ -345,7 +340,7 @@ private fun PlanningTripPage(
                             name = place.name,
                             onDeleteClick = {
                                 onDeletePermanentPlaceClick(place.id)
-                            }
+                            },
                         )
                     }
                 }
@@ -358,7 +353,7 @@ private fun PlanningTripPage(
                     items = days,
                     key = { _: Int, day: TravelDayUi ->
                         day.date.toEpochDays()
-                    }
+                    },
                 ) { _, day ->
                     PlanDayItem(
                         modifier = Modifier.dropTarget(
@@ -368,13 +363,13 @@ private fun PlanningTripPage(
                                 val place = state.data
                                 onPlaceMovedToDay(place.id, day.id)
                                 place
-                            }
+                            },
                         ),
                         day = day.date,
                         placeSteps = day.placeSteps,
                         onDateClicked = {
                             onDateClicked(day.id)
-                        }
+                        },
                     )
                 }
             }
@@ -397,31 +392,28 @@ private const val EXPORT_ANIMATION_ASPECT_RATIO = 1920f / 651f
  * so the caller can dismiss the dialog.
  */
 @Composable
-private fun ExportLoadingDialog(
-    isCompleted: Boolean,
-    onCompletionAnimationEnd: () -> Unit
-) {
+private fun ExportLoadingDialog(isCompleted: Boolean, onCompletionAnimationEnd: () -> Unit) {
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(
             dismissOnBackPress = false,
-            dismissOnClickOutside = false
-        )
+            dismissOnClickOutside = false,
+        ),
     ) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             // Both compositions are loaded upfront: the arrival must be ready when the transition
             // starts, otherwise the slide would carry an empty frame.
             val inProgressComposition by rememberLottieComposition {
                 LottieCompositionSpec.JsonString(
-                    Res.readBytes("files/lottie_train_export.json").decodeToString()
+                    Res.readBytes("files/lottie_train_export.json").decodeToString(),
                 )
             }
             val completedComposition by rememberLottieComposition {
                 LottieCompositionSpec.JsonString(
-                    Res.readBytes("files/lottie_train_station_export.json").decodeToString()
+                    Res.readBytes("files/lottie_train_station_export.json").decodeToString(),
                 )
             }
 
@@ -432,39 +424,39 @@ private fun ExportLoadingDialog(
                     // while the running train leaves through the right edge.
                     slideInHorizontally { width -> -width } togetherWith
                             slideOutHorizontally { width -> width }
-                }
+                },
             ) { completed ->
                 Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     if (completed) {
                         ExportTrainAnimation(
                             composition = completedComposition,
                             iterations = 1,
                             contentDescription = stringResource(
-                                Res.string.planning_trip_cd_export_completed_animation
+                                Res.string.planning_trip_cd_export_completed_animation,
                             ),
-                            onAnimationEnd = onCompletionAnimationEnd
+                            onAnimationEnd = onCompletionAnimationEnd,
                         )
 
                         Text(
                             text = stringResource(Res.string.planning_trip_export_success),
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     } else {
                         ExportTrainAnimation(
                             composition = inProgressComposition,
                             iterations = Compottie.IterateForever,
                             contentDescription = stringResource(
-                                Res.string.planning_trip_cd_export_animation
-                            )
+                                Res.string.planning_trip_cd_export_animation,
+                            ),
                         )
 
                         Text(
                             text = stringResource(Res.string.planning_trip_export_in_progress),
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                     }
                 }
@@ -484,7 +476,7 @@ private fun ExportTrainAnimation(
     iterations: Int,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    onAnimationEnd: () -> Unit = { }
+    onAnimationEnd: () -> Unit = { },
 ) {
     val animatable = rememberLottieAnimatable()
     val currentOnAnimationEnd by rememberUpdatedState(onAnimationEnd)
@@ -492,7 +484,7 @@ private fun ExportTrainAnimation(
     LaunchedEffect(composition, iterations) {
         animatable.animate(
             composition = composition ?: return@LaunchedEffect,
-            iterations = iterations
+            iterations = iterations,
         )
         currentOnAnimationEnd()
     }
@@ -504,22 +496,19 @@ private fun ExportTrainAnimation(
             .clip(MaterialTheme.shapes.large),
         painter = rememberLottiePainter(
             composition = composition,
-            progress = animatable::value
+            progress = animatable::value,
         ),
-        contentDescription = contentDescription
+        contentDescription = contentDescription,
     )
 }
 
 @Composable
-private fun SectionTitle(
-    text: String,
-    modifier: Modifier = Modifier
-) {
+private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         modifier = modifier,
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.SemiBold,
     )
 }
 
@@ -528,34 +517,30 @@ private fun SectionTitle(
  * plan it.
  */
 @Composable
-private fun TripPlaceRow(
-    name: String,
-    modifier: Modifier = Modifier,
-    onDeleteClick: () -> Unit,
-) {
+private fun TripPlaceRow(name: String, modifier: Modifier = Modifier, onDeleteClick: () -> Unit) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
     ) {
         Row(
             modifier = Modifier
                 .heightIn(min = 56.dp)
                 .padding(start = 18.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.weight(1f),
                 text = name,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
 
             IconButton(onClick = onDeleteClick) {
                 Icon(
                     painter = painterResource(Res.drawable.delete),
-                    contentDescription = stringResource(Res.string.planning_trip_cd_delete_place)
+                    contentDescription = stringResource(Res.string.planning_trip_cd_delete_place),
                 )
             }
         }
@@ -572,16 +557,16 @@ private fun PlanningPagePreview() = KTravelTheme {
         ),
         places = persistentListOf(
             PlaceUi(id = "1", name = "Binasco", lat = 45.3328, lng = 9.1010),
-            PlaceUi(id = "2", name = "Assago", lat = 45.4030, lng = 9.1290)
+            PlaceUi(id = "2", name = "Assago", lat = 45.4030, lng = 9.1290),
         ),
         days = persistentListOf(
             TravelDayUi(
                 date = LocalDate(2024, 6, 15),
-                steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList()
+                steps = TravelDayStepPreviewParameterProvider(8).values.toList().toPersistentList(),
             ),
             TravelDayUi(
-                date = LocalDate(2024, 6, 16)
-            )
+                date = LocalDate(2024, 6, 16),
+            ),
         ),
         onBackClick = {},
         onPlanNameChange = {},
@@ -592,7 +577,7 @@ private fun PlanningPagePreview() = KTravelTheme {
         onPlaceMovedToDay = { _, _ -> },
         onSettingClicked = {},
         onExportClick = {},
-        onExportMessageShown = {}
+        onExportMessageShown = {},
     )
 }
 
@@ -601,7 +586,7 @@ private fun PlanningPagePreview() = KTravelTheme {
 private fun ExportLoadingDialogPreview() = KTravelTheme {
     ExportLoadingDialog(
         isCompleted = false,
-        onCompletionAnimationEnd = {}
+        onCompletionAnimationEnd = {},
     )
 }
 
@@ -610,6 +595,6 @@ private fun ExportLoadingDialogPreview() = KTravelTheme {
 private fun ExportCompletedDialogPreview() = KTravelTheme {
     ExportLoadingDialog(
         isCompleted = true,
-        onCompletionAnimationEnd = {}
+        onCompletionAnimationEnd = {},
     )
 }

@@ -33,9 +33,10 @@ interface AppGraph : ViewModelGraph {
         fun provideCircuit(
             presenterFactories: Set<Presenter.Factory>,
             uiFactories: Set<Ui.Factory>
-        ): Circuit = Circuit.Builder()
-            .addPresenterFactories(presenterFactories)
-            .addUiFactories(uiFactories)
-            .build()
+        ): Circuit =
+            Circuit.Builder()
+                .addPresenterFactories(presenterFactories)
+                .addUiFactories(uiFactories)
+                .build()
     }
 }

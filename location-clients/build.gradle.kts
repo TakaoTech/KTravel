@@ -29,6 +29,15 @@ kotlin {
             enable = true
         }
 
+        // Runs the commonTest suite on the Android JVM as well, so the shared logic is verified
+        // against the Android variant and not only against the desktop one. These tests use
+        // kotlin.test, which resolves to JUnit 4 here: unlike :composeApp, no useJUnitPlatform()
+        // must be applied, or nothing would be discovered.
+        withHostTestBuilder { }.configure {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+        }
+
         // Keep rules shipped to consumers that minify (see androidApp). `publish` is required:
         // consumer rules of a KMP library are not published by default.
         optimization {

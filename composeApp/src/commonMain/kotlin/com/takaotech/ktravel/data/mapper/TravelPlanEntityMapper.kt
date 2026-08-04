@@ -47,14 +47,14 @@ object TravelPlanEntityMapper {
         id = id,
         date = date,
         steps = steps.map { it.toEntity() },
-        places = places.map { it.toEntity() }
+        places = places.map { it.toEntity() },
     )
 
     fun PlaceDomain.toEntity(): PlaceEntity = PlaceEntity(
         id = id,
         name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
     )
 
     fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
@@ -62,7 +62,7 @@ object TravelPlanEntityMapper {
         startTimeHour = startTime?.hour,
         startTimeMinute = startTime?.minute,
         endTimeHour = endTime?.hour,
-        endTimeMinute = endTime?.minute
+        endTimeMinute = endTime?.minute,
     )
 
     fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
@@ -70,7 +70,7 @@ object TravelPlanEntityMapper {
         relativePath = relativePath,
         originalName = originalName,
         mimeType = mimeType,
-        sizeBytes = sizeBytes
+        sizeBytes = sizeBytes,
     )
 
     fun StepDomain.toEntity(): StepEntity = when (this) {
@@ -81,18 +81,18 @@ object TravelPlanEntityMapper {
             lng = lng,
             schedule = schedule?.toEntity(),
             note = note,
-            attachments = attachments.map { it.toEntity() }
+            attachments = attachments.map { it.toEntity() },
         )
 
         is StepDomain.Transport -> StepEntity.Transport(
             id = id,
             transportType = type.name,
-            route = route.toEntity()
+            route = route.toEntity(),
         )
     }
 
     fun Route.toEntity(): RouteEntity = RouteEntity(
-        sections = sections.map { it.toEntity() }
+        sections = sections.map { it.toEntity() },
     )
 
     fun RouteSection.toEntity(): RouteSectionEntity = RouteSectionEntity(
@@ -104,7 +104,7 @@ object TravelPlanEntityMapper {
         departureLng = departure?.location?.lng,
         arrivalLat = arrival?.location?.lat,
         arrivalLng = arrival?.location?.lng,
-        actions = actions.map { it.toEntity() }
+        actions = actions.map { it.toEntity() },
     )
 
     fun RouteAction.toEntity(): RouteActionEntity = RouteActionEntity(
@@ -113,7 +113,7 @@ object TravelPlanEntityMapper {
         distanceMeters = distanceMeters.amount,
         instruction = instruction,
         direction = direction,
-        severity = severity
+        severity = severity,
     )
 
     // ── Entity → Domain ───────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ object TravelPlanEntityMapper {
         id = id,
         name = name,
         periodStart = periodStart,
-        periodEnd = periodEnd
+        periodEnd = periodEnd,
     )
 
     fun TravelPlanEntity.toDomain(): TravelPlanDomain = TravelPlanDomain(
@@ -131,27 +131,27 @@ object TravelPlanEntityMapper {
         periodStart = periodStart,
         periodEnd = periodEnd,
         days = days.map { it.toDomain() },
-        places = places.map { it.toDomain() }
+        places = places.map { it.toDomain() },
     )
 
     fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(
         id = id,
         date = date,
         steps = steps.map { it.toDomain() },
-        places = places.map { it.toDomain() }
+        places = places.map { it.toDomain() },
     )
 
     fun PlaceEntity.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,
         lat = lat,
-        lng = lng
+        lng = lng,
     )
 
     fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
         date = dateEpochDays?.let { LocalDate.fromEpochDays(it) },
         startTime = localTimeOrNull(startTimeHour, startTimeMinute),
-        endTime = localTimeOrNull(endTimeHour, endTimeMinute)
+        endTime = localTimeOrNull(endTimeHour, endTimeMinute),
     )
 
     private fun localTimeOrNull(hour: Int?, minute: Int?): LocalTime? =
@@ -162,7 +162,7 @@ object TravelPlanEntityMapper {
         relativePath = relativePath,
         originalName = originalName,
         mimeType = mimeType,
-        sizeBytes = sizeBytes
+        sizeBytes = sizeBytes,
     )
 
     fun StepEntity.toDomain(): StepDomain = when (this) {
@@ -173,34 +173,38 @@ object TravelPlanEntityMapper {
             lng = lng,
             schedule = schedule?.toDomain(),
             note = note,
-            attachments = attachments.map { it.toDomain() }
+            attachments = attachments.map { it.toDomain() },
         )
 
         is StepEntity.Transport -> StepDomain.Transport(
             id = id,
             type = TransportType.valueOf(transportType),
-            route = route.toDomain()
+            route = route.toDomain(),
         )
     }
 
     fun RouteEntity.toDomain(): Route = Route(
-        sections = sections.map { it.toDomain() }
+        sections = sections.map { it.toDomain() },
     )
 
     fun RouteSectionEntity.toDomain(): RouteSection = RouteSection(
         summary = RouteSummary(
             durationSeconds = durationSeconds.seconds,
-            distanceMeters = distanceMeters.toInt()
+            distanceMeters = distanceMeters.toInt(),
         ),
         polyline = polyline,
         transport = transportMode?.let { RouteTransport(mode = it) },
         departure = if (departureLat != null && departureLng != null) {
             RouteDeparture(location = RouteLocation(lat = departureLat, lng = departureLng))
-        } else null,
+        } else {
+            null
+        },
         arrival = if (arrivalLat != null && arrivalLng != null) {
             RouteDeparture(location = RouteLocation(lat = arrivalLat, lng = arrivalLng))
-        } else null,
-        actions = actions.map { it.toDomain() }
+        } else {
+            null
+        },
+        actions = actions.map { it.toDomain() },
     )
 
     fun RouteActionEntity.toDomain(): RouteAction = RouteAction(
@@ -209,6 +213,6 @@ object TravelPlanEntityMapper {
         distanceMeters = distanceMeters * Length.meters,
         instruction = instruction,
         direction = direction,
-        severity = severity
+        severity = severity,
     )
 }

@@ -68,7 +68,7 @@ class PlanningTransportRoutePreviewPageNavigation(val dayId: String, val startPl
 fun PlanningTransportPage(
     viewModel: PlanningTransportViewModel,
     modifier: Modifier = Modifier,
-    onNavigationBackClick: () -> Unit
+    onNavigationBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -84,7 +84,7 @@ fun PlanningTransportPage(
         },
         onCalculateClick = {
             viewModel.calculateTransport()
-        }
+        },
     )
 }
 
@@ -96,7 +96,7 @@ private fun PlanningTransportPage(
     onNavigationBackClick: () -> Unit,
     onCalculateClick: () -> Unit,
     onProviderChange: (RoutingProviderType) -> Unit,
-    onProviderSettingsChange: (RoutingProviderSettings) -> Unit
+    onProviderSettingsChange: (RoutingProviderSettings) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -109,22 +109,22 @@ private fun PlanningTransportPage(
                     IconButton(onClick = onNavigationBackClick) {
                         Icon(
                             painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
-                }
+                },
             )
         },
         bottomBar = {
             BottomAppBar {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onCalculateClick
+                    onClick = onCalculateClick,
                 ) {
                     Text("Calculate")
                 }
             }
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -132,7 +132,7 @@ private fun PlanningTransportPage(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val startPlace = uiState.startPlace
             val endPlace = uiState.endPlace
@@ -145,12 +145,12 @@ private fun PlanningTransportPage(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .weight(1f),
-                        text = uiState.startPlace.name
+                        text = uiState.startPlace.name,
                     )
 
                     val composition by rememberLottieComposition {
                         LottieCompositionSpec.JsonString(
-                            Res.readBytes("files/lottie_paper_airplane.json").decodeToString()
+                            Res.readBytes("files/lottie_paper_airplane.json").decodeToString(),
                         )
                     }
 
@@ -158,9 +158,9 @@ private fun PlanningTransportPage(
                         modifier = Modifier.padding(8.dp),
                         painter = rememberLottiePainter(
                             composition = composition,
-                            iterations = Compottie.IterateForever
+                            iterations = Compottie.IterateForever,
                         ),
-                        contentDescription = "Lottie animation"
+                        contentDescription = "Lottie animation",
                     )
 
 //                    Icon(
@@ -173,22 +173,20 @@ private fun PlanningTransportPage(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .weight(1f),
-                        text = uiState.endPlace.name
+                        text = uiState.endPlace.name,
                     )
                 }
             }
 
-
-
             ExposedDropdownMenuBox(
                 expanded = expanded,
-                onExpandedChange = { expanded = it }
+                onExpandedChange = { expanded = it },
             ) {
                 OutlinedTextField(
                     label = {
                         Text(
                             text = "Routing Provider",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     },
                     value = stringResource(uiState.selectedProvider.stringName),
@@ -197,12 +195,12 @@ private fun PlanningTransportPage(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
                 )
 
                 ExposedDropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
                 ) {
                     uiState.availableProviders.forEach { providerType ->
                         DropdownMenuItem(
@@ -211,7 +209,7 @@ private fun PlanningTransportPage(
                                 onProviderChange(providerType)
 
                                 expanded = false
-                            }
+                            },
                         )
                     }
                 }
@@ -220,17 +218,17 @@ private fun PlanningTransportPage(
             when (val settings = uiState.providerSettings) {
                 is RoutingProviderSettings.Local -> LocalProviderSettings(
                     settings = settings,
-                    onSettingsChange = { onProviderSettingsChange(it) }
+                    onSettingsChange = { onProviderSettingsChange(it) },
                 )
 
                 is RoutingProviderSettings.Here -> HereProviderSettings(
                     settings = settings,
-                    onSettingsChange = { onProviderSettingsChange(it) }
+                    onSettingsChange = { onProviderSettingsChange(it) },
                 )
 
                 is RoutingProviderSettings.GMaps -> GMapsProviderSettings(
                     settings = settings,
-                    onSettingsChange = { onProviderSettingsChange(it) }
+                    onSettingsChange = { onProviderSettingsChange(it) },
                 )
             }
         }
@@ -238,10 +236,7 @@ private fun PlanningTransportPage(
 }
 
 @Composable
-private fun PlaceDestination(
-    text: String,
-    modifier: Modifier = Modifier
-) {
+private fun PlaceDestination(text: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.extraSmall,
@@ -273,13 +268,13 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
             startPlace = StepUi.Place(
                 name = "P.za del Colosseo, 1, 00184 Roma RM",
                 lat = 0.0,
-                lng = 0.0
+                lng = 0.0,
             ),
-            endPlace = StepUi.Place(name = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0)
+            endPlace = StepUi.Place(name = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0),
         ),
         onNavigationBackClick = {},
         onCalculateClick = {},
         onProviderChange = {},
-        onProviderSettingsChange = {}
+        onProviderSettingsChange = {},
     )
 }

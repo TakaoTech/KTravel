@@ -16,6 +16,6 @@ import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailUiState
 fun PlanningDetailUi(state: PlanningDetailUiState, modifier: Modifier = Modifier) {
     PlanningDetailPage(
         state = state,
-        modifier = modifier
+        modifier = modifier,
     )
 }

@@ -14,5 +14,5 @@ data class TransitTransport(
     val textColor: String? = null,
     val headsign: String? = null,
     val shortName: String? = null,
-    val longName: String? = null
+    val longName: String? = null,
 )

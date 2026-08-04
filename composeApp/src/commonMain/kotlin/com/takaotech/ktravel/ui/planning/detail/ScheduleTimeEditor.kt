@@ -84,7 +84,7 @@ internal fun ScheduleTimeEditor(
                 onStartConfirm(it)
                 showStartPicker = false
             },
-            onDismiss = { showStartPicker = false }
+            onDismiss = { showStartPicker = false },
         )
     }
 
@@ -98,7 +98,7 @@ internal fun ScheduleTimeEditor(
                 onEndConfirm(it)
                 showEndPicker = false
             },
-            onDismiss = { showEndPicker = false }
+            onDismiss = { showEndPicker = false },
         )
     }
 }
@@ -118,7 +118,7 @@ internal fun ScheduleTimePickerDialog(
 ) {
     val state = rememberTimePickerState(
         initialHour = initialTime?.hour ?: 0,
-        initialMinute = initialTime?.minute ?: 0
+        initialMinute = initialTime?.minute ?: 0,
     )
     val selected = LocalTime(state.hour, state.minute)
     val valid = isValid(selected)
@@ -129,7 +129,7 @@ internal fun ScheduleTimePickerDialog(
         confirmButton = {
             TextButton(
                 enabled = valid,
-                onClick = { onConfirm(LocalTime(state.hour, state.minute)) }
+                onClick = { onConfirm(LocalTime(state.hour, state.minute)) },
             ) {
                 Text(stringResource(Res.string.time_picker_confirm))
             }
@@ -141,14 +141,14 @@ internal fun ScheduleTimePickerDialog(
         },
         content = {
             TimePicker(state = state)
-            //TODO Add TimeZone Selection
+            // TODO Add TimeZone Selection
             if (!valid) {
                 Text(
                     text = stringResource(Res.string.planning_detail_departure_before_arrival),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
-        }
+        },
     )
 }

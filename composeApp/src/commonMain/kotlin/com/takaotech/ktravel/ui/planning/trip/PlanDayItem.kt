@@ -68,11 +68,17 @@ fun PlanDayItem(
     val day by remember(day) {
         derivedStateOf {
             LocalDate.Format {
-                //TODO Add support for other languages
+                // TODO Add support for other languages
                 // temporary candidate for fix https://github.com/adrcotfas/kotlinx-datetime-names
-                dayOfWeek(DayOfWeekNames.ENGLISH_FULL); char(' '); day(); char('-'); monthNumber(); char(
-                '-'
-            ); year()
+                dayOfWeek(DayOfWeekNames.ENGLISH_FULL)
+                char(' ')
+                day()
+                char('-')
+                monthNumber()
+                char(
+                    '-',
+                )
+                year()
             }.format(
                 day,
             )
@@ -87,46 +93,46 @@ fun PlanDayItem(
     }
     val chevronRotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        label = "PlanDayItemChevronRotation"
+        label = "PlanDayItemChevronRotation",
     )
 
     OutlinedCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onDateClicked,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.large,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .minimumInteractiveComponentSize(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     modifier = Modifier.weight(1f),
                     text = day,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
 
                 if (isCollapsible) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         AnimatedVisibility(
                             visible = !isExpanded,
                             enter = scaleIn(),
-                            exit = scaleOut()
+                            exit = scaleOut(),
                         ) {
                             val containerColor = MaterialTheme.colorScheme.tertiaryContainer
 
@@ -136,10 +142,10 @@ fun PlanDayItem(
                                     .drawBehind {
                                         drawCircle(
                                             color = containerColor,
-                                            radius = (this.size.maxDimension / 4) * 3
+                                            radius = (this.size.maxDimension / 4) * 3,
                                         )
                                     },
-                                text = placeSteps.size.toString()
+                                text = placeSteps.size.toString(),
                             )
                         }
 
@@ -154,9 +160,9 @@ fun PlanDayItem(
                                         Res.string.planning_trip_cd_collapse_day
                                     } else {
                                         Res.string.planning_trip_cd_expand_day
-                                    }
+                                    },
                                 ),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -167,13 +173,13 @@ fun PlanDayItem(
                 Text(
                     text = stringResource(Res.string.planning_trip_day_empty),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
                 AnimatedVisibility(
                     visible = isExpanded || !isCollapsible,
                     enter = expandVertically(),
-                    exit = shrinkVertically()
+                    exit = shrinkVertically(),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         placeSteps.forEach { step ->
@@ -182,13 +188,13 @@ fun PlanDayItem(
                                     modifier = Modifier.size(18.dp),
                                     painter = painterResource(Res.drawable.place),
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.primary,
                                 )
 
                                 Text(
                                     modifier = Modifier.padding(start = 8.dp),
                                     text = step.name,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
                         }
@@ -208,9 +214,9 @@ private fun PlanItemPreview() = KTravelTheme {
         placeSteps = TravelDayUi(
             date = LocalDate(2023, 1, 1),
             steps = TravelDayStepPreviewParameterProvider(MIN_ITEM_COLLAPSE * 2)
-                .values.toList().toPersistentList()
+                .values.toList().toPersistentList(),
         ).placeSteps,
-        onDateClicked = {}
+        onDateClicked = {},
     )
 }
 
@@ -222,9 +228,9 @@ private fun PlanItemNotCollapsiblePreview() = KTravelTheme {
         placeSteps = TravelDayUi(
             date = LocalDate(2023, 1, 1),
             steps = TravelDayStepPreviewParameterProvider((MIN_ITEM_COLLAPSE - 1) * 2)
-                .values.toList().toPersistentList()
+                .values.toList().toPersistentList(),
         ).placeSteps,
-        onDateClicked = {}
+        onDateClicked = {},
     )
 }
 
@@ -234,6 +240,6 @@ private fun PlanItemEmptyPreview() = KTravelTheme {
     PlanDayItem(
         day = LocalDate(2023, 1, 1),
         placeSteps = persistentListOf(),
-        onDateClicked = {}
+        onDateClicked = {},
     )
 }

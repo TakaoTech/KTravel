@@ -10,9 +10,7 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(PlanningGraphScope::class)
 @OpenForMokkery
 @Inject
-class SavePlaceUseCase(
-    private val repository: TravelPlanRepository
-) {
+class SavePlaceUseCase(private val repository: TravelPlanRepository) {
     open suspend operator fun invoke(name: String, lat: Double, lng: Double, dayId: String?) {
         val place = PlaceDomain(name = name, lat = lat, lng = lng)
         repository.savePlace(place, dayId)

@@ -49,20 +49,20 @@ class TravelArchiveImporterImpl private constructor(
     private val attachments: AttachmentDataSource,
     private val zipFactory: ZipArchiveFactory,
     private val stagingRootProvider: () -> PlatformFile,
-    private val newId: () -> String
+    private val newId: () -> String,
 ) : TravelArchiveImporter {
 
     @Inject
     constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
-        zipFactory: ZipArchiveFactory
+        zipFactory: ZipArchiveFactory,
     ) : this(
         storage = storage,
         attachments = attachments,
         zipFactory = zipFactory,
         stagingRootProvider = { FileKit.cacheDir / TravelArchiveExporterImpl.STAGING_DIR },
-        newId = { Uuid.random().toString() }
+        newId = { Uuid.random().toString() },
     )
 
     /** Costruttore per i test: staging esplicito e id deterministici. */
@@ -71,10 +71,13 @@ class TravelArchiveImporterImpl private constructor(
         attachments: AttachmentDataSource,
         zipFactory: ZipArchiveFactory,
         stagingRoot: PlatformFile,
-        newId: () -> String = { Uuid.random().toString() }
+        newId: () -> String = { Uuid.random().toString() },
     ) : this(storage, attachments, zipFactory, { stagingRoot }, newId)
 
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
     private val migrator = TravelPlanSchemaMigrator()
     private val stagingArea = ArchiveStagingArea(stagingRootProvider)
 
@@ -99,7 +102,7 @@ class TravelArchiveImporterImpl private constructor(
     override suspend fun import(
         staged: StagedTravelArchive,
         strategy: ImportConflictStrategy,
-        nameOverride: String?
+        nameOverride: String?,
     ): Result<TravelPlanSummary> = withContext(Dispatchers.IO) {
         val sourcePlan = (staged.payload as TravelPlanPayload).plan
         val duplicating = strategy == ImportConflictStrategy.DUPLICATE &&
@@ -110,7 +113,7 @@ class TravelArchiveImporterImpl private constructor(
         } else {
             TravelArchiveIdRemapper.Remapped(
                 plan = sourcePlan.copy(id = staged.travelId),
-                attachmentPathMapping = emptyMap()
+                attachmentPathMapping = emptyMap(),
             )
         }
         val plan = nameOverride?.let { remapped.plan.copy(name = it) } ?: remapped.plan
@@ -145,31 +148,32 @@ class TravelArchiveImporterImpl private constructor(
     private suspend fun readStagedArchive(
         archive: PlatformFile,
         stagingDir: PlatformFile
-    ): StagedTravelArchive = openReader(archive).use { reader ->
-        checkArchiveLimits(reader)
+    ): StagedTravelArchive =
+        openReader(archive).use { reader ->
+            checkArchiveLimits(reader)
 
-        val manifest = readManifest(reader)
-        val plan = readPlan(reader, manifest)
-        validateAttachments(plan, reader)
+            val manifest = readManifest(reader)
+            val plan = readPlan(reader, manifest)
+            validateAttachments(plan, reader)
 
-        StagedTravelArchive(
-            travelId = manifest.travelId,
-            travelName = manifest.travelName.ifEmpty { plan.name },
-            schemaVersion = manifest.schemaVersion,
-            exportedAtEpochMillis = manifest.exportedAtEpochMillis,
-            attachmentCount = plan.allAttachments().size,
-            conflictingTravelName = conflictingName(manifest.travelId),
-            archive = archive,
-            stagingDir = stagingDir,
-            payload = TravelPlanPayload(plan)
-        )
-    }
+            StagedTravelArchive(
+                travelId = manifest.travelId,
+                travelName = manifest.travelName.ifEmpty { plan.name },
+                schemaVersion = manifest.schemaVersion,
+                exportedAtEpochMillis = manifest.exportedAtEpochMillis,
+                attachmentCount = plan.allAttachments().size,
+                conflictingTravelName = conflictingName(manifest.travelId),
+                archive = archive,
+                stagingDir = stagingDir,
+                payload = TravelPlanPayload(plan),
+            )
+        }
 
     private fun openReader(archive: PlatformFile): ZipReader = try {
         zipFactory.reader(archive.toKotlinxIoPath())
     } catch (formatException: ZipFormatException) {
         throw TravelArchiveException(
-            TravelArchiveError.CorruptedArchive(formatException.message.orEmpty())
+            TravelArchiveError.CorruptedArchive(formatException.message.orEmpty()),
         )
     }
 
@@ -177,13 +181,13 @@ class TravelArchiveImporterImpl private constructor(
         val entryCount = reader.entryPaths().size
         if (entryCount > TravelArchiveFormat.MAX_ENTRIES) {
             throw TravelArchiveException(
-                TravelArchiveError.CorruptedArchive("too many entries: $entryCount")
+                TravelArchiveError.CorruptedArchive("too many entries: $entryCount"),
             )
         }
         val size = reader.totalUncompressedSize()
         if (size > TravelArchiveFormat.MAX_UNCOMPRESSED_BYTES) {
             throw TravelArchiveException(
-                TravelArchiveError.CorruptedArchive("uncompressed size too large: $size bytes")
+                TravelArchiveError.CorruptedArchive("uncompressed size too large: $size bytes"),
             )
         }
     }
@@ -191,15 +195,15 @@ class TravelArchiveImporterImpl private constructor(
     private fun readManifest(reader: ZipReader): TravelArchiveManifest {
         val bytes = reader.readBytes(TravelArchiveFormat.MANIFEST_ENTRY)
             ?: throw TravelArchiveException(
-                TravelArchiveError.MissingEntry(TravelArchiveFormat.MANIFEST_ENTRY)
+                TravelArchiveError.MissingEntry(TravelArchiveFormat.MANIFEST_ENTRY),
             )
         return runCatching {
             json.decodeFromString(TravelArchiveManifest.serializer(), bytes.decodeToString())
         }.getOrElse { throwable ->
             throw TravelArchiveException(
                 TravelArchiveError.InvalidManifest(
-                    throwable.message ?: throwable::class.simpleName.orEmpty()
-                )
+                    throwable.message ?: throwable::class.simpleName.orEmpty(),
+                ),
             )
         }
     }
@@ -211,7 +215,7 @@ class TravelArchiveImporterImpl private constructor(
         val element = runCatching { json.parseToJsonElement(bytes.decodeToString()) as? JsonObject }
             .getOrNull()
             ?: throw TravelArchiveException(
-                TravelArchiveError.MalformedPlanJson("plan entry is not a json object")
+                TravelArchiveError.MalformedPlanJson("plan entry is not a json object"),
             )
 
         val migrated = migrator.migrate(element, manifest.schemaVersion)
@@ -221,8 +225,8 @@ class TravelArchiveImporterImpl private constructor(
         }.getOrElse { throwable ->
             throw TravelArchiveException(
                 TravelArchiveError.MalformedPlanJson(
-                    throwable.message ?: throwable::class.simpleName.orEmpty()
-                )
+                    throwable.message ?: throwable::class.simpleName.orEmpty(),
+                ),
             )
         }
     }
@@ -233,13 +237,13 @@ class TravelArchiveImporterImpl private constructor(
             if (!TravelArchiveValidation.isSafeRelativePath(attachment.relativePath)) {
                 throw TravelArchiveException(
                     TravelArchiveError.CorruptedArchive(
-                        "unsafe attachment path: ${attachment.relativePath}"
-                    )
+                        "unsafe attachment path: ${attachment.relativePath}",
+                    ),
                 )
             }
             if (TravelArchiveFormat.attachmentEntry(attachment.relativePath) !in entries) {
                 throw TravelArchiveException(
-                    TravelArchiveError.MissingAttachment(attachment.relativePath)
+                    TravelArchiveError.MissingAttachment(attachment.relativePath),
                 )
             }
         }
@@ -251,7 +255,7 @@ class TravelArchiveImporterImpl private constructor(
     private suspend fun extractAttachments(
         staged: StagedTravelArchive,
         sourcePlan: TravelPlanEntity,
-        pathMapping: Map<String, String>
+        pathMapping: Map<String, String>,
     ) {
         val sourceAttachments = sourcePlan.allAttachments()
         if (sourceAttachments.isEmpty()) return
@@ -265,7 +269,7 @@ class TravelArchiveImporterImpl private constructor(
 
                 val extracted = reader.extractTo(
                     TravelArchiveFormat.attachmentEntry(oldPath),
-                    target.toKotlinxIoPath()
+                    target.toKotlinxIoPath(),
                 )
                 if (!extracted) {
                     throw TravelArchiveException(TravelArchiveError.MissingAttachment(oldPath))

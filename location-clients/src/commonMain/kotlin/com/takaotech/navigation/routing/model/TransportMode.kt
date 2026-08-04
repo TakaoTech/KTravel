@@ -31,5 +31,5 @@ enum class TransportMode {
     BUS,
 
     @SerialName("privateBus")
-    PRIVATE_BUS
+    PRIVATE_BUS,
 }

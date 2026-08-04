@@ -74,7 +74,7 @@ class PlanningTransportViewModel(
                     mUiState.update {
                         it.copy(
                             startPlace = startUi,
-                            endPlace = endUi
+                            endPlace = endUi,
                         )
                     }
                 }
@@ -90,7 +90,7 @@ class PlanningTransportViewModel(
         val newProvider = mUiState.updateAndGet {
             it.copy(
                 selectedProvider = providerType,
-                providerSettings = defaultSettings
+                providerSettings = defaultSettings,
             )
         }.selectedProvider
         currentProvider = providerFactory.getProvider(newProvider)
@@ -119,7 +119,7 @@ class PlanningTransportViewModel(
                     currentProvider.getRoutes(
                         origin = "${startPlace!!.lat},${startPlace.lng}",
                         destination = "${endPlace!!.lat},${endPlace.lng}",
-                        settings = mUiState.value.providerSettings
+                        settings = mUiState.value.providerSettings,
                     )
                 }
             }

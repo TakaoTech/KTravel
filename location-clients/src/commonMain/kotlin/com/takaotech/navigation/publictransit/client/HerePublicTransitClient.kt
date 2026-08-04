@@ -7,11 +7,12 @@ import com.takaotech.navigation.publictransit.dto.response.ErrorResponse
 import com.takaotech.navigation.publictransit.dto.response.TransitRouteResponse
 import com.takaotech.navigation.publictransit.exception.PublicTransitApiResult
 import com.takaotech.navigation.publictransit.model.ReturnAttribute
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.serialization.SerializationException
 
 /**
@@ -19,9 +20,7 @@ import kotlinx.serialization.SerializationException
  *
  * @property httpClient Configured HttpClient instance
  */
-class HerePublicTransitClient(
-    private val httpClient: HttpClient
-) {
+class HerePublicTransitClient(private val httpClient: HttpClient) {
     /**
      * Creates a HerePublicTransitClient with the given API key.
      *
@@ -30,13 +29,13 @@ class HerePublicTransitClient(
      */
     constructor(
         apiKey: String,
-        enableLogging: Boolean = false
+        enableLogging: Boolean = false,
     ) : this(
         createHereHttpClient(
             HereEndpointUrls.PUBLIC_TRANSIT,
             apiKey,
-            enableLogging
-        )
+            enableLogging,
+        ),
     )
 
     /**
@@ -45,8 +44,8 @@ class HerePublicTransitClient(
      * @param request Transit route request parameters
      * @return PublicTransitApiResult containing TransitRouteResponse or error
      */
-    suspend fun getRoutes(request: TransitRoutesRequest): PublicTransitApiResult<TransitRouteResponse> {
-        return try {
+    suspend fun getRoutes(request: TransitRoutesRequest): PublicTransitApiResult<TransitRouteResponse> =
+        try {
             val response = httpClient.get("routes") {
                 parameter("origin", request.origin)
                 parameter("destination", request.destination)
@@ -108,12 +107,12 @@ class HerePublicTransitClient(
                     ErrorResponse(
                         title = "Unknown error",
                         status = response.status.value,
-                        cause = response.bodyAsText()
+                        cause = response.bodyAsText(),
                     )
                 }
                 PublicTransitApiResult.Error(
                     httpStatusCode = response.status.value,
-                    errorResponse = errorResponse
+                    errorResponse = errorResponse,
                 )
             }
         } catch (e: SerializationException) {
@@ -123,8 +122,8 @@ class HerePublicTransitClient(
                 errorResponse = ErrorResponse(
                     title = "Serialization error",
                     status = 0,
-                    cause = e.message
-                )
+                    cause = e.message,
+                ),
             )
         } catch (e: Exception) {
             PublicTransitApiResult.Error(
@@ -133,10 +132,9 @@ class HerePublicTransitClient(
                 errorResponse = ErrorResponse(
                     title = "Network error",
                     status = 0,
-                    cause = e.message
-                )
+                    cause = e.message,
+                ),
             )
-        }
     }
 
     /**

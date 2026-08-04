@@ -18,9 +18,7 @@ import kotlinx.serialization.SerializationException
  *
  * @property httpClient Configured HttpClient instance
  */
-class HereRoutingClient(
-    private val httpClient: HttpClient
-) {
+class HereRoutingClient(private val httpClient: HttpClient) {
     /**
      * Creates a HereRoutingClient with the given API key.
      *
@@ -29,7 +27,7 @@ class HereRoutingClient(
      */
     constructor(
         apiKey: String,
-        enableLogging: Boolean = false
+        enableLogging: Boolean = false,
     ) : this(createHereHttpClient(HereEndpointUrls.ROUTING, apiKey, enableLogging))
 
     /**
@@ -38,127 +36,125 @@ class HereRoutingClient(
      * @param request Route request parameters
      * @return HereApiResult containing RouterRouteResponse or error
      */
-    suspend fun getRoutes(request: RoutesRequest): HereApiResult<RouterRouteResponse> {
-        return try {
-            val response = httpClient.get("routes") {
-                parameter("transportMode", request.transportMode.name.lowercase())
+    suspend fun getRoutes(request: RoutesRequest): HereApiResult<RouterRouteResponse> = try {
+        val response = httpClient.get("routes") {
+            parameter("transportMode", request.transportMode.name.lowercase())
 
-                //TODO Validate and sanitize query string components
-                //  - WaypointOptions not available in "origin" param
-                //  - "destination" param for WaypointOptions param available is "stopDuration"
-                parameter("origin", request.origin.toQueryString())
-                parameter("destination", request.destination.toQueryString())
-                request.via?.forEach { waypoint ->
-                    parameter("via", waypoint.toQueryString())
-                }
-
-                //TODO Validate:
-                // WithOffset not available for request
-                request.departureTime?.let {
-                    parameter("departureTime", it.toQueryString())
-                }
-                request.arrivalTime?.let {
-                    parameter("arrivalTime", it)
-                }
-
-                //TODO Validate
-                // bicycle, bus, pedestrian, privateBus, scooter, taxi allow only "fast" mode
-                request.routingMode?.let {
-                    parameter("routingMode", it.toString())
-                }
-
-                request.alternatives?.let {
-                    parameter("alternatives", it)
-                }
-
-                //TODO Add "avoid" param?
-                //TODO Add "allow" param?
-                //TODO Add "exclude" param?
-
-                request.units?.let {
-                    parameter("units", it.name.lowercase())
-                }
-                request.lang?.let {
-                    parameter("lang", it)
-                }
-
-                //TODO validate:
-                // If actions is requested, then polyline must also be requested as well.
-                // If instructions is requested, then actions must also be requested as well.
-                // If turnByTurnActions is requested, then polyline must also be requested as well.
-                // If at least one attribute is requested within the spans parameter, then polyline must be request as well
-
-                request.returnAttributes?.let { attrs ->
-                    parameter(
-                        "return",
-                        com.takaotech.navigation.routing.dto.request.ReturnAttribute.toQueryString(
-                            attrs
-                        )
-                    )
-                }
-
-                //TODO Add "spans" param?
-
-                //TODO "vehicle"
-                //TODO "consumptionModel"
-                //TODO "ev"
-                //TODO "fuel"
-                //TODO "driver"
-
-                //TODO pedestrian[speed]
-
-                //TODO "scooter"
-
-                //TODO currency
-
-                //TODO taxi
-
-                //TODO tolls
-
-                //TODO maxSpeedOnSegment
-
-                //TODO traffic
+            // TODO Validate and sanitize query string components
+            //  - WaypointOptions not available in "origin" param
+            //  - "destination" param for WaypointOptions param available is "stopDuration"
+            parameter("origin", request.origin.toQueryString())
+            parameter("destination", request.destination.toQueryString())
+            request.via?.forEach { waypoint ->
+                parameter("via", waypoint.toQueryString())
             }
 
-            if (response.status.isSuccess()) {
-                val routeResponse = response.body<RouterRouteResponse>()
-                HereApiResult.Success(routeResponse)
-            } else {
-                val errorResponse = try {
-                    response.body<com.takaotech.navigation.routing.dto.response.ErrorResponse>()
-                } catch (e: SerializationException) {
-                    com.takaotech.navigation.routing.dto.response.ErrorResponse(
-                        title = "Unknown error",
-                        status = response.status.value,
-                        cause = response.bodyAsText()
-                    )
-                }
-                HereApiResult.Error(
-                    httpStatusCode = response.status.value,
-                    errorResponse = errorResponse
+            // TODO Validate:
+            // WithOffset not available for request
+            request.departureTime?.let {
+                parameter("departureTime", it.toQueryString())
+            }
+            request.arrivalTime?.let {
+                parameter("arrivalTime", it)
+            }
+
+            // TODO Validate
+            // bicycle, bus, pedestrian, privateBus, scooter, taxi allow only "fast" mode
+            request.routingMode?.let {
+                parameter("routingMode", it.toString())
+            }
+
+            request.alternatives?.let {
+                parameter("alternatives", it)
+            }
+
+            // TODO Add "avoid" param?
+            // TODO Add "allow" param?
+            // TODO Add "exclude" param?
+
+            request.units?.let {
+                parameter("units", it.name.lowercase())
+            }
+            request.lang?.let {
+                parameter("lang", it)
+            }
+
+            // TODO validate:
+            // If actions is requested, then polyline must also be requested as well.
+            // If instructions is requested, then actions must also be requested as well.
+            // If turnByTurnActions is requested, then polyline must also be requested as well.
+            // If at least one attribute is requested within the spans parameter, then polyline must be request as well
+
+            request.returnAttributes?.let { attrs ->
+                parameter(
+                    "return",
+                    com.takaotech.navigation.routing.dto.request.ReturnAttribute.toQueryString(
+                        attrs,
+                    ),
                 )
             }
-        } catch (e: SerializationException) {
-            HereApiResult.Error(
-                httpStatusCode = 0,
-                exception = e,
-                errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
-                    title = "Serialization error",
-                    status = 0,
-                    cause = e.message
+
+            // TODO Add "spans" param?
+
+            // TODO "vehicle"
+            // TODO "consumptionModel"
+            // TODO "ev"
+            // TODO "fuel"
+            // TODO "driver"
+
+            // TODO pedestrian[speed]
+
+            // TODO "scooter"
+
+            // TODO currency
+
+            // TODO taxi
+
+            // TODO tolls
+
+            // TODO maxSpeedOnSegment
+
+            // TODO traffic
+        }
+
+        if (response.status.isSuccess()) {
+            val routeResponse = response.body<RouterRouteResponse>()
+            HereApiResult.Success(routeResponse)
+        } else {
+            val errorResponse = try {
+                response.body<com.takaotech.navigation.routing.dto.response.ErrorResponse>()
+            } catch (e: SerializationException) {
+                com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                    title = "Unknown error",
+                    status = response.status.value,
+                    cause = response.bodyAsText(),
                 )
-            )
-        } catch (e: Exception) {
+            }
             HereApiResult.Error(
-                httpStatusCode = 0,
-                exception = e,
-                errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
-                    title = "Network error",
-                    status = 0,
-                    cause = e.message
-                )
+                httpStatusCode = response.status.value,
+                errorResponse = errorResponse,
             )
         }
+    } catch (e: SerializationException) {
+        HereApiResult.Error(
+            httpStatusCode = 0,
+            exception = e,
+            errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                title = "Serialization error",
+                status = 0,
+                cause = e.message,
+            ),
+        )
+    } catch (e: Exception) {
+        HereApiResult.Error(
+            httpStatusCode = 0,
+            exception = e,
+            errorResponse = com.takaotech.navigation.routing.dto.response.ErrorResponse(
+                title = "Network error",
+                status = 0,
+                cause = e.message,
+            ),
+        )
     }
 
     /**

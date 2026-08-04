@@ -293,7 +293,7 @@ class TravelCreationViewModelTest : BehaviorSpec() {
                         verifySuspend {
                             mockTravelPlanRepository.updatePeriod(
                                 startDateMillis,
-                                endDateMillis
+                                endDateMillis,
                             )
                         }
                     }
