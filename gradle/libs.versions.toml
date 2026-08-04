@@ -1,7 +1,7 @@
 [versions]
 
 ktor-client = "3.4.0"
-ktravel-version = "1.0.0"
+ktravel-version = "0.1.0"
 ktravel-code = "1"
 
 agp = "9.2.1"
