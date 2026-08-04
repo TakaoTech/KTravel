@@ -189,8 +189,7 @@ enum class ReturnAttribute(val value: String) {
          * @param attributes List of return attributes
          * @return Comma-separated string of attribute values
          */
-        fun toQueryString(attributes: List<ReturnAttribute>): String =
-            attributes.joinToString(",") { it.value }
+        fun toQueryString(attributes: List<ReturnAttribute>): String = attributes.joinToString(",") { it.value }
 
         /**
          * Validates that the return attributes follow HERE API restrictions.

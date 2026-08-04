@@ -15,10 +15,7 @@ import com.takaotech.ktravel.di.AppScope
  */
 @CircuitInject(PlanningDetailScreen::class, AppScope::class)
 @Composable
-fun PlanningDetailPresenter(
-    screen: PlanningDetailScreen,
-    navigator: Navigator
-): PlanningDetailUiState =
+fun PlanningDetailPresenter(screen: PlanningDetailScreen, navigator: Navigator): PlanningDetailUiState =
     PlanningDetailUiState(
         stepsPaneScreen = StepsPaneScreen(screen.travelId, screen.dayId),
         placesBacklogScreen = PlacesBacklogScreen(screen.travelId, screen.dayId),

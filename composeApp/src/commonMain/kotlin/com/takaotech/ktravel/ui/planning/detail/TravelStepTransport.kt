@@ -37,11 +37,7 @@ fun TransportType.toIcon(): DrawableResource = when (this) {
  * duration and the delete action remain here.
  */
 @Composable
-fun TravelStepTransport(
-    step: StepUi.Transport,
-    onStepDeleteClicked: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun TravelStepTransport(step: StepUi.Transport, onStepDeleteClicked: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,

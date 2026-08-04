@@ -4,10 +4,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 sealed interface RoutingProviderSettings {
-    data class Local(
-        val avoidTolls: Boolean = false,
-        val transportMode: LocalTransportMode = LocalTransportMode.CAR
-    ) :
+    data class Local(val avoidTolls: Boolean = false, val transportMode: LocalTransportMode = LocalTransportMode.CAR) :
         RoutingProviderSettings
 
     data class Here(

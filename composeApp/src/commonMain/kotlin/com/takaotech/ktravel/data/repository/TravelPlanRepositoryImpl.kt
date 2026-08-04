@@ -89,9 +89,8 @@ class TravelPlanRepositoryImpl(
         )
     }
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> =
-        planningState.map { state ->
-            state.days.firstOrNull { it.id == dayId } ?: TravelDayDomain.EMPTY
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = planningState.map { state ->
+        state.days.firstOrNull { it.id == dayId } ?: TravelDayDomain.EMPTY
     }
 
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = mutate {
@@ -131,36 +130,27 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
 
-    override suspend fun savePlace(place: PlaceDomain, dayId: String?) =
-        mutate { it.savePlace(place, dayId) }
+    override suspend fun savePlace(place: PlaceDomain, dayId: String?) = mutate { it.savePlace(place, dayId) }
 
-    override suspend fun movePlaceToDay(placeId: String, dayId: String) =
-        mutate { it.movePlaceToDay(placeId, dayId) }
+    override suspend fun movePlaceToDay(placeId: String, dayId: String) = mutate { it.movePlaceToDay(placeId, dayId) }
 
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) =
         mutate { it.movePlaceToGeneral(placeId, dayId) }
 
-    override suspend fun movePlaceToStep(placeId: String, dayId: String) =
-        mutate { it.movePlaceToStep(placeId, dayId) }
+    override suspend fun movePlaceToStep(placeId: String, dayId: String) = mutate { it.movePlaceToStep(placeId, dayId) }
 
-    override suspend fun moveStepToPlace(stepId: String, dayId: String) =
-        mutate { it.moveStepToPlace(stepId, dayId) }
+    override suspend fun moveStepToPlace(stepId: String, dayId: String) = mutate { it.moveStepToPlace(stepId, dayId) }
 
-    override suspend fun moveTravelStepUp(stepId: String, dayId: String) =
-        mutate { it.moveStepUp(stepId, dayId) }
+    override suspend fun moveTravelStepUp(stepId: String, dayId: String) = mutate { it.moveStepUp(stepId, dayId) }
 
-    override suspend fun moveTravelStepDown(stepId: String, dayId: String) =
-        mutate { it.moveStepDown(stepId, dayId) }
+    override suspend fun moveTravelStepDown(stepId: String, dayId: String) = mutate { it.moveStepDown(stepId, dayId) }
 
     override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) =
         mutate { it.addTransportStep(dayId, afterStepId, step) }
 
-    override suspend fun deleteStep(stepId: String, dayId: String) =
-        mutate { it.deleteStep(stepId, dayId) }
+    override suspend fun deleteStep(stepId: String, dayId: String) = mutate { it.deleteStep(stepId, dayId) }
 
-    override suspend fun removeStep(stepId: String, dayId: String) =
-        mutate { it.removeStep(stepId, dayId) }
+    override suspend fun removeStep(stepId: String, dayId: String) = mutate { it.removeStep(stepId, dayId) }
 
-    override suspend fun deletePlace(placeId: String, dayId: String?) =
-        mutate { it.deletePlace(placeId, dayId) }
+    override suspend fun deletePlace(placeId: String, dayId: String?) = mutate { it.deletePlace(placeId, dayId) }
 }

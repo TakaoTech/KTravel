@@ -11,6 +11,5 @@ fun Instant.toLocalDate(timeZone: TimeZone = TimeZone.UTC): LocalDate = toLocalD
     .date
 
 @OptIn(ExperimentalTime::class)
-fun Long.toLocalDate(timeZone: TimeZone = TimeZone.UTC): LocalDate =
-    Instant.fromEpochMilliseconds(this)
+fun Long.toLocalDate(timeZone: TimeZone = TimeZone.UTC): LocalDate = Instant.fromEpochMilliseconds(this)
     .toLocalDate(timeZone)

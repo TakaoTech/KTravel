@@ -101,12 +101,7 @@ fun MapForge(
     )
 }
 
-private data class LatLngBounds(
-    val centerLat: Double,
-    val centerLng: Double,
-    val spanLat: Double,
-    val spanLng: Double
-)
+private data class LatLngBounds(val centerLat: Double, val centerLng: Double, val spanLat: Double, val spanLng: Double)
 
 private fun computeLatLngBounds(geoJson: String): LatLngBounds? = runCatching {
     val root = Json.parseToJsonElement(geoJson).jsonObject

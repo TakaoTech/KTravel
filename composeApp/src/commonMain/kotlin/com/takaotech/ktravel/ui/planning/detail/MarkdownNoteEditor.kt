@@ -12,8 +12,4 @@ import androidx.compose.ui.Modifier
  * avviene alla creazione del controller ([rememberMarkdownEditorController]).
  */
 @Composable
-expect fun MarkdownNoteEditor(
-    controller: MarkdownEditorController,
-    label: String,
-    modifier: Modifier = Modifier
-)
+expect fun MarkdownNoteEditor(controller: MarkdownEditorController, label: String, modifier: Modifier = Modifier)

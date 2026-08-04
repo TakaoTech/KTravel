@@ -32,11 +32,7 @@ val hereApiJson = Json {
  * @param enableLogging Enable HTTP request/response logging
  * @return Configured HttpClient instance
  */
-fun createHereHttpClient(
-    baseUrl: String,
-    apiKey: String,
-    enableLogging: Boolean = false
-): HttpClient =
+fun createHereHttpClient(baseUrl: String, apiKey: String, enableLogging: Boolean = false): HttpClient =
     createPlatformHttpClient().config {
         install(ContentNegotiation) {
             json(hereApiJson)

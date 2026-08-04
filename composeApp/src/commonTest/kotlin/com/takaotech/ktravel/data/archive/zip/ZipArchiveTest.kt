@@ -30,7 +30,7 @@ class ZipArchiveTest :
                 factory.writer(archive.toKotlinxIoPath()).use { writer ->
                     writer.writeEntry(
                         "manifest.json",
-                        """{"schema_version":1}""".encodeToByteArray()
+                        """{"schema_version":1}""".encodeToByteArray(),
                     )
                     writer.writeEntry("attachments/t1/s1/photo.bin", sourceFile.toKotlinxIoPath())
                 }

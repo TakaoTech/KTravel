@@ -11,11 +11,7 @@ import androidx.compose.ui.Modifier
  * renderizzabile da mikepenz in sola lettura.
  */
 @Composable
-actual fun MarkdownNoteEditor(
-    controller: MarkdownEditorController,
-    label: String,
-    modifier: Modifier
-) {
+actual fun MarkdownNoteEditor(controller: MarkdownEditorController, label: String, modifier: Modifier) {
     OutlinedTextField(
         value = controller.fieldValue,
         onValueChange = { controller.onFieldValueChange(it) },

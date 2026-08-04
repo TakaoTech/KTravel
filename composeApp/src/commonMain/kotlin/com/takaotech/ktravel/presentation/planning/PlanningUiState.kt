@@ -56,17 +56,11 @@ sealed interface ExportUiState {
 }
 
 @Stable
-data class PlanHeader(
-    val name: TextFieldValue = TextFieldValue(""),
-    private val mPeriod: Period = Period()
-) {
+data class PlanHeader(val name: TextFieldValue = TextFieldValue(""), private val mPeriod: Period = Period()) {
     val period: Period = mPeriod
 
     @Stable
-    data class Period(
-        val start: Long = Clock.System.now().toEpochMilliseconds(),
-        val end: Long = start
-    )
+    data class Period(val start: Long = Clock.System.now().toEpochMilliseconds(), val end: Long = start)
 }
 
 @Stable
@@ -134,9 +128,4 @@ data class AttachmentUi(
 )
 
 @Stable
-data class PlaceUi(
-    val id: String = Uuid.random().toString(),
-    val name: String,
-    val lat: Double,
-    val lng: Double
-)
+data class PlaceUi(val id: String = Uuid.random().toString(), val name: String, val lat: Double, val lng: Double)

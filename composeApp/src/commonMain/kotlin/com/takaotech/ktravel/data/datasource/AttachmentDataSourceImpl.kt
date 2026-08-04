@@ -35,11 +35,7 @@ class AttachmentDataSourceImpl private constructor(
 
     private val root: PlatformFile get() = rootProvider()
 
-    override suspend fun saveAttachment(
-        travelId: String,
-        stepId: String,
-        source: PlatformFile
-    ): AttachmentEntity {
+    override suspend fun saveAttachment(travelId: String, stepId: String, source: PlatformFile): AttachmentEntity {
         val stepDir = root / travelId / stepId
         stepDir.createDirectories()
 

@@ -81,23 +81,22 @@ class TravelArchiveImporterImpl private constructor(
     private val migrator = TravelPlanSchemaMigrator()
     private val stagingArea = ArchiveStagingArea(stagingRootProvider)
 
-    override suspend fun stage(source: PlatformFile): Result<StagedTravelArchive> =
-        withContext(Dispatchers.IO) {
-            val stagingDir = stagingArea.newSession()
-            try {
-                val stagedArchive = stagingDir / "import.${TravelArchiveFormat.FILE_EXTENSION}"
-                // Unico punto in cui si legge il file scelto dall'utente, che su Android può essere
-                // un content:// non convertibile in un path del filesystem.
-                source.copyTo(stagedArchive)
+    override suspend fun stage(source: PlatformFile): Result<StagedTravelArchive> = withContext(Dispatchers.IO) {
+        val stagingDir = stagingArea.newSession()
+        try {
+            val stagedArchive = stagingDir / "import.${TravelArchiveFormat.FILE_EXTENSION}"
+            // Unico punto in cui si legge il file scelto dall'utente, che su Android può essere
+            // un content:// non convertibile in un path del filesystem.
+            source.copyTo(stagedArchive)
 
-                Result.success(readStagedArchive(stagedArchive, stagingDir))
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (throwable: Throwable) {
-                runCatching { stagingDir.deleteRecursively() }
-                Result.failure(throwable.asTravelArchiveException())
-            }
+            Result.success(readStagedArchive(stagedArchive, stagingDir))
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            runCatching { stagingDir.deleteRecursively() }
+            Result.failure(throwable.asTravelArchiveException())
         }
+    }
 
     override suspend fun import(
         staged: StagedTravelArchive,
@@ -106,7 +105,7 @@ class TravelArchiveImporterImpl private constructor(
     ): Result<TravelPlanSummary> = withContext(Dispatchers.IO) {
         val sourcePlan = (staged.payload as TravelPlanPayload).plan
         val duplicating = strategy == ImportConflictStrategy.DUPLICATE &&
-                staged.conflictingTravelName != null
+            staged.conflictingTravelName != null
 
         val remapped = if (duplicating) {
             TravelArchiveIdRemapper.remap(sourcePlan, newTravelId = newId(), newId = newId)
@@ -145,10 +144,7 @@ class TravelArchiveImporterImpl private constructor(
         runCatching { staged.stagingDir.deleteRecursively() }
     }
 
-    private suspend fun readStagedArchive(
-        archive: PlatformFile,
-        stagingDir: PlatformFile
-    ): StagedTravelArchive =
+    private suspend fun readStagedArchive(archive: PlatformFile, stagingDir: PlatformFile): StagedTravelArchive =
         openReader(archive).use { reader ->
             checkArchiveLimits(reader)
 
@@ -249,8 +245,7 @@ class TravelArchiveImporterImpl private constructor(
         }
     }
 
-    private suspend fun conflictingName(travelId: String): String? =
-        storage.getTravelPlanNameOrNull(travelId)
+    private suspend fun conflictingName(travelId: String): String? = storage.getTravelPlanNameOrNull(travelId)
 
     private suspend fun extractAttachments(
         staged: StagedTravelArchive,

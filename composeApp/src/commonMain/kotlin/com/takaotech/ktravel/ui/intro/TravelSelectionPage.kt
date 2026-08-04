@@ -109,8 +109,8 @@ internal object TravelSelectionTestTags {
 /** True finché nessuna operazione di import è in corso o in attesa di una scelta. */
 private val ImportUiState.isIdle: Boolean
     get() = this !is ImportUiState.Reading &&
-            this !is ImportUiState.Importing &&
-            this !is ImportUiState.AwaitingConflictChoice
+        this !is ImportUiState.Importing &&
+        this !is ImportUiState.AwaitingConflictChoice
 
 private val ImportUiState.isRunning: Boolean
     get() = this is ImportUiState.Reading || this is ImportUiState.Importing
@@ -122,7 +122,7 @@ private fun ImportUiState.message(): String? = when (this) {
     ImportUiState.Reading,
     ImportUiState.Importing,
     is ImportUiState.AwaitingConflictChoice,
-        -> null
+    -> null
 
     is ImportUiState.Completed ->
         stringResource(Res.string.travel_selection_import_success, travelName)

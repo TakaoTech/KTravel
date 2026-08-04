@@ -54,11 +54,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-actual fun MarkdownNoteEditor(
-    controller: MarkdownEditorController,
-    label: String,
-    modifier: Modifier
-) {
+actual fun MarkdownNoteEditor(controller: MarkdownEditorController, label: String, modifier: Modifier) {
     val state = controller.state
 
     Column(modifier = modifier.fillMaxWidth()) {

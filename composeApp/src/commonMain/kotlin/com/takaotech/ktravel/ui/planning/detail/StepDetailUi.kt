@@ -428,12 +428,7 @@ private fun ScheduleSection(
 }
 
 @Composable
-private fun ScheduleField(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+private fun ScheduleField(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,

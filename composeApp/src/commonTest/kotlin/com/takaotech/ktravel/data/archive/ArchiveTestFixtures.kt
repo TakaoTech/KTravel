@@ -89,12 +89,11 @@ internal object ArchiveTestFixtures {
     }
 
     /** Variante con un solo allegato, il cui path relativo è [relativePath]. */
-    fun TravelPlanEntity.withAttachmentPath(relativePath: String): TravelPlanEntity =
-        mapPlaceSteps { step ->
-            step.copy(
-                attachments = step.attachments.take(1).map { it.copy(relativePath = relativePath) },
-            )
-        }
+    fun TravelPlanEntity.withAttachmentPath(relativePath: String): TravelPlanEntity = mapPlaceSteps { step ->
+        step.copy(
+            attachments = step.attachments.take(1).map { it.copy(relativePath = relativePath) },
+        )
+    }
 
     private fun TravelPlanEntity.mapPlaceSteps(transform: (StepEntity.Place) -> StepEntity.Place): TravelPlanEntity =
         copy(

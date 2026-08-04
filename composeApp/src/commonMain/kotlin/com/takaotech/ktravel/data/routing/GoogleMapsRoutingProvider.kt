@@ -12,11 +12,7 @@ import dev.zacsweers.metro.Named
 @ContributesBinding(AppScope::class)
 @Inject
 class GoogleMapsRoutingProvider : RoutingProvider {
-    override suspend fun getRoutes(
-        origin: String,
-        destination: String,
-        settings: RoutingProviderSettings
-    ): Routes {
+    override suspend fun getRoutes(origin: String, destination: String, settings: RoutingProviderSettings): Routes {
         TODO("Not yet implemented")
     }
 }

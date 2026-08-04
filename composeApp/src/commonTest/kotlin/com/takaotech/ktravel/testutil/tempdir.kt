@@ -36,5 +36,4 @@ private suspend fun PlatformFile.deleteRecursively() {
     delete(mustExist = false)
 }
 
-class TempDirDeletionException(val file: PlatformFile) :
-    Exception("Temp dir '$file' could not be deleted")
+class TempDirDeletionException(val file: PlatformFile) : Exception("Temp dir '$file' could not be deleted")

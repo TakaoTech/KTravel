@@ -8,8 +8,7 @@ import dev.zacsweers.metro.SingleIn
 class PlanningGraphStore(private val factory: PlanningGraph.Factory) {
     private val graphs = mutableMapOf<String, PlanningGraph>()
 
-    fun getOrCreate(travelId: String): PlanningGraph =
-        graphs.getOrPut(travelId) { factory.create(travelId) }
+    fun getOrCreate(travelId: String): PlanningGraph = graphs.getOrPut(travelId) { factory.create(travelId) }
 
     fun release(travelId: String) {
         graphs.remove(travelId)

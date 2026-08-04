@@ -56,30 +56,28 @@ class TravelPlanStorageDataSourceImpl(
         return json.decodeFromString<TravelPlanEntity>(map.toJSON())
     }
 
-    override suspend fun getTravelPlanNameOrNull(id: String): String? =
-        withContext(storageRepository.readContext) {
-            travelCollection.getDocument(id)
-                ?.toJSON()
-                ?.let { json.decodeFromString<TravelPlanEntity>(it).name }
-        }
+    override suspend fun getTravelPlanNameOrNull(id: String): String? = withContext(storageRepository.readContext) {
+        travelCollection.getDocument(id)
+            ?.toJSON()
+            ?.let { json.decodeFromString<TravelPlanEntity>(it).name }
+    }
 
-    override suspend fun getAllTravelPlans(): List<TravelPlanEntity> =
-        withContext(storageRepository.readContext) {
-            QueryBuilder
-                .select(SelectResult.all(), SelectResult.expression(Meta.id).`as`("_id"))
-                .from(DataSource.collection(travelCollection))
-                .where(
-                    Expression.property("type")
-                        .equalTo(Expression.string(TravelPlanEntity.DOCUMENT_TYPE)),
-                )
-                .execute()
-                .allResults()
-                .mapNotNull { result ->
-                    result.getDictionary(travelCollection.name)?.toJSON()?.let { jsonString ->
-                        json.decodeFromString<TravelPlanEntity>(jsonString)
-                            .copy(id = result.getString("_id") ?: "")
-                    }
+    override suspend fun getAllTravelPlans(): List<TravelPlanEntity> = withContext(storageRepository.readContext) {
+        QueryBuilder
+            .select(SelectResult.all(), SelectResult.expression(Meta.id).`as`("_id"))
+            .from(DataSource.collection(travelCollection))
+            .where(
+                Expression.property("type")
+                    .equalTo(Expression.string(TravelPlanEntity.DOCUMENT_TYPE)),
+            )
+            .execute()
+            .allResults()
+            .mapNotNull { result ->
+                result.getDictionary(travelCollection.name)?.toJSON()?.let { jsonString ->
+                    json.decodeFromString<TravelPlanEntity>(jsonString)
+                        .copy(id = result.getString("_id") ?: "")
                 }
+            }
     }
 
     override suspend fun deleteTravelPlan(id: String) {

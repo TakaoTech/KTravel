@@ -18,10 +18,7 @@ import kotlinx.datetime.LocalTime
 @Parcelize
 data class StepsPaneScreen(val travelId: String, val dayId: String) : Screen
 
-data class StepsPaneUiState(
-    val rows: ImmutableList<StepRow>,
-    val eventSink: (StepsPaneEvent) -> Unit
-) : CircuitUiState
+data class StepsPaneUiState(val rows: ImmutableList<StepRow>, val eventSink: (StepsPaneEvent) -> Unit) : CircuitUiState
 
 sealed interface StepsPaneEvent : CircuitUiEvent {
     /** Torna alla pagina di pianificazione del viaggio. */

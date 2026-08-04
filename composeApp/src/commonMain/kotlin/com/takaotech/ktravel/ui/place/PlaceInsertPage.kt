@@ -31,11 +31,7 @@ data class PlaceInsertNavigation(val dayId: String? = null)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlaceInsertPage(
-    viewModel: PlaceInsertViewModel,
-    onExit: () -> Unit,
-    onSaveClicked: () -> Unit
-) {
+fun PlaceInsertPage(viewModel: PlaceInsertViewModel, onExit: () -> Unit, onSaveClicked: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // TODO Adapt Layout cross devices

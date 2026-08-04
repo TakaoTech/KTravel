@@ -15,8 +15,7 @@ internal actual fun createZipArchiveFactory(): ZipArchiveFactory = KzipArchiveFa
 
 private object KzipArchiveFactory : ZipArchiveFactory {
 
-    override fun writer(archive: Path): ZipWriter =
-        KzipWriter(Zip.open(archive, mode = Zip.Mode.Write))
+    override fun writer(archive: Path): ZipWriter = KzipWriter(Zip.open(archive, mode = Zip.Mode.Write))
 
     override fun reader(archive: Path): ZipReader {
         val zip = Zip.open(archive, mode = Zip.Mode.Read)

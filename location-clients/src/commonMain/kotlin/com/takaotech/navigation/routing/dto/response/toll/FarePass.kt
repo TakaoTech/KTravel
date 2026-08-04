@@ -28,7 +28,4 @@ data class FarePass(
  * @property count Required if period is `minutes`, `days` or `months`; specifies how many of these units are covered by the pass.
  */
 @Serializable
-data class FarePassValidityPeriod(
-    @SerialName("period") val period: String,
-    @SerialName("count") val count: Int? = null
-)
+data class FarePassValidityPeriod(@SerialName("period") val period: String, @SerialName("count") val count: Int? = null)

@@ -108,7 +108,7 @@ class StepRowBuilderTest : BehaviorSpec() {
 
                 then("all steps are preserved in order") {
                     rows.filterIsInstance<StepRow.Step>().map { it.step.id } shouldBe
-                            listOf("a", "b", "t", "c", "d")
+                        listOf("a", "b", "t", "c", "d")
                 }
             }
         }

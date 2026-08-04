@@ -140,11 +140,7 @@ private const val NOTE_SAVE_DEBOUNCE_MS = 1000L
  * Persiste la nota solo se il Markdown è valido. Ritorna `true` se salvata, `false` se il Markdown
  * non è valido (nota non persistita).
  */
-private suspend fun TravelPlanRepository.persistNoteIfValid(
-    dayId: String,
-    stepId: String,
-    note: String
-): Boolean =
+private suspend fun TravelPlanRepository.persistNoteIfValid(dayId: String, stepId: String, note: String): Boolean =
     if (isValidMarkdown(note)) {
         updatePlaceNote(dayId, stepId, note)
         true

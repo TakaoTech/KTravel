@@ -30,10 +30,7 @@ interface AppGraph : ViewModelGraph {
 
         @Provides
         @SingleIn(AppScope::class)
-        fun provideCircuit(
-            presenterFactories: Set<Presenter.Factory>,
-            uiFactories: Set<Ui.Factory>
-        ): Circuit =
+        fun provideCircuit(presenterFactories: Set<Presenter.Factory>, uiFactories: Set<Ui.Factory>): Circuit =
             Circuit.Builder()
                 .addPresenterFactories(presenterFactories)
                 .addUiFactories(uiFactories)

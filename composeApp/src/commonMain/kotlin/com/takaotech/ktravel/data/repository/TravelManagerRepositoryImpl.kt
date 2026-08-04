@@ -16,12 +16,10 @@ import kotlin.uuid.Uuid
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 @Inject
-class TravelManagerRepositoryImpl(private val dataSource: TravelPlanStorageDataSource) :
-    TravelManagerRepository {
+class TravelManagerRepositoryImpl(private val dataSource: TravelPlanStorageDataSource) : TravelManagerRepository {
 
-    override suspend fun getAllTravelPlans(): List<TravelPlanSummary> =
-        dataSource.getAllTravelPlans().map {
-            it.toSummary()
+    override suspend fun getAllTravelPlans(): List<TravelPlanSummary> = dataSource.getAllTravelPlans().map {
+        it.toSummary()
     }
 
     @OptIn(ExperimentalUuidApi::class)

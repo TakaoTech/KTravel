@@ -13,19 +13,16 @@ object AttachmentReference {
     private val REGEX = Regex(Regex.escape(URI_PREFIX) + "([^)\\s]+)")
 
     /** Snippet Markdown per un'immagine inline. */
-    fun imageMarkdown(relativePath: String, altText: String = ""): String =
-        "![$altText]($URI_PREFIX$relativePath)"
+    fun imageMarkdown(relativePath: String, altText: String = ""): String = "![$altText]($URI_PREFIX$relativePath)"
 
     /** Snippet Markdown per un link a file (apribile nativamente). */
-    fun fileMarkdown(relativePath: String, label: String): String =
-        "[$label]($URI_PREFIX$relativePath)"
+    fun fileMarkdown(relativePath: String, label: String): String = "[$label]($URI_PREFIX$relativePath)"
 
     /** True se l'URI è un riferimento a un allegato dell'inventario. */
     fun isAttachmentUri(uri: String): Boolean = uri.startsWith(URI_PREFIX)
 
     /** Estrae il path relativo da un URI `ktravel://attachment/<rel>`, o null se non lo è. */
-    fun relativePathOf(uri: String): String? =
-        if (isAttachmentUri(uri)) uri.removePrefix(URI_PREFIX) else null
+    fun relativePathOf(uri: String): String? = if (isAttachmentUri(uri)) uri.removePrefix(URI_PREFIX) else null
 
     /** Tutti i path relativi referenziati (immagini e link) nel [markdown]. */
     fun extractRelativePaths(markdown: String): List<String> =
@@ -35,10 +32,7 @@ object AttachmentReference {
      * Path relativi referenziati nel [markdown] ma **non presenti** tra gli [inventoryRelativePaths]
      * dell'inventario: riferimenti "dangling" da segnalare come errore.
      */
-    fun missingReferences(
-        markdown: String,
-        inventoryRelativePaths: Collection<String>
-    ): List<String> {
+    fun missingReferences(markdown: String, inventoryRelativePaths: Collection<String>): List<String> {
         val inventory = inventoryRelativePaths.toSet()
         return extractRelativePaths(markdown).filter { it !in inventory }.distinct()
     }
@@ -50,15 +44,14 @@ object AttachmentReference {
      * alterati. Serve all'import di un archivio quando gli id vengono rigenerati e i file finiscono
      * sotto un nuovo path relativo.
      */
-    fun rewriteReferences(markdown: String, mapping: Map<String, String>): String =
-        if (mapping.isEmpty()) {
-            markdown
-        } else {
-            // Forma con lambda obbligatoria: l'overload con String interpreterebbe `$` e `\`
-            // presenti nei path come riferimenti a gruppi di cattura.
-            REGEX.replace(markdown) { match ->
-                val relativePath = match.groupValues[1]
-                URI_PREFIX + (mapping[relativePath] ?: relativePath)
-            }
+    fun rewriteReferences(markdown: String, mapping: Map<String, String>): String = if (mapping.isEmpty()) {
+        markdown
+    } else {
+        // Forma con lambda obbligatoria: l'overload con String interpreterebbe `$` e `\`
+        // presenti nei path come riferimenti a gruppi di cattura.
+        REGEX.replace(markdown) { match ->
+            val relativePath = match.groupValues[1]
+            URI_PREFIX + (mapping[relativePath] ?: relativePath)
         }
+    }
 }

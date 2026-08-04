@@ -70,7 +70,7 @@ class TravelArchiveCorruptionTest :
                 plan?.let {
                     writer.writeEntry(
                         TravelArchiveFormat.PLAN_ENTRY,
-                        it.encodeToByteArray()
+                        it.encodeToByteArray(),
                     )
                 }
                 extraEntries.forEach { (path, bytes) -> writer.writeEntry(path, bytes) }
@@ -90,9 +90,7 @@ class TravelArchiveCorruptionTest :
             ),
         )
 
-        fun planJson(
-            plan: TravelPlanEntity = ArchiveTestFixtures.plan().withoutAttachments()
-        ): String =
+        fun planJson(plan: TravelPlanEntity = ArchiveTestFixtures.plan().withoutAttachments()): String =
             json.encodeToString(TravelPlanEntity.serializer(), plan)
 
         suspend fun stageError(file: PlatformFile): TravelArchiveError {

@@ -23,7 +23,7 @@ class TravelPlanMigrationsTest :
                 then("it holds one step per version, contiguous from the oldest supported one") {
                     chain.map { it.fromVersion } shouldBe (
                         TravelArchiveFormat.MIN_SUPPORTED_SCHEMA_VERSION until
-                                TravelArchiveFormat.CURRENT_SCHEMA_VERSION
+                            TravelArchiveFormat.CURRENT_SCHEMA_VERSION
                         ).toList()
                 }
             }

@@ -126,8 +126,7 @@ private fun ExportUiState.message(): String? = when (this) {
  * Nome file proposto dal saver: il nome del viaggio è testo libero e su alcune piattaforme un
  * separatore di percorso lo rende inutilizzabile.
  */
-internal fun String.toArchiveFileName(): String =
-    replace(Regex("""[^\p{L}\p{N} _-]"""), "").trim().ifEmpty { "travel" }
+internal fun String.toArchiveFileName(): String = replace(Regex("""[^\p{L}\p{N} _-]"""), "").trim().ifEmpty { "travel" }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -423,7 +422,7 @@ private fun ExportLoadingDialog(isCompleted: Boolean, onCompletionAnimationEnd: 
                     // The train keeps travelling to the right: the arrival enters from the left
                     // while the running train leaves through the right edge.
                     slideInHorizontally { width -> -width } togetherWith
-                            slideOutHorizontally { width -> width }
+                        slideOutHorizontally { width -> width }
                 },
             ) { completed ->
                 Column(

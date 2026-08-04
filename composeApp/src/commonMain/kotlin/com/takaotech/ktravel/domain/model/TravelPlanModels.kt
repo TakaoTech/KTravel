@@ -9,12 +9,7 @@ import kotlin.uuid.Uuid
 
 private fun newId(): String = Uuid.random().toString()
 
-data class TravelPlanSummary(
-    val id: String,
-    val name: String,
-    val periodStart: LocalDate,
-    val periodEnd: LocalDate
-)
+data class TravelPlanSummary(val id: String, val name: String, val periodStart: LocalDate, val periodEnd: LocalDate)
 
 data class TravelPlanDomain(
     val id: String = newId(),

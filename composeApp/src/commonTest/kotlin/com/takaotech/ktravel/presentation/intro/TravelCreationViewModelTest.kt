@@ -39,8 +39,7 @@ class TravelCreationViewModelTest : BehaviorSpec() {
 
         val planningGraphStore = PlanningGraphStore(mockFactory)
 
-        fun createViewModel() =
-            TravelCreationViewModel(mockTravelManagerRepository, planningGraphStore)
+        fun createViewModel() = TravelCreationViewModel(mockTravelManagerRepository, planningGraphStore)
 
         given("a TravelCreationViewModel with initial state") {
             val viewModel = createViewModel()

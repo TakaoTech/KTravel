@@ -102,8 +102,7 @@ sealed class DepartureTime {
          * @param dateTime The local date and time of departure
          * @param offset The UTC offset
          */
-        fun fromLocalDateTime(dateTime: LocalDateTime, offset: UtcOffset): DepartureTime =
-            WithOffset(dateTime, offset)
+        fun fromLocalDateTime(dateTime: LocalDateTime, offset: UtcOffset): DepartureTime = WithOffset(dateTime, offset)
 
         /**
          * Creates a DepartureTime from an Instant with a timezone.

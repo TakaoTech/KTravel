@@ -8,11 +8,7 @@ import ktravel.composeapp.generated.resources.planning_transport_provider_name_l
 import org.jetbrains.compose.resources.StringResource
 
 interface RoutingProvider {
-    suspend fun getRoutes(
-        origin: String,
-        destination: String,
-        settings: RoutingProviderSettings
-    ): Routes
+    suspend fun getRoutes(origin: String, destination: String, settings: RoutingProviderSettings): Routes
 }
 
 enum class RoutingProviderType(val stringName: StringResource) {

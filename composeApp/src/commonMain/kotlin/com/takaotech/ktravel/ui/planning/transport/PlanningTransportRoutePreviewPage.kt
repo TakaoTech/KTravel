@@ -283,11 +283,7 @@ fun RouteStepSection(
 }
 
 @Composable
-fun RouteStep(
-    action: RouteAction,
-    onActionClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
+fun RouteStep(action: RouteAction, onActionClick: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val distanceM = (action.distanceMeters `in` Length.meters).roundToInt()
     val distanceText = if (distanceM >= 1000) {
         val km = distanceM / 1000.0

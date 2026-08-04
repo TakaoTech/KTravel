@@ -22,7 +22,7 @@ class StepNoteTest :
                     name = "Colosseo",
                     lat = 41.89,
                     lng = 12.49,
-                    note = note
+                    note = note,
                 )
             val day =
                 TravelDayDomain(id = "d1", date = LocalDate.fromEpochDays(0), steps = listOf(step))
@@ -68,7 +68,7 @@ class StepNoteTest :
                 TravelDayDomain(
                     id = "d1",
                     date = LocalDate.fromEpochDays(0),
-                    steps = listOf(transport)
+                    steps = listOf(transport),
                 )
             val plan = TravelPlanDomain(days = listOf(day))
 

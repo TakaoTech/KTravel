@@ -127,11 +127,7 @@ object PolylineEncoderDecoder {
     /**
      * Single instance for configuration, validation and encoding for an input request.
      */
-    private class Encoder(
-        precision: Int,
-        private val thirdDimension: ThirdDimension,
-        thirdDimPrecision: Int
-    ) {
+    private class Encoder(precision: Int, private val thirdDimension: ThirdDimension, thirdDimPrecision: Int) {
         private val result = StringBuilder()
         private val latConverter = Converter(precision)
         private val lngConverter = Converter(precision)

@@ -32,8 +32,7 @@ sealed interface ImportUiState {
     data object Reading : ImportUiState
 
     /** Un viaggio con lo stesso id è già presente: serve una scelta dell'utente. */
-    data class AwaitingConflictChoice(val importedName: String, val existingName: String) :
-        ImportUiState
+    data class AwaitingConflictChoice(val importedName: String, val existingName: String) : ImportUiState
 
     data object Importing : ImportUiState
     data class Completed(val travelName: String) : ImportUiState
@@ -41,9 +40,4 @@ sealed interface ImportUiState {
 }
 
 @Stable
-data class TravelSummaryUiState(
-    val id: String,
-    val name: String,
-    val periodStart: LocalDate,
-    val periodEnd: LocalDate
-)
+data class TravelSummaryUiState(val id: String, val name: String, val periodStart: LocalDate, val periodEnd: LocalDate)

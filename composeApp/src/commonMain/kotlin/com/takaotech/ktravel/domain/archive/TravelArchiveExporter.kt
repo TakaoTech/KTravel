@@ -14,10 +14,7 @@ interface TravelArchiveExporter {
      *
      * Il failure del [Result] è sempre una [TravelArchiveException].
      */
-    suspend fun export(
-        travelId: String,
-        destination: PlatformFile
-    ): Result<TravelArchiveExportResult>
+    suspend fun export(travelId: String, destination: PlatformFile): Result<TravelArchiveExportResult>
 }
 
 data class TravelArchiveExportResult(

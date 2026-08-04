@@ -307,7 +307,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeName.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeName.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_name_empty
+                            Res.string.place_insert_error_name_empty
                     }
                 }
 
@@ -334,7 +334,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lat_empty
+                            Res.string.place_insert_error_lat_empty
                     }
                 }
 
@@ -361,7 +361,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lng_empty
+                            Res.string.place_insert_error_lng_empty
                     }
                 }
 
@@ -389,7 +389,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lat_invalid_format
+                            Res.string.place_insert_error_lat_invalid_format
                     }
                 }
 
@@ -417,7 +417,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lng_invalid_format
+                            Res.string.place_insert_error_lng_invalid_format
                     }
                 }
 
@@ -445,7 +445,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLat.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLat.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lat_invalid_format
+                            Res.string.place_insert_error_lat_invalid_format
                     }
                 }
 
@@ -473,7 +473,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                     eventually(duration = 1.seconds) {
                         viewModel.uiState.value.placeLng.validationState.shouldBeInstanceOf<FieldValidationState.BaseNotValid>()
                         viewModel.uiState.value.placeLng.validationState.errorText?.text shouldBe
-                                Res.string.place_insert_error_lng_invalid_format
+                            Res.string.place_insert_error_lng_invalid_format
                     }
                 }
 

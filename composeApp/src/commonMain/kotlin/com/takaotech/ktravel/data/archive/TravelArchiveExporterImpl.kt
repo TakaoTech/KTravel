@@ -77,10 +77,7 @@ class TravelArchiveExporterImpl private constructor(
     }
     private val stagingArea = ArchiveStagingArea(stagingRootProvider)
 
-    override suspend fun export(
-        travelId: String,
-        destination: PlatformFile
-    ): Result<TravelArchiveExportResult> =
+    override suspend fun export(travelId: String, destination: PlatformFile): Result<TravelArchiveExportResult> =
         withContext(Dispatchers.IO) {
             val stagingDir = stagingArea.newSession()
             try {
@@ -166,10 +163,9 @@ class TravelArchiveExporterImpl private constructor(
 }
 
 /** Tutti gli allegati referenziati dal piano, in ordine di comparsa. */
-internal fun TravelPlanEntity.allAttachments(): List<AttachmentEntity> =
-    days.flatMap { day -> day.steps }
-        .filterIsInstance<StepEntity.Place>()
-        .flatMap { step -> step.attachments }
+internal fun TravelPlanEntity.allAttachments(): List<AttachmentEntity> = days.flatMap { day -> day.steps }
+    .filterIsInstance<StepEntity.Place>()
+    .flatMap { step -> step.attachments }
 
 /**
  * Copia del piano il cui inventario contiene solo [retained]. I riferimenti nelle note non vengono

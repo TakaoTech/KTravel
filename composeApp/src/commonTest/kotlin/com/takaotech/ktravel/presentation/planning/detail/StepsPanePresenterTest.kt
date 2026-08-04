@@ -153,7 +153,7 @@ class StepsPanePresenterTest : BehaviorSpec() {
                         state.eventSink(StepsPaneEvent.AddTransport("step-a", "step-b"))
 
                         navigator.awaitNextScreen() shouldBe
-                                AddTransportScreen(DAY_ID, "step-a", "step-b")
+                            AddTransportScreen(DAY_ID, "step-a", "step-b")
                     }
                 }
             }

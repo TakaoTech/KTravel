@@ -77,21 +77,20 @@ class TravelArchiveIdRemapperTest :
                 then("its id changes but the route is untouched") {
                     transport.id shouldNotBe "step-2"
                     transport.route shouldBe (
-                            original.days.first().steps
-                                .filterIsInstance<StepEntity.Transport>().first().route
-                            )
+                        original.days.first().steps
+                            .filterIsInstance<StepEntity.Transport>().first().route
+                        )
                 }
             }
         }
     })
 
-private fun com.takaotech.ktravel.data.entity.TravelPlanEntity.allIds(): List<String> =
-    days.map { it.id } +
-            days.flatMap { day -> day.steps.map { it.id } } +
-            days.flatMap { day -> day.places.map { it.id } } +
-            places.map { it.id } +
-            days.flatMap { day ->
-                day.steps.filterIsInstance<StepEntity.Place>().flatMap { step ->
-                    step.attachments.map { it.id }
-                }
-            }
+private fun com.takaotech.ktravel.data.entity.TravelPlanEntity.allIds(): List<String> = days.map { it.id } +
+    days.flatMap { day -> day.steps.map { it.id } } +
+    days.flatMap { day -> day.places.map { it.id } } +
+    places.map { it.id } +
+    days.flatMap { day ->
+        day.steps.filterIsInstance<StepEntity.Place>().flatMap { step ->
+            step.attachments.map { it.id }
+        }
+    }

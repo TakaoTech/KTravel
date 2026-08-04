@@ -17,11 +17,7 @@ interface AttachmentDataSource {
      * Copia [source] nell'inventario dello step, generando un nome fisico univoco. Ritorna i
      * metadati con [AttachmentEntity.relativePath] relativo alla root.
      */
-    suspend fun saveAttachment(
-        travelId: String,
-        stepId: String,
-        source: PlatformFile
-    ): AttachmentEntity
+    suspend fun saveAttachment(travelId: String, stepId: String, source: PlatformFile): AttachmentEntity
 
     /** Risolve un path relativo nel [PlatformFile] assoluto per rendering/apertura. */
     fun resolveFile(relativePath: String): PlatformFile

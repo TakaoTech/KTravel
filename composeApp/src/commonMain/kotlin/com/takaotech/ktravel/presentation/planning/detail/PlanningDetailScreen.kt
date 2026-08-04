@@ -26,8 +26,7 @@ data class PlanningDetailScreen(val travelId: String, val dayId: String) : Scree
 data class AddPlaceScreen(val dayId: String) : Screen
 
 @Parcelize
-data class AddTransportScreen(val dayId: String, val startPlaceId: String, val endPlaceId: String) :
-    Screen
+data class AddTransportScreen(val dayId: String, val startPlaceId: String, val endPlaceId: String) : Screen
 
 data class PlanningDetailUiState(
     val stepsPaneScreen: StepsPaneScreen,

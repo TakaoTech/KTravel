@@ -1,9 +1,6 @@
 package com.takaotech.navigation.publictransit.model
 
-data class TransitMode(
-    val include: List<TransitModeType>,
-    val exclude: List<TransitModeType> = listOf()
-) {
+data class TransitMode(val include: List<TransitModeType>, val exclude: List<TransitModeType> = listOf()) {
     /**
      * Converts a list of transit modes to a comma-separated query string.
      * Supports exclusion by prefixing with '-'.

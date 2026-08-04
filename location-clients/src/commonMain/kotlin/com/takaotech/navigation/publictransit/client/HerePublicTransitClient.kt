@@ -44,97 +44,96 @@ class HerePublicTransitClient(private val httpClient: HttpClient) {
      * @param request Transit route request parameters
      * @return PublicTransitApiResult containing TransitRouteResponse or error
      */
-    suspend fun getRoutes(request: TransitRoutesRequest): PublicTransitApiResult<TransitRouteResponse> =
-        try {
-            val response = httpClient.get("routes") {
-                parameter("origin", request.origin)
-                parameter("destination", request.destination)
+    suspend fun getRoutes(request: TransitRoutesRequest): PublicTransitApiResult<TransitRouteResponse> = try {
+        val response = httpClient.get("routes") {
+            parameter("origin", request.origin)
+            parameter("destination", request.destination)
 
-                require(request.lang.isNotEmpty()) { "Language list cannot be empty" }
+            require(request.lang.isNotEmpty()) { "Language list cannot be empty" }
 
-                request.lang.let { langs ->
-                    parameter("lang", langs.joinToString(","))
-                }
-
-                request.units.let {
-                    parameter("units", it.toQueryString())
-                }
-
-                request.departureTime?.let {
-                    parameter("departureTime", it)
-                }
-
-                request.arrivalTime?.let {
-                    parameter("arrivalTime", it)
-                }
-
-                request.alternatives.let {
-                    parameter("alternatives", it)
-                }
-
-                request.changes?.let {
-                    parameter("changes", it)
-                }
-
-                request.modes?.let { modes ->
-                    parameter("modes", request.modes.toQueryString())
-                }
-
-                request.pedestrianSpeed?.let {
-                    parameter("pedestrian[speed]", it)
-                }
-
-                request.pedestrianMaxDistance?.let {
-                    parameter("pedestrian[maxDistance]", it)
-                }
-
-                request.accessibility?.let { accessibilityList ->
-                    parameter("accessibility", accessibilityList.joinToString(","))
-                }
-
-                request.returnAttributes?.let { attrs ->
-                    parameter("return", ReturnAttribute.toQueryString(attrs))
-                }
+            request.lang.let { langs ->
+                parameter("lang", langs.joinToString(","))
             }
 
-            if (response.status.isSuccess()) {
-                val routeResponse = response.body<TransitRouteResponse>()
-                PublicTransitApiResult.Success(routeResponse)
-            } else {
-                val errorResponse = try {
-                    response.body<ErrorResponse>()
-                } catch (e: SerializationException) {
-                    ErrorResponse(
-                        title = "Unknown error",
-                        status = response.status.value,
-                        cause = response.bodyAsText(),
-                    )
-                }
-                PublicTransitApiResult.Error(
-                    httpStatusCode = response.status.value,
-                    errorResponse = errorResponse,
+            request.units.let {
+                parameter("units", it.toQueryString())
+            }
+
+            request.departureTime?.let {
+                parameter("departureTime", it)
+            }
+
+            request.arrivalTime?.let {
+                parameter("arrivalTime", it)
+            }
+
+            request.alternatives.let {
+                parameter("alternatives", it)
+            }
+
+            request.changes?.let {
+                parameter("changes", it)
+            }
+
+            request.modes?.let { modes ->
+                parameter("modes", request.modes.toQueryString())
+            }
+
+            request.pedestrianSpeed?.let {
+                parameter("pedestrian[speed]", it)
+            }
+
+            request.pedestrianMaxDistance?.let {
+                parameter("pedestrian[maxDistance]", it)
+            }
+
+            request.accessibility?.let { accessibilityList ->
+                parameter("accessibility", accessibilityList.joinToString(","))
+            }
+
+            request.returnAttributes?.let { attrs ->
+                parameter("return", ReturnAttribute.toQueryString(attrs))
+            }
+        }
+
+        if (response.status.isSuccess()) {
+            val routeResponse = response.body<TransitRouteResponse>()
+            PublicTransitApiResult.Success(routeResponse)
+        } else {
+            val errorResponse = try {
+                response.body<ErrorResponse>()
+            } catch (e: SerializationException) {
+                ErrorResponse(
+                    title = "Unknown error",
+                    status = response.status.value,
+                    cause = response.bodyAsText(),
                 )
             }
-        } catch (e: SerializationException) {
             PublicTransitApiResult.Error(
-                httpStatusCode = 0,
-                exception = e,
-                errorResponse = ErrorResponse(
-                    title = "Serialization error",
-                    status = 0,
-                    cause = e.message,
-                ),
+                httpStatusCode = response.status.value,
+                errorResponse = errorResponse,
             )
-        } catch (e: Exception) {
-            PublicTransitApiResult.Error(
-                httpStatusCode = 0,
-                exception = e,
-                errorResponse = ErrorResponse(
-                    title = "Network error",
-                    status = 0,
-                    cause = e.message,
-                ),
-            )
+        }
+    } catch (e: SerializationException) {
+        PublicTransitApiResult.Error(
+            httpStatusCode = 0,
+            exception = e,
+            errorResponse = ErrorResponse(
+                title = "Serialization error",
+                status = 0,
+                cause = e.message,
+            ),
+        )
+    } catch (e: Exception) {
+        PublicTransitApiResult.Error(
+            httpStatusCode = 0,
+            exception = e,
+            errorResponse = ErrorResponse(
+                title = "Network error",
+                status = 0,
+                cause = e.message,
+            ),
+        )
     }
 
     /**
