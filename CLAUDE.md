@@ -86,10 +86,13 @@ The project follows **Clean Architecture** principles:
 
 ### Building for Different Platforms
 
-**Android:**
+Note that `composeApp` is an AGP *KMP library* and does not produce an APK. The Android application
+is `androidApp`.
+
+**Android (debug):**
 
 ```bash
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 ```
 
 **Desktop (JVM):**
@@ -97,6 +100,27 @@ The project follows **Clean Architecture** principles:
 ```bash
 ./gradlew :composeApp:packageDistributionForCurrentOS
 ```
+
+### Release Builds
+
+Both platforms shrink code in release. Obfuscation is deliberately off on both: stack traces stay
+readable and nothing that resolves a class by name at runtime can break.
+
+```bash
+./gradlew :androidApp:assembleRelease :androidApp:bundleRelease   # APK + AAB (currently unsigned)
+./gradlew :composeApp:packageReleaseDistributionForCurrentOS      # dmg / msi / deb
+```
+
+Keep rules live with the module that needs them:
+
+| File                                           | Scope                                                                   |
+|------------------------------------------------|-------------------------------------------------------------------------|
+| `location-clients/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
+| `os-map/proguard-consumer-rules.pro`           | Android consumer rules                                                  |
+| `os-map/proguard-desktop-rules.pro`            | desktop only (Mapsforge / kxml2 / SVG Salamander)                       |
+| `composeApp/proguard-consumer-rules.pro`       | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, enums)                       |
+| `androidApp/proguard-rules.pro`                | application-level (`-dontobfuscate`, Parcelize)                         |
 
 ### Running the Application
 

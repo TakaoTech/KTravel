@@ -1,0 +1,86 @@
+# This file was generated using Kotlin DSL (.github/workflows/release.main.kts).
+# If you want to modify the workflow, please change the Kotlin file and regenerate this YAML file.
+# Generated with https://github.com/typesafegithub/github-workflows-kt
+
+name: 'Release'
+on:
+  workflow_dispatch: { }
+  push:
+    tags:
+      - 'v*'
+jobs:
+  android:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - id: 'step-0'
+        name: 'Checkout code'
+        uses: 'actions/checkout@v4'
+      - id: 'step-1'
+        name: 'Set up JDK'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '24'
+          distribution: 'corretto'
+      - id: 'step-2'
+        name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v4'
+      - id: 'step-3'
+        name: 'Grant permission to execute gradlew'
+        run: 'chmod +x gradlew'
+      - id: 'step-4'
+        name: 'Build release APK and AAB'
+        run: './gradlew :androidApp:assembleRelease :androidApp:bundleRelease'
+      - id: 'step-5'
+        name: 'Upload APK'
+        uses: 'actions/upload-artifact@v4'
+        with:
+          name: 'android-apk'
+          path: 'androidApp/build/outputs/apk/release/'
+      - id: 'step-6'
+        name: 'Upload AAB'
+        uses: 'actions/upload-artifact@v4'
+        with:
+          name: 'android-aab'
+          path: 'androidApp/build/outputs/bundle/release/'
+      - id: 'step-7'
+        name: 'Upload R8 mapping'
+        uses: 'actions/upload-artifact@v4'
+        with:
+          name: 'android-mapping'
+          path: 'androidApp/build/outputs/mapping/release/'
+  desktop:
+    runs-on: '${{ matrix.os }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'macos-latest'
+          - 'windows-latest'
+          - 'ubuntu-latest'
+    steps:
+      - id: 'step-0'
+        name: 'Checkout code'
+        uses: 'actions/checkout@v4'
+      - id: 'step-1'
+        name: 'Set up JDK'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '24'
+          distribution: 'corretto'
+      - id: 'step-2'
+        name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v4'
+      - id: 'step-3'
+        name: 'Grant permission to execute gradlew'
+        shell: 'bash'
+        run: 'chmod +x gradlew'
+      - id: 'step-4'
+        name: 'Build native distribution'
+        shell: 'bash'
+        run: './gradlew :composeApp:packageReleaseDistributionForCurrentOS'
+      - id: 'step-5'
+        name: 'Upload distribution'
+        uses: 'actions/upload-artifact@v4'
+        with:
+          name: 'desktop-${{ matrix.os }}'
+          path: 'composeApp/build/compose/binaries/main-release/'

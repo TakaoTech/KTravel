@@ -14,15 +14,16 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM
 
 ### Build and Run Android Application
 
-To build and run the development version of the Android app, use the run configuration from the run widget
+The Android application module is `androidApp`; `composeApp` is a KMP library and does not produce
+an APK. To build and run the development version, use the run configuration from the run widget
 in your IDE’s toolbar or build it directly from the terminal:
 - on macOS/Linux
   ```shell
-  ./gradlew :composeApp:assembleDebug
+  ./gradlew :androidApp:assembleDebug
   ```
 - on Windows
   ```shell
-  .\gradlew.bat :composeApp:assembleDebug
+  .\gradlew.bat :androidApp:assembleDebug
   ```
 
 ### Build and Run Desktop (JVM) Application
@@ -65,6 +66,25 @@ in your IDE's toolbar or run it directly from the terminal:
 
 To build and run the development version of the iOS app, use the run configuration from the run widget
 in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+
+### Release Builds
+
+Release builds shrink code on both platforms (R8 on Android, ProGuard on desktop) with obfuscation
+deliberately turned off, so stack traces stay readable.
+
+```shell
+./gradlew :androidApp:assembleRelease :androidApp:bundleRelease   # APK + AAB, currently unsigned
+./gradlew :composeApp:packageReleaseDistributionForCurrentOS      # dmg / msi / deb
+```
+
+Keep rules live next to the module that needs them, as `proguard-consumer-rules.pro` (published as
+Android consumer rules) and `proguard-desktop-rules.pro` (desktop only). Android release signing is
+not configured yet; see the commented `signingConfigs` block in `androidApp/build.gradle.kts`.
+
+CI builds both platforms
+from [.github/workflows/release.main.kts](.github/workflows/release.main.kts),
+triggered manually or by a `v*` tag. After editing the Kotlin file, regenerate the YAML with
+`kotlin .github/workflows/release.main.kts`.
 
 ---
 

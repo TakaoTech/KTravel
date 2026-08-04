@@ -1,4 +1,4 @@
-import io.gitlab.arturbosch.detekt.Detekt
+import dev.detekt.gradle.Detekt
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
 kotlin {
     android {
         namespace = "com.takaotech.navigation"
@@ -15,11 +21,18 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_24)
         }
 
         androidResources {
             enable = true
+        }
+
+        // Keep rules shipped to consumers that minify (see androidApp). `publish` is required:
+        // consumer rules of a KMP library are not published by default.
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("proguard-consumer-rules.pro")
         }
     }
 
@@ -33,7 +46,11 @@ kotlin {
         }
     }
 
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_24)
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -97,8 +114,8 @@ detekt {
 tasks.withType<Detekt>().configureEach {
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
-        md.required.set(true)
-        xml.required.set(true)
+        markdown.required.set(true)
+//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }

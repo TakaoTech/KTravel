@@ -1,6 +1,6 @@
-import io.gitlab.arturbosch.detekt.Detekt
-import io.gitlab.arturbosch.detekt.DetektPlugin
-import io.gitlab.arturbosch.detekt.report.ReportMergeTask
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.plugin.DetektPlugin
+import dev.detekt.gradle.report.ReportMergeTask
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -37,15 +37,15 @@ subprojects {
         tasks.withType<Detekt> {
             finalizedBy(detektReportMergeXml, detektReportMergeMd, detektReportMergeSarif)
 
-            detektReportMergeXml.configure {
-                input.from(xmlReportFile)
-            }
-            detektReportMergeMd.configure {
-                input.from(mdReportFile)
-            }
-            detektReportMergeSarif.configure {
-                input.from(sarifReportFile)
-            }
+//            detektReportMergeXml.configure {
+//                input.from(xmlReportFile)
+//            }
+//            detektReportMergeMd.configure {
+//                input.from(mdReportFile)
+//            }
+//            detektReportMergeSarif.configure {
+//                input.from(sarifReportFile)
+//            }
         }
     }
 }

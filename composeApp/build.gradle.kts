@@ -1,8 +1,8 @@
 @file:OptIn(ExperimentalMetroGradleApi::class, ExperimentalKotlinGradlePluginApi::class)
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidCompilation
+import dev.detekt.gradle.Detekt
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
-import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -24,6 +24,12 @@ plugins {
     id("kotlin-parcelize")
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
 kotlin {
     android {
         namespace = "com.takaotech.ktravel.compose"
@@ -31,11 +37,19 @@ kotlin {
 
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_24)
         }
 
         androidResources {
             enable = true
+        }
+
+        // Keep rules shipped to consumers that minify (see androidApp). `publish` is required:
+        // consumer rules of a KMP library are not published by default.
+        // The desktop counterpart lives in proguard-desktop-rules.pro, wired below.
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("proguard-consumer-rules.pro")
         }
     }
 
@@ -49,7 +63,11 @@ kotlin {
         }
     }
 
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_24)
+        }
+    }
 
     applyDefaultHierarchyTemplate {
         common {
@@ -246,9 +264,17 @@ metro {
     enableCircuitCodegen = true
 }
 
+// TODO Check why JVM Toolchain is not applied to compose.desktop
+val desktopPackagingJdk = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(24)
+    vendor = JvmVendorSpec.AMAZON
+}
+
 compose.desktop {
     application {
         mainClass = "com.takaotech.ktravel.MainKt"
+
+        javaHome = desktopPackagingJdk.get().metadata.installationPath.asFile.absolutePath
 
         jvmArgs(
             "--add-opens=java.base/java.lang=ALL-UNNAMED",
@@ -266,6 +292,22 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.takaotech.ktravel"
             packageVersion = libs.versions.ktravel.version.get()
+        }
+
+
+        buildTypes.release.proguard {
+            isEnabled.set(true)
+            optimize.set(true)
+            obfuscate.set(false)
+            // Desktop ProGuard does not read the modules' consumer keep rules: aggregate them here.
+            // `$rootDir` avoids a cross-project access, which the configuration cache dislikes.
+            configurationFiles.from(
+                file("$rootDir/location-clients/proguard-consumer-rules.pro"),
+                file("$rootDir/os-map/proguard-consumer-rules.pro"),
+                file("$rootDir/os-map/proguard-desktop-rules.pro"),
+                file("proguard-consumer-rules.pro"),
+                file("proguard-desktop-rules.pro"),
+            )
         }
     }
 }
@@ -312,12 +354,12 @@ detekt {
 tasks.withType<Detekt>().configureEach {
     // Detekt 1.23.x gira in-process nel daemon Gradle e non supporta JVM 23+: va lanciato con un
     // JDK <= 22 (`./gradlew detekt` con JAVA_HOME su JDK 21), oppure aggiornando detekt.
-    jvmTarget = JvmTarget.JVM_21.target
+//    jvmTarget = JvmTarget.JVM_21.target
 
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
-        md.required.set(true)
-        xml.required.set(true)
+        markdown.required.set(true)
+//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 

@@ -1,5 +1,5 @@
+import dev.detekt.gradle.Detekt
 import io.github.frankois944.spmForKmp.swiftPackageConfig
-import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
 
@@ -12,6 +12,12 @@ plugins {
     id("io.github.frankois944.spmForKmp") version "1.9.4"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
 kotlin {
     // Target declarations - add or remove as needed below. These define
     // which platforms this KMP module supports.
@@ -22,7 +28,7 @@ kotlin {
         compileSdk = libs.versions.android.targetSdk.get().toInt()
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_24)
         }
 
 //        withHostTestBuilder {
@@ -36,6 +42,11 @@ kotlin {
 
         androidResources {
             enable = true
+        }
+
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("proguard-consumer-rules.pro")
         }
     }
 
@@ -70,7 +81,11 @@ kotlin {
             isStatic = true
         }
     }
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_24)
+        }
+    }
 
 //    js {
 //        browser()
@@ -143,8 +158,8 @@ detekt {
 tasks.withType<Detekt>().configureEach {
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
-        md.required.set(true)
-        xml.required.set(true)
+        markdown.required.set(true)
+//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }
