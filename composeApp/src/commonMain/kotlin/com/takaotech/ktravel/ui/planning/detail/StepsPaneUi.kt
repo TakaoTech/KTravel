@@ -65,8 +65,13 @@ internal object StepsPaneTestTags {
     const val EMPTY = "steps_pane_empty"
     const val BACK_BUTTON = "steps_pane_back"
     const val OPEN_BACKLOG_BUTTON = "steps_pane_open_backlog"
+    const val TRANSPORT_DURATION = "steps_pane_transport_duration"
     fun addTransportTag(startPlaceId: String, endPlaceId: String) =
         "steps_pane_add_transport_${startPlaceId}_$endPlaceId"
+
+    fun deleteStepTag(stepId: String) = "steps_pane_delete_step_$stepId"
+    fun moveStepUpTag(stepId: String) = "steps_pane_move_step_up_$stepId"
+    fun moveStepDownTag(stepId: String) = "steps_pane_move_step_down_$stepId"
 }
 
 // Timeline sizing (gutter with vertical line and nodes).

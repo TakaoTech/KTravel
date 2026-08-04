@@ -2,7 +2,7 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +18,12 @@ import io.kotest.matchers.shouldBe
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.minutes
 
+/**
+ * Icon buttons are queried by test tag rather than by content description, and the transport row is
+ * asserted on the interpolated duration only: labels come from
+ * [org.jetbrains.compose.resources.stringResource], which resolves in the JVM default locale, so
+ * matching their wording would tie the test to whichever language the host machine runs in.
+ */
 @OptIn(ExperimentalTestApi::class)
 class StepsPaneContentTest : BehaviorSpec() {
 
@@ -102,7 +108,11 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onSetDepartureTime = { _, _ -> }
                         )
                     }
-                    onNodeWithText("Duration 30m").assertIsDisplayed()
+                    // The route sections aggregate to "30m"; the surrounding wording comes from the
+                    // string resource and is intentionally not asserted.
+                    onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION)
+                        .assertIsDisplayed()
+                        .assertTextContains("30m", substring = true)
                 }
             }
         }
@@ -158,7 +168,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onSetDepartureTime = { _, _ -> }
                             )
                         }
-                        onNodeWithContentDescription("Delete step").performClick()
+                        onNodeWithTag(
+                            StepsPaneTestTags.deleteStepTag(placeA.id)
+                        ).performClick()
                     }
                     deleted shouldBe placeA
                 }
@@ -182,7 +194,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onSetDepartureTime = { _, _ -> }
                             )
                         }
-                        onNodeWithContentDescription("Move step up").performClick()
+                        onNodeWithTag(
+                            StepsPaneTestTags.moveStepUpTag(placeA.id)
+                        ).performClick()
                     }
                     movedUp shouldBe placeA.id
                 }
@@ -206,7 +220,9 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onSetDepartureTime = { _, _ -> }
                             )
                         }
-                        onNodeWithContentDescription("Move step down").performClick()
+                        onNodeWithTag(
+                            StepsPaneTestTags.moveStepDownTag(placeA.id)
+                        ).performClick()
                     }
                     movedDown shouldBe placeA.id
                 }

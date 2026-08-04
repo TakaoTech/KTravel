@@ -13,6 +13,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.planning.StepUi
@@ -58,21 +59,30 @@ internal fun TravelStepPlace(
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                IconButton(onClick = onStepDeleteClicked) {
+                IconButton(
+                    modifier = Modifier.testTag(StepsPaneTestTags.deleteStepTag(step.id)),
+                    onClick = onStepDeleteClicked
+                ) {
                     Icon(
                         painter = painterResource(Res.drawable.delete),
                         contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
                     )
                 }
 
-                IconButton(onClick = { onStepMoveUp(step.id) }) {
+                IconButton(
+                    modifier = Modifier.testTag(StepsPaneTestTags.moveStepUpTag(step.id)),
+                    onClick = { onStepMoveUp(step.id) }
+                ) {
                     Icon(
                         painter = painterResource(Res.drawable.arrow_upward),
                         contentDescription = stringResource(Res.string.planning_detail_cd_move_step_up),
                     )
                 }
 
-                IconButton(onClick = { onStepMoveDown(step.id) }) {
+                IconButton(
+                    modifier = Modifier.testTag(StepsPaneTestTags.moveStepDownTag(step.id)),
+                    onClick = { onStepMoveDown(step.id) }
+                ) {
                     Icon(
                         painter = painterResource(Res.drawable.arrow_downward),
                         contentDescription = stringResource(Res.string.planning_detail_cd_move_step_down),

@@ -11,12 +11,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.permanent_delete_dialog_cancel
 import ktravel.composeapp.generated.resources.permanent_delete_dialog_confirm
 import ktravel.composeapp.generated.resources.permanent_delete_dialog_message
 import ktravel.composeapp.generated.resources.permanent_delete_dialog_title
 import org.jetbrains.compose.resources.stringResource
+
+internal object DisruptiveOperationDialogTestTags {
+    const val DIALOG = "disruptive_operation_dialog"
+    const val CONFIRM = "disruptive_operation_dialog_confirm"
+    const val CANCEL = "disruptive_operation_dialog_cancel"
+}
 
 /**
  * Displays a dialog for confirming or rejecting a potentially disruptive operation. The dialog
@@ -62,6 +70,7 @@ fun DisruptiveOperationDialog(
     confirmText: String = stringResource(Res.string.permanent_delete_dialog_confirm),
 ) {
     AlertDialog(
+        modifier = Modifier.testTag(DisruptiveOperationDialogTestTags.DIALOG),
         onDismissRequest = onDismiss,
         title = {
             Text(text = title)
@@ -71,6 +80,7 @@ fun DisruptiveOperationDialog(
         },
         confirmButton = {
             TextButton(
+                modifier = Modifier.testTag(DisruptiveOperationDialogTestTags.CONFIRM),
                 onClick = onConfirm
             ) {
                 Text(
@@ -81,6 +91,7 @@ fun DisruptiveOperationDialog(
         },
         dismissButton = {
             TextButton(
+                modifier = Modifier.testTag(DisruptiveOperationDialogTestTags.CANCEL),
                 onClick = onDismiss
             ) {
                 Text(text = stringResource(Res.string.permanent_delete_dialog_cancel))

@@ -7,12 +7,17 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.takaotech.ktravel.presentation.planning.PlaceUi
+import com.takaotech.ktravel.ui.common.DisruptiveOperationDialogTestTags
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.collections.immutable.persistentListOf
 
-private const val DIALOG_TITLE = "Permanent Delete"
-
+/**
+ * The delete dialog is queried by test tag rather than by label: its labels come from
+ * [org.jetbrains.compose.resources.stringResource], which resolves in the JVM default locale, so
+ * matching their wording would tie the test to whichever language the host machine runs in. Place
+ * names are plain data, so those are still matched by text.
+ */
 @OptIn(ExperimentalTestApi::class)
 class PlacesBacklogContentTest : BehaviorSpec() {
 
@@ -152,7 +157,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onPermanentDeleteDismiss = {}
                         )
                     }
-                    onNodeWithText(DIALOG_TITLE).assertDoesNotExist()
+                    onNodeWithTag(DisruptiveOperationDialogTestTags.DIALOG).assertDoesNotExist()
                 }
             }
 
@@ -171,7 +176,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                             onPermanentDeleteDismiss = {}
                         )
                     }
-                    onNodeWithText(DIALOG_TITLE).assertIsDisplayed()
+                    onNodeWithTag(DisruptiveOperationDialogTestTags.DIALOG).assertIsDisplayed()
                 }
             }
 
@@ -192,7 +197,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onPermanentDeleteDismiss = {}
                             )
                         }
-                        onNodeWithText("Delete").performClick()
+                        onNodeWithTag(DisruptiveOperationDialogTestTags.CONFIRM).performClick()
                     }
                     confirmed shouldBe true
                 }
@@ -215,7 +220,7 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                                 onPermanentDeleteDismiss = { dismissed = true }
                             )
                         }
-                        onNodeWithText("Cancel").performClick()
+                        onNodeWithTag(DisruptiveOperationDialogTestTags.CANCEL).performClick()
                     }
                     dismissed shouldBe true
                 }

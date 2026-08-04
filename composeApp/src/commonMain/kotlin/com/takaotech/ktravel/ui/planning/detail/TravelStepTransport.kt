@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.presentation.planning.StepUi
 import ktravel.composeapp.generated.resources.Res
@@ -46,6 +47,7 @@ fun TravelStepTransport(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
+            modifier = Modifier.testTag(StepsPaneTestTags.TRANSPORT_DURATION),
             text = stringResource(
                 Res.string.planning_detail_transport_duration,
                 step.totalDuration.toString()
