@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
 }
 
 java {
@@ -115,7 +116,6 @@ tasks.withType<Detekt>().configureEach {
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
         markdown.required.set(true)
-//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }

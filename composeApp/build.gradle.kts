@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.stability.analyzer)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
@@ -352,14 +353,9 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
-    // Detekt 1.23.x gira in-process nel daemon Gradle e non supporta JVM 23+: va lanciato con un
-    // JDK <= 22 (`./gradlew detekt` con JAVA_HOME su JDK 21), oppure aggiornando detekt.
-//    jvmTarget = JvmTarget.JVM_21.target
-
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
         markdown.required.set(true)
-//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 

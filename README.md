@@ -61,6 +61,7 @@ built today.
 | Animations      | Compottie (Lottie)                                                     |
 | Testing         | Kotest, kotlin-test, JUnit, Turbine-style Circuit tests, MockK/Mokkery |
 | Static analysis | Detekt 2.0.0-alpha.5 with Compose rules and formatting                 |
+| Coverage        | Kover 0.9.9, aggregated across modules into one report                 |
 | Build           | Gradle Kotlin DSL, version catalog, typesafe project accessors         |
 
 ## Project structure
@@ -93,12 +94,16 @@ Inside `composeApp`, `commonMain` follows the package layout `core`, `data`, `do
 | Xcode       | Only for iOS — 16+, with Swift Package Manager support (`spmForKmp`) |
 | Git         | Required by the JitPack/Maven dependency resolution of some modules  |
 
-Two build steps have stricter JDK needs:
+One build step has stricter JDK needs:
 
 - **Desktop release packaging** requires an **Amazon Corretto 22–24 JDK that ships `jmods`**
   (`jpackage` uses it). It is selected explicitly by vendor in `composeApp/build.gradle.kts`.
-- **Detekt** runs in-process inside the Gradle daemon and does not support JVM 23+; run it with
-  `JAVA_HOME` pointing at a **JDK 21**.
+
+Detekt used to require a separate JDK 21 because it ran in-process and did not support JVM 23+.
+Since
+the move to Detekt 2.x (`dev.detekt`) that constraint is gone: a single modern JDK compiles, tests
+and
+runs `detektAll`.
 
 ## Installation
 
@@ -200,14 +205,38 @@ Keep shrinking rules next to the module that needs them:
 Shared tests live in `composeApp/src/commonTest/kotlin` and use Kotest as the runner. Test names are
 written in English and follow the `Given ... When ... Then ...` pattern.
 
+## Coverage
+
+Coverage is measured with [Kover](https://github.com/Kotlin/kotlinx-kover). The root project
+aggregates `:composeApp`, `:location-clients` and `:os-map` into a single report; `:androidApp` is
+left out on purpose, being a framework entry point with no test source set.
+
+```bash
+./gradlew koverHtmlReport                 # build/reports/kover/html/index.html
+./gradlew koverXmlReport                  # build/reports/kover/report.xml (for CI)
+./gradlew koverLog                        # summary printed to the console
+./gradlew :composeApp:koverHtmlReport     # a single module
+```
+
+The numbers come from the JVM target, which is where the Kotest suites run. Generated code — Compose
+Resources accessors, `ComposableSingletons`, Metro dependency graphs and `@Preview` functions — is
+filtered out in the root `build.gradle.kts`. No minimum is enforced: to gate the build on a
+threshold, declare a `verify { rule { minBound(...) } }` inside `reports.total`.
+
 ## Static analysis
 
 ```bash
-JAVA_HOME=/path/to/jdk-21 ./gradlew detektAll
+./gradlew detektAll                       # every subproject, then merges the reports
+./gradlew :composeApp:detekt              # a single module
 ```
 
-`detektAll` runs Detekt on every subproject and merges the XML, Markdown and SARIF reports into
-`build/reports/detekt/`.
+`detektAll` merges the Checkstyle-XML and SARIF reports into `build/reports/detekt/merge.xml` and
+`build/reports/detekt/merge.sarif`. Markdown is deliberately not merged — the merge task only
+understands those two formats — so the per-source-set HTML, Markdown, XML and SARIF reports stay in
+each module's own `build/reports/detekt/`.
+
+The shared ruleset is `config/detekt/detekt.yml`. Every module sets `ignoreFailures = true`, so
+Detekt never breaks the build: read the reports.
 
 ## Continuous integration
 

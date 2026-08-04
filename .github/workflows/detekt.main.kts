@@ -35,7 +35,7 @@ workflow(
             name = "Set up JDK",
             action = SetupJava(
                 distribution = SetupJava.Distribution.Corretto,
-                javaVersion = "17"
+                javaVersion = "24"
             ),
             _customArguments = mapOf(
 

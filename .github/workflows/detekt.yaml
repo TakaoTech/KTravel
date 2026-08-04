@@ -19,7 +19,7 @@ jobs:
         name: 'Set up JDK'
         uses: 'actions/setup-java@v4'
         with:
-          java-version: '17'
+          java-version: '24'
           distribution: 'corretto'
       - id: 'step-2'
         name: 'Setup Gradle'

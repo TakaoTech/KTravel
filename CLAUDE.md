@@ -66,6 +66,23 @@ The project follows **Clean Architecture** principles:
     - Android: `./gradlew :composeApp:testDebugUnitTest`
     - Desktop: `./gradlew :composeApp:jvmTest`
 
+### Coverage (Kover)
+
+Kover is applied to `composeApp`, `location-clients` and `os-map`; the root project aggregates them
+into a single report. `androidApp` is excluded on purpose — it is a framework entry point with no
+test source set.
+
+- **Aggregated HTML report:** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html`
+- **Aggregated XML report (CI):** `./gradlew koverXmlReport` → `build/reports/kover/report.xml`
+- **Console summary:** `./gradlew koverLog`
+- **Single module:** `./gradlew :composeApp:koverHtmlReport`
+
+Coverage comes from the JVM target, which is where the Kotest suites run. Generated code (Compose
+Resources accessors, `ComposableSingletons`, Metro graphs, `@Preview` functions) is filtered out in
+the root `kover { reports { filters { ... } } }` block. No verification threshold is enforced: to
+add
+one, declare a `verify { rule { minBound(...) } }` inside `reports.total`.
+
 ### Test Framework Usage
 
 - Use **Kotest** for shared tests as test runners

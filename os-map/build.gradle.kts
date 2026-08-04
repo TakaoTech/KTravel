@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
     id("io.github.frankois944.spmForKmp") version "1.9.4"
 }
 
@@ -159,7 +160,6 @@ tasks.withType<Detekt>().configureEach {
     exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
     reports {
         markdown.required.set(true)
-//        xml.required.set(true)
 //        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
     }
 }
