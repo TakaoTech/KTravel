@@ -84,7 +84,7 @@ jobs:
       run: 'chmod +x gradlew'
     - id: 'step-5'
       name: 'Run tests and quality reports'
-      run: './gradlew jvmTest testAndroidHostTest koverXmlReport detektAll'
+      run: './gradlew jvmTest testAndroidHostTest koverXmlReport detektAll :androidApp:lint'
     - id: 'step-6'
       name: 'Upload test reports'
       uses: 'actions/upload-artifact@v7'

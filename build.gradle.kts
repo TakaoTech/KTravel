@@ -25,10 +25,14 @@ plugins {
     alias(libs.plugins.sonarqube)
 }
 
-// SonarCloud analysis. The two reports it consumes are produced by tasks that already exist:
-// :koverXmlReport (JaCoCo schema) and :detektReportMergeXml (checkstyle schema). CI runs them
-// first, then `./gradlew sonar --no-configuration-cache` — the scanner plugin does not support
-// the configuration cache, which this build enables by default.
+// SonarCloud analysis. The three reports it consumes are produced by tasks that already exist:
+// :koverXmlReport (JaCoCo schema), :detektReportMergeXml (checkstyle schema) and :androidApp:lint
+// (Android Lint schema). CI runs them first, then `./gradlew sonar --no-configuration-cache` — the
+// scanner plugin does not support the configuration cache, which this build enables by default.
+//
+// The paths are absolute and declared on the root project: the scanner treats root properties as
+// defaults inherited by every module, so each module picks the issues that belong to its own files
+// out of the same report.
 sonar {
     properties {
         property("sonar.projectKey", "TakaoTech_KTravel")
@@ -41,6 +45,12 @@ sonar {
         property(
             "sonar.kotlin.detekt.reportPaths",
             layout.buildDirectory.file("reports/detekt/merge.xml").get().asFile.path,
+        )
+
+        property(
+            "sonar.androidLint.reportPaths",
+            project(":androidApp").layout.buildDirectory
+                .file("reports/lint-results-debug.xml").get().asFile.path,
         )
         // The reports come from dedicated tasks upstream; letting the scanner recompile is waste.
         property("sonar.gradle.skipCompile", "true")

@@ -132,9 +132,11 @@ workflow(
 
         // jvmTest and testAndroidHostTest run the same commonTest suites on both JVM flavours.
         // Coverage comes from the JVM target, which is what Kover aggregates.
+        // :androidApp:lint writes the Android Lint XML that Sonar reads; it does not fail the
+        // build, because the module sets abortOnError = false.
         run(
             name = "Run tests and quality reports",
-            command = "./gradlew jvmTest testAndroidHostTest koverXmlReport detektAll",
+            command = "./gradlew jvmTest testAndroidHostTest koverXmlReport detektAll :androidApp:lint",
         )
 
         uses(
