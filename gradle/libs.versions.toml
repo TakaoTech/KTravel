@@ -1,23 +1,51 @@
 [versions]
-agp = "8.11.2"
-android-compileSdk = "36"
-android-minSdk = "24"
-android-targetSdk = "36"
-androidx-activity = "1.11.0"
+
+ktor-client = "3.4.0"
+ktravel-version = "0.1.0"
+ktravel-code = "1"
+
+agp = "9.3.1"
+android-compileSdk = "37"
+android-minSdk = "26"
+android-targetSdk = "37"
+androidx-activity = "1.12.4"
 androidx-appcompat = "1.7.1"
 androidx-core = "1.17.0"
 androidx-espresso = "3.7.0"
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.9.6"
 androidx-testExt = "1.3.0"
-composeHotReload = "1.0.0-rc02"
-composeMultiplatform = "1.9.0"
-material-adaptive = "1.2.0-alpha06"
+composeMultiplatform = "1.11.1"
+logbackClassic = "1.3.14"
+material-adaptive = "1.3.0-beta02"
 junit = "4.13.2"
-kotlin = "2.2.20"
-kotlinx-coroutines = "1.10.2"
-kotlinStdlib = "2.2.20"
+kotlin = "2.4.0"
+mapsForgeVersion = "0.28.0"
+kotlinx-coroutines = "1.11.0"
+kotlinx-serialization-json = "1.11.0"
+material3 = "1.9.0"
+navigationevent = "1.1.0"
+navigation-compose = "2.9.2"
+platformtoolsCore = "0.7.5"
 runner = "1.7.0"
 core = "1.7.0"
+kotest = "6.2.2"
+mockk = "1.14.9"
+metro = "1.3.2"
+
+filekit = "0.14.2"
+kotbase = "3.2.4-1.2.0"
+circuit = "0.34.0"
+
+kzip = "2.0.0"
+kotlinx-io = "0.9.1"
+
+detekt = "2.0.0-alpha.5"
+kover = "0.9.9"
+sonarqube = "7.3.1.8318"
+compottie = "2.2.4"
+
+hyphen = "0.7.0-alpha01"
+markdown-renderer = "0.43.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -31,21 +59,126 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
-kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1"
+kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.1"
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
-material-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material-adaptive"}
-material-adaptive-layout = { module = "org.jetbrains.compose.material3.adaptive:adaptive-layout", version.ref = "material-adaptive"}
-material-adaptive-navigation = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation", version.ref = "material-adaptive"}
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+material-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material-adaptive" }
+material-adaptive-layout = { module = "org.jetbrains.compose.material3.adaptive:adaptive-layout", version.ref = "material-adaptive" }
+material-adaptive-navigation = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation", version.ref = "material-adaptive" }
+
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "composeMultiplatform" }
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+compose-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+compose-backhandler-core = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+compose-constraintlayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version = "0.8.0-shaded" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-client" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-client" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-client" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-client" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor-client" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+
+metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
+metro-viewmodel = { module = "dev.zacsweers.metro:metrox-viewmodel", version.ref = "metro" }
+metro-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-compose", version.ref = "metro" }
+
+kotest-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-bdd = { module = "io.mockk:mockk-bdd", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockk-android-bdd = { module = "io.mockk:mockk-bdd-android", version.ref = "mockk" }
+mockk-android-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
+
+mapsforge-core = { module = "com.github.mapsforge.mapsforge:mapsforge-core", version.ref = "mapsForgeVersion" }
+mapsforge-map = { module = "com.github.mapsforge.mapsforge:mapsforge-map", version.ref = "mapsForgeVersion" }
+mapsforge-map-reader = { module = "com.github.mapsforge.mapsforge:mapsforge-map-reader", version.ref = "mapsForgeVersion" }
+mapsforge-themes = { module = "com.github.mapsforge.mapsforge:mapsforge-themes", version.ref = "mapsForgeVersion" }
+mapsforge-map-awt = { module = "com.github.mapsforge.mapsforge:mapsforge-map-awt", version.ref = "mapsForgeVersion" }
+mapsforge-svgSalamander = "guru.nidi.com.kitfox:svgSalamander:1.1.3"
+mapsforge-kxml2 = "net.sf.kxml:kxml2:2.3.0"
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version = "0.13.1" }
+osm-jmapviewer = { module = "org.openstreetmap.jmapviewer:jmapviewer", version = "2.25" }
+
+kotlinx-measure = "io.nacular.measured:measured:0.5.0"
+kotlinx-money = "com.eriksencosta:money:0.2.0"
+
+compose-coil = "io.coil-kt.coil3:coil-compose:3.5.0"
+kmp-locale = "com.vanniktech:multiplatform-locale:0.11.0"
+
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
+filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
+
+platformtools-core = { module = "io.github.kdroidfilter:platformtools.core", version.ref = "platformtoolsCore" }
+
+dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version = "0.5.0" }
+
+couchbase-lite = { module = "dev.kotbase:couchbase-lite", version.ref = "kotbase" }
+
+# kzip non pubblica un artefatto per il target androidJvm: su Android/JVM si usa la variante jvm,
+# consentita dalla regola di compatibilità KGP jvm -> androidJvm (vedi sourceSet jvmZipMain).
+kzip = { module = "de.jonasbroeckmann.kzip:kzip", version.ref = "kzip" }
+kzip-jvm = { module = "de.jonasbroeckmann.kzip:kzip-jvm", version.ref = "kzip" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
+
+circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }
+circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = "circuit" }
+circuit-runtime-presenter = { module = "com.slack.circuit:circuit-runtime-presenter", version.ref = "circuit" }
+circuit-runtime-ui = { module = "com.slack.circuit:circuit-runtime-ui", version.ref = "circuit" }
+circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circuit" }
+
+hyphen = { module = "io.github.densermeerkat:hyphen", version.ref = "hyphen" }
+markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
+markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdown-renderer" }
+
+compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
+#compottie-lite = { module = "io.github.alexzhirkevich:compottie-lite", version.ref = "compottie" }
+#compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
+#compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
+compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
+
+detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
+detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
-composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotest = { id = "io.kotest", version.ref = "kotest" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.10" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.12.0" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+mokkery = { id = "dev.mokkery", version = "3.4.2" }
 
 [bundles]
-material-adaptive = [ "material-adaptive", "material-adaptive-layout", "material-adaptive-navigation" ]
+material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]
+osm-jvm = ["mapsforge-core", "mapsforge-map", "mapsforge-map-reader", "mapsforge-themes", "mapsforge-map-awt", "mapsforge-svgSalamander", "mapsforge-kxml2"]
+kotest-multiplatform = ["kotest-core", "kotest-property", "kotest-engine"]
+mockk = ["mockk", "mockk-bdd"]
+mockk-android = ["mockk-android", "mockk-bdd", "mockk-android-agent"]

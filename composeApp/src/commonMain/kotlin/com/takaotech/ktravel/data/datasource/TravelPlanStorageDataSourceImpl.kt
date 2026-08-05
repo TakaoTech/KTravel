@@ -1,0 +1,92 @@
+package com.takaotech.ktravel.data.datasource
+
+import com.takaotech.ktravel.data.entity.TravelPlanEntity
+import com.takaotech.ktravel.data.storage.DatabaseProvider
+import com.takaotech.ktravel.di.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import kotbase.DataSource
+import kotbase.Expression
+import kotbase.Meta
+import kotbase.MutableDocument
+import kotbase.QueryBuilder
+import kotbase.SelectResult
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
+@Inject
+class TravelPlanStorageDataSourceImpl(
+    private val storageRepository: DatabaseProvider,
+    private val attachmentDataSource: AttachmentDataSource,
+) : TravelPlanStorageDataSource {
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
+
+    private val travelCollection = storageRepository.database.createCollection("travel_plans")
+
+    override suspend fun saveTravelPlan(entity: TravelPlanEntity) {
+        val docToSave = documentOf(entity)
+        storageRepository.scope.launch {
+            travelCollection.save(docToSave)
+        }
+    }
+
+    private fun documentOf(entity: TravelPlanEntity): MutableDocument {
+        val jsonString = json.encodeToString(TravelPlanEntity.serializer(), entity)
+        return travelCollection.getDocument(entity.id)?.toMutable()?.also { it.setJSON(jsonString) }
+            ?: MutableDocument(entity.id, jsonString)
+    }
+
+    override suspend fun insertTravelPlan(entity: TravelPlanEntity) {
+        withContext(storageRepository.writeContext) {
+            travelCollection.save(documentOf(entity))
+        }
+    }
+
+    // TODO Convert to suspend
+    override fun getTravelPlan(id: String): TravelPlanEntity {
+        val map = travelCollection.getDocument(id)!!
+        return json.decodeFromString<TravelPlanEntity>(map.toJSON())
+    }
+
+    override suspend fun getTravelPlanNameOrNull(id: String): String? = withContext(storageRepository.readContext) {
+        travelCollection.getDocument(id)
+            ?.toJSON()
+            ?.let { json.decodeFromString<TravelPlanEntity>(it).name }
+    }
+
+    override suspend fun getAllTravelPlans(): List<TravelPlanEntity> = withContext(storageRepository.readContext) {
+        QueryBuilder
+            .select(SelectResult.all(), SelectResult.expression(Meta.id).`as`("_id"))
+            .from(DataSource.collection(travelCollection))
+            .where(
+                Expression.property("type")
+                    .equalTo(Expression.string(TravelPlanEntity.DOCUMENT_TYPE)),
+            )
+            .execute()
+            .allResults()
+            .mapNotNull { result ->
+                result.getDictionary(travelCollection.name)?.toJSON()?.let { jsonString ->
+                    json.decodeFromString<TravelPlanEntity>(jsonString)
+                        .copy(id = result.getString("_id") ?: "")
+                }
+            }
+    }
+
+    override suspend fun deleteTravelPlan(id: String) {
+        withContext(storageRepository.writeContext) {
+            travelCollection.getDocument(id)?.let { document ->
+                travelCollection.delete(document)
+            }
+            // Rimuove anche i file dell'inventario di tutti gli step del viaggio.
+            attachmentDataSource.deleteTravelAttachments(id)
+        }
+    }
+}

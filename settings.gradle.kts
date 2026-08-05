@@ -3,6 +3,8 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -10,13 +12,14 @@ pluginManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        mavenCentral()
-        gradlePluginPortal()
+
     }
 }
 
 dependencyResolutionManagement {
     repositories {
+        mavenCentral()
+        google()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -24,14 +27,11 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        mavenCentral()
         maven(url = "https://jitpack.io")
     }
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-
+include(":androidApp")
 include(":composeApp")
 include(":os-map")
+include(":location-clients")

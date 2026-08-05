@@ -1,32 +1,54 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import dev.detekt.gradle.Detekt
+import io.github.frankois944.spmForKmp.swiftPackageConfig
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
+    id("io.github.frankois944.spmForKmp") version "1.9.4"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
 }
 
 kotlin {
     // Target declarations - add or remove as needed below. These define
     // which platforms this KMP module supports.
     // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
-    androidLibrary {
+    android {
         namespace = "com.takaotech.os_map"
         minSdk = libs.versions.android.minSdk.get().toInt()
         compileSdk = libs.versions.android.targetSdk.get().toInt()
 
-        withHostTestBuilder {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_24)
         }
 
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }.configure {
-            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        withHostTestBuilder {
+//        }
+//
+//        withDeviceTestBuilder {
+//            sourceSetTreeName = "test"
+//        }.configure {
+//            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        }
+
+        androidResources {
+            enable = true
         }
 
-        androidResources.enable = true
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("proguard-consumer-rules.pro")
+        }
     }
 
     // For iOS targets, this is also where you should
@@ -38,54 +60,60 @@ kotlin {
     // https://developer.android.com/kotlin/multiplatform/migrate
     val xcfName = "os-mapKit"
 
-    iosX64 {
-        binaries.framework {
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        // TODO: Add SPM plugin
+        //  https://maplibre.org/maplibre-compose/getting-started/#swift-package-manager
+        iosTarget.swiftPackageConfig {
+            dependency {
+                remotePackageVersion(
+                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+                    products = { add("MapLibre", exportToKotlin = true) },
+                    packageName = "maplibre-gl-native-distribution",
+                    version = "6.25.1",
+                )
+            }
+        }
+
+        iosTarget.binaries.framework {
             baseName = xcfName
+            isStatic = true
+        }
+    }
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_24)
         }
     }
 
-    iosArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    jvm()
-
-    js {
-        browser()
-        binaries.executable()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
+//    js {
+//        browser()
+//        binaries.executable()
+//    }
+//
+//    @OptIn(ExperimentalWasmDsl::class)
+//    wasmJs {
+//        browser()
+//        binaries.executable()
+//    }
 
     sourceSets {
         androidMain.dependencies {
-            implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-            implementation(libs.kotlin.stdlib)
-
-
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-//            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.maplibre.compose)
+            implementation(libs.platformtools.core)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -93,16 +121,62 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.bundles.osm.jvm)
+            implementation(libs.kotlinx.serialization.json)
 
-            val mapsForgeVersion = "0.26.1"
-
-            implementation("com.github.mapsforge.mapsforge:mapsforge-core:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map-reader:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-themes:$mapsForgeVersion")
-            implementation("com.github.mapsforge.mapsforge:mapsforge-map-awt:$mapsForgeVersion")
-            implementation("guru.nidi.com.kitfox:svgSalamander:1.1.3")
-            implementation("net.sf.kxml:kxml2:2.3.0")
+            // implementation(libs.maplibre.compose)  // already in commonMain
+            // runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.13.0") {
+            //     capabilities {
+            //         requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
+            //     }
+            // }
         }
     }
+}
+
+dependencies {
+    detektPlugins(libs.detekt.composerules)
+    detektPlugins(libs.detekt.formatting)
+}
+
+detekt {
+//    buildUponDefaultConfig = true
+    ignoreFailures = true
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+
+    arrayOf(
+        "androidMain",
+        "commonMain",
+        "jvmMain",
+        "iosMain"
+    ).map {
+        "src/$it/kotlin"
+    }.let {
+        source.setFrom(it)
+    }
+}
+
+tasks.withType<Detekt>().configureEach {
+    exclude("**/build/**", "**/generated/**", "org/koin/ksp/generated/**")
+    reports {
+        markdown.required.set(true)
+//        html.outputLocation.set(file("$rootDir/reports/detekt/composeApp.html"))
+    }
+}
+
+fun detectTarget(): String {
+    val hostOs = when (val os = System.getProperty("os.name").lowercase()) {
+        "mac os x" -> "macos"
+        else -> os.split(" ").first()
+    }
+    val hostArch = when (val arch = System.getProperty("os.arch").lowercase()) {
+        "x86_64" -> "amd64"
+        "arm64" -> "aarch64"
+        else -> arch
+    }
+    val renderer = when (hostOs) {
+        "macos" -> "metal"
+        else -> "opengl"
+    }
+    return "${hostOs}-${hostArch}-${renderer}"
 }

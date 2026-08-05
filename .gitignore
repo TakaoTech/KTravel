@@ -3,12 +3,22 @@ build/
 .idea/
 .kotlin/
 
+# Couchbase Lite scratch dirs, created next to the module when a test opens the database
+CouchbaseLiteTemp/
+*.cblite2/
+maplibre-cache
+
+# macOS
+.DS_Store
+
 # Keystore files
 *.jks
 *.keystore
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
+kotzilla.json
+kotzilla.key
 
 
 ### Xcode ###
@@ -23,3 +33,5 @@ xcuserdata/
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+local.properties
