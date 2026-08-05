@@ -77,6 +77,20 @@ is JVM-only and `commonTest` also compiles for iOS) and the three suites that op
 database (its Android artifact needs a `Context`). When adding a test that touches either area,
 expect it to run on the JVM target only.
 
+### Couchbase Lite native libraries on Linux
+
+`libLiteCore.so` links against ICU 71, a major no Ubuntu LTS ships (22.04 has 70, 24.04 has 74);
+ICU exports version suffixed symbols, so pointing a symlink at another major fails on the symbols.
+When building on Linux the `fetchCouchbaseIcuLibraries` task unpacks the three libraries from the
+archive Couchbase builds against and packages them as application resources, and
+`ensureDatabaseNativeLibraries` (`DatabaseNativeLibraries.jvm.kt`) loads them from the classpath
+before the first `DatabaseConfiguration`. `System.load` maps each one under its SONAME, which is
+what `libLiteCore.so` asks for, so the dynamic linker never searches the system paths.
+
+This is deliberately packaged rather than installed on the machine: the distribution is self
+contained, and `jvmTest` on a Linux runner exercises the same path as the shipped application.
+Nothing is produced on macOS or Windows hosts, where the loader is a no-op.
+
 ### Coverage (Kover)
 
 Kover is applied to `composeApp`, `location-clients` and `os-map`; the root project aggregates them

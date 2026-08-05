@@ -6,104 +6,104 @@ name: 'CI'
 on:
   push:
     branches:
-      - 'main'
-      - 'dev'
-  pull_request: { }
+    - 'main'
+    - 'dev'
+  pull_request: {}
 jobs:
   format:
     runs-on: 'ubuntu-latest'
     permissions:
       contents: 'write'
     steps:
-      - id: 'step-0'
-        name: 'Checkout code'
-        uses: 'actions/checkout@v4'
-        with:
-          repository: '${{ github.event.pull_request.head.repo.full_name || github.repository }}'
-          ref: '${{ github.event.pull_request.head.ref || github.ref }}'
-      - id: 'step-1'
-        name: 'Set up JDK'
-        uses: 'actions/setup-java@v4'
-        with:
-          java-version: '24'
-          distribution: 'corretto'
-      - id: 'step-2'
-        name: 'Setup Gradle'
-        uses: 'gradle/actions/setup-gradle@v4'
-      - id: 'step-3'
-        name: 'Grant permission to execute gradlew'
-        run: 'chmod +x gradlew'
-      - id: 'step-4'
-        name: 'Apply detekt formatting'
-        run: './gradlew detektFormat -Pdetekt.autocorrect=true'
-      - id: 'step-5'
-        name: 'Commit formatting'
-        run: |-
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "Nothing to format."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "style: apply detekt/ktlint formatting"
-          git push
-        if: 'github.event_name != ''pull_request'' || github.event.pull_request.head.repo.full_name == github.repository'
+    - id: 'step-0'
+      name: 'Checkout code'
+      uses: 'actions/checkout@v7'
+      with:
+        repository: '${{ github.event.pull_request.head.repo.full_name || github.repository }}'
+        ref: '${{ github.event.pull_request.head.ref || github.ref }}'
+    - id: 'step-1'
+      name: 'Set up JDK'
+      uses: 'actions/setup-java@v5'
+      with:
+        java-version: '24'
+        distribution: 'corretto'
+    - id: 'step-2'
+      name: 'Setup Gradle'
+      uses: 'gradle/actions/setup-gradle@v6'
+    - id: 'step-3'
+      name: 'Grant permission to execute gradlew'
+      run: 'chmod +x gradlew'
+    - id: 'step-4'
+      name: 'Apply detekt formatting'
+      run: './gradlew detektFormat -Pdetekt.autocorrect=true'
+    - id: 'step-5'
+      name: 'Commit formatting'
+      run: |-
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "Nothing to format."
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        git commit -m "style: apply detekt/ktlint formatting"
+        git push
+      if: 'github.event_name != ''pull_request'' || github.event.pull_request.head.repo.full_name == github.repository'
   verify:
     runs-on: 'ubuntu-latest'
     needs:
-      - 'format'
+    - 'format'
     env:
       SONAR_TOKEN: '${{ secrets.SONAR_TOKEN }}'
     steps:
-      - id: 'step-0'
-        name: 'Checkout code'
-        uses: 'actions/checkout@v4'
-        with:
-          repository: '${{ github.event.pull_request.head.repo.full_name || github.repository }}'
-          ref: '${{ github.event.pull_request.head.ref || github.ref }}'
-          fetch-depth: '0'
-      - id: 'step-1'
-        name: 'Set up JDK'
-        uses: 'actions/setup-java@v4'
-        with:
-          java-version: '24'
-          distribution: 'corretto'
-      - id: 'step-2'
-        name: 'Setup Gradle'
-        uses: 'gradle/actions/setup-gradle@v4'
-      - id: 'step-3'
-        name: 'Cache SonarCloud packages'
-        uses: 'actions/cache@v4'
-        with:
-          path: '~/.sonar/cache'
-          key: '${{ runner.os }}-sonar'
-          restore-keys: '${{ runner.os }}-sonar'
-      - id: 'step-4'
-        name: 'Grant permission to execute gradlew'
-        run: 'chmod +x gradlew'
-      - id: 'step-5'
-        name: 'Run tests and quality reports'
-        run: './gradlew jvmTest testAndroidHostTest koverXmlReport detektAll'
-      - id: 'step-6'
-        name: 'Upload test reports'
-        uses: 'actions/upload-artifact@v4'
-        with:
-          name: 'test-reports'
-          path: |-
-            **/build/reports/tests/
-            **/build/test-results/
-          if-no-files-found: 'ignore'
-        if: 'always()'
-      - id: 'step-7'
-        name: 'SonarCloud analysis'
-        run: |-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ./gradlew sonar --no-configuration-cache \
-              -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-              -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-              -Dsonar.pullrequest.base=${{ github.base_ref }}
-          else
-            ./gradlew sonar --no-configuration-cache
-          fi
-        if: 'env.SONAR_TOKEN != '''''
+    - id: 'step-0'
+      name: 'Checkout code'
+      uses: 'actions/checkout@v7'
+      with:
+        repository: '${{ github.event.pull_request.head.repo.full_name || github.repository }}'
+        ref: '${{ github.event.pull_request.head.ref || github.ref }}'
+        fetch-depth: '0'
+    - id: 'step-1'
+      name: 'Set up JDK'
+      uses: 'actions/setup-java@v5'
+      with:
+        java-version: '24'
+        distribution: 'corretto'
+    - id: 'step-2'
+      name: 'Setup Gradle'
+      uses: 'gradle/actions/setup-gradle@v6'
+    - id: 'step-3'
+      name: 'Cache SonarCloud packages'
+      uses: 'actions/cache@v6'
+      with:
+        path: '~/.sonar/cache'
+        key: '${{ runner.os }}-sonar'
+        restore-keys: '${{ runner.os }}-sonar'
+    - id: 'step-4'
+      name: 'Grant permission to execute gradlew'
+      run: 'chmod +x gradlew'
+    - id: 'step-5'
+      name: 'Run tests and quality reports'
+      run: './gradlew jvmTest testAndroidHostTest koverXmlReport detektAll'
+    - id: 'step-6'
+      name: 'Upload test reports'
+      uses: 'actions/upload-artifact@v7'
+      with:
+        name: 'test-reports'
+        path: |-
+          **/build/reports/tests/
+          **/build/test-results/
+        if-no-files-found: 'ignore'
+      if: 'always()'
+    - id: 'step-7'
+      name: 'SonarCloud analysis'
+      run: |-
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          ./gradlew sonar --no-configuration-cache \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+        else
+          ./gradlew sonar --no-configuration-cache
+        fi
+      if: 'env.SONAR_TOKEN != '''''

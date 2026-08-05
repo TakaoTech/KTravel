@@ -7,6 +7,8 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import java.net.URI
+import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -28,6 +30,58 @@ plugins {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
+// ── Couchbase Lite native prerequisites (Linux desktop) ──────────────────────────────────────────
+// libLiteCore.so, the engine behind Couchbase Lite, links against ICU 71. No Ubuntu LTS ships that
+// major — 22.04 has 70, 24.04 has 74 — and ICU exports version suffixed symbols (u_strlen_71), so a
+// symlink pointing at another major resolves the file and then fails on the symbols. Rather than
+// making every Linux user install the libraries by hand, they are unpacked from the archive
+// Couchbase builds against and packaged as application resources: the distribution carries its own
+// copy, and the test run loads it exactly the way the shipped application does.
+//
+// Only produced when building on Linux. packageDistributionForCurrentOS targets the host, so a
+// macOS or Windows bundle would carry 69 MB it can never use, and the loader is a no-op there.
+val isLinuxHost = System.getProperty("os.name").orEmpty().startsWith("Linux")
+
+val couchbaseLiteVersion = libs.versions.kotbase.get().substringBefore('-')
+
+val fetchCouchbaseIcuLibraries by tasks.registering {
+    description = "Unpacks the ICU 71 libraries that Couchbase Lite's libLiteCore.so links against"
+    val version = couchbaseLiteVersion
+    val archive = layout.buildDirectory.file("tmp/couchbase-supportlibs-$version.zip")
+    val outputDir = layout.buildDirectory.dir("generated/couchbaseIcu")
+    // Named after the SONAME each library is loaded under, which is what libLiteCore.so asks for.
+    // The archive also holds those names as symlinks to the .71.1 files; a plain zip reader would
+    // materialise them as text stubs holding the target path, so the real entries are read instead.
+    val libraries = listOf("libicudata.so.71", "libicuuc.so.71", "libicui18n.so.71")
+
+    inputs.property("couchbaseLiteVersion", version)
+    outputs.dir(outputDir)
+
+    doLast {
+        val zipFile = archive.get().asFile
+        if (!zipFile.exists()) {
+            zipFile.parentFile.mkdirs()
+            URI(
+                "https://packages.couchbase.com/releases/couchbase-lite-java/$version/" +
+                    "couchbase-lite-java-linux-supportlibs-$version.zip",
+            ).toURL().openStream().use { input -> zipFile.outputStream().use(input::copyTo) }
+        }
+
+        val target = outputDir.get().asFile.resolve("couchbase/icu")
+        target.mkdirs()
+        ZipFile(zipFile).use { zip ->
+            libraries.forEach { soname ->
+                val entry = requireNotNull(zip.getEntry("$soname.1")) {
+                    "$soname.1 is missing from the Couchbase Lite support libs archive"
+                }
+                zip.getInputStream(entry).use { input ->
+                    target.resolve(soname).outputStream().use(input::copyTo)
+                }
+            }
+        }
     }
 }
 
@@ -215,6 +269,13 @@ kotlin {
         }
         jvmMain {
             kotlin.srcDir("src/kzipMain/kotlin")
+            // Packaged into the jar, which puts them on the distribution's classpath and, just as
+            // importantly, on the one jvmTest runs against: the suites that open the database load
+            // ICU through the same code path as the shipped application, with nothing installed on
+            // the machine around them.
+            if (isLinuxHost) {
+                resources.srcDir(fetchCouchbaseIcuLibraries)
+            }
             dependencies {
                 implementation(libs.kzip.jvm)
             }

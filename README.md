@@ -212,6 +212,10 @@ variant as well. Two groups are the exception and run on the JVM target only, be
 Android unit test provides no Android runtime: the Compose UI tests under `ui/**`, and the suites
 that open the Couchbase database. See `composeApp/build.gradle.kts` for the exclusion list.
 
+On Linux the database engine needs ICU 71, which no Ubuntu LTS ships. The build packages those
+libraries into the application itself, so neither the CI runner nor anyone running the desktop
+build has to install them by hand — see the Couchbase Lite section of `CLAUDE.md`.
+
 ## Coverage
 
 Coverage is measured with [Kover](https://github.com/Kotlin/kotlinx-kover). The root project

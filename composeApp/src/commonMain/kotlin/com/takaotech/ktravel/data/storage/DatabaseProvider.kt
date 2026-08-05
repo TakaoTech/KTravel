@@ -17,6 +17,9 @@ class DatabaseProvider(
 ) {
 
     val database by lazy {
+        // Before the first DatabaseConfiguration: instantiating it is what initialises the engine
+        // and loads its native libraries, so anything they depend on has to be in place already.
+        ensureDatabaseNativeLibraries()
         val config = DatabaseConfiguration()
         if (directory != null) config.directory = directory
         Database(databaseName, config)
