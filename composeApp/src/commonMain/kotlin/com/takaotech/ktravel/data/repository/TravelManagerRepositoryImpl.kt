@@ -34,7 +34,7 @@ class TravelManagerRepositoryImpl(private val dataSource: TravelPlanStorageDataS
             days = emptyList(),
             places = emptyList(),
         )
-        dataSource.saveTravelPlan(entity)
+        dataSource.insertTravelPlan(entity)
 
         return id
     }

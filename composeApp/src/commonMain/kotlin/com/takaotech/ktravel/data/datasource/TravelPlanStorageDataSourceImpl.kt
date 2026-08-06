@@ -52,7 +52,8 @@ class TravelPlanStorageDataSourceImpl(
 
     // TODO Convert to suspend
     override fun getTravelPlan(id: String): TravelPlanEntity {
-        val map = travelCollection.getDocument(id)!!
+        val map = travelCollection.getDocument(id)
+            ?: error("No travel plan stored with id $id")
         return json.decodeFromString<TravelPlanEntity>(map.toJSON())
     }
 

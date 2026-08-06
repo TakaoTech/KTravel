@@ -75,15 +75,14 @@ class TravelCreationViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                repository.createTravelPlan(
+                val id = repository.createTravelPlan(
                     name = name,
                     periodStart = Instant.fromEpochMilliseconds(start).toLocalDate(),
                     periodEnd = Instant.fromEpochMilliseconds(end).toLocalDate(),
                 )
+                planningGraphStore.getOrCreate(id).travelPlanRepository.updatePeriod(start, end)
+                id
             }.onSuccess { id ->
-                val planningGraph = planningGraphStore.getOrCreate(id)
-                planningGraph.travelPlanRepository.updatePeriod(start, end)
-
                 _uiState.update { it.copy(isLoading = false, createdTravelId = id) }
             }.onFailure { error ->
                 _uiState.update { it.copy(isLoading = false, error = error.message) }

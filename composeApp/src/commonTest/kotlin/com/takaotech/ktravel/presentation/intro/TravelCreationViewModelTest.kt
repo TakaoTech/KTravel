@@ -8,6 +8,7 @@ import com.takaotech.ktravel.domain.repository.TravelManagerRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
+import dev.mokkery.answering.throws
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
@@ -295,6 +296,46 @@ class TravelCreationViewModelTest : BehaviorSpec() {
                                 endDateMillis,
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        given("a TravelCreationViewModel whose planning graph cannot be created") {
+            val failingFactory: PlanningGraph.Factory = mock()
+            every { failingFactory.create(any()) } throws IllegalStateException("No travel plan stored with id")
+
+            everySuspend {
+                mockTravelManagerRepository.createTravelPlan(any(), any(), any())
+            } calls {
+                Uuid.generateV4().toString()
+            }
+
+            val viewModel = TravelCreationViewModel(
+                mockTravelManagerRepository,
+                PlanningGraphStore(failingFactory),
+            )
+            viewModel.onNameChange(TextFieldValue("Wonderful Summer Trip"))
+            viewModel.onDateRangeChange(1704067200000L, 1709251200000L)
+
+            `when`("createTravelPlan is called") {
+                viewModel.createTravelPlan()
+
+                then("should report the failure as an error instead of crashing") {
+                    eventually(duration = 1.seconds) {
+                        viewModel.uiState.value.error shouldBe "No travel plan stored with id"
+                    }
+                }
+
+                then("should not mark the travel as created") {
+                    eventually(duration = 1.seconds) {
+                        viewModel.uiState.value.createdTravelId shouldBe null
+                    }
+                }
+
+                then("should stop loading") {
+                    eventually(duration = 1.seconds) {
+                        viewModel.uiState.value.isLoading shouldBe false
                     }
                 }
             }
