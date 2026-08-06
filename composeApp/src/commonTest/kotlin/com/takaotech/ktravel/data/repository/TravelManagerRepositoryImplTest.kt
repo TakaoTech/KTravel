@@ -25,8 +25,7 @@ private class FakeTravelPlanStorageDataSource : TravelPlanStorageDataSource {
         stored[entity.id] = entity
     }
 
-    override fun getTravelPlan(id: String): TravelPlanEntity =
-        stored[id] ?: error("No travel plan stored with id $id")
+    override fun getTravelPlan(id: String): TravelPlanEntity = stored[id] ?: error("No travel plan stored with id $id")
 
     override suspend fun getTravelPlanNameOrNull(id: String): String? = stored[id]?.name
 
