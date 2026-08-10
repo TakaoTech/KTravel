@@ -20,6 +20,7 @@ plugins {
     alias(libs.plugins.stability.analyzer) apply false
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.allopen) apply false
+    alias(libs.plugins.spmForKmp) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.sonarqube)
@@ -71,7 +72,6 @@ sonar {
 dependencies {
     kover(projects.composeApp)
     kover(projects.locationClients)
-    kover(projects.osMap)
     kover(projects.passwordStrength)
 }
 
@@ -80,10 +80,7 @@ kover {
         filters {
             excludes {
                 // Compose Resources accessors, one generated class per drawable/string.
-                packages(
-                    "ktravel.composeapp.generated.resources",
-                    "ktravel.os_map.generated.resources",
-                )
+                packages("ktravel.composeapp.generated.resources")
                 // Compose compiler lambda holders and Metro's generated dependency graphs.
                 classes(
                     "*ComposableSingletons*",

@@ -3,6 +3,7 @@ package com.takaotech.ktravel.ui.planning.transport
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,19 +41,38 @@ import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.navigation.common.GeoJsonConverter
 import com.takaotech.navigation.common.PolylineEncoderDecoder
-import com.takaotech.os_map.RouteMap
 import io.github.kdroidfilter.platformtools.Platform
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.check
 import org.jetbrains.compose.resources.painterResource
+import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.compose.layers.LineLayer
+import org.maplibre.compose.map.GestureOptions
+import org.maplibre.compose.map.MapOptions
+import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.sources.GeoJsonData
+import org.maplibre.compose.sources.rememberGeoJsonSource
+import org.maplibre.compose.style.BaseStyle
+import org.maplibre.spatialk.geojson.BoundingBox
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
+
+/** Inset kept between the route's bounding box and the map edges when framing it. */
+private val ROUTE_FIT_PADDING = 48.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -232,6 +253,12 @@ private fun RouteStepsPreview(
     }
 }
 
+/**
+ * Route map: the selected route drawn as a single line, framed on the whole path.
+ *
+ * [enable] turns the gestures off rather than the map: the caller passes `false` while the bottom
+ * sheet is expanded over it, and a map that still panned under the sheet would swallow the drag.
+ */
 @Composable
 fun RoutePreviewMap(enable: Boolean, sections: List<RouteSection>, modifier: Modifier = Modifier) {
     val path by remember(sections) {
@@ -240,13 +267,52 @@ fun RoutePreviewMap(enable: Boolean, sections: List<RouteSection>, modifier: Mod
                 .let { GeoJsonConverter.mergePolylinesToGeoJson(it) }
         }
     }
+    val cameraState = rememberCameraState()
 
-    RouteMap(
+    LaunchedEffect(path) {
+        routeBoundingBox(path)?.let { bbox ->
+            cameraState.animateTo(bbox, padding = PaddingValues(ROUTE_FIT_PADDING))
+        }
+    }
+
+    MaplibreMap(
         modifier = modifier,
-        enable = enable,
-        geoJsonPath = path,
-    )
+        baseStyle = BaseStyle.Uri(MAP_STYLE_URI),
+        cameraState = cameraState,
+        options = MapOptions(
+            gestureOptions = if (enable) GestureOptions.Standard else GestureOptions.AllDisabled,
+        ),
+    ) {
+        val pathLine = rememberGeoJsonSource(data = GeoJsonData.JsonString(path))
+        LineLayer("path", source = pathLine)
+    }
 }
+
+/**
+ * Bounding box of the route, or `null` when the GeoJSON cannot be read.
+ *
+ * Only the shape [GeoJsonConverter.mergePolylinesToGeoJson] produces is handled — a `Feature` whose
+ * geometry is a `LineString` — because that is the only producer feeding this screen.
+ */
+private fun routeBoundingBox(geoJson: String): BoundingBox? = runCatching {
+    val root = Json.parseToJsonElement(geoJson).jsonObject
+    if (root["type"]?.jsonPrimitive?.contentOrNull != "Feature") return@runCatching null
+    val coordinates: JsonArray = root["geometry"]?.jsonObject?.get("coordinates")?.jsonArray
+        ?: return@runCatching null
+
+    // GeoJSON positions are [longitude, latitude] per RFC 7946. An empty line has no box: min()
+    // throws and runCatching turns that into null, same as a payload that cannot be read at all.
+    val positions = coordinates.map { it.jsonArray }
+    val longitudes = positions.map { it[0].jsonPrimitive.double }
+    val latitudes = positions.map { it[1].jsonPrimitive.double }
+
+    BoundingBox(
+        west = longitudes.min(),
+        south = latitudes.min(),
+        east = longitudes.max(),
+        north = latitudes.max(),
+    )
+}.getOrNull()
 
 @Composable
 fun RouteStepSection(

@@ -3,6 +3,7 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidCompilation
 import dev.detekt.gradle.Detekt
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
+import io.github.frankois944.spmForKmp.swiftPackageConfig
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -24,12 +25,13 @@ plugins {
     alias(libs.plugins.mokkery)
     alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
+    alias(libs.plugins.spmForKmp)
     id("kotlin-parcelize")
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -85,12 +87,42 @@ val fetchCouchbaseIcuLibraries by tasks.registering {
     }
 }
 
+// ── MapLibre desktop runtime ─────────────────────────────────────────────────────────────────────
+// MapLibre Native FFI ships one runtime artifact per OS/architecture pair, and MapLibre's own
+// documentation says to pick the one matching the build host. That is also the only choice that
+// makes sense here: packageDistributionForCurrentOS targets the host, and the CI release matrix
+// builds one distribution per runner (macos, windows, ubuntu).
+//
+// macOS x64 is not a supported host: MapLibre publishes no runtime for it, so the map could never
+// render. The build refuses it rather than resolving the arm64 runtime and producing a distribution
+// that fails at the first frame.
+val maplibreDesktopRuntime = run {
+    val os = System.getProperty("os.name").orEmpty().lowercase()
+    val arch = System.getProperty("os.arch").orEmpty().lowercase()
+    val isArm = arch == "aarch64" || arch == "arm64"
+    when {
+        os.startsWith("mac") -> {
+            require(isArm) {
+                "macOS x64 is not supported: MapLibre publishes no desktop runtime for it. " +
+                    "Build on an arm64 Mac."
+            }
+            libs.maplibre.runtime.macos.arm64
+        }
+        os.startsWith("windows") && isArm -> libs.maplibre.runtime.windows.arm64
+        os.startsWith("windows") -> libs.maplibre.runtime.windows.x64
+        isArm -> libs.maplibre.runtime.linux.arm64
+        else -> libs.maplibre.runtime.linux.x64
+    }
+}
+
 kotlin {
     android {
         namespace = "com.takaotech.ktravel.compose"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
 
 
+        // Kept one release behind the toolchain: D8 does not accept the class file version JDK 25
+        // emits. The rest of the project targets 25, which the desktop map requires.
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_24)
         }
@@ -122,6 +154,19 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
+        // MapLibre's iOS SDK is a Swift package, pulled into the static framework below so the
+        // Xcode project needs no package reference of its own.
+        iosTarget.swiftPackageConfig {
+            dependency {
+                remotePackageVersion(
+                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
+                    products = { add("MapLibre", exportToKotlin = true) },
+                    packageName = "maplibre-gl-native-distribution",
+                    version = "6.25.1",
+                )
+            }
+        }
+
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
@@ -130,7 +175,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_24)
+            jvmTarget.set(JvmTarget.JVM_25)
         }
     }
 
@@ -208,7 +253,7 @@ kotlin {
                 implementation(libs.androidx.lifecycle.runtimeCompose)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.immutable)
-                implementation(project(":os-map"))
+                implementation(libs.maplibre.compose)
                 implementation(project(":location-clients"))
                 implementation(project(":password-strength"))
 
@@ -305,6 +350,7 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logback.classic)
+            runtimeOnly(maplibreDesktopRuntime)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
@@ -349,8 +395,12 @@ metro {
 }
 
 // TODO Check why JVM Toolchain is not applied to compose.desktop
+//
+// Corretto because jpackage's jlink step and ProGuard both read the `jmods` directory, which several
+// distributions (JetBrains Runtime and Temurin among them) leave out. Gradle downloads it through
+// the foojay resolver declared in settings.gradle.kts, so JAVA_HOME never matters here.
 val desktopPackagingJdk = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(24)
+    languageVersion = JavaLanguageVersion.of(25)
     vendor = JvmVendorSpec.AMAZON
 }
 
@@ -361,6 +411,8 @@ compose.desktop {
         javaHome = desktopPackagingJdk.get().metadata.installationPath.asFile.absolutePath
 
         jvmArgs(
+            // MapLibre Native FFI
+            "--enable-native-access=ALL-UNNAMED",
             "--add-opens=java.base/java.lang=ALL-UNNAMED",
             "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
             "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED",
@@ -380,6 +432,9 @@ compose.desktop {
 
 
         buildTypes.release.proguard {
+            // Compose 1.11.1 defaults to ProGuard 7.7.0, which reads class file 68 at most and
+            // dies on the JDK 25 jmods it reads as -libraryjars. 7.8.0 raised the ceiling to 69.
+            version.set("7.9.1")
             isEnabled.set(true)
             optimize.set(true)
             obfuscate.set(false)
@@ -387,8 +442,6 @@ compose.desktop {
             // `$rootDir` avoids a cross-project access, which the configuration cache dislikes.
             configurationFiles.from(
                 file("$rootDir/location-clients/proguard-consumer-rules.pro"),
-                file("$rootDir/os-map/proguard-consumer-rules.pro"),
-                file("$rootDir/os-map/proguard-desktop-rules.pro"),
                 file("proguard-consumer-rules.pro"),
                 file("proguard-desktop-rules.pro"),
             )

@@ -16,6 +16,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -27,12 +31,10 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        maven(url = "https://jitpack.io")
     }
 }
 
 include(":androidApp")
 include(":composeApp")
-include(":os-map")
 include(":location-clients")
 include(":password-strength")

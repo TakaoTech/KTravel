@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.platform.testTag
@@ -50,9 +51,8 @@ import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailUiState
+import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import com.takaotech.os_map.LatLng
-import com.takaotech.os_map.RouteMap
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitType
@@ -81,6 +81,21 @@ import ktravel.composeapp.generated.resources.planning_detail_step_note_label
 import ktravel.composeapp.generated.resources.planning_detail_step_note_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.map.GestureOptions
+import org.maplibre.compose.map.MapOptions
+import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.sources.GeoJsonData
+import org.maplibre.compose.sources.rememberGeoJsonSource
+import org.maplibre.compose.style.BaseStyle
+import org.maplibre.spatialk.geojson.Point
+import org.maplibre.spatialk.geojson.Position
+
+/** Opening zoom of the place map: close enough to show the surrounding streets. */
+private const val MARKER_ZOOM = 14.0
 
 internal object StepDetailTestTags {
     const val MAP = "step_detail_map"
@@ -261,13 +276,13 @@ internal fun StepDetailPlaceContent(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            RouteMap(
+            PlaceMap(
+                lat = place.lat,
+                lng = place.lng,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
                     .testTag(StepDetailTestTags.MAP),
-                enable = true,
-                marker = LatLng(lat = place.lat, lng = place.lng),
             )
 
             ScheduleSection(
@@ -289,6 +304,48 @@ internal fun StepDetailPlaceContent(
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+/**
+ * Map of the place: a single marker, centred on first composition and re-centred whenever the
+ * step's coordinates change.
+ */
+@Composable
+private fun PlaceMap(lat: Double, lng: Double, modifier: Modifier = Modifier) {
+    val cameraState = rememberCameraState(
+        firstPosition = CameraPosition(
+            target = Position(longitude = lng, latitude = lat),
+            zoom = MARKER_ZOOM,
+        ),
+    )
+
+    LaunchedEffect(lat, lng) {
+        cameraState.position = CameraPosition(
+            target = Position(longitude = lng, latitude = lat),
+            zoom = MARKER_ZOOM,
+        )
+    }
+
+    MaplibreMap(
+        modifier = modifier,
+        baseStyle = BaseStyle.Uri(MAP_STYLE_URI),
+        cameraState = cameraState,
+        options = MapOptions(
+            gestureOptions = GestureOptions.AllDisabled,
+        )
+    ) {
+        val markerSource = rememberGeoJsonSource(
+            data = GeoJsonData.Features(Point(Position(longitude = lng, latitude = lat))),
+        )
+        CircleLayer(
+            id = "marker",
+            source = markerSource,
+            radius = const(8.dp),
+            color = const(Color.Red),
+            strokeColor = const(Color.White),
+            strokeWidth = const(2.dp),
+        )
     }
 }
 
@@ -428,7 +485,12 @@ private fun ScheduleSection(
 }
 
 @Composable
-private fun ScheduleField(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun ScheduleField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,

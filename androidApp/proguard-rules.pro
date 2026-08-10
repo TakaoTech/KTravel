@@ -1,6 +1,6 @@
 # Application-level ProGuard/R8 rules.
 #
-# Library keep rules are NOT duplicated here: :composeApp, :os-map and :location-clients publish
+# Library keep rules are NOT duplicated here: :composeApp and :location-clients publish
 # their own consumer keep rules, and third-party AARs (Couchbase, MapLibre, OkHttp, Coil,
 # kotlinx.serialization) ship theirs.
 

@@ -26,7 +26,7 @@ import io.github.typesafegithub.workflows.dsl.expressions.expr
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.ConsistencyCheckJobConfig
 
-val jdkVersion = "24"
+val jdkVersion = "25"
 
 // On a pull_request event the checkout lands on the merge commit in detached HEAD, which has no
 // branch to push back to. Checking out the head ref of the PR instead gives the format job

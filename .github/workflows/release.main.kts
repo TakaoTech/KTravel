@@ -23,7 +23,7 @@ import io.github.typesafegithub.workflows.dsl.expressions.expr
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.ConsistencyCheckJobConfig
 
-val jdkVersion = "24"
+val jdkVersion = "25"
 
 workflow(
     name = "Release",
@@ -95,7 +95,7 @@ workflow(
             )
         )
         // configuration.txt records every keep rule R8 actually applied, including the consumer
-        // rules coming from :composeApp, :os-map and :location-clients. Keep it: without it a
+        // rules coming from :composeApp and :location-clients. Keep it: without it a
         // shrinking regression is nearly impossible to diagnose after the fact.
         uses(
             name = "Upload R8 mapping",

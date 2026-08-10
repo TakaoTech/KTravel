@@ -19,7 +19,7 @@ jobs:
       name: 'Set up JDK'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '24'
+        java-version: '25'
         distribution: 'corretto'
     - id: 'step-2'
       name: 'Setup Gradle'
@@ -42,7 +42,7 @@ jobs:
       name: 'Set up JDK'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '24'
+        java-version: '25'
         distribution: 'corretto'
     - id: 'step-2'
       name: 'Setup Gradle'
@@ -90,7 +90,7 @@ jobs:
       name: 'Set up JDK'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '24'
+        java-version: '25'
         distribution: 'corretto'
     - id: 'step-2'
       name: 'Setup Gradle'

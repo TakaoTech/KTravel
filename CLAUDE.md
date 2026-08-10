@@ -12,7 +12,7 @@ application targets multiple platforms including Android, iOS, and Desktop (JVM)
 - Cross-platform travel planning functionality
 - Shared UI code using Compose Multiplatform
 - Clean architecture with separation of concerns (domain, presentation, UI layers)
-- Map integration via custom os-map module
+- Map integration through MapLibre Compose, called directly from the UI layer
 
 ## Project Structure
 
@@ -20,7 +20,6 @@ application targets multiple platforms including Android, iOS, and Desktop (JVM)
 
 - `/composeApp` - Main application module containing shared and platform-specific code
 - `/iosApp` - iOS application entry point and SwiftUI code
-- `/os-map` - Custom module for map functionality
 - `/gradle` - Gradle wrapper and configuration files
 
 ### ComposeApp Module Structure
@@ -93,9 +92,9 @@ Nothing is produced on macOS or Windows hosts, where the loader is a no-op.
 
 ### Coverage (Kover)
 
-Kover is applied to `composeApp`, `location-clients` and `os-map`; the root project aggregates them
-into a single report. `androidApp` is excluded on purpose — it is a framework entry point with no
-test source set.
+Kover is applied to `composeApp`, `location-clients` and `password-strength`; the root project
+aggregates them into a single report. `androidApp` is excluded on purpose — it is a framework entry
+point with no test source set.
 
 - **Aggregated HTML report:** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html`
 - **Aggregated XML report (CI):** `./gradlew koverXmlReport` → `build/reports/kover/report.xml`
@@ -148,6 +147,13 @@ is `androidApp`.
 Both platforms shrink code in release. Obfuscation is deliberately off on both: stack traces stay
 readable and nothing that resolves a class by name at runtime can break.
 
+The desktop release needs a JDK with `jmods` (ProGuard reads them as `-libraryjars`, and `jlink`
+builds the runtime image from them). `composeApp/build.gradle.kts` requests an Amazon Corretto 25
+toolchain by vendor and assigns it to `compose.desktop.application.javaHome`, so `JAVA_HOME` never
+matters here; the foojay resolver in `settings.gradle.kts` lets Gradle download it. ProGuard is
+pinned to 7.9.1: the 7.7.0 that Compose 1.11.1 defaults to reads class file 68 at most and dies on
+a JDK 25 jmod.
+
 ```bash
 ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease   # APK + AAB (currently unsigned)
 ./gradlew :composeApp:packageReleaseDistributionForCurrentOS      # dmg / msi / deb
@@ -158,10 +164,8 @@ Keep rules live with the module that needs them:
 | File                                           | Scope                                                                   |
 |------------------------------------------------|-------------------------------------------------------------------------|
 | `location-clients/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `os-map/proguard-consumer-rules.pro`           | Android consumer rules                                                  |
-| `os-map/proguard-desktop-rules.pro`            | desktop only (Mapsforge / kxml2 / SVG Salamander)                       |
 | `composeApp/proguard-consumer-rules.pro`       | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, enums)                       |
+| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
 | `androidApp/proguard-rules.pro`                | application-level (`-dontobfuscate`, Parcelize)                         |
 
 ### Running the Application
@@ -242,5 +246,4 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 
 - The project uses typesafe project accessors (enabled in settings.gradle.kts)
 - Dependencies are managed through Gradle version catalogs (gradle/libs.versions.toml)
-- The project includes JitPack repository for additional dependencies
 - Platform-specific implementations should be minimal; prefer shared code when possible
