@@ -14,11 +14,22 @@ data class TravelPlanEntity(
     @SerialName("period_end") val periodEnd: LocalDate,
     @SerialName("days") val days: List<TravelDayEntity>,
     @SerialName("places") val places: List<PlaceEntity>,
+    @SerialName("settings") val settings: TravelSettingsEntity = TravelSettingsEntity(),
 ) {
     companion object {
         const val DOCUMENT_TYPE = "travel_plan"
     }
 }
+
+/**
+ * Preferences the user sets on a single travel plan. Every field has a default, so a document
+ * written before a preference existed stays readable.
+ */
+@Serializable
+data class TravelSettingsEntity(
+    // The exporter always clears this field: the key travels only inside `secrets.json`, encrypted.
+    @SerialName("here_api_key") val hereApiKey: String = "",
+)
 
 @Serializable
 data class TravelDayEntity(
@@ -46,9 +57,9 @@ data class VisitScheduleEntity(
 )
 
 /**
- * Metadati di un file dell'inventario di uno step. Il binario risiede su disco
- * (`<travelId>/<stepId>/<uuid>.<ext>`); qui si conserva solo il [relativePath] relativo alla root
- * degli allegati, mai un path assoluto (su iOS il container sandbox cambia tra i lanci).
+ * Metadata of a file in a step's inventory. The binary lives on disk
+ * (`<travelId>/<stepId>/<uuid>.<ext>`); only the [relativePath] relative to the attachments root is
+ * kept here, never an absolute path (on iOS the sandbox container changes between launches).
  */
 @Serializable
 data class AttachmentEntity(
@@ -67,13 +78,13 @@ sealed class StepEntity {
     @SerialName("place")
     data class Place(
         override val id: String,
-        // SerialName "location" mantenuto per retro-compatibilità con i documenti già salvati.
+        // SerialName "location" kept for backward compatibility with the documents already saved.
         @SerialName("location") val name: String,
         @SerialName("lat") val lat: Double,
         @SerialName("lng") val lng: Double,
         @SerialName("schedule") val schedule: VisitScheduleEntity? = null,
         @SerialName("note") val note: String = "",
-        // Inventario file dello step. Default vuoto = retro-compatibile con i documenti già salvati.
+        // File inventory of the step. Empty default = backward compatible with the saved documents.
         @SerialName("attachments") val attachments: List<AttachmentEntity> = emptyList(),
     ) : StepEntity()
 

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.StepDomain
-import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.RoutingProviderType
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
@@ -33,7 +32,6 @@ class PlanningTransportViewModel(
     @Assisted private val dayId: String,
     @Assisted private val startPlaceId: String,
     @Assisted private val endPlaceId: String,
-    private val providerFactory: RoutingProviderFactory,
     private val planningGraphStore: PlanningGraphStore,
 ) : ViewModel() {
 
@@ -57,7 +55,7 @@ class PlanningTransportViewModel(
     private val _navigationEvent = MutableSharedFlow<PlanningTransportNavigationEvent>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
-    private var currentProvider = providerFactory.getProvider(mUiState.value.selectedProvider)
+    private var currentProvider = planningGraph.routingProviderFactory.getProvider(mUiState.value.selectedProvider)
 
     init {
         viewModelScope.launch {
@@ -93,7 +91,7 @@ class PlanningTransportViewModel(
                 providerSettings = defaultSettings,
             )
         }.selectedProvider
-        currentProvider = providerFactory.getProvider(newProvider)
+        currentProvider = planningGraph.routingProviderFactory.getProvider(newProvider)
     }
 
     fun updateProviderSettings(settings: RoutingProviderSettings) {

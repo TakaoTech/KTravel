@@ -210,11 +210,16 @@ kotlin {
                 implementation(libs.kotlinx.immutable)
                 implementation(project(":os-map"))
                 implementation(project(":location-clients"))
+                implementation(project(":password-strength"))
+
+                // Archive secrets: scrypt key derivation and AES-256-GCM (see data/archive/crypto).
+                implementation(libs.signum.indispensable)
+                implementation(libs.signum.supreme)
 
                 implementation(libs.compottie)
 
-                // Nota: Hyphen (editor Markdown) non pubblica artefatti iOS: aggiunto solo ai
-                // sourceSet android/jvm; su iOS si usa un fallback (vedi MarkdownNoteEditor).
+                // Note: Hyphen (the Markdown editor) publishes no iOS artefacts, so it is added to
+                // the android/jvm source sets only; iOS uses a fallback (see MarkdownNoteEditor).
                 implementation(libs.markdown.renderer)
                 implementation(libs.markdown.renderer.m3)
 
@@ -237,8 +242,8 @@ kotlin {
 
                 implementation(libs.couchbase.lite)
 
-                // L'astrazione zip (data/archive/zip) parla kotlinx.io.files.Path: dichiarato
-                // esplicitamente per non dipendere dalla versione che filekit trascina.
+                // The zip abstraction (data/archive/zip) speaks kotlinx.io.files.Path: declared
+                // explicitly so it does not depend on whatever version filekit drags in.
                 implementation(libs.kotlinx.io.core)
 
                 api(libs.circuit.foundation)
@@ -257,10 +262,10 @@ kotlin {
             }
         }
 
-        // kzip non ha una variante androidJvm, quindi la dipendenza non può stare in un source set
-        // intermedio (risolto come metadata): la si dichiara nei source set leaf, usando l'artefatto
-        // jvm su Android/Desktop (regola di compatibilità KGP jvm -> androidJvm) e il modulo KMP su
-        // iOS. L'API è identica, quindi l'unica implementazione `actual` è condivisa via srcDir.
+        // kzip has no androidJvm variant, so the dependency cannot sit in an intermediate source
+        // set (resolved as metadata): it is declared in the leaf source sets, using the jvm artefact
+        // on Android/Desktop (KGP jvm -> androidJvm compatibility rule) and the KMP module on iOS.
+        // The API is identical, so the single `actual` implementation is shared through srcDir.
         androidMain {
             kotlin.srcDir("src/kzipMain/kotlin")
             dependencies {
@@ -406,6 +411,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
         exclude(
             "**/ui/**",
             "**/TravelArchiveRoundTripTest.kt",
+            "**/TravelArchiveSecretsRoundTripTest.kt",
             "**/TravelArchiveCorruptionTest.kt",
             "**/TravelPlanStorageDataSourceImplTest.kt",
         )

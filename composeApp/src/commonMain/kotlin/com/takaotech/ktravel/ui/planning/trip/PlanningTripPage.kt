@@ -62,6 +62,7 @@ import com.takaotech.ktravel.presentation.planning.PlanHeader
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
+import com.takaotech.ktravel.ui.common.ExportSecretsDialog
 import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
@@ -108,10 +109,10 @@ internal object PlanningTripTestTags {
     const val EXPORT = "planning_trip_export"
 }
 
-/** Messaggio da mostrare all'utente, o null se non c'è nulla da comunicare. */
+/** Message to show the user, or null when there is nothing to report. */
 @Composable
 private fun ExportUiState.message(): String? = when (this) {
-    ExportUiState.Idle, ExportUiState.InProgress -> null
+    ExportUiState.Idle, ExportUiState.AwaitingSecretsChoice, ExportUiState.InProgress -> null
 
     is ExportUiState.Completed -> if (skippedAttachments == 0) {
         stringResource(Res.string.planning_trip_export_success)
@@ -123,8 +124,8 @@ private fun ExportUiState.message(): String? = when (this) {
 }
 
 /**
- * Nome file proposto dal saver: il nome del viaggio è testo libero e su alcune piattaforme un
- * separatore di percorso lo rende inutilizzabile.
+ * File name proposed by the saver: the trip name is free text, and on some platforms a path
+ * separator would make it unusable.
  */
 internal fun String.toArchiveFileName(): String = replace(Regex("""[^\p{L}\p{N} _-]"""), "").trim().ifEmpty { "travel" }
 
@@ -151,10 +152,36 @@ fun PlanningTripPage(
         state = deleteDialogState,
     )
 
-    // Il file saver appartiene alla pagina: la destinazione scelta va consegnata al ViewModel, che
-    // è l'unico a sapere quale viaggio esportare.
+    // The password survives the file saver round trip: it is chosen before a destination exists,
+    // and the export only starts once both are known.
+    var secretsPassword by remember { mutableStateOf<String?>(null) }
+
+    // The file saver belongs to the page: the chosen destination has to be handed to the ViewModel,
+    // the only one that knows which trip to export.
     val exportLauncher = rememberFileSaverLauncher(FileKitDialogSettings.createDefault()) { file ->
-        file?.let(viewModel::exportTravel)
+        if (file == null) {
+            viewModel.cancelExport()
+        } else {
+            viewModel.exportTravel(file, secretsPassword)
+        }
+        secretsPassword = null
+    }
+
+    fun launchFileSaver() {
+        exportLauncher.launch(
+            suggestedName = planHeader.name.text.toArchiveFileName(),
+            extension = TravelArchiveFormat.FILE_EXTENSION,
+        )
+    }
+
+    if (uiState.export is ExportUiState.AwaitingSecretsChoice) {
+        ExportSecretsDialog(
+            onConfirm = { password ->
+                secretsPassword = password
+                launchFileSaver()
+            },
+            onDismiss = viewModel::cancelExport,
+        )
     }
 
     PlanningTripPage(
@@ -165,10 +192,8 @@ fun PlanningTripPage(
         exportState = uiState.export,
         onBackClick = onBackClick,
         onExportClick = {
-            exportLauncher.launch(
-                suggestedName = planHeader.name.text.toArchiveFileName(),
-                extension = TravelArchiveFormat.FILE_EXTENSION,
-            )
+            // With no API key configured there is nothing to ask about, so the dialog is skipped.
+            if (viewModel.hasApiKey) viewModel.startExport() else launchFileSaver()
         },
         onExportMessageShown = viewModel::onExportMessageShown,
         onPlanNameChange = {
@@ -219,7 +244,7 @@ private fun PlanningTripPage(
         when (exportState) {
             is ExportUiState.InProgress -> isExportDialogVisible = true
             is ExportUiState.Failed -> isExportDialogVisible = false
-            ExportUiState.Idle, is ExportUiState.Completed -> Unit
+            ExportUiState.Idle, ExportUiState.AwaitingSecretsChoice, is ExportUiState.Completed -> Unit
         }
     }
 

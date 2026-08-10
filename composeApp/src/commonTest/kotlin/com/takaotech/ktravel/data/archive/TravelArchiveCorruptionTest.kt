@@ -7,6 +7,7 @@ import com.takaotech.ktravel.data.datasource.AttachmentDataSourceImpl
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
+import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.archive.TravelArchiveException
 import com.takaotech.ktravel.testutil.tempdir
@@ -27,8 +28,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.serialization.json.Json
 
 /**
- * Ogni archivio malformato deve produrre un errore tipizzato e non lasciare tracce sul disco:
- * questi casi sono il motivo per cui l'import è diviso in `stage` e `import`.
+ * Every malformed archive must produce a typed error and leave no trace on disk: these cases are
+ * the reason the import is split into `stage` and `import`.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TravelArchiveCorruptionTest :
@@ -55,7 +56,7 @@ class TravelArchiveCorruptionTest :
             stagingRoot = stagingRoot,
         )
 
-        /** Costruisce a mano un archivio con manifest e piano arbitrari. */
+        /** Hand-builds an archive with an arbitrary manifest and plan. */
         fun buildArchive(
             name: String,
             manifest: String?,
@@ -81,12 +82,14 @@ class TravelArchiveCorruptionTest :
         fun manifestJson(
             schemaVersion: Int = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
             travelId: String = "t1",
+            hasSecrets: Boolean = false,
         ): String = json.encodeToString(
             TravelArchiveManifest.serializer(),
             TravelArchiveManifest(
                 schemaVersion = schemaVersion,
                 travelId = travelId,
                 travelName = "Tokyo",
+                hasSecrets = hasSecrets,
             ),
         )
 
@@ -252,6 +255,45 @@ class TravelArchiveCorruptionTest :
                     val error = stageError(file)
                     error.shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
                     error.reason.contains("unsafe attachment path") shouldBe true
+                }
+            }
+        }
+
+        given("an archive claiming secrets it does not carry") {
+            val file = buildArchive(
+                "missing-secrets.ktravel",
+                manifest = manifestJson(hasSecrets = true),
+                plan = planJson(),
+            )
+
+            `when`("it is staged") {
+                then("the missing entry is reported instead of prompting for a password") {
+                    stageError(file) shouldBe
+                        TravelArchiveError.MissingEntry(TravelArchiveFormat.SECRETS_ENTRY)
+                }
+            }
+        }
+
+        given("an archive whose secrets entry is not valid json") {
+            val file = buildArchive(
+                "bad-secrets.ktravel",
+                manifest = manifestJson(hasSecrets = true),
+                plan = planJson(),
+                extraEntries = mapOf(
+                    TravelArchiveFormat.SECRETS_ENTRY to "not json".encodeToByteArray(),
+                ),
+            )
+
+            `when`("it is staged and a password is supplied") {
+                then("the archive is reported as corrupted, not as a wrong password") {
+                    val staged = importer.stage(file).getOrThrow()
+                    staged.hasSecrets shouldBe true
+
+                    val failure = importer
+                        .import(staged, ImportConflictStrategy.DUPLICATE, secretsPassword = "pw")
+                        .exceptionOrNull()
+                    failure.shouldBeInstanceOf<TravelArchiveException>()
+                    failure.error.shouldBeInstanceOf<TravelArchiveError.CorruptedArchive>()
                 }
             }
         }

@@ -1,6 +1,6 @@
 package com.takaotech.ktravel.data.routing
 
-import com.takaotech.ktravel.di.AppScope
+import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
@@ -35,13 +35,21 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format.DateTimeComponents
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * HERE routing for one travel plan.
+ *
+ * Lives in [PlanningGraphScope] because the API key belongs to the plan. The client is built per
+ * call rather than once in the constructor: the key is baked into the HTTP client as a query
+ * parameter, so a client built up front would keep using whatever the key was when the provider was
+ * created — including the empty string, if the user had not configured one yet.
+ */
 @Named("HERE")
-@ContributesBinding(AppScope::class)
+@ContributesBinding(PlanningGraphScope::class)
 @Inject
 class HereRoutingProvider(private val settingsRepository: SettingsRepository) : RoutingProvider {
 
-    private val routingClient: HereRoutingClient = HereRoutingClient(
-        apiKey = settingsRepository.hereApiKey.value,
+    private fun routingClient(): HereRoutingClient = HereRoutingClient(
+        apiKey = settingsRepository.settings.hereApiKey,
         enableLogging = true,
     )
 
@@ -74,7 +82,7 @@ class HereRoutingProvider(private val settingsRepository: SettingsRepository) : 
                     }
 
                 val result = withContext(Dispatchers.IO) {
-                    routingClient.getRoutes(
+                    routingClient().getRoutes(
                         RoutesRequest(
                             origin = Waypoint.fromString(origin),
                             destination = Waypoint.fromString(destination),

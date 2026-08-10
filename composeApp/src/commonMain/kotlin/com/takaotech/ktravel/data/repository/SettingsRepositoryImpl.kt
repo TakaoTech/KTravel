@@ -1,23 +1,25 @@
 package com.takaotech.ktravel.data.repository
 
-import com.takaotech.ktravel.di.AppScope
+import com.takaotech.ktravel.di.PlanningGraphScope
+import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.repository.SettingsRepository
+import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
+/**
+ * Facade over [TravelPlanRepository], which owns the plan document and stays its only writer:
+ * keeping a second copy of the settings here would mean two writers racing on the same document.
+ */
+@SingleIn(PlanningGraphScope::class)
+@ContributesBinding(PlanningGraphScope::class)
 @Inject
-class SettingsRepositoryImpl : SettingsRepository {
+class SettingsRepositoryImpl(private val travelPlanRepository: TravelPlanRepository) : SettingsRepository {
 
-    private val _hereApiKey = MutableStateFlow("")
-    override val hereApiKey: StateFlow<String> = _hereApiKey.asStateFlow()
+    override val settings: TravelSettingsDomain
+        get() = travelPlanRepository.planningState.value.settings
 
-    override fun updateHereApiKey(apiKey: String) {
-        _hereApiKey.value = apiKey
-    }
+    override suspend fun updateHereApiKey(apiKey: String) =
+        travelPlanRepository.updateSettings(settings.copy(hereApiKey = apiKey))
 }

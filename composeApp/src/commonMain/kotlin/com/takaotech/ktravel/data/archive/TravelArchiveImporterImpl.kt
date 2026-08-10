@@ -3,6 +3,8 @@
 package com.takaotech.ktravel.data.archive
 
 import com.takaotech.ktravel.core.io.deleteRecursively
+import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsCipher
+import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsEnvelope
 import com.takaotech.ktravel.data.archive.migration.TravelPlanSchemaMigrator
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.ZipFormatException
@@ -39,7 +41,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-/** Piano deserializzato che viaggia dentro [StagedTravelArchive]. */
+/** Deserialized plan carried inside [StagedTravelArchive]. */
 internal class TravelPlanPayload(val plan: TravelPlanEntity) : StagedPlanPayload
 
 @SingleIn(AppScope::class)
@@ -65,7 +67,7 @@ class TravelArchiveImporterImpl private constructor(
         newId = { Uuid.random().toString() },
     )
 
-    /** Costruttore per i test: staging esplicito e id deterministici. */
+    /** Constructor for tests: explicit staging and deterministic ids. */
     internal constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
@@ -85,8 +87,8 @@ class TravelArchiveImporterImpl private constructor(
         val stagingDir = stagingArea.newSession()
         try {
             val stagedArchive = stagingDir / "import.${TravelArchiveFormat.FILE_EXTENSION}"
-            // Unico punto in cui si legge il file scelto dall'utente, che su Android può essere
-            // un content:// non convertibile in un path del filesystem.
+            // The one point where the file the user picked is read, which on Android may be a
+            // content:// that cannot be turned into a filesystem path.
             source.copyTo(stagedArchive)
 
             Result.success(readStagedArchive(stagedArchive, stagingDir))
@@ -102,7 +104,18 @@ class TravelArchiveImporterImpl private constructor(
         staged: StagedTravelArchive,
         strategy: ImportConflictStrategy,
         nameOverride: String?,
+        secretsPassword: String?,
     ): Result<TravelPlanSummary> = withContext(Dispatchers.IO) {
+        // Decrypting first means a wrong password costs nothing: the database and the attachment
+        // inventory are untouched, and the caller can prompt again on the same staged archive.
+        val apiKey = try {
+            readSecrets(staged, secretsPassword)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            return@withContext Result.failure(throwable.asTravelArchiveException())
+        }
+
         val sourcePlan = (staged.payload as TravelPlanPayload).plan
         val duplicating = strategy == ImportConflictStrategy.DUPLICATE &&
             staged.conflictingTravelName != null
@@ -115,12 +128,15 @@ class TravelArchiveImporterImpl private constructor(
                 attachmentPathMapping = emptyMap(),
             )
         }
-        val plan = nameOverride?.let { remapped.plan.copy(name = it) } ?: remapped.plan
+        val plan = (nameOverride?.let { remapped.plan.copy(name = it) } ?: remapped.plan)
+            // Only the key is grafted back in: the other preferences arrived with the archive.
+            .let { it.copy(settings = it.settings.copy(hereApiKey = apiKey)) }
 
         try {
             if (!duplicating && staged.conflictingTravelName != null) {
-                // Sostituzione: il documento e i file del viaggio esistente vanno rimossi prima,
-                // altrimenti resterebbero allegati orfani non più referenziati dal piano.
+                // Replacement: the document and the files of the existing trip must go first,
+                // otherwise orphan attachments would be left behind, no longer referenced by the
+                // plan.
                 storage.deleteTravelPlan(plan.id)
             }
 
@@ -131,7 +147,7 @@ class TravelArchiveImporterImpl private constructor(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (throwable: Throwable) {
-            // Compensazione: senza questa, un fallimento a metà lascerebbe file senza piano.
+            // Compensation: without it, a failure halfway through would leave files with no plan.
             runCatching { attachments.deleteTravelAttachments(plan.id) }
             runCatching { storage.deleteTravelPlan(plan.id) }
             Result.failure(throwable.asTravelArchiveException())
@@ -152,6 +168,16 @@ class TravelArchiveImporterImpl private constructor(
             val plan = readPlan(reader, manifest)
             validateAttachments(plan, reader)
 
+            // An archive that claims secrets it does not carry is malformed, and saying so now is
+            // better than asking the user for a password that could never work.
+            if (manifest.hasSecrets &&
+                TravelArchiveFormat.SECRETS_ENTRY !in reader.entryPaths()
+            ) {
+                throw TravelArchiveException(
+                    TravelArchiveError.MissingEntry(TravelArchiveFormat.SECRETS_ENTRY),
+                )
+            }
+
             StagedTravelArchive(
                 travelId = manifest.travelId,
                 travelName = manifest.travelName.ifEmpty { plan.name },
@@ -159,11 +185,38 @@ class TravelArchiveImporterImpl private constructor(
                 exportedAtEpochMillis = manifest.exportedAtEpochMillis,
                 attachmentCount = plan.allAttachments().size,
                 conflictingTravelName = conflictingName(manifest.travelId),
+                hasSecrets = manifest.hasSecrets,
                 archive = archive,
                 stagingDir = stagingDir,
                 payload = TravelPlanPayload(plan),
             )
         }
+
+    /**
+     * Reads the archived API key, or returns empty when there is nothing to read or no password was
+     * given. The plan entry never carries a key, so this is the only way one can arrive.
+     */
+    private suspend fun readSecrets(staged: StagedTravelArchive, password: String?): String {
+        if (!staged.hasSecrets || password.isNullOrEmpty()) return ""
+
+        val envelope = openReader(staged.archive).use { reader ->
+            val bytes = reader.readBytes(TravelArchiveFormat.SECRETS_ENTRY)
+                ?: throw TravelArchiveException(
+                    TravelArchiveError.MissingEntry(TravelArchiveFormat.SECRETS_ENTRY),
+                )
+            runCatching {
+                json.decodeFromString(ArchiveSecretsEnvelope.serializer(), bytes.decodeToString())
+            }.getOrElse { throwable ->
+                throw TravelArchiveException(
+                    TravelArchiveError.CorruptedArchive(
+                        "secrets entry is unreadable: ${throwable.message}",
+                    ),
+                )
+            }
+        }
+
+        return ArchiveSecretsCipher.open(envelope, password).hereApiKey
+    }
 
     private fun openReader(archive: PlatformFile): ZipReader = try {
         zipFactory.reader(archive.toKotlinxIoPath())

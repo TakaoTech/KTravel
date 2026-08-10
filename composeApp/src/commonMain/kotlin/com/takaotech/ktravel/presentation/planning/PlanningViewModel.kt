@@ -93,13 +93,36 @@ class PlanningViewModel(
         }
     }
 
-    /** Esporta il viaggio nel file scelto dall'utente, che può essere un `content://` Android. */
-    fun exportTravel(destination: PlatformFile) {
+    /**
+     * True when the plan has an API key, which is what decides whether the export asks about
+     * secrets at all. With no key configured the flow is unchanged from before this feature.
+     */
+    val hasApiKey: Boolean
+        get() = planningGraphStore.getOrCreate(travelId).settingsRepository.settings.hereApiKey.isNotEmpty()
+
+    /** Opens the question about including the API key. */
+    fun startExport() {
+        if (_uiState.value.export !is ExportUiState.Idle) return
+        _uiState.update { it.copy(export = ExportUiState.AwaitingSecretsChoice) }
+    }
+
+    /** Abandons the export before a destination has even been picked. */
+    fun cancelExport() {
+        _uiState.update { it.copy(export = ExportUiState.Idle) }
+    }
+
+    /**
+     * Exports the trip to the file the user picked, which may be an Android `content://`.
+     *
+     * [secretsPassword] null means the API key is left out; the plan entry never carries it either
+     * way.
+     */
+    fun exportTravel(destination: PlatformFile, secretsPassword: String? = null) {
         if (_uiState.value.export is ExportUiState.InProgress) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(export = ExportUiState.InProgress) }
-            val export = archiveExporter.export(travelId, destination)
+            val export = archiveExporter.export(travelId, destination, secretsPassword)
 
             export
                 .onSuccess { result ->
@@ -117,7 +140,7 @@ class PlanningViewModel(
         }
     }
 
-    /** Da chiamare dopo aver mostrato l'esito dell'export, per non ripeterlo a ogni ricomposizione. */
+    /** To be called once the export outcome has been shown, so it is not repeated on every recomposition. */
     fun onExportMessageShown() {
         _uiState.update { it.copy(export = ExportUiState.Idle) }
     }

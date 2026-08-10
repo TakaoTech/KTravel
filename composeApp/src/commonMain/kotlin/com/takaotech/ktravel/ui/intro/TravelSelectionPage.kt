@@ -63,6 +63,8 @@ import com.takaotech.ktravel.presentation.intro.TravelSelectionViewModel
 import com.takaotech.ktravel.presentation.intro.TravelSummaryUiState
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.common.ImportConflictDialog
+import com.takaotech.ktravel.ui.common.ImportSecretsChoiceDialog
+import com.takaotech.ktravel.ui.common.ImportSecretsPasswordDialog
 import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
@@ -106,22 +108,26 @@ internal object TravelSelectionTestTags {
     fun travelItemTag(id: String) = "travel_item_$id"
 }
 
-/** True finché nessuna operazione di import è in corso o in attesa di una scelta. */
+/** True as long as no import is running or waiting for a choice. */
 private val ImportUiState.isIdle: Boolean
     get() = this !is ImportUiState.Reading &&
         this !is ImportUiState.Importing &&
-        this !is ImportUiState.AwaitingConflictChoice
+        this !is ImportUiState.AwaitingConflictChoice &&
+        this !is ImportUiState.AwaitingSecretsChoice &&
+        this !is ImportUiState.AwaitingSecretsPassword
 
 private val ImportUiState.isRunning: Boolean
     get() = this is ImportUiState.Reading || this is ImportUiState.Importing
 
-/** Messaggio da mostrare all'utente, o null se non c'è nulla da comunicare. */
+/** Message to show the user, or null when there is nothing to report. */
 @Composable
 private fun ImportUiState.message(): String? = when (this) {
     ImportUiState.Idle,
     ImportUiState.Reading,
     ImportUiState.Importing,
     is ImportUiState.AwaitingConflictChoice,
+    ImportUiState.AwaitingSecretsChoice,
+    is ImportUiState.AwaitingSecretsPassword,
     -> null
 
     is ImportUiState.Completed ->
@@ -155,7 +161,7 @@ fun TravelSelectionPage(onTravelClick: (id: String) -> Unit, onNewTravelClick: (
 
     val importState = uiState.import
     if (importState is ImportUiState.AwaitingConflictChoice) {
-        // Il nome della copia si formatta qui: stringResource non è invocabile dal ViewModel.
+        // The copy name is formatted here: stringResource cannot be called from the ViewModel.
         val duplicateName = stringResource(
             Res.string.travel_selection_import_duplicate_name,
             importState.importedName,
@@ -169,6 +175,21 @@ fun TravelSelectionPage(onTravelClick: (id: String) -> Unit, onNewTravelClick: (
                 viewModel.confirmImport(ImportConflictStrategy.REPLACE, duplicateName)
             },
             onDismiss = viewModel::cancelImport,
+        )
+    }
+
+    if (importState is ImportUiState.AwaitingSecretsChoice) {
+        ImportSecretsChoiceDialog(
+            onImport = { viewModel.onSecretsChoice(includeSecrets = true) },
+            onSkip = { viewModel.onSecretsChoice(includeSecrets = false) },
+        )
+    }
+
+    if (importState is ImportUiState.AwaitingSecretsPassword) {
+        ImportSecretsPasswordDialog(
+            attemptFailed = importState.attemptFailed,
+            onConfirm = viewModel::submitSecretsPassword,
+            onCancel = viewModel::cancelImport,
         )
     }
 

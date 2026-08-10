@@ -1,0 +1,43 @@
+package com.takaotech.ktravel.data.archive.crypto
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/**
+ * The plaintext that gets encrypted into `secrets.json`.
+ *
+ * An object rather than a bare string so that adding a second credential later changes only this
+ * class, not the envelope around it.
+ */
+@Serializable
+data class ArchiveSecretsPayload(@SerialName("here_api_key") val hereApiKey: String = "")
+
+/**
+ * The `secrets.json` entry: the ciphertext plus everything needed to derive the key again.
+ *
+ * The KDF parameters travel with the archive instead of being read from constants, so tuning them in
+ * a later build cannot make already-exported archives unreadable. [scheme] is checked before any
+ * decryption is attempted, which is what allows a future scheme — a public-key one, say — to be
+ * added without guessing.
+ */
+@Serializable
+data class ArchiveSecretsEnvelope(
+    @SerialName("scheme") val scheme: String = SCHEME_SCRYPT_AES256GCM,
+    /** Base64, 16 bytes. */
+    @SerialName("salt") val salt: String,
+    /** scrypt N: CPU/memory cost, a power of two. */
+    @SerialName("cost") val cost: Int,
+    /** scrypt r: block size. */
+    @SerialName("block_size") val blockSize: Int,
+    /** scrypt p: parallelisation. */
+    @SerialName("parallelization") val parallelization: Int,
+    /** Base64, 12 bytes for GCM. */
+    @SerialName("nonce") val nonce: String,
+    @SerialName("ciphertext") val ciphertext: String,
+    /** Base64 GCM tag: this is what makes a wrong password detectable. */
+    @SerialName("auth_tag") val authTag: String,
+) {
+    companion object {
+        const val SCHEME_SCRYPT_AES256GCM: String = "scrypt-aes256gcm-v1"
+    }
+}

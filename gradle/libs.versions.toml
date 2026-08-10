@@ -6,7 +6,7 @@ ktravel-code = "1"
 
 agp = "9.3.1"
 android-compileSdk = "37"
-android-minSdk = "26"
+android-minSdk = "30"
 android-targetSdk = "37"
 androidx-activity = "1.12.4"
 androidx-appcompat = "1.7.1"
@@ -38,6 +38,9 @@ circuit = "0.34.0"
 
 kzip = "2.0.0"
 kotlinx-io = "0.9.1"
+
+signum-indispensable = "3.24.0"
+signum-supreme = "0.15.0"
 
 detekt = "2.0.0-alpha.5"
 kover = "0.9.9"
@@ -154,6 +157,11 @@ compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "comp
 #compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
 #compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
+
+# Signum: scrypt for key derivation and AES-256-GCM for the archive secrets. `indispensable` carries
+# the algorithm types, `supreme` the implementations that bind to the platform crypto providers.
+signum-indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "signum-indispensable" }
+signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signum-supreme" }
 
 detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }

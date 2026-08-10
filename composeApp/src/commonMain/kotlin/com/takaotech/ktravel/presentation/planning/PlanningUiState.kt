@@ -44,13 +44,21 @@ data class PlanningUiState(
         }
 }
 
-/** Avanzamento dell'export del viaggio verso un file scelto dall'utente. */
+/** Progress of the trip export towards a file the user picked. */
 @Immutable
 sealed interface ExportUiState {
     data object Idle : ExportUiState
+
+    /**
+     * The plan has an API key, so the user is being asked whether to include it and under which
+     * password. Reached before the file saver: there is no point picking a destination for an
+     * export the user may still cancel.
+     */
+    data object AwaitingSecretsChoice : ExportUiState
+
     data object InProgress : ExportUiState
 
-    /** [skippedAttachments] conta i file referenziati dal piano ma non più presenti su disco. */
+    /** [skippedAttachments] counts the files the plan references but that are no longer on disk. */
     data class Completed(val skippedAttachments: Int) : ExportUiState
     data class Failed(val error: TravelArchiveError) : ExportUiState
 }
@@ -93,9 +101,9 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
         val lat: Double,
         val lng: Double,
         val schedule: VisitScheduleUi? = null,
-        /** Note libere in formato Markdown associate allo step. */
+        /** Free-form Markdown notes attached to the step. */
         val note: String = "",
-        /** Inventario file dello step. */
+        /** File inventory of the step. */
         val attachments: PersistentList<AttachmentUi> = persistentListOf(),
     ) : StepUi(id)
 
@@ -104,7 +112,7 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
         override val id: String = Uuid.random().toString(),
         val type: TransportType,
         val route: Route,
-        /** Durata complessiva della tratta, aggregata dalle sezioni del [route]. */
+        /** Total duration of the leg, aggregated from the sections of the [route]. */
         val totalDuration: Duration = route.sections.fold(Duration.ZERO) { acc, section ->
             acc + section.summary.durationSeconds
         },

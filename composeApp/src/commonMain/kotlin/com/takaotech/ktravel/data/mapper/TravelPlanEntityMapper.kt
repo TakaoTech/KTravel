@@ -8,6 +8,7 @@ import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
+import com.takaotech.ktravel.data.entity.TravelSettingsEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
 import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
@@ -16,6 +17,7 @@ import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
+import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.model.VisitScheduleDomain
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
@@ -41,6 +43,11 @@ object TravelPlanEntityMapper {
         periodEnd = periodEnd,
         days = days.map { it.toEntity() },
         places = places.map { it.toEntity() },
+        settings = settings.toEntity(),
+    )
+
+    fun TravelSettingsDomain.toEntity(): TravelSettingsEntity = TravelSettingsEntity(
+        hereApiKey = hereApiKey,
     )
 
     fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
@@ -132,6 +139,11 @@ object TravelPlanEntityMapper {
         periodEnd = periodEnd,
         days = days.map { it.toDomain() },
         places = places.map { it.toDomain() },
+        settings = settings.toDomain(),
+    )
+
+    fun TravelSettingsEntity.toDomain(): TravelSettingsDomain = TravelSettingsDomain(
+        hereApiKey = hereApiKey,
     )
 
     fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(

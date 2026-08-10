@@ -108,19 +108,75 @@
         <item quantity="other">%1$d selected</item>
     </plurals>
 
+    <!-- region Import/Export strings -->
+
     <string name="travel_import_conflict_title">Trip already present</string>
     <string name="travel_import_conflict_message">A trip with the same id is already saved as “%1$s”. Replace it or import a copy?</string>
     <string name="travel_import_conflict_duplicate">Duplicate</string>
     <string name="travel_import_conflict_replace">Replace</string>
     <string name="travel_import_conflict_cancel">Cancel</string>
 
-    <string name="travel_archive_error_corrupted">The archive is damaged or is not a KTravel file.</string>
-    <string name="travel_archive_error_invalid_manifest">The archive does not contain valid KTravel data.</string>
-    <string name="travel_archive_error_missing_entry">The archive is incomplete: %1$s is missing.</string>
-    <string name="travel_archive_error_too_old">This archive comes from a version of KTravel that is too old and can no longer be imported.</string>
-    <string name="travel_archive_error_too_new">This archive comes from a newer version of KTravel. Update the app to import it.</string>
-    <string name="travel_archive_error_migration_failed">The archive could not be converted to the current format.</string>
-    <string name="travel_archive_error_malformed_plan">The trip data in the archive is unreadable.</string>
-    <string name="travel_archive_error_missing_attachment">A file used by the trip is missing from the archive: %1$s.</string>
-    <string name="travel_archive_error_io">The file could not be read or written.</string>
+    <string name="import_secrets_choice_title">Import the API key?</string>
+    <string name="import_secrets_choice_message">This archive contains a HERE API key protected by a password. You can import the trip without it.</string>
+    <string name="import_secrets_choice_import">Import it</string>
+    <string name="import_secrets_choice_skip">Skip it</string>
+    <string name="import_secrets_password_title">Enter the password</string>
+    <string name="import_secrets_password_message">Enter the password chosen when this archive was exported.</string>
+    <string name="import_secrets_password">Password</string>
+    <string name="import_secrets_password_confirm">Unlock</string>
+    <string name="import_secrets_password_cancel">Cancel</string>
+
+    <string name="export_secrets_title">Include the API key?</string>
+    <string name="export_secrets_message">This trip has a HERE API key. You can include it in the archive, encrypted with a password you choose.</string>
+    <string name="export_secrets_include">Include the API key</string>
+    <string name="export_secrets_password">Password</string>
+    <string name="export_secrets_password_confirm">Confirm password</string>
+    <string name="export_secrets_password_mismatch">The passwords do not match.</string>
+    <string name="export_secrets_password_weak">This password is too easy to guess. Choose a stronger one.</string>
+    <string name="export_secrets_confirm">Export</string>
+    <string name="export_secrets_cancel">Cancel</string>
+
+    <string name="password_strength_label">Strength: %1$s</string>
+    <string name="password_strength_very_weak">very weak</string>
+    <string name="password_strength_weak">weak</string>
+    <string name="password_strength_fair">fair</string>
+    <string name="password_strength_strong">strong</string>
+    <string name="password_strength_very_strong">very strong</string>
+
+    <string name="password_strength_warning_dates">It contains a date.</string>
+    <string name="password_strength_warning_recent_years">It contains a recent year.</string>
+    <string name="password_strength_warning_repeated_character">A character is repeated over and over.</string>
+    <string name="password_strength_warning_repeated_pattern">A group of characters is repeated.</string>
+    <string name="password_strength_warning_sequence">It follows a sequence such as abc or 1234.</string>
+    <string name="password_strength_warning_short_keyboard_pattern">It is a short pattern on the keyboard.</string>
+    <string name="password_strength_warning_straight_row_of_keys">It is a straight row of keys.</string>
+    <string name="password_strength_warning_not_allowed">This password is not allowed.</string>
+    <string name="password_strength_warning_top_10">It is one of the ten most common passwords.</string>
+    <string name="password_strength_warning_top_100">It is one of the hundred most common passwords.</string>
+    <string name="password_strength_warning_very_common">It is a very common password.</string>
+
+    <string name="password_strength_suggestion_add_another_word">Add another word or two.</string>
+    <string name="password_strength_suggestion_avoid_dates">Avoid dates and years tied to you.</string>
+    <string name="password_strength_suggestion_avoid_years">Avoid recent years.</string>
+    <string name="password_strength_suggestion_avoid_repeated_words">Avoid repeated words and characters.</string>
+    <string name="password_strength_suggestion_avoid_sequences">Avoid sequences.</string>
+    <string name="password_strength_suggestion_use_longer_keyboard_pattern">Use a longer keyboard pattern, changing direction more than once.</string>
+    <string name="password_strength_suggestion_password_not_allowed">Choose a different password.</string>
+    <string name="password_strength_suggestion_avoid_reversed_words">Reversing a word does not help much.</string>
+    <string name="password_strength_suggestion_avoid_leet">Predictable substitutions such as @ for a do not help much.</string>
+    <string name="password_strength_suggestion_avoid_all_uppercase">All capitals is as predictable as none.</string>
+    <string name="password_strength_suggestion_capitalization_does_not_help">Capitalising the first letter does not help much.</string>
+    <string name="password_strength_suggestion_use_fewer_words">Use a few words and avoid uncommon ones.</string>
+    <string name="password_strength_suggestion_no_need_for_symbols">Symbols, digits and capitals are not required.</string>
+
+    <!-- endregion Import/Export strings -->
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_here_section">HERE API key</string>
+    <string name="settings_here_api_key">API key</string>
+    <string name="settings_here_api_key_hint">Used to calculate routes for this trip. It is stored with the trip, not with the app.</string>
+    <string name="settings_show_api_key">Show</string>
+    <string name="settings_hide_api_key">Hide</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_saved">API key saved.</string>
 </resources>

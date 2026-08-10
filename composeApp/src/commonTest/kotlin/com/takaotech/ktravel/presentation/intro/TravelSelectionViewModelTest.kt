@@ -1,5 +1,7 @@
 package com.takaotech.ktravel.presentation.intro
 
+import com.takaotech.ktravel.di.PlanningGraph
+import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.archive.TravelArchiveImporter
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
@@ -27,6 +29,12 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         val mockRepository: TravelManagerRepository = mock()
         val mockImporter: TravelArchiveImporter = mock()
 
+        // Only `release` is ever reached from these tests, and that never touches the factory:
+        // creating a real graph here would drag in the whole dependency graph for nothing.
+        val planningGraphStore = PlanningGraphStore(
+            PlanningGraph.Factory { error("PlanningGraph must not be created in these tests") },
+        )
+
         val samplePlan1 = TravelPlanSummary(
             id = "id-1",
             name = "Viaggio a Tokyo",
@@ -48,7 +56,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
 
         given("a TravelSelectionViewModel when repository returns an empty list") {
             everySuspend { mockRepository.getAllTravelPlans() } returns emptyList()
-            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
+            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             then("travelList should be empty after loading") {
@@ -72,7 +80,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
 
         given("a TravelSelectionViewModel when repository returns a single travel plan") {
             everySuspend { mockRepository.getAllTravelPlans() } returns listOf(samplePlan1)
-            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
+            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             then("travelList should contain one item") {
@@ -110,7 +118,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 samplePlan2,
                 samplePlan3,
             )
-            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
+            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             then("travelList should contain all plans") {
@@ -140,7 +148,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
 
         given("a TravelSelectionViewModel when repository throws an exception") {
             everySuspend { mockRepository.getAllTravelPlans() } calls { throw RuntimeException("Network error") }
-            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
+            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             then("error should be set to exception message") {
@@ -167,7 +175,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 samplePlan1,
                 samplePlan2,
             )
-            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter)
+            val viewModel = TravelSelectionViewModel(mockRepository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             `when`("loadTravelPlans() is called again with a single updated plan") {
@@ -195,7 +203,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel not in selection mode") {
             val repository: TravelManagerRepository = mock()
             everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
-            val viewModel = TravelSelectionViewModel(repository, mockImporter)
+            val viewModel = TravelSelectionViewModel(repository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             `when`("enterSelectionMode is called on an item") {
@@ -244,7 +252,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
         given("a TravelSelectionViewModel in selection mode") {
             val repository: TravelManagerRepository = mock()
             everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
-            val viewModel = TravelSelectionViewModel(repository, mockImporter)
+            val viewModel = TravelSelectionViewModel(repository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
             viewModel.enterSelectionMode(samplePlan1.id)
 
@@ -262,7 +270,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
             val repository: TravelManagerRepository = mock()
             everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
             everySuspend { repository.deleteTravelPlan(any()) } returns Unit
-            val viewModel = TravelSelectionViewModel(repository, mockImporter)
+            val viewModel = TravelSelectionViewModel(repository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             `when`("deleteTravels is called with a single id") {
@@ -303,7 +311,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
                 samplePlan3,
             )
             everySuspend { repository.deleteTravelPlan(any()) } returns Unit
-            val viewModel = TravelSelectionViewModel(repository, mockImporter)
+            val viewModel = TravelSelectionViewModel(repository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
             viewModel.enterSelectionMode(samplePlan1.id)
             viewModel.toggleSelection(samplePlan2.id)
@@ -344,7 +352,7 @@ class TravelSelectionViewModelTest : BehaviorSpec() {
             val repository: TravelManagerRepository = mock()
             everySuspend { repository.getAllTravelPlans() } returns listOf(samplePlan1, samplePlan2)
             everySuspend { repository.deleteTravelPlan(any()) } calls { throw RuntimeException("Delete failed") }
-            val viewModel = TravelSelectionViewModel(repository, mockImporter)
+            val viewModel = TravelSelectionViewModel(repository, mockImporter, planningGraphStore)
             viewModel.loadTravelPlans()
 
             `when`("deleteTravels is called") {

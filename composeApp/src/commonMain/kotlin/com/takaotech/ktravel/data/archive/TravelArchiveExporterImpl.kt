@@ -4,6 +4,9 @@ package com.takaotech.ktravel.data.archive
 
 import com.takaotech.ktravel.core.KTravelBuildInfo
 import com.takaotech.ktravel.core.io.deleteRecursively
+import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsCipher
+import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsEnvelope
+import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsPayload
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
@@ -43,7 +46,7 @@ class TravelArchiveExporterImpl private constructor(
     private val zipFactory: ZipArchiveFactory,
     private val appVersion: String,
     private val clock: Clock,
-    // Staging iniettabile: in produzione la cache dir dell'app, nei test una tempdir.
+    // Injectable staging: the app cache dir in production, a tempdir in tests.
     private val stagingRootProvider: () -> PlatformFile,
 ) : TravelArchiveExporter {
 
@@ -61,7 +64,7 @@ class TravelArchiveExporterImpl private constructor(
         stagingRootProvider = { FileKit.cacheDir / STAGING_DIR },
     )
 
-    /** Costruttore per i test: staging esplicito e clock deterministico. */
+    /** Constructor for tests: explicit staging and a deterministic clock. */
     internal constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
@@ -77,40 +80,46 @@ class TravelArchiveExporterImpl private constructor(
     }
     private val stagingArea = ArchiveStagingArea(stagingRootProvider)
 
-    override suspend fun export(travelId: String, destination: PlatformFile): Result<TravelArchiveExportResult> =
-        withContext(Dispatchers.IO) {
-            val stagingDir = stagingArea.newSession()
-            try {
-                val plan = readPlan(travelId)
-                val (present, skipped) = plan.allAttachments().partition { attachment ->
-                    attachments.resolveFile(attachment.relativePath).exists()
-                }
-
-                val stagingArchive = stagingDir / "archive.${TravelArchiveFormat.FILE_EXTENSION}"
-
-                // Il piano scritto nell'archivio elenca solo gli allegati effettivamente inclusi:
-                // altrimenti l'archivio sarebbe auto-incoerente e l'import lo rifiuterebbe.
-                writeArchive(stagingArchive, travelId, plan.retainingOnly(present), present)
-                // Unico punto in cui si esce dal filesystem reale: `destination` può essere un
-                // content:// Android, che FileKit gestisce in streaming.
-                stagingArchive.copyTo(destination)
-
-                Result.success(
-                    TravelArchiveExportResult(
-                        travelId = travelId,
-                        travelName = plan.name,
-                        attachmentCount = present.size,
-                        skippedAttachments = skipped.map { it.relativePath },
-                    ),
-                )
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (throwable: Throwable) {
-                Result.failure(throwable.asTravelArchiveException())
-            } finally {
-                runCatching { stagingDir.deleteRecursively() }
+    override suspend fun export(
+        travelId: String,
+        destination: PlatformFile,
+        secretsPassword: String?,
+    ): Result<TravelArchiveExportResult> = withContext(Dispatchers.IO) {
+        val stagingDir = stagingArea.newSession()
+        try {
+            val plan = readPlan(travelId)
+            val (present, skipped) = plan.allAttachments().partition { attachment ->
+                attachments.resolveFile(attachment.relativePath).exists()
             }
+
+            val stagingArchive = stagingDir / "archive.${TravelArchiveFormat.FILE_EXTENSION}"
+
+            // Sealing happens before the zip is opened so a failure here leaves nothing behind.
+            val secrets = sealSecrets(plan, secretsPassword)
+
+            // The plan written into the archive lists only the attachments actually included:
+            // otherwise the archive would be self-inconsistent and the import would reject it.
+            writeArchive(stagingArchive, travelId, plan.retainingOnly(present), present, secrets)
+            // The one point where we leave the real filesystem: `destination` may be an Android
+            // content://, which FileKit handles by streaming.
+            stagingArchive.copyTo(destination)
+
+            Result.success(
+                TravelArchiveExportResult(
+                    travelId = travelId,
+                    travelName = plan.name,
+                    attachmentCount = present.size,
+                    skippedAttachments = skipped.map { it.relativePath },
+                ),
+            )
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            Result.failure(throwable.asTravelArchiveException())
+        } finally {
+            runCatching { stagingDir.deleteRecursively() }
         }
+    }
 
     private fun readPlan(travelId: String): TravelPlanEntity =
         runCatching { storage.getTravelPlan(travelId).copy(id = travelId) }
@@ -120,11 +129,21 @@ class TravelArchiveExporterImpl private constructor(
                 )
             }
 
+    /**
+     * Encrypts the plan's API key, or returns null when there is nothing to protect or the user did
+     * not ask for it. A password with no key configured is not an error: there is simply no secret.
+     */
+    private suspend fun sealSecrets(plan: TravelPlanEntity, password: String?): ArchiveSecretsEnvelope? {
+        if (password.isNullOrEmpty() || plan.settings.hereApiKey.isEmpty()) return null
+        return ArchiveSecretsCipher.seal(ArchiveSecretsPayload(plan.settings.hereApiKey), password)
+    }
+
     private fun writeArchive(
         archive: PlatformFile,
         travelId: String,
         plan: TravelPlanEntity,
         attachmentsToWrite: List<AttachmentEntity>,
+        secrets: ArchiveSecretsEnvelope?,
     ) {
         val manifest = TravelArchiveManifest(
             schemaVersion = TravelArchiveFormat.CURRENT_SCHEMA_VERSION,
@@ -136,6 +155,7 @@ class TravelArchiveExporterImpl private constructor(
             attachments = attachmentsToWrite.map {
                 TravelArchiveFormat.attachmentEntry(it.relativePath)
             },
+            hasSecrets = secrets != null,
         )
 
         zipFactory.writer(archive.toKotlinxIoPath()).use { writer ->
@@ -146,8 +166,21 @@ class TravelArchiveExporterImpl private constructor(
             )
             writer.writeEntry(
                 TravelArchiveFormat.PLAN_ENTRY,
-                json.encodeToString(TravelPlanEntity.serializer(), plan).encodeToByteArray(),
+                // Only the secret field is stripped, not the whole settings object: the plan's
+                // other preferences belong to the plan and travel with it. The key is stripped
+                // unconditionally, because it only ever leaves the device encrypted.
+                json.encodeToString(
+                    TravelPlanEntity.serializer(),
+                    plan.copy(settings = plan.settings.copy(hereApiKey = "")),
+                ).encodeToByteArray(),
             )
+            secrets?.let { envelope ->
+                writer.writeEntry(
+                    TravelArchiveFormat.SECRETS_ENTRY,
+                    json.encodeToString(ArchiveSecretsEnvelope.serializer(), envelope)
+                        .encodeToByteArray(),
+                )
+            }
             attachmentsToWrite.forEach { attachment ->
                 writer.writeEntry(
                     TravelArchiveFormat.attachmentEntry(attachment.relativePath),
@@ -162,14 +195,14 @@ class TravelArchiveExporterImpl private constructor(
     }
 }
 
-/** Tutti gli allegati referenziati dal piano, in ordine di comparsa. */
+/** Every attachment referenced by the plan, in order of appearance. */
 internal fun TravelPlanEntity.allAttachments(): List<AttachmentEntity> = days.flatMap { day -> day.steps }
     .filterIsInstance<StepEntity.Place>()
     .flatMap { step -> step.attachments }
 
 /**
- * Copia del piano il cui inventario contiene solo [retained]. I riferimenti nelle note non vengono
- * toccati: restano dangling esattamente come lo erano già prima dell'export.
+ * Copy of the plan whose inventory holds only [retained]. References inside the notes are left
+ * untouched: they stay dangling exactly as they already were before the export.
  */
 private fun TravelPlanEntity.retainingOnly(retained: List<AttachmentEntity>): TravelPlanEntity {
     val keep = retained.map { it.relativePath }.toSet()

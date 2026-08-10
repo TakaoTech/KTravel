@@ -72,6 +72,7 @@ dependencies {
     kover(projects.composeApp)
     kover(projects.locationClients)
     kover(projects.osMap)
+    kover(projects.passwordStrength)
 }
 
 kover {
