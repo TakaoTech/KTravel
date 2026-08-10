@@ -5,6 +5,7 @@ import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
+import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,12 +36,13 @@ interface TravelPlanRepository {
     suspend fun updatePeriod(startMillis: Long, endMillis: Long)
 
     /**
-     * Sets the HERE API key of this plan; an empty value clears it.
+     * Replaces the preferences of this plan.
      *
-     * The key is per plan rather than per app: the settings page is only reachable from a trip, and
-     * an exported archive carries the key of the trip it belongs to.
+     * This repository owns the plan document, so it is also the one that writes the settings; the
+     * API meant for callers is [com.takaotech.ktravel.domain.repository.SettingsRepository], which
+     * goes through here.
      */
-    suspend fun updateHereApiKey(apiKey: String)
+    suspend fun updateSettings(settings: TravelSettingsDomain)
 
     /**
      * Updates an existing step

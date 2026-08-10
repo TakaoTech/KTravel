@@ -34,7 +34,7 @@ class SettingsViewModel(@Assisted private val travelId: String, private val plan
         fun create(travelId: String): SettingsViewModel
     }
 
-    private val travelPlanRepository get() = planningGraphStore.getOrCreate(travelId).travelPlanRepository
+    private val settingsRepository get() = planningGraphStore.getOrCreate(travelId).settingsRepository
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -43,7 +43,7 @@ class SettingsViewModel(@Assisted private val travelId: String, private val plan
         // Read once instead of collecting: the plan emits on every edit, and re-seeding the field
         // from it would wipe whatever the user is typing.
         _uiState.update {
-            it.copy(hereApiKey = TextFieldValue(travelPlanRepository.planningState.value.hereApiKey))
+            it.copy(hereApiKey = TextFieldValue(settingsRepository.settings.hereApiKey))
         }
     }
 
@@ -58,7 +58,7 @@ class SettingsViewModel(@Assisted private val travelId: String, private val plan
     fun saveSettings() {
         val apiKey = _uiState.value.hereApiKey.text
         viewModelScope.launch {
-            travelPlanRepository.updateHereApiKey(apiKey)
+            settingsRepository.updateHereApiKey(apiKey)
             _uiState.update { it.copy(isSaved = true) }
         }
     }

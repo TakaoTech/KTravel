@@ -30,6 +30,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceEndTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceStartTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
+import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -130,7 +131,7 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
 
-    override suspend fun updateHereApiKey(apiKey: String) = mutate { it.copy(hereApiKey = apiKey) }
+    override suspend fun updateSettings(settings: TravelSettingsDomain) = mutate { it.copy(settings = settings) }
 
     override suspend fun savePlace(place: PlaceDomain, dayId: String?) = mutate { it.savePlace(place, dayId) }
 

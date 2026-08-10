@@ -97,7 +97,8 @@ class PlanningViewModel(
      * True when the plan has an API key, which is what decides whether the export asks about
      * secrets at all. With no key configured the flow is unchanged from before this feature.
      */
-    val hasApiKey: Boolean get() = repository.planningState.value.hereApiKey.isNotEmpty()
+    val hasApiKey: Boolean
+        get() = planningGraphStore.getOrCreate(travelId).settingsRepository.settings.hereApiKey.isNotEmpty()
 
     /** Opens the question about including the API key. */
     fun startExport() {

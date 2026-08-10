@@ -19,12 +19,21 @@ data class TravelPlanDomain(
     val days: List<TravelDayDomain> = emptyList(),
     val places: List<PlaceDomain> = emptyList(),
     /**
-     * HERE API key of this plan, empty when none is configured.
+     * Preferences the user set on this plan.
      *
-     * It has to live in the domain model, not only in the entity: every mutation goes through
+     * They have to live in the domain model, not only in the entity: every mutation goes through
      * `TravelPlanRepositoryImpl.persistCurrentState`, which rebuilds the entity from this state, so
      * a field missing here would be wiped on the next edit of the plan.
      */
+    val settings: TravelSettingsDomain = TravelSettingsDomain(),
+)
+
+/**
+ * Preferences of a single travel plan, read and written through
+ * `com.takaotech.ktravel.domain.repository.SettingsRepository`.
+ */
+data class TravelSettingsDomain(
+    /** HERE API key of this plan, empty when none is configured. */
     val hereApiKey: String = "",
 )
 

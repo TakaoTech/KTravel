@@ -4,6 +4,7 @@ import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
 import com.takaotech.ktravel.data.datasource.AttachmentDataSourceImpl
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
+import com.takaotech.ktravel.data.entity.TravelSettingsEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
 import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
@@ -70,7 +71,7 @@ class TravelArchiveSecretsRoundTripTest :
             periodEnd = ArchiveTestFixtures.plan().periodEnd,
             days = emptyList(),
             places = emptyList(),
-            hereApiKey = apiKey,
+            settings = TravelSettingsEntity(hereApiKey = apiKey),
         )
 
         fun PlatformFile.entryText(entry: String): String? =
@@ -110,7 +111,7 @@ class TravelArchiveSecretsRoundTripTest :
                     val summary = target.importer
                         .import(staged, ImportConflictStrategy.DUPLICATE)
                         .getOrThrow()
-                    target.storage.getTravelPlan(summary.id).hereApiKey shouldBe ""
+                    target.storage.getTravelPlan(summary.id).settings.hereApiKey shouldBe ""
                 }
             }
         }
@@ -149,7 +150,7 @@ class TravelArchiveSecretsRoundTripTest :
                     val summary = target.importer
                         .import(staged, ImportConflictStrategy.DUPLICATE, secretsPassword = password)
                         .getOrThrow()
-                    target.storage.getTravelPlan(summary.id).hereApiKey shouldBe apiKey
+                    target.storage.getTravelPlan(summary.id).settings.hereApiKey shouldBe apiKey
                 }
             }
 
@@ -177,14 +178,14 @@ class TravelArchiveSecretsRoundTripTest :
                     val summary = target.importer
                         .import(staged, ImportConflictStrategy.DUPLICATE, secretsPassword = null)
                         .getOrThrow()
-                    target.storage.getTravelPlan(summary.id).hereApiKey shouldBe ""
+                    target.storage.getTravelPlan(summary.id).settings.hereApiKey shouldBe ""
                 }
             }
         }
 
         given("a plan with no API key exported with a password anyway") {
             val source = Installation(tempDir / "nokey-source", "secrets-nokey-source")
-            source.storage.insertTravelPlan(planWithKey().copy(hereApiKey = ""))
+            source.storage.insertTravelPlan(planWithKey().copy(settings = TravelSettingsEntity()))
 
             val archive = tempDir / "nokey.ktravel"
             source.exporter

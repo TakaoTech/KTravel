@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.data.routing
 
 import com.takaotech.ktravel.di.PlanningGraphScope
-import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.RoutingProvider
 import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
 import com.takaotech.ktravel.domain.routing.model.Route
@@ -46,10 +46,10 @@ import kotlin.time.Duration.Companion.seconds
 @Named("HERE")
 @ContributesBinding(PlanningGraphScope::class)
 @Inject
-class HereRoutingProvider(private val travelPlanRepository: TravelPlanRepository) : RoutingProvider {
+class HereRoutingProvider(private val settingsRepository: SettingsRepository) : RoutingProvider {
 
     private fun routingClient(): HereRoutingClient = HereRoutingClient(
-        apiKey = travelPlanRepository.planningState.value.hereApiKey,
+        apiKey = settingsRepository.settings.hereApiKey,
         enableLogging = true,
     )
 

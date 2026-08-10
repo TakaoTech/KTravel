@@ -14,13 +14,22 @@ data class TravelPlanEntity(
     @SerialName("period_end") val periodEnd: LocalDate,
     @SerialName("days") val days: List<TravelDayEntity>,
     @SerialName("places") val places: List<PlaceEntity>,
-    // The exporter always clears this field: the key travels only inside `secrets.json`, encrypted.
-    @SerialName("here_api_key") val hereApiKey: String = "",
+    @SerialName("settings") val settings: TravelSettingsEntity = TravelSettingsEntity(),
 ) {
     companion object {
         const val DOCUMENT_TYPE = "travel_plan"
     }
 }
+
+/**
+ * Preferences the user sets on a single travel plan. Every field has a default, so a document
+ * written before a preference existed stays readable.
+ */
+@Serializable
+data class TravelSettingsEntity(
+    // The exporter always clears this field: the key travels only inside `secrets.json`, encrypted.
+    @SerialName("here_api_key") val hereApiKey: String = "",
+)
 
 @Serializable
 data class TravelDayEntity(

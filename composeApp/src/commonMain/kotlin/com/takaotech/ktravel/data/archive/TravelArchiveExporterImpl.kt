@@ -134,8 +134,8 @@ class TravelArchiveExporterImpl private constructor(
      * not ask for it. A password with no key configured is not an error: there is simply no secret.
      */
     private suspend fun sealSecrets(plan: TravelPlanEntity, password: String?): ArchiveSecretsEnvelope? {
-        if (password.isNullOrEmpty() || plan.hereApiKey.isEmpty()) return null
-        return ArchiveSecretsCipher.seal(ArchiveSecretsPayload(plan.hereApiKey), password)
+        if (password.isNullOrEmpty() || plan.settings.hereApiKey.isEmpty()) return null
+        return ArchiveSecretsCipher.seal(ArchiveSecretsPayload(plan.settings.hereApiKey), password)
     }
 
     private fun writeArchive(
@@ -166,9 +166,13 @@ class TravelArchiveExporterImpl private constructor(
             )
             writer.writeEntry(
                 TravelArchiveFormat.PLAN_ENTRY,
-                // The key is stripped unconditionally: it only ever leaves the device encrypted.
-                json.encodeToString(TravelPlanEntity.serializer(), plan.copy(hereApiKey = ""))
-                    .encodeToByteArray(),
+                // Only the secret field is stripped, not the whole settings object: the plan's
+                // other preferences belong to the plan and travel with it. The key is stripped
+                // unconditionally, because it only ever leaves the device encrypted.
+                json.encodeToString(
+                    TravelPlanEntity.serializer(),
+                    plan.copy(settings = plan.settings.copy(hereApiKey = "")),
+                ).encodeToByteArray(),
             )
             secrets?.let { envelope ->
                 writer.writeEntry(

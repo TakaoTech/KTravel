@@ -129,7 +129,8 @@ class TravelArchiveImporterImpl private constructor(
             )
         }
         val plan = (nameOverride?.let { remapped.plan.copy(name = it) } ?: remapped.plan)
-            .copy(hereApiKey = apiKey)
+            // Only the key is grafted back in: the other preferences arrived with the archive.
+            .let { it.copy(settings = it.settings.copy(hereApiKey = apiKey)) }
 
         try {
             if (!duplicating && staged.conflictingTravelName != null) {

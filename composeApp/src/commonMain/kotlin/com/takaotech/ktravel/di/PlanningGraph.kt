@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.di
 
+import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
@@ -11,6 +12,9 @@ import dev.zacsweers.metro.Provides
 @GraphExtension(PlanningGraphScope::class)
 interface PlanningGraph {
     val travelPlanRepository: TravelPlanRepository
+
+    /** Preferences of this plan: the HERE API key today, the user's plan-wide settings tomorrow. */
+    val settingsRepository: SettingsRepository
     val savePlaceUseCase: SavePlaceUseCase
     val saveTransportStepUseCase: SaveTransportStepUseCase
 
