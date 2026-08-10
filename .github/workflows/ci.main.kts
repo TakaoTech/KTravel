@@ -76,6 +76,10 @@ workflow(
             command = "./gradlew detektFormat -Pdetekt.autocorrect=true",
         )
 
+        // The formatting commit carries [skip ci]: GitHub skips both the push and the
+        // pull_request (synchronize) run it would otherwise trigger, so the pipeline does not
+        // restart on its own output. The current run keeps going, and the verify job below checks
+        // out the head ref, so the formatted commit is still the one that gets tested.
         run(
             name = "Commit formatting",
             condition = isNotFork,
@@ -87,7 +91,7 @@ workflow(
                 git config user.name "github-actions[bot]"
                 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                 git add -A
-                git commit -m "style: apply detekt/ktlint formatting"
+                git commit -m "style: apply detekt/ktlint formatting [skip ci]"
                 git push
             """.trimIndent(),
         )
