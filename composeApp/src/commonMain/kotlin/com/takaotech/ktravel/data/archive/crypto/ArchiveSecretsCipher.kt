@@ -134,7 +134,7 @@ internal object ArchiveSecretsCipher {
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") failure: Throwable) {
-            //TODO
+            // TODO
             // Add some logs
 
             // Anything failing past this point means the tag did not verify. The archive was already

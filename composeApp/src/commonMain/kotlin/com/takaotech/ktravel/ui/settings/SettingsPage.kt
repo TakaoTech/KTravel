@@ -54,11 +54,7 @@ internal object SettingsTestTags {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(
-    viewModel: SettingsViewModel,
-    onNavigationBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun SettingsPage(viewModel: SettingsViewModel, onNavigationBackClick: () -> Unit, modifier: Modifier = Modifier) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val savedMessage = stringResource(Res.string.settings_saved)
