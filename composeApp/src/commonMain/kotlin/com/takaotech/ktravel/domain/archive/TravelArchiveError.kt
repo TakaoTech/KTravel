@@ -1,51 +1,62 @@
 package com.takaotech.ktravel.domain.archive
 
 /**
- * Cause di fallimento di export e import di un archivio viaggio.
+ * Failure causes of a travel archive export or import.
  *
- * Sono tipizzate perché la UI deve poterle distinguere: "archivio troppo vecchio" e "archivio
- * danneggiato" richiedono messaggi diversi e azioni diverse da parte dell'utente.
+ * They are typed because the UI has to tell them apart: "archive too old" and "archive damaged"
+ * call for different messages and different actions from the user.
  */
 sealed interface TravelArchiveError {
 
-    /** Il file non è uno zip leggibile, oppure le entry sono incoerenti o pericolose. */
+    /** The file is not a readable zip, or its entries are inconsistent or unsafe. */
     data class CorruptedArchive(val reason: String) : TravelArchiveError
 
-    /** Manca una entry attesa (`manifest.json`, il file del piano, ...). */
+    /** An expected entry is missing (`manifest.json`, the plan file, ...). */
     data class MissingEntry(val entryPath: String) : TravelArchiveError
 
-    /** `manifest.json` è presente ma non è un manifest KTravel valido. */
+    /** `manifest.json` is present but is not a valid KTravel manifest. */
     data class InvalidManifest(val reason: String) : TravelArchiveError
 
-    /** Schema troppo vecchio: nessuna catena di migrazione lo copre più. */
+    /** Schema too old: no migration chain covers it any more. */
     data class UnsupportedSchemaVersion(val found: Int, val minSupported: Int) : TravelArchiveError
 
-    /** Schema prodotto da una versione futura dell'app. */
+    /** Schema produced by a future version of the app. */
     data class FutureSchemaVersion(val found: Int, val current: Int) : TravelArchiveError
 
     data class MigrationFailed(val fromVersion: Int, val toVersion: Int, val reason: String) :
         TravelArchiveError
 
-    /** Il piano non è deserializzabile nel formato corrente, nemmeno dopo la migrazione. */
+    /** The plan cannot be deserialized into the current format, not even after the migration. */
     data class MalformedPlanJson(val reason: String) : TravelArchiveError
 
-    /** Il piano referenzia un allegato che l'archivio non contiene. */
+    /** The plan references an attachment the archive does not carry. */
     data class MissingAttachment(val relativePath: String) : TravelArchiveError
 
-    /** Lettura o scrittura fallita. */
+    /** A read or a write failed. */
     data class Io(val reason: String) : TravelArchiveError
+
+    /**
+     * The password did not decrypt `secrets.json`.
+     *
+     * The AEAD tag is what tells this apart from a corrupted entry: the archive is intact, the
+     * password is not. The user can simply try again, so this must never abort the import.
+     */
+    data object WrongPassword : TravelArchiveError
+
+    /** `secrets.json` was sealed with a scheme this build does not know how to open. */
+    data class UnsupportedSecretsScheme(val scheme: String) : TravelArchiveError
 }
 
-/** Eccezione portatrice di un [TravelArchiveError]: è sempre il failure dei `Result` di archivio. */
+/** Exception carrying a [TravelArchiveError]: always the failure of the archive `Result`s. */
 class TravelArchiveException(val error: TravelArchiveError) : Exception(error.toString())
 
 /**
- * Normalizza un throwable in un [TravelArchiveError], così la UI può fare un `when` esaustivo anche
- * sui fallimenti imprevisti.
+ * Normalizes a throwable into a [TravelArchiveError], so the UI can keep an exhaustive `when` even
+ * over unexpected failures.
  */
 fun Throwable.asTravelArchiveError(): TravelArchiveError = (this as? TravelArchiveException)?.error
     ?: TravelArchiveError.Io(message ?: this::class.simpleName.orEmpty())
 
-/** Riporta un throwable qualsiasi al tipo di failure usato da tutte le API di archivio. */
+/** Maps any throwable back to the failure type every archive API uses. */
 internal fun Throwable.asTravelArchiveException(): TravelArchiveException =
     this as? TravelArchiveException ?: TravelArchiveException(asTravelArchiveError())

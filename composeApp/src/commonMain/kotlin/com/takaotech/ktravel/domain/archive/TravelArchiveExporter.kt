@@ -7,14 +7,22 @@ import io.github.vinceglb.filekit.PlatformFile
 interface TravelArchiveExporter {
 
     /**
-     * Costruisce l'archivio del viaggio [travelId] e lo scrive in [destination].
+     * Builds the archive of trip [travelId] and writes it to [destination].
      *
-     * [destination] può essere un `content://` scelto dal file saver: l'archivio viene assemblato in
-     * una directory di staging reale e poi copiato con le sole API di FileKit.
+     * [destination] may be a `content://` picked by the file saver: the archive is assembled in a
+     * real staging directory and then copied using FileKit APIs only.
      *
-     * Il failure del [Result] è sempre una [TravelArchiveException].
+     * The [Result] failure is always a [TravelArchiveException].
+     *
+     * When [secretsPassword] is given and the plan has an API key, the key is written to
+     * `secrets.json` encrypted under that password. It is **never** written to `travel.json`:
+     * the plan entry always carries an empty key, whether or not the user opted in.
      */
-    suspend fun export(travelId: String, destination: PlatformFile): Result<TravelArchiveExportResult>
+    suspend fun export(
+        travelId: String,
+        destination: PlatformFile,
+        secretsPassword: String? = null,
+    ): Result<TravelArchiveExportResult>
 }
 
 data class TravelArchiveExportResult(
@@ -22,9 +30,9 @@ data class TravelArchiveExportResult(
     val travelName: String,
     val attachmentCount: Int,
     /**
-     * Allegati referenziati dal piano ma non più presenti su disco: vengono saltati senza far
-     * fallire l'export, perché un riferimento dangling è una condizione che l'app già tollera e
-     * bloccare l'export renderebbe il viaggio inesportabile.
+     * Attachments referenced by the plan but no longer present on disk: they are skipped without
+     * failing the export, because a dangling reference is a condition the app already tolerates and
+     * blocking the export would make the trip impossible to export.
      */
     val skippedAttachments: List<String>,
 )

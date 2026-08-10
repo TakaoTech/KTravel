@@ -18,6 +18,14 @@ data class TravelPlanDomain(
     val periodEnd: LocalDate = LocalDate.fromEpochDays(0),
     val days: List<TravelDayDomain> = emptyList(),
     val places: List<PlaceDomain> = emptyList(),
+    /**
+     * HERE API key of this plan, empty when none is configured.
+     *
+     * It has to live in the domain model, not only in the entity: every mutation goes through
+     * `TravelPlanRepositoryImpl.persistCurrentState`, which rebuilds the entity from this state, so
+     * a field missing here would be wiped on the next edit of the plan.
+     */
+    val hereApiKey: String = "",
 )
 
 data class TravelDayDomain(
@@ -43,8 +51,8 @@ data class VisitScheduleDomain(
 )
 
 /**
- * File dell'inventario di uno step. [relativePath] è relativo alla root degli allegati
- * (`<travelId>/<stepId>/<uuid>.<ext>`); [isImage] deriva dal [mimeType].
+ * File in a step's inventory. [relativePath] is relative to the attachments root
+ * (`<travelId>/<stepId>/<uuid>.<ext>`); [isImage] is derived from the [mimeType].
  */
 data class AttachmentDomain(
     val id: String = newId(),
@@ -58,10 +66,10 @@ data class AttachmentDomain(
 
 sealed class StepDomain(open val id: String = newId()) {
     /**
-     * Step di un luogo collocato nell'itinerario.
+     * Step of a place placed in the itinerary.
      *
-     * A differenza di [PlaceDomain] (backlog senza tempo), lo step è l'unico titolare
-     * dell'orario di visita ([schedule], vincolo V2.1).
+     * Unlike [PlaceDomain] (a backlog with no time), the step is the sole owner of the visit time
+     * ([schedule], constraint V2.1).
      */
     data class Place(
         override val id: String = newId(),
@@ -69,9 +77,9 @@ sealed class StepDomain(open val id: String = newId()) {
         val lat: Double,
         val lng: Double,
         val schedule: VisitScheduleDomain? = null,
-        /** Note libere in formato Markdown associate allo step. */
+        /** Free-form Markdown notes attached to the step. */
         val note: String = "",
-        /** Inventario file dello step (foto e documenti). */
+        /** File inventory of the step (photos and documents). */
         val attachments: List<AttachmentDomain> = emptyList(),
     ) : StepDomain(id)
 

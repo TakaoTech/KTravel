@@ -1,37 +1,44 @@
 package com.takaotech.ktravel.data.archive
 
 /**
- * Costanti del formato di archivio `.ktravel`.
+ * Constants of the `.ktravel` archive format.
  *
- * Layout delle entry:
+ * Entry layout:
  * ```
- * manifest.json                                  versionato, mai migrato
- * travel.json                                    TravelPlanEntity serializzato
+ * manifest.json                                  versioned, never migrated
+ * travel.json                                    serialized TravelPlanEntity
+ * secrets.json                                   encrypted credentials, only if manifest.has_secrets
  * attachments/<travelId>/<stepId>/<uuid>.<ext>   "attachments/" + AttachmentEntity.relativePath
  * ```
  */
 object TravelArchiveFormat {
 
-    /** Estensione prodotta dall'export. */
+    /** Extension produced by the export. */
     const val FILE_EXTENSION: String = "ktravel"
 
-    /** Estensioni accettate in import: gli archivi sono zip, quindi anche `.zip` è valido. */
+    /** Extensions accepted on import: archives are zips, so `.zip` is valid too. */
     val ACCEPTED_EXTENSIONS: Set<String> = setOf(FILE_EXTENSION, "zip")
 
     const val MANIFEST_ENTRY: String = "manifest.json"
     const val PLAN_ENTRY: String = "travel.json"
+
+    /**
+     * Credentials encrypted under the password the user chose. Present only when the export asked
+     * for it; `travel.json` never holds the key in clear, with or without this entry.
+     */
+    const val SECRETS_ENTRY: String = "secrets.json"
     const val ATTACHMENTS_PREFIX: String = "attachments/"
 
-    /** Versione dello schema del piano prodotta da questa build. */
+    /** Plan schema version produced by this build. */
     const val CURRENT_SCHEMA_VERSION: Int = 1
 
-    /** Versione più vecchia ancora migrabile: sotto questa soglia l'import viene rifiutato. */
+    /** Oldest version still migratable: below this threshold the import is rejected. */
     const val MIN_SUPPORTED_SCHEMA_VERSION: Int = 1
 
-    /** Guardie anti zip-bomb applicate prima di leggere qualsiasi contenuto. */
+    /** Zip-bomb guards applied before reading any content. */
     const val MAX_ENTRIES: Int = 10_000
     const val MAX_UNCOMPRESSED_BYTES: Long = 2L * 1024 * 1024 * 1024
 
-    /** Entry path dell'allegato con [relativePath] dell'inventario. */
+    /** Entry path of the attachment with the inventory's [relativePath]. */
     fun attachmentEntry(relativePath: String): String = ATTACHMENTS_PREFIX + relativePath
 }

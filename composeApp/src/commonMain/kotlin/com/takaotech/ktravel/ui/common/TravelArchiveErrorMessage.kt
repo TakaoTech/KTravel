@@ -12,11 +12,13 @@ import ktravel.composeapp.generated.resources.travel_archive_error_missing_attac
 import ktravel.composeapp.generated.resources.travel_archive_error_missing_entry
 import ktravel.composeapp.generated.resources.travel_archive_error_too_new
 import ktravel.composeapp.generated.resources.travel_archive_error_too_old
+import ktravel.composeapp.generated.resources.travel_archive_error_unsupported_secrets_scheme
+import ktravel.composeapp.generated.resources.travel_archive_error_wrong_password
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Messaggio utente per un errore di archivio. Il `when` è esaustivo: aggiungere un caso a
- * [TravelArchiveError] senza tradurlo diventa un errore di compilazione.
+ * User-facing message for an archive error. The `when` is exhaustive: adding a case to
+ * [TravelArchiveError] without a message for it becomes a compile error.
  */
 @Composable
 fun TravelArchiveError.message(): String = when (this) {
@@ -45,4 +47,10 @@ fun TravelArchiveError.message(): String = when (this) {
         stringResource(Res.string.travel_archive_error_missing_attachment, relativePath)
 
     is TravelArchiveError.Io -> stringResource(Res.string.travel_archive_error_io)
+
+    is TravelArchiveError.WrongPassword ->
+        stringResource(Res.string.travel_archive_error_wrong_password)
+
+    is TravelArchiveError.UnsupportedSecretsScheme ->
+        stringResource(Res.string.travel_archive_error_unsupported_secrets_scheme)
 }

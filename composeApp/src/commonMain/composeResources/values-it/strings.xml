@@ -114,6 +114,68 @@
     <string name="travel_import_conflict_replace">Sostituisci</string>
     <string name="travel_import_conflict_cancel">Annulla</string>
 
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_here_section">Chiave API HERE</string>
+    <string name="settings_here_api_key">Chiave API</string>
+    <string name="settings_here_api_key_hint">Serve a calcolare i percorsi di questo viaggio. È salvata nel viaggio, non nell\'app.</string>
+    <string name="settings_show_api_key">Mostra</string>
+    <string name="settings_hide_api_key">Nascondi</string>
+    <string name="settings_save">Salva</string>
+    <string name="settings_saved">Chiave API salvata.</string>
+
+    <string name="import_secrets_choice_title">Importare la chiave API?</string>
+    <string name="import_secrets_choice_message">Questo archivio contiene una chiave API HERE protetta da password. Puoi importare il viaggio anche senza.</string>
+    <string name="import_secrets_choice_import">Importala</string>
+    <string name="import_secrets_choice_skip">Salta</string>
+    <string name="import_secrets_password_title">Inserisci la password</string>
+    <string name="import_secrets_password_message">Inserisci la password scelta quando questo archivio è stato esportato.</string>
+    <string name="import_secrets_password">Password</string>
+    <string name="import_secrets_password_confirm">Sblocca</string>
+    <string name="import_secrets_password_cancel">Annulla</string>
+
+    <string name="export_secrets_title">Includere la chiave API?</string>
+    <string name="export_secrets_message">Questo viaggio ha una chiave API HERE. Puoi includerla nell\'archivio, cifrata con una password che scegli tu.</string>
+    <string name="export_secrets_include">Includi la chiave API</string>
+    <string name="export_secrets_password">Password</string>
+    <string name="export_secrets_password_confirm">Conferma password</string>
+    <string name="export_secrets_password_mismatch">Le password non coincidono.</string>
+    <string name="export_secrets_password_weak">Questa password è troppo facile da indovinare. Scegline una più robusta.</string>
+    <string name="export_secrets_confirm">Esporta</string>
+    <string name="export_secrets_cancel">Annulla</string>
+
+    <string name="password_strength_label">Robustezza: %1$s</string>
+    <string name="password_strength_very_weak">molto debole</string>
+    <string name="password_strength_weak">debole</string>
+    <string name="password_strength_fair">discreta</string>
+    <string name="password_strength_strong">robusta</string>
+    <string name="password_strength_very_strong">molto robusta</string>
+
+    <string name="password_strength_warning_dates">Contiene una data.</string>
+    <string name="password_strength_warning_recent_years">Contiene un anno recente.</string>
+    <string name="password_strength_warning_repeated_character">Ripete sempre lo stesso carattere.</string>
+    <string name="password_strength_warning_repeated_pattern">Ripete un gruppo di caratteri.</string>
+    <string name="password_strength_warning_sequence">Segue una sequenza come abc o 1234.</string>
+    <string name="password_strength_warning_short_keyboard_pattern">È un percorso breve sulla tastiera.</string>
+    <string name="password_strength_warning_straight_row_of_keys">È una fila dritta di tasti.</string>
+    <string name="password_strength_warning_not_allowed">Questa password non è ammessa.</string>
+    <string name="password_strength_warning_top_10">È una delle dieci password più diffuse.</string>
+    <string name="password_strength_warning_top_100">È una delle cento password più diffuse.</string>
+    <string name="password_strength_warning_very_common">È una password molto diffusa.</string>
+
+    <string name="password_strength_suggestion_add_another_word">Aggiungi un\'altra parola o due.</string>
+    <string name="password_strength_suggestion_avoid_dates">Evita date e anni legati a te.</string>
+    <string name="password_strength_suggestion_avoid_years">Evita gli anni recenti.</string>
+    <string name="password_strength_suggestion_avoid_repeated_words">Evita parole e caratteri ripetuti.</string>
+    <string name="password_strength_suggestion_avoid_sequences">Evita le sequenze.</string>
+    <string name="password_strength_suggestion_use_longer_keyboard_pattern">Usa un percorso più lungo sulla tastiera, cambiando direzione più volte.</string>
+    <string name="password_strength_suggestion_password_not_allowed">Scegli una password diversa.</string>
+    <string name="password_strength_suggestion_avoid_reversed_words">Scrivere una parola al contrario non aiuta molto.</string>
+    <string name="password_strength_suggestion_avoid_leet">Le sostituzioni prevedibili come @ al posto di a non aiutano molto.</string>
+    <string name="password_strength_suggestion_avoid_all_uppercase">Tutto maiuscolo è prevedibile quanto tutto minuscolo.</string>
+    <string name="password_strength_suggestion_capitalization_does_not_help">Mettere la maiuscola all\'inizio non aiuta molto.</string>
+    <string name="password_strength_suggestion_use_fewer_words">Usa poche parole ed evita quelle troppo comuni.</string>
+    <string name="password_strength_suggestion_no_need_for_symbols">Simboli, numeri e maiuscole non sono necessari.</string>
+
     <string name="travel_archive_error_corrupted">L'archivio è danneggiato o non è un file KTravel.</string>
     <string name="travel_archive_error_invalid_manifest">L'archivio non contiene dati KTravel validi.</string>
     <string name="travel_archive_error_missing_entry">L'archivio è incompleto: manca %1$s.</string>
@@ -123,4 +185,6 @@
     <string name="travel_archive_error_malformed_plan">I dati del viaggio nell'archivio non sono leggibili.</string>
     <string name="travel_archive_error_missing_attachment">Un file usato dal viaggio non è presente nell'archivio: %1$s.</string>
     <string name="travel_archive_error_io">Non è stato possibile leggere o scrivere il file.</string>
+    <string name="travel_archive_error_wrong_password">Password errata. Riprova.</string>
+    <string name="travel_archive_error_unsupported_secrets_scheme">La chiave API di questo archivio è protetta con un metodo non supportato da questa versione. Aggiorna l\'app per importarla.</string>
 </resources>

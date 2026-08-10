@@ -41,6 +41,7 @@ object TravelPlanEntityMapper {
         periodEnd = periodEnd,
         days = days.map { it.toEntity() },
         places = places.map { it.toEntity() },
+        hereApiKey = hereApiKey,
     )
 
     fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
@@ -132,6 +133,7 @@ object TravelPlanEntityMapper {
         periodEnd = periodEnd,
         days = days.map { it.toDomain() },
         places = places.map { it.toDomain() },
+        hereApiKey = hereApiKey,
     )
 
     fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(

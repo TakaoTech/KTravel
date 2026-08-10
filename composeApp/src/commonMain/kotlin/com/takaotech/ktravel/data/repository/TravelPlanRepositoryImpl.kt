@@ -68,8 +68,8 @@ class TravelPlanRepositoryImpl(
     }
 
     /**
-     * Applica una mutazione pura allo stato corrente e persiste il risultato. Dopo ogni mutazione
-     * riapplica l'invariante della destinazione finale (nessun orario sull'ultimo luogo del giorno).
+     * Applies a pure mutation to the current state and persists the result. After every mutation it
+     * reapplies the final-destination invariant (no time on the last place of the day).
      */
     private suspend fun mutate(transform: (TravelPlanDomain) -> TravelPlanDomain) {
         _planningState.update { transform(it).clearFinalDestinationSchedules() }
@@ -113,7 +113,7 @@ class TravelPlanRepositoryImpl(
         mutate { it.updatePlaceEndTime(dayId, stepId, time) }
 
     override suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile) {
-        // Prima il file su disco, poi i metadati: evita riferimenti a file inesistenti.
+        // The file on disk first, the metadata after: this avoids references to missing files.
         val attachment = attachmentDataSource.saveAttachment(travelId, stepId, source).toDomain()
         mutate { it.addPlaceAttachment(dayId, stepId, attachment) }
     }
@@ -129,6 +129,8 @@ class TravelPlanRepositoryImpl(
     }
 
     override suspend fun updatePlanName(name: String) = mutate { it.copy(name = name) }
+
+    override suspend fun updateHereApiKey(apiKey: String) = mutate { it.copy(hereApiKey = apiKey) }
 
     override suspend fun savePlace(place: PlaceDomain, dayId: String?) = mutate { it.savePlace(place, dayId) }
 

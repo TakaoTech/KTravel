@@ -50,7 +50,6 @@ import com.takaotech.ktravel.ui.settings.SettingsPage
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
-import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -114,7 +113,6 @@ fun App() {
 
                             NavigationBackHandler(
                                 state = rememberNavigationEventState(NavigationEventInfo.None),
-                                // TODO Meanwhile export phase block back
                                 isBackEnabled = true,
                                 onBackCompleted = {
                                     if (backStackEntry.lifecycleIsResumed()) {
@@ -315,7 +313,14 @@ fun App() {
                     }
 
                     composable<SettingsNavigation> { backStackEntry ->
-                        val viewModel: SettingsViewModel = metroViewModel()
+                        // The settings page is only reachable from a trip, and the API key belongs
+                        // to that trip: the id comes off the planning entry still on the back stack.
+                        val travelId = navController.getBackStackEntry<PlanningNavigation>()
+                            .toRoute<PlanningNavigation>().travelId
+                        val viewModel =
+                            assistedMetroViewModel<SettingsViewModel, SettingsViewModel.Factory>(
+                                key = "settings_$travelId",
+                            ) { _ -> create(travelId) }
 
                         SettingsPage(
                             viewModel = viewModel,
