@@ -333,7 +333,7 @@ private fun PlaceMap(lat: Double, lng: Double, modifier: Modifier = Modifier) {
         cameraState = cameraState,
         options = MapOptions(
             gestureOptions = GestureOptions.AllDisabled,
-        )
+        ),
     ) {
         val markerSource = rememberGeoJsonSource(
             data = GeoJsonData.Features(Point(Position(longitude = lng, latitude = lat))),
@@ -485,12 +485,7 @@ private fun ScheduleSection(
 }
 
 @Composable
-private fun ScheduleField(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+private fun ScheduleField(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,
