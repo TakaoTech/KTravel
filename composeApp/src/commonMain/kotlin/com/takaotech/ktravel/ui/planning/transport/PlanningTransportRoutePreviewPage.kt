@@ -42,7 +42,6 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.core.KTravelPlatform
-import com.takaotech.ktravel.core.LocalPlatform
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
@@ -52,7 +51,6 @@ import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.navigation.common.GeoJsonConverter
 import com.takaotech.navigation.common.PolylineEncoderDecoder
-import io.github.kdroidfilter.platformtools.Platform
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
@@ -210,7 +208,6 @@ private fun PlanningTransportPreviewMobile(
     cameraState: CameraState,
     focusedStep: PolylineEncoderDecoder.LatLngZ?,
 ) {
-
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
@@ -230,7 +227,6 @@ private fun PlanningTransportPreviewMobile(
             RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
         },
     ) {
-
         var mapEnable by remember {
             mutableStateOf(true)
         }
@@ -424,11 +420,7 @@ fun RouteStepSection(
 }
 
 @Composable
-fun RouteStep(
-    action: RouteAction,
-    onActionClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
+fun RouteStep(action: RouteAction, onActionClick: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val distanceM = (action.distanceMeters `in` Length.meters).roundToInt()
     val distanceText = if (distanceM >= 1000) {
         val km = distanceM / 1000.0
