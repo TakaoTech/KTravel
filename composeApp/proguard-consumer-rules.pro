@@ -22,6 +22,16 @@
 # Generated Compose Resources accessor (namespace com.takaotech.ktravel.compose).
 -keep class com.takaotech.ktravel.compose.generated.resources.** { *; }
 
+# maplibre-compose declares @Serializable location models whose Companion / $$serializer are
+# resolved by name at runtime. The MapLibre Android SDK ships its own consumer rules (Gson,
+# org.maplibre.geojson, enum values()), so only what those do not cover belongs here.
+-keepclassmembers class org.maplibre.compose.location.** {
+    *** Companion;
+    *** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class org.maplibre.compose.location.**$$serializer { *; }
+
 # Compottie parses Lottie JSON with its own internal @Serializable model.
 -keepclassmembers class io.github.alexzhirkevich.compottie.internal.** {
     *** Companion;

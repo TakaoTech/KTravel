@@ -27,8 +27,8 @@ archive and imported back on another device.
   departure time).
 - **Schedule consistency** — the domain layer validates overlapping or impossible schedules while
   you edit a day.
-- **Maps** — an interactive map on every platform through the `:os-map` module (MapLibre on
-  Android/iOS, Mapsforge on Desktop) plus device location through `:location-clients`.
+- **Maps** — one interactive map stack on every platform, MapLibre Compose, plus device location
+  through `:location-clients`.
 - **Notes and attachments** — Markdown notes per step and an attachment inventory (images and
   arbitrary files) stored next to the plan.
 - **Archive export/import** — a versioned ZIP archive with a manifest, schema migrations, ID
@@ -59,7 +59,7 @@ built today.
 | Persistence     | Couchbase Lite (Kotbase)                                               |
 | Networking      | Ktor client (OkHttp on JVM/Android, Darwin on iOS)                     |
 | Serialization   | kotlinx.serialization, kotlinx.datetime, kotlinx.io                    |
-| Maps            | MapLibre Compose (Android/iOS), Mapsforge (Desktop)                    |
+| Maps            | MapLibre Compose (Android, iOS, Desktop)                               |
 | Animations      | Compottie (Lottie)                                                     |
 | Testing         | Kotest, kotlin-test, JUnit, Turbine-style Circuit tests, MockK/Mokkery |
 | Static analysis | Detekt 2.0.0-alpha.5 with Compose rules and formatting                 |
@@ -78,7 +78,6 @@ KTravel/
 │       ├── androidMain/ jvmMain/ iosMain/  Platform-specific code
 │       └── kzipMain/    Shared `actual` zip implementation wired into leaf source sets
 ├── iosApp/              SwiftUI entry point and Xcode project
-├── os-map/              Map abstraction (MapLibre / Mapsforge / Swift interop)
 ├── location-clients/    Device location abstraction
 ├── config/detekt/       Detekt configuration
 └── .github/workflows/   CI defined as Kotlin scripts (github-workflows-kt)
@@ -91,21 +90,23 @@ Inside `composeApp`, `commonMain` follows the package layout `core`, `data`, `do
 
 | Tool        | Requirement                                                          |
 |-------------|----------------------------------------------------------------------|
-| JDK         | 21+ to run Gradle; the build uses a Java 24 toolchain                |
+| JDK         | 21+ to run Gradle; the build uses a Java 25 toolchain                |
 | Android SDK | API 37 installed, with `sdk.dir` set in `local.properties`           |
 | Xcode       | Only for iOS — 16+, with Swift Package Manager support (`spmForKmp`) |
-| Git         | Required by the JitPack/Maven dependency resolution of some modules  |
 
-One build step has stricter JDK needs:
+**Java 25 is a hard floor for the desktop target.** MapLibre Compose reaches MapLibre Native through
+the FFM API, so the desktop map cannot run on an older JVM, and the JVM must be granted native
+access — `--enable-native-access=ALL-UNNAMED`, already in `compose.desktop`'s `jvmArgs` for the
+packaged application and for `:composeApp:run`. Pass it by hand when launching the jar directly.
+The Android targets stay on `jvmTarget = 24`: D8 does not accept the class file version JDK 25 emits.
 
-- **Desktop release packaging** requires an **Amazon Corretto 22–24 JDK that ships `jmods`**
-  (`jpackage` uses it). It is selected explicitly by vendor in `composeApp/build.gradle.kts`.
+**Desktop release packaging** needs a JDK that ships `jmods` — `jpackage`'s `jlink` step and
+ProGuard both read it, and several common distributions (JetBrains Runtime among them) leave it out.
+`composeApp/build.gradle.kts` therefore asks for an Amazon Corretto 25 toolchain by vendor; the
+foojay resolver in `settings.gradle.kts` lets Gradle download it, so nothing has to be installed by
+hand and `JAVA_HOME` is never consulted for it.
 
-Detekt used to require a separate JDK 21 because it ran in-process and did not support JVM 23+.
-Since
-the move to Detekt 2.x (`dev.detekt`) that constraint is gone: a single modern JDK compiles, tests
-and
-runs `detektAll`.
+A single modern JDK compiles, tests and runs `detektAll`.
 
 ## Installation
 
@@ -189,10 +190,8 @@ Keep shrinking rules next to the module that needs them:
 | File                                           | Scope                                                                   |
 |------------------------------------------------|-------------------------------------------------------------------------|
 | `location-clients/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `os-map/proguard-consumer-rules.pro`           | Android consumer rules                                                  |
-| `os-map/proguard-desktop-rules.pro`            | desktop only (Mapsforge / kxml2 / SVG Salamander)                       |
 | `composeApp/proguard-consumer-rules.pro`       | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, enums)                       |
+| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
 | `androidApp/proguard-rules.pro`                | application-level (`-dontobfuscate`, Parcelize)                         |
 
 ## Tests
@@ -219,8 +218,8 @@ build has to install them by hand — see the Couchbase Lite section of `CLAUDE.
 ## Coverage
 
 Coverage is measured with [Kover](https://github.com/Kotlin/kotlinx-kover). The root project
-aggregates `:composeApp`, `:location-clients` and `:os-map` into a single report; `:androidApp` is
-left out on purpose, being a framework entry point with no test source set.
+aggregates `:composeApp`, `:location-clients` and `:password-strength` into a single report;
+`:androidApp` is left out on purpose, being a framework entry point with no test source set.
 
 ```bash
 ./gradlew koverHtmlReport                 # build/reports/kover/html/index.html

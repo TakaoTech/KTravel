@@ -82,6 +82,26 @@
 -keepclassmembers class * extends com.sun.jna.** { public *; }
 -dontwarn com.sun.jna.**
 
+# ── MapLibre Native FFI (desktop map) ────────────────────────────────────────────────────────────
+# The desktop map talks to MapLibre Native through the FFM API: downcall handles and struct layouts
+# are built by name, and the GPU presenter is chosen at runtime from the render backend the runtime
+# artifact provides (Metal on macOS, Vulkan elsewhere). None of that is visible to the shrinker.
+-keep class org.maplibre.compose.desktop.** { *; }
+-keep class org.maplibre.compose.mlnffi.** { *; }
+-keep class org.maplibre.nativeffi.** { *; }
+
+# Every downcall goes through MethodHandle.invokeExact, which is signature polymorphic: the JDK
+# declares a single invokeExact(Object...) and the compiler emits a call site carrying the real
+# descriptor. ProGuard resolves members by descriptor and cannot match those, so it reports one
+# "can't find referenced method" per stub — 47 of them, all expected and all harmless.
+-dontwarn org.maplibre.nativeffi.**
+
+# LWJGL loads its own native libraries through Configuration / Class.forName, and reads the field
+# order of its Struct subclasses reflectively.
+-keep class org.lwjgl.** { *; }
+-keepclassmembers class * extends org.lwjgl.system.Struct { *; }
+-dontwarn org.lwjgl.**
+
 # ── AWT / Swing ──────────────────────────────────────────────────────────────────────────────────
 -dontwarn java.awt.**
 -dontwarn javax.swing.**

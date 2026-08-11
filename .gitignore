@@ -6,7 +6,6 @@ build/
 # Couchbase Lite scratch dirs, created next to the module when a test opens the database
 CouchbaseLiteTemp/
 *.cblite2/
-maplibre-cache
 
 # macOS
 .DS_Store
