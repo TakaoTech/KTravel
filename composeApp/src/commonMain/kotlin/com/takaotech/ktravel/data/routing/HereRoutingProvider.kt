@@ -53,7 +53,11 @@ class HereRoutingProvider(private val settingsRepository: SettingsRepository) : 
         enableLogging = true,
     )
 
-    override suspend fun getRoutes(origin: String, destination: String, settings: RoutingProviderSettings): Routes =
+    override suspend fun getRoutes(
+        origin: String,
+        destination: String,
+        settings: RoutingProviderSettings
+    ): Routes =
         withContext(Dispatchers.Default) {
             supervisorScope {
                 require(settings is RoutingProviderSettings.Here) {
@@ -124,7 +128,7 @@ internal fun mapHereRouteResponse(response: RouterRouteResponse): Routes = Route
                         durationSeconds = action.duration.seconds,
                         distanceMeters = action.length * Length.meters,
                         instruction = action.instruction,
-//                            offset = action.offset,
+                        offset = action.offset,
                         direction = action.direction,
                         severity = action.severity,
                     )

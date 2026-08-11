@@ -21,19 +21,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.LocalPlatform
 import com.takaotech.ktravel.domain.routing.model.Route
@@ -49,6 +56,7 @@ import io.github.kdroidfilter.platformtools.Platform
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.contentOrNull
@@ -59,7 +67,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.check
 import org.jetbrains.compose.resources.painterResource
+import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.layers.CircleLayer
 import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.map.GestureOptions
 import org.maplibre.compose.map.MapOptions
@@ -68,11 +80,16 @@ import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.BoundingBox
+import org.maplibre.spatialk.geojson.Point
+import org.maplibre.spatialk.geojson.Position
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
 /** Inset kept between the route's bounding box and the map edges when framing it. */
 private val ROUTE_FIT_PADDING = 48.dp
+
+/** Zoom applied when framing a single route step, close enough to read the manoeuvre. */
+private const val STEP_FOCUS_ZOOM = 16.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +99,6 @@ fun PlanningTransportRoutePreviewPage(
     onRouteChange: (Int) -> Unit,
     onRouteConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    platform: Platform = LocalPlatform.current,
 ) {
     val selectedRoute by remember(selectedRouteIndex) {
         derivedStateOf {
@@ -90,10 +106,32 @@ fun PlanningTransportRoutePreviewPage(
         }
     }
 
-    val onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit = {
+    val cameraState = rememberCameraState()
+    val scope = rememberCoroutineScope()
+    var focusedStep by remember { mutableStateOf<PolylineEncoderDecoder.LatLngZ?>(null) }
+
+    // Switching route would otherwise leave the marker on a path that is no longer drawn.
+    LaunchedEffect(selectedRouteIndex) {
+        focusedStep = null
     }
 
-    if (platform == Platform.JVM) {
+    val onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit = { step ->
+        focusedStep = step
+        scope.launch {
+            cameraState.animateTo(
+                CameraPosition(
+                    target = Position(longitude = step.lng, latitude = step.lat),
+                    zoom = STEP_FOCUS_ZOOM,
+                ),
+            )
+        }
+    }
+
+    if (
+        currentWindowAdaptiveInfoV2().windowSizeClass.isWidthAtLeastBreakpoint(
+            WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND,
+        )
+    ) {
         PlanningTransportRouteDesktop(
             onRouteConfirm = onRouteConfirm,
             modifier = modifier,
@@ -102,6 +140,8 @@ fun PlanningTransportRoutePreviewPage(
             onRouteChange = onRouteChange,
             selectedRoute = selectedRoute,
             onStepClick = onStepClick,
+            cameraState = cameraState,
+            focusedStep = focusedStep,
         )
     } else {
         PlanningTransportPreviewMobile(
@@ -112,6 +152,8 @@ fun PlanningTransportRoutePreviewPage(
             onRouteConfirm = onRouteConfirm,
             selectedRoute = selectedRoute,
             onStepClick = onStepClick,
+            cameraState = cameraState,
+            focusedStep = focusedStep,
         )
     }
 }
@@ -125,6 +167,8 @@ private fun PlanningTransportRouteDesktop(
     onRouteChange: (Int) -> Unit,
     selectedRoute: Route,
     onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
+    cameraState: CameraState,
+    focusedStep: PolylineEncoderDecoder.LatLngZ?,
 ) {
     Scaffold(
         topBar = {
@@ -146,6 +190,8 @@ private fun PlanningTransportRouteDesktop(
                     .fillMaxHeight(),
                 enable = true,
                 sections = selectedRoute.sections,
+                cameraState = cameraState,
+                focusedStep = focusedStep,
             )
         }
     }
@@ -161,12 +207,15 @@ private fun PlanningTransportPreviewMobile(
     onRouteConfirm: () -> Unit,
     selectedRoute: Route,
     onStepClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
+    cameraState: CameraState,
+    focusedStep: PolylineEncoderDecoder.LatLngZ?,
 ) {
-    val sheetState = rememberBottomSheetScaffoldState()
+
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
         modifier = modifier,
-        scaffoldState = sheetState,
+        scaffoldState = bottomSheetScaffoldState,
         sheetPeekHeight = 128.dp,
         sheetContent = {
             RouteStepsPreview(
@@ -181,18 +230,25 @@ private fun PlanningTransportPreviewMobile(
             RoutePreviewTopBar(onRouteConfirm = onRouteConfirm)
         },
     ) {
-        val mapEnable by remember(sheetState.bottomSheetState.hasExpandedState) {
-            derivedStateOf {
-                !sheetState.bottomSheetState.hasExpandedState
-            }
+
+        var mapEnable by remember {
+            mutableStateOf(true)
+        }
+
+        LaunchedEffect(bottomSheetScaffoldState.bottomSheetState) {
+            snapshotFlow { bottomSheetScaffoldState.bottomSheetState }
+                .collect {
+                    mapEnable = bottomSheetScaffoldState.bottomSheetState.hasExpandedState
+                }
         }
 
         RoutePreviewMap(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
+                .fillMaxSize(),
             enable = mapEnable,
             sections = selectedRoute.sections,
+            cameraState = cameraState,
+            focusedStep = focusedStep,
         )
     }
 }
@@ -258,16 +314,24 @@ private fun RouteStepsPreview(
  *
  * [enable] turns the gestures off rather than the map: the caller passes `false` while the bottom
  * sheet is expanded over it, and a map that still panned under the sheet would swallow the drag.
+ *
+ * [cameraState] is hoisted because the step list, which lives outside this map, drives the camera
+ * when a step is clicked; [focusedStep] is the coordinate that click resolved to, marked on the map.
  */
 @Composable
-fun RoutePreviewMap(enable: Boolean, sections: List<RouteSection>, modifier: Modifier = Modifier) {
+fun RoutePreviewMap(
+    enable: Boolean,
+    sections: List<RouteSection>,
+    cameraState: CameraState,
+    focusedStep: PolylineEncoderDecoder.LatLngZ?,
+    modifier: Modifier = Modifier,
+) {
     val path by remember(sections) {
         derivedStateOf {
             sections.mapNotNull { it.polyline }
                 .let { GeoJsonConverter.mergePolylinesToGeoJson(it) }
         }
     }
-    val cameraState = rememberCameraState()
 
     LaunchedEffect(path) {
         routeBoundingBox(path)?.let { bbox ->
@@ -285,6 +349,22 @@ fun RoutePreviewMap(enable: Boolean, sections: List<RouteSection>, modifier: Mod
     ) {
         val pathLine = rememberGeoJsonSource(data = GeoJsonData.JsonString(path))
         LineLayer("path", source = pathLine)
+
+        focusedStep?.let { step ->
+            val markerSource = rememberGeoJsonSource(
+                data = GeoJsonData.Features(
+                    Point(Position(longitude = step.lng, latitude = step.lat)),
+                ),
+            )
+            CircleLayer(
+                id = "step-marker",
+                source = markerSource,
+                radius = const(8.dp),
+                color = const(Color.Red),
+                strokeColor = const(Color.White),
+                strokeWidth = const(2.dp),
+            )
+        }
     }
 }
 
@@ -324,32 +404,31 @@ fun RouteStepSection(
         Text("Duration ${section.summary.durationSeconds}")
 
         for (action in section.actions) {
-            val resolvedClick: (() -> Unit)? = remember(section.polyline, action.offset) {
-                val polyline = section.polyline
-                val offset = action.offset
-                if (polyline != null && offset != null) {
-                    {
+            RouteStep(
+                action = action,
+                onActionClick = {
+                    val polyline = section.polyline
+                    val offset = action.offset
+
+                    if (polyline != null && offset != null) {
                         runCatching {
                             val coord =
                                 PolylineEncoderDecoder.getCoordinateAtOffset(polyline, offset)
                             onActionClick(coord)
                         }
                     }
-                } else {
-                    null
-                }
-            }
-
-            RouteStep(
-                action = action,
-                onActionClick = resolvedClick,
+                },
             )
         }
     }
 }
 
 @Composable
-fun RouteStep(action: RouteAction, onActionClick: (() -> Unit)? = null, modifier: Modifier = Modifier) {
+fun RouteStep(
+    action: RouteAction,
+    onActionClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
     val distanceM = (action.distanceMeters `in` Length.meters).roundToInt()
     val distanceText = if (distanceM >= 1000) {
         val km = distanceM / 1000.0
@@ -424,6 +503,8 @@ private fun PlanningRoutePreviewPagePreview(@PreviewParameter(RoutesPreviewParam
                 modifier = Modifier.fillMaxSize(),
                 selectedRoute = routes.routes.first(),
                 onStepClick = {},
+                cameraState = rememberCameraState(),
+                focusedStep = null,
             )
         }
     }

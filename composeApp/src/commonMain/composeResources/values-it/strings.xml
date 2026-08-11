@@ -117,7 +117,7 @@
     <string name="settings_title">Impostazioni</string>
     <string name="settings_here_section">Chiave API HERE</string>
     <string name="settings_here_api_key">Chiave API</string>
-    <string name="settings_here_api_key_hint">Serve a calcolare i percorsi di questo viaggio. È salvata nel viaggio, non nell\'app.</string>
+    <string name="settings_here_api_key_hint">Serve a calcolare i percorsi di questo viaggio. È salvata nel viaggio, non nell'app.</string>
     <string name="settings_show_api_key">Mostra</string>
     <string name="settings_hide_api_key">Nascondi</string>
     <string name="settings_save">Salva</string>
@@ -134,7 +134,7 @@
     <string name="import_secrets_password_cancel">Annulla</string>
 
     <string name="export_secrets_title">Includere la chiave API?</string>
-    <string name="export_secrets_message">Questo viaggio ha una chiave API HERE. Puoi includerla nell\'archivio, cifrata con una password che scegli tu.</string>
+    <string name="export_secrets_message">Questo viaggio ha una chiave API HERE. Puoi includerla nell'archivio, cifrata con una password che scegli tu.</string>
     <string name="export_secrets_include">Includi la chiave API</string>
     <string name="export_secrets_password">Password</string>
     <string name="export_secrets_password_confirm">Conferma password</string>
@@ -162,7 +162,7 @@
     <string name="password_strength_warning_top_100">È una delle cento password più diffuse.</string>
     <string name="password_strength_warning_very_common">È una password molto diffusa.</string>
 
-    <string name="password_strength_suggestion_add_another_word">Aggiungi un\'altra parola o due.</string>
+    <string name="password_strength_suggestion_add_another_word">Aggiungi un'altra parola o due.</string>
     <string name="password_strength_suggestion_avoid_dates">Evita date e anni legati a te.</string>
     <string name="password_strength_suggestion_avoid_years">Evita gli anni recenti.</string>
     <string name="password_strength_suggestion_avoid_repeated_words">Evita parole e caratteri ripetuti.</string>
@@ -172,7 +172,7 @@
     <string name="password_strength_suggestion_avoid_reversed_words">Scrivere una parola al contrario non aiuta molto.</string>
     <string name="password_strength_suggestion_avoid_leet">Le sostituzioni prevedibili come @ al posto di a non aiutano molto.</string>
     <string name="password_strength_suggestion_avoid_all_uppercase">Tutto maiuscolo è prevedibile quanto tutto minuscolo.</string>
-    <string name="password_strength_suggestion_capitalization_does_not_help">Mettere la maiuscola all\'inizio non aiuta molto.</string>
+    <string name="password_strength_suggestion_capitalization_does_not_help">Mettere la maiuscola all'inizio non aiuta molto.</string>
     <string name="password_strength_suggestion_use_fewer_words">Usa poche parole ed evita quelle troppo comuni.</string>
     <string name="password_strength_suggestion_no_need_for_symbols">Simboli, numeri e maiuscole non sono necessari.</string>
 
@@ -186,5 +186,5 @@
     <string name="travel_archive_error_missing_attachment">Un file usato dal viaggio non è presente nell'archivio: %1$s.</string>
     <string name="travel_archive_error_io">Non è stato possibile leggere o scrivere il file.</string>
     <string name="travel_archive_error_wrong_password">Password errata. Riprova.</string>
-    <string name="travel_archive_error_unsupported_secrets_scheme">La chiave API di questo archivio è protetta con un metodo non supportato da questa versione. Aggiorna l\'app per importarla.</string>
+    <string name="travel_archive_error_unsupported_secrets_scheme">La chiave API di questo archivio è protetta con un metodo non supportato da questa versione. Aggiorna l'app per importarla.</string>
 </resources>
