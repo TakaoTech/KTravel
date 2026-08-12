@@ -1,5 +1,7 @@
 package com.takaotech.navigation.routing.dto.request
 
+import com.takaotech.navigation.common.model.Coordinate
+
 /**
  * Represents a waypoint location for the HERE Routing API.
  *
@@ -45,13 +47,8 @@ data class Waypoint(
          * Creates a waypoint from a coordinate string "lat,lng".
          * @throws IllegalArgumentException if the format is invalid
          */
-        fun fromString(coordinate: String): Waypoint {
-            val parts = coordinate.split(",")
-            require(parts.size >= 2) { "Invalid coordinate format. Expected 'lat,lng'" }
-            return Waypoint(
-                lat = parts[0].toDouble(),
-                lng = parts[1].toDouble(),
-            )
+        fun fromString(coordinate: String): Waypoint = Coordinate.fromString(coordinate).let {
+            Waypoint(lat = it.lat, lng = it.lng)
         }
     }
 }
@@ -220,13 +217,6 @@ data class PlaceOptions(
 
         return if (options.isEmpty()) "" else options.joinToString(separator = ";", prefix = ";")
     }
-}
-
-/**
- * Represents a simple coordinate (latitude, longitude).
- */
-data class Coordinate(val lat: Double, val lng: Double) {
-    override fun toString(): String = "$lat,$lng"
 }
 
 /**

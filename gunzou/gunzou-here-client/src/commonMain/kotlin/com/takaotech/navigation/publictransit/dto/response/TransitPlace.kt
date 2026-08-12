@@ -1,5 +1,6 @@
 package com.takaotech.navigation.publictransit.dto.response
 
+import com.takaotech.navigation.common.dto.Location
 import kotlinx.serialization.Serializable
 
 /**

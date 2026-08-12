@@ -1,4 +1,4 @@
-package com.takaotech.navigation.routing.dto.request
+package com.takaotech.navigation.routing.model
 
 /**
  * Defines which attributes are included in the response as part of data representation of a

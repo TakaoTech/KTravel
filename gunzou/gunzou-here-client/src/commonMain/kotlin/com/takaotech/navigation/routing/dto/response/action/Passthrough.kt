@@ -1,6 +1,6 @@
 package com.takaotech.navigation.routing.dto.response.action
 
-import com.takaotech.navigation.routing.dto.response.Location
+import com.takaotech.navigation.common.dto.Location
 import com.takaotech.navigation.routing.dto.response.Place
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
