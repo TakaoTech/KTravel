@@ -205,15 +205,17 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    // There is no Compose in this module, but the shared detekt.yml carries the `Compose` rule
-    // section: without the plugin that owns it, detekt rejects the whole config as invalid.
-    detektPlugins(libs.detekt.composerules)
     detektPlugins(libs.detekt.formatting)
 }
 
 detekt {
     ignoreFailures = true
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+    // No Compose in this module, so the detekt Compose plugin is not on the classpath and the
+    // `Compose` section of the shared config is skipped rather than enforced.
+    config.setFrom(
+        file("$rootDir/config/detekt/detekt.yml"),
+        file("$rootDir/config/detekt/detekt-no-compose.yml"),
+    )
 
     arrayOf(
         "commonMain",

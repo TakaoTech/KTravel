@@ -80,6 +80,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
             implementation(ktorLibs.server.testHost)
         }
 
@@ -107,7 +108,12 @@ dependencies {
 
 detekt {
     ignoreFailures = true
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+    // No Compose in this server module, so the detekt Compose plugin is not on the classpath and the
+    // `Compose` section of the shared config is skipped rather than enforced.
+    config.setFrom(
+        file("$rootDir/config/detekt/detekt.yml"),
+        file("$rootDir/config/detekt/detekt-no-compose.yml"),
+    )
 
     arrayOf(
         "androidMain",
