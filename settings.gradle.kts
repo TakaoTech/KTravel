@@ -32,9 +32,18 @@ dependencyResolutionManagement {
             }
         }
     }
+    versionCatalogs {
+        create("ktorLibs").from("io.ktor:ktor-version-catalog:3.5.0")
+    }
 }
 
 include(":androidApp")
 include(":composeApp")
 include(":location-clients")
 include(":password-strength")
+// The server modules live under gunzo/ on disk, but keep their flat Gradle paths: every task
+// invocation, type-safe accessor and CI reference stays :gunzo-navigator and :gunzo-navigator-app.
+include(":gunzo-navigator")
+project(":gunzo-navigator").projectDir = file("gunzo/gunzo-navigator")
+include(":gunzo-navigator-app")
+project(":gunzo-navigator-app").projectDir = file("gunzo/gunzo-navigator-app")
