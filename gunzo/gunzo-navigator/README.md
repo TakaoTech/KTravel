@@ -12,7 +12,7 @@ disables `buildFatJar` and `runDocker` as soon as it detects the multiplatform p
 
 | Source set | Holds |
 |---|---|
-| `commonMain` | `module()`, routing, resources, serialization, request validation, caching headers, Koin, `startServer()` |
+| `commonMain` | `module()`, routing, resources, serialization, request validation, caching headers, Koin, `startServer()`, `startServerOnFreePort()` |
 | `jvmMain` | `jvmModule()`, compression, OpenAPI, Swagger UI, Dropwizard metrics, the Kermit to SLF4J bridge |
 | `androidMain`, `iosMain` | the `appLogWriter()` actual only |
 | `commonTest` | `ServerTest`, run on all three targets |
@@ -58,11 +58,18 @@ elsewhere. Merging the two would mean implementing `org.slf4j.Logger` by hand, s
 | Target | Entry point |
 |---|---|
 | JVM | `:gunzo-navigator-app`, `EngineMain` + `application.conf` → `jvmModule()` |
-| Android, iOS | `startServer(port)` → `embeddedServer(CIO) { module() }` |
-| iOS framework | `startGunzoNavigator(port)`, exported as `GunzoNavigator` |
+| Android, iOS | `startServerOnFreePort()` → `embeddedServer(CIO) { module() }`, or `startServer(port, wait)` |
+| iOS framework | `startGunzoNavigator()`, exported as `GunzoNavigator` |
 
 The JVM path is the odd one out because `application.conf` resolves its modules by name through
 reflection, which does not exist on Native.
+
+The embedded entry points bind `EPHEMERAL_PORT` (`0`) by default, so the operating system hands out a
+free port: the server runs inside the host application on Android and iOS, where no fixed port can be
+reserved. `startServerOnFreePort()` reads the assigned port back from the bound socket and returns it
+in a `RunningServer` — `startServer()` only reports it through Ktor's own startup log.
+`:gunzo-navigator-app` keeps the fixed `8080` / `$PORT` instead: it is a deployable artifact, and a
+random port would make it unreachable.
 
 ## Tasks
 

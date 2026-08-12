@@ -1,0 +1,11 @@
+# Overlay for modules that contain no Compose code and therefore do not load the detekt Compose
+# plugin. The shared detekt.yml carries a `Compose` rule section: without the plugin that owns it,
+# detekt rejects the whole config as invalid. Skipping the validation of that section keeps the
+# Compose rules off the module, instead of pulling the plugin in just to satisfy the check.
+#
+# Layer it after detekt.yml: config.setFrom(detekt.yml, detekt-no-compose.yml)
+
+config:
+  excludes:
+    - 'Compose'
+    - 'Compose>.*'
