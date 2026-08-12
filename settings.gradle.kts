@@ -39,11 +39,12 @@ dependencyResolutionManagement {
 
 include(":androidApp")
 include(":composeApp")
-include(":location-clients")
+include(":gunzou-here-client")
+project(":gunzou-here-client").projectDir = file("gunzou/gunzou-here-client")
 include(":password-strength")
-// The server modules live under gunzo/ on disk, but keep their flat Gradle paths: every task
-// invocation, type-safe accessor and CI reference stays :gunzo-navigator and :gunzo-navigator-app.
-include(":gunzo-navigator")
-project(":gunzo-navigator").projectDir = file("gunzo/gunzo-navigator")
-include(":gunzo-navigator-app")
-project(":gunzo-navigator-app").projectDir = file("gunzo/gunzo-navigator-app")
+// The server modules live under gunzou/ on disk, but keep their flat Gradle paths: every task
+// invocation, type-safe accessor and CI reference stays :gunzou-navigator and :gunzou-navigator-app.
+include(":gunzou-navigator")
+project(":gunzou-navigator").projectDir = file("gunzou/gunzou-navigator")
+include(":gunzou-navigator-app")
+project(":gunzou-navigator-app").projectDir = file("gunzou/gunzou-navigator-app")

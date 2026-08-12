@@ -1,10 +1,10 @@
-# gunzo-navigator
+# gunzou-navigator
 
 Ktor server, built as a Kotlin Multiplatform library targeting **JVM**, **Android** and **iOS**.
 Started from the [Ktor Project Generator](https://start.ktor.io) and reshaped around the split
 between what every target can run and what only the JVM can.
 
-The deployable artifact lives in `:gunzo-navigator-app`, a thin JVM module: the Ktor Gradle plugin
+The deployable artifact lives in `:gunzou-navigator-app`, a thin JVM module: the Ktor Gradle plugin
 disables `buildFatJar` and `runDocker` as soon as it detects the multiplatform plugin
 ([KTOR-8464](https://youtrack.jetbrains.com/issue/KTOR-8464)), so it is applied there instead.
 
@@ -45,7 +45,7 @@ plugin built on the `CallSetup` and `ResponseSent` hooks — both public in `com
 
 Kermit is the application-wide facade, reached through `appLog`. The writer behind it is per target:
 
-- **JVM** — `Slf4jLogWriter` forwards to SLF4J, so `logback.xml` in `:gunzo-navigator-app` keeps
+- **JVM** — `Slf4jLogWriter` forwards to SLF4J, so `logback.xml` in `:gunzou-navigator-app` keeps
   owning the format. Kermit's own `platformLogWriter()` would write straight to stdout and bypass it.
 - **Android** — Logcat, **iOS** — NSLog, both via `platformLogWriter()`.
 
@@ -57,7 +57,7 @@ elsewhere. Merging the two would mean implementing `org.slf4j.Logger` by hand, s
 
 | Target | Entry point |
 |---|---|
-| JVM | `:gunzo-navigator-app`, `EngineMain` + `application.conf` → `jvmModule()` |
+| JVM | `:gunzou-navigator-app`, `EngineMain` + `application.conf` → `jvmModule()` |
 | Android, iOS | `startServerOnFreePort()` → `embeddedServer(CIO) { module() }`, or `startServer(port, wait)` |
 | iOS framework | `startGunzoNavigator()`, exported as `GunzoNavigator` |
 
@@ -68,19 +68,19 @@ The embedded entry points bind `EPHEMERAL_PORT` (`0`) by default, so the operati
 free port: the server runs inside the host application on Android and iOS, where no fixed port can be
 reserved. `startServerOnFreePort()` reads the assigned port back from the bound socket and returns it
 in a `RunningServer` — `startServer()` only reports it through Ktor's own startup log.
-`:gunzo-navigator-app` keeps the fixed `8080` / `$PORT` instead: it is a deployable artifact, and a
+`:gunzou-navigator-app` keeps the fixed `8080` / `$PORT` instead: it is a deployable artifact, and a
 random port would make it unreachable.
 
 ## Tasks
 
 | Task | Description |
 |---|---|
-| `./gradlew :gunzo-navigator:assemble` | Builds all three targets, including the iOS frameworks |
-| `./gradlew :gunzo-navigator:jvmTest` | Runs `commonTest` on the JVM |
-| `./gradlew :gunzo-navigator:testAndroidHostTest` | Runs `commonTest` on the Android JVM |
-| `./gradlew :gunzo-navigator:iosSimulatorArm64Test` | Runs `commonTest` on the iOS simulator |
-| `./gradlew :gunzo-navigator-app:run` | Runs the server on `http://0.0.0.0:8080` |
-| `./gradlew :gunzo-navigator-app:buildFatJar` | Builds the deployable fat JAR |
+| `./gradlew :gunzou-navigator:assemble` | Builds all three targets, including the iOS frameworks |
+| `./gradlew :gunzou-navigator:jvmTest` | Runs `commonTest` on the JVM |
+| `./gradlew :gunzou-navigator:testAndroidHostTest` | Runs `commonTest` on the Android JVM |
+| `./gradlew :gunzou-navigator:iosSimulatorArm64Test` | Runs `commonTest` on the iOS simulator |
+| `./gradlew :gunzou-navigator-app:run` | Runs the server on `http://0.0.0.0:8080` |
+| `./gradlew :gunzou-navigator-app:buildFatJar` | Builds the deployable fat JAR |
 
 A successful start looks like this:
 

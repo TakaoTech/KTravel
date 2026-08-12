@@ -8,7 +8,7 @@ CouchbaseLiteTemp/
 *.cblite2/
 
 # Swagger UI code the openAPI plugin regenerates next to the module on every server start
-gunzo/gunzo-navigator-app/docs/
+gunzou/gunzou-navigator-app/docs/
 
 # macOS
 .DS_Store

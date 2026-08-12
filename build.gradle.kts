@@ -72,9 +72,9 @@ sonar {
 // and counting it would only dilute the numbers.
 dependencies {
     kover(projects.composeApp)
-    kover(projects.locationClients)
+    kover(projects.gunzouHereClient)
     kover(projects.passwordStrength)
-    kover(projects.gunzoNavigator)
+    kover(projects.gunzouNavigator)
 }
 
 kover {
