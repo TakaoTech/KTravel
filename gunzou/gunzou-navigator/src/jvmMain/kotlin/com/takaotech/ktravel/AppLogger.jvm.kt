@@ -30,6 +30,6 @@ internal class Slf4jLogWriter : LogWriter() {
     }
 
     private companion object {
-        const val DEFAULT_TAG = "gunzo-navigator"
+        const val DEFAULT_TAG = "gunzou-navigator"
     }
 }

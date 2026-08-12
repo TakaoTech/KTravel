@@ -15,7 +15,7 @@ internal expect fun appLogWriter(): LogWriter
  * SLF4J on the JVM and `KtorSimpleLogger` elsewhere, and is left untouched.
  */
 val appLog: Logger
-    get() = Logger.withTag("gunzo-navigator")
+    get() = Logger.withTag("gunzou-navigator")
 
 /**
  * Points the Kermit singleton at [appLogWriter]. Called once per application by [module].

@@ -95,7 +95,7 @@ workflow(
             )
         )
         // configuration.txt records every keep rule R8 actually applied, including the consumer
-        // rules coming from :composeApp and :location-clients. Keep it: without it a
+        // rules coming from :composeApp and :gunzou-here-client. Keep it: without it a
         // shrinking regression is nearly impossible to diagnose after the fact.
         uses(
             name = "Upload R8 mapping",

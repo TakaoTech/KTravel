@@ -12,7 +12,7 @@ import io.ktor.server.routing.routing
  * `ktor-server-swagger` publish no native variant.
  *
  * The documentation is read from `openapi/documentation.yaml` on the classpath, which
- * :gunzo-navigator-app supplies.
+ * :gunzou-navigator-app supplies.
  */
 fun Application.configureHttpJvm() {
     install(Compression)

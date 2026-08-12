@@ -1,4 +1,4 @@
-# Consumer ProGuard/R8 rules for the :location-clients module.
+# Consumer ProGuard/R8 rules for the :gunzou-here-client module.
 #
 # These rules are published with the Android variant of the module and are applied automatically to
 # any consumer that minifies (see androidApp). The desktop build cannot read consumer rules, so this

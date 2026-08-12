@@ -92,7 +92,7 @@ Nothing is produced on macOS or Windows hosts, where the loader is a no-op.
 
 ### Coverage (Kover)
 
-Kover is applied to `composeApp`, `location-clients` and `password-strength`; the root project
+Kover is applied to `composeApp`, `gunzou-here-client` and `password-strength`; the root project
 aggregates them into a single report. `androidApp` is excluded on purpose — it is a framework entry
 point with no test source set.
 
@@ -161,12 +161,12 @@ a JDK 25 jmod.
 
 Keep rules live with the module that needs them:
 
-| File                                           | Scope                                                                   |
-|------------------------------------------------|-------------------------------------------------------------------------|
-| `location-clients/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-consumer-rules.pro`       | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
-| `androidApp/proguard-rules.pro`                | application-level (`-dontobfuscate`, Parcelize)                         |
+| File                                                 | Scope                                                                   |
+|------------------------------------------------------|-------------------------------------------------------------------------|
+| `gunzou/gunzou-here-client/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-consumer-rules.pro`             | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-desktop-rules.pro`              | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
+| `androidApp/proguard-rules.pro`                      | application-level (`-dontobfuscate`, Parcelize)                         |
 
 ### Running the Application
 

@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-// The Ktor Gradle plugin lives in :gunzo-navigator-app instead: it disables buildFatJar and
+// The Ktor Gradle plugin lives in :gunzou-navigator-app instead: it disables buildFatJar and
 // runDocker as soon as it detects the multiplatform plugin (KTOR-8464), so the deployable artifact
 // is produced by a thin JVM module that depends on this library.
 

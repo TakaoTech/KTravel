@@ -28,7 +28,7 @@ archive and imported back on another device.
 - **Schedule consistency** — the domain layer validates overlapping or impossible schedules while
   you edit a day.
 - **Maps** — one interactive map stack on every platform, MapLibre Compose, plus device location
-  through `:location-clients`.
+  through `:gunzou-here-client`.
 - **Notes and attachments** — Markdown notes per step and an attachment inventory (images and
   arbitrary files) stored next to the plan.
 - **Archive export/import** — a versioned ZIP archive with a manifest, schema migrations, ID

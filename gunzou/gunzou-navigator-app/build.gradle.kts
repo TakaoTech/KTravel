@@ -3,7 +3,7 @@ plugins {
     alias(ktorLibs.plugins.ktor)
 }
 
-// Deployment entry point for :gunzo-navigator. It exists as a separate module because the Ktor
+// Deployment entry point for :gunzou-navigator. It exists as a separate module because the Ktor
 // Gradle plugin disables buildFatJar and runDocker on a multiplatform project (KTOR-8464), and the
 // workaround JetBrains recommends is exactly this: a JVM only module that depends on the KMP one.
 
@@ -19,8 +19,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(projects.gunzoNavigator)
-    // :gunzo-navigator declares Ktor as implementation, so the engine is on the runtime classpath
+    implementation(projects.gunzouNavigator)
+    // :gunzou-navigator declares Ktor as implementation, so the engine is on the runtime classpath
     // but not on this module's compile classpath, where EngineMain is referenced.
     implementation(ktorLibs.server.cio)
     // SLF4J binding: Kermit is routed into SLF4J on the JVM, so logback.xml owns the output format.

@@ -254,7 +254,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.immutable)
                 implementation(libs.maplibre.compose)
-                implementation(project(":location-clients"))
+                implementation(project(":gunzou-here-client"))
                 implementation(project(":password-strength"))
 
                 // Archive secrets: scrypt key derivation and AES-256-GCM (see data/archive/crypto).
@@ -441,7 +441,7 @@ compose.desktop {
             // Desktop ProGuard does not read the modules' consumer keep rules: aggregate them here.
             // `$rootDir` avoids a cross-project access, which the configuration cache dislikes.
             configurationFiles.from(
-                file("$rootDir/location-clients/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-here-client/proguard-consumer-rules.pro"),
                 file("proguard-consumer-rules.pro"),
                 file("proguard-desktop-rules.pro"),
             )
