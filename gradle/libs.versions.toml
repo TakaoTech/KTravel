@@ -50,6 +50,11 @@ compottie = "2.2.4"
 hyphen = "0.7.0-alpha01"
 markdown-renderer = "0.43.0"
 
+# region Server deps
+koin = "4.2.2"
+kermit = "2.1.0"
+# endregion Server deps
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -164,6 +169,20 @@ signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signum-
 detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
 
+
+# region Server deps
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+logback-classic-server = { module = "ch.qos.logback:logback-classic", version = "1.5.35" }
+
+# Kermit is the multiplatform logging facade of :gunzo-navigator. On the JVM its output is routed
+# into SLF4J (see AppLogger.jvm.kt) so logback.xml keeps owning the format; Android and iOS use the
+# writers Kermit ships for Logcat and NSLog.
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+kermit-koin = { module = "co.touchlab:kermit-koin", version.ref = "kermit" }
+# Version aligned with the one Ktor 3.5.0 already resolves.
+slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.18" }
+# endregion Server deps
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
@@ -183,6 +202,8 @@ allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 mokkery = { id = "dev.mokkery", version = "3.4.2" }
 # Brings MapLibre's iOS native framework in through Swift Package Manager.
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.4" }
+
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
 [bundles]
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]
