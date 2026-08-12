@@ -1,6 +1,9 @@
 package com.takaotech.navigation.routing.dto.request
 
-import com.takaotech.navigation.routing.model.Units
+import com.takaotech.navigation.common.model.Units
+import com.takaotech.navigation.routing.model.ReturnAttribute
+import com.takaotech.navigation.routing.model.RoutingMode
+import com.takaotech.navigation.routing.model.TransportMode
 import com.vanniktech.locale.Locale
 import com.vanniktech.locale.Locales
 
@@ -8,49 +11,49 @@ import com.vanniktech.locale.Locales
  * Request parameters for the HERE Routing API /routes endpoint.
  *
  * @property origin Origin waypoint with coordinates and optional place options.
- *                  Supports all place options defined in [com.takaotech.navigation.routing.dto.request.PlaceOptions] such as:
+ *                  Supports all place options defined in [PlaceOptions] such as:
  *                  course, sideOfStreetHint, displayLocation, nameHint, radius, etc.
- *                  **Note**: [com.takaotech.navigation.routing.dto.request.WaypointOptions] are NOT supported for origin.
+ *                  **Note**: [WaypointOptions] are NOT supported for origin.
  *
  * @property destination Destination waypoint with coordinates, place options, and waypoint options.
- *                       Supports all place options defined in [com.takaotech.navigation.routing.dto.request.PlaceOptions].
- *                       Additionally supports [com.takaotech.navigation.routing.dto.request.WaypointOptions] including:
- *                       - [com.takaotech.navigation.routing.dto.request.WaypointOptions.stopDuration]: desired duration for the stop in seconds.
+ *                       Supports all place options defined in [PlaceOptions].
+ *                       Additionally supports [WaypointOptions] including:
+ *                       - [WaypointOptions.stopDuration]: desired duration for the stop in seconds.
  *                         The section arriving at this waypoint will have a `wait` post action
  *                         reflecting the stopping time.
- *                       - [com.takaotech.navigation.routing.dto.request.WaypointOptions.passThrough]: not typically used for destination
- *                       - [com.takaotech.navigation.routing.dto.request.WaypointOptions.charging]: user-planned charging stop for EV vehicles
- *                       - [com.takaotech.navigation.routing.dto.request.WaypointOptions.currentWeightChange]: changes vehicle weight at this waypoint
+ *                       - [WaypointOptions.passThrough]: not typically used for destination
+ *                       - [WaypointOptions.charging]: user-planned charging stop for EV vehicles
+ *                       - [WaypointOptions.currentWeightChange]: changes vehicle weight at this waypoint
  *
  * @property transportMode Mode of transport
- * @property via List of intermediate waypoints with full [com.takaotech.navigation.routing.dto.request.Waypoint] support including [com.takaotech.navigation.routing.dto.request.WaypointOptions]
+ * @property via List of intermediate waypoints with full [Waypoint] support including [WaypointOptions]
  * @property routingMode Optimization mode (fast or short)
  * @property alternatives Number of alternative routes (0-6)
  * @property departureTime Specifies the time of departure. Can be:
- *                         - [com.takaotech.navigation.routing.dto.request.DepartureTime.Local]: date-time without timezone (assumed local at origin),
+ *                         - [DepartureTime.Local]: date-time without timezone (assumed local at origin),
  *                           e.g., `2019-06-24T01:23:45`
- *                         - [com.takaotech.navigation.routing.dto.request.DepartureTime.WithOffset]: date-time with UTC offset,
+ *                         - [DepartureTime.WithOffset]: date-time with UTC offset,
  *                           e.g., `2019-06-24T01:23:45+02:00`
- *                         - [com.takaotech.navigation.routing.dto.request.DepartureTime.Any]: special value indicating time should not be considered.
+ *                         - [DepartureTime.Any]: special value indicating time should not be considered.
  *                           Only long-term traffic incidents will be used.
  *                         If neither departureTime nor arrivalTime are specified, current time at
  *                         departure place will be used.
  * @property arrivalTime Arrival time in RFC 3339 format
  * @property units Units of measurement
  * @property lang Language for instructions (BCP47 format)
- * @property returnAttributes List of attributes to include in response. See [com.takaotech.navigation.routing.dto.request.ReturnAttribute] for available options.
- *                            Use [com.takaotech.navigation.routing.dto.request.ReturnAttribute.Companion.Presets] for common combinations.
+ * @property returnAttributes List of attributes to include in response. See [ReturnAttribute] for available options.
+ *                            Use [ReturnAttribute.Companion.Presets] for common combinations.
  *                            **Note**: Certain combinations have restrictions:
- *                            - If [com.takaotech.navigation.routing.dto.request.ReturnAttribute.ACTIONS] is requested, [com.takaotech.navigation.routing.dto.request.ReturnAttribute.POLYLINE] must also be requested.
- *                            - If [com.takaotech.navigation.routing.dto.request.ReturnAttribute.INSTRUCTIONS] is requested, [com.takaotech.navigation.routing.dto.request.ReturnAttribute.ACTIONS] must also be requested.
- *                            - If [com.takaotech.navigation.routing.dto.request.ReturnAttribute.TURN_BY_TURN_ACTIONS] is requested, [com.takaotech.navigation.routing.dto.request.ReturnAttribute.POLYLINE] must also be requested.
+ *                            - If [ReturnAttribute.ACTIONS] is requested, [ReturnAttribute.POLYLINE] must also be requested.
+ *                            - If [ReturnAttribute.INSTRUCTIONS] is requested, [ReturnAttribute.ACTIONS] must also be requested.
+ *                            - If [ReturnAttribute.TURN_BY_TURN_ACTIONS] is requested, [ReturnAttribute.POLYLINE] must also be requested.
  */
 data class RoutesRequest(
-    val transportMode: com.takaotech.navigation.routing.model.TransportMode,
+    val transportMode: TransportMode,
     val origin: Waypoint,
     val destination: Waypoint,
     val via: List<Waypoint>? = null,
-    val routingMode: com.takaotech.navigation.routing.model.RoutingMode? = null,
+    val routingMode: RoutingMode? = null,
     val alternatives: Int? = null,
     val departureTime: DepartureTime? = DepartureTime.any(),
     val arrivalTime: String? = null,
@@ -60,11 +63,7 @@ data class RoutesRequest(
 ) {
     init {
         // Validate return attributes combinations
-        returnAttributes?.let {
-            ReturnAttribute.validate(
-                it,
-            )
-        }
+        returnAttributes?.let { ReturnAttribute.validate(it) }
     }
 
     /**
@@ -74,9 +73,9 @@ data class RoutesRequest(
     constructor(
         origin: String,
         destination: String,
-        transportMode: com.takaotech.navigation.routing.model.TransportMode,
+        transportMode: TransportMode,
         via: List<String>? = null,
-        routingMode: com.takaotech.navigation.routing.model.RoutingMode? = null,
+        routingMode: RoutingMode? = null,
         alternatives: Int? = null,
         departureTime: DepartureTime? = null,
         arrivalTime: String? = null,
@@ -85,15 +84,9 @@ data class RoutesRequest(
         returnAttributes: List<ReturnAttribute>? = null,
     ) : this(
         origin = Waypoint.fromString(origin),
-        destination = Waypoint.fromString(
-            destination,
-        ),
+        destination = Waypoint.fromString(destination),
         transportMode = transportMode,
-        via = via?.map {
-            Waypoint.fromString(
-                it,
-            )
-        },
+        via = via?.map { Waypoint.fromString(it) },
         routingMode = routingMode,
         alternatives = alternatives,
         departureTime = departureTime,

@@ -1,6 +1,6 @@
 package com.takaotech.navigation.routing.dto.response.toll
 
-import com.takaotech.navigation.routing.dto.response.Location
+import com.takaotech.navigation.common.dto.Location
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
