@@ -75,6 +75,7 @@ dependencies {
     kover(projects.gunzouHereClient)
     kover(projects.passwordStrength)
     kover(projects.gunzouNavigator)
+    kover(projects.gunzouNavigatorApi)
 }
 
 kover {

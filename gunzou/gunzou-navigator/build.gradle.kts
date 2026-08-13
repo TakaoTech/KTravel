@@ -57,6 +57,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            // The wire contract. `api` and not `implementation`: every endpoint signature is made of
+            // these types, so :gunzou-navigator-app and the tests need them on their own classpath.
+            api(projects.gunzouNavigatorApi)
+
             // Ktor server: only the modules that publish every target this library declares.
             implementation(ktorLibs.server.core)
             implementation(ktorLibs.server.cio)
@@ -64,7 +68,7 @@ kotlin {
             implementation(ktorLibs.server.cachingHeaders)
             implementation(ktorLibs.server.contentNegotiation)
             implementation(ktorLibs.server.requestValidation)
-            implementation(ktorLibs.server.resources)
+            implementation(ktorLibs.server.statusPages)
             implementation(ktorLibs.server.routingOpenapi)
             implementation(ktorLibs.serialization.kotlinx.json)
 
