@@ -37,6 +37,15 @@ kotlin {
         withHostTestBuilder { }.configure {
             isReturnDefaultValues = true
         }
+
+        // Keep rules shipped to consumers that minify (see androidApp). `publish` is required:
+        // consumer rules of a KMP library are not published by default. The application runs this
+        // server in its own process, so the shrinker has to be told what Ktor and Koin resolve by
+        // name — a server that does not start does so only in a release build.
+        optimization {
+            consumerKeepRules.publish = true
+            consumerKeepRules.file("proguard-consumer-rules.pro")
+        }
     }
 
     listOf(
@@ -61,6 +70,11 @@ kotlin {
             // these types, so :gunzou-navigator-app and the tests need them on their own classpath.
             api(projects.gunzouNavigatorApi)
 
+            // The vendor client. `implementation` and never `api`: hiding it behind the contract is
+            // the whole reason this server exists, and exposing it here would put the HERE DTOs back
+            // on the classpath of everything downstream.
+            implementation(projects.gunzouHereClient)
+
             // Ktor server: only the modules that publish every target this library declares.
             implementation(ktorLibs.server.core)
             implementation(ktorLibs.server.cio)
@@ -69,10 +83,17 @@ kotlin {
             implementation(ktorLibs.server.contentNegotiation)
             implementation(ktorLibs.server.requestValidation)
             implementation(ktorLibs.server.statusPages)
+            implementation(ktorLibs.server.rateLimit)
             implementation(ktorLibs.server.routingOpenapi)
             implementation(ktorLibs.serialization.kotlinx.json)
 
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.coroutines)
+            implementation(libs.kotlinx.datetime)
+
+            // Required to build the vendor requests: HereClient types its language parameters as
+            // com.vanniktech.locale.Locale, and :gunzou-here-client keeps the dependency internal.
+            implementation(libs.kmp.locale)
 
             // Dependency injection
             implementation(libs.koin.ktor)
@@ -86,6 +107,14 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(ktorLibs.server.testHost)
+
+            // Stands in for HERE: the endpoints are exercised against recorded payloads, so the
+            // suite needs no key, no network and costs nothing per run.
+            implementation(libs.ktor.client.mock)
+
+            // The other side of the contract, so the round trip can be tested over a real socket.
+            // Test only, and only in this direction: the server knows nothing about the client.
+            implementation(projects.gunzouNavigatorClient)
         }
 
         jvmMain.dependencies {

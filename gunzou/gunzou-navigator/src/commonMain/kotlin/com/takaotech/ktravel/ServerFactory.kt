@@ -4,6 +4,7 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.cio.CIOApplicationEngine
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
+import org.koin.core.module.Module
 
 /**
  * Asks the operating system for a free port at bind time.
@@ -75,9 +76,24 @@ fun startServer(
  *
  * Does not block: the caller keeps its run loop and stops the returned server itself. The port is
  * read once the socket is bound, so it is the real one rather than the [EPHEMERAL_PORT] placeholder.
+ *
  */
-suspend fun startServerOnFreePort(): RunningServer {
-    val server = embeddedServer(CIO, port = EPHEMERAL_PORT) { module() }
+suspend fun startServerOnFreePort(): RunningServer = startServerOnFreePort(koinOverrides = null)
+
+/**
+ * Starts the server with part of its wiring replaced.
+ *
+ * Internal, and without a default value, so that [Module] never appears in a signature a consumer
+ * has to resolve: koin-ktor is an implementation dependency, and a public parameter of that type
+ * would put it on the compile classpath of everything that starts a server.
+ *
+ * @param koinOverrides Definitions replacing the real ones. It is what lets an integration test
+ *   reach a real socket without also reaching a paid third party API.
+ */
+internal suspend fun startServerOnFreePort(koinOverrides: Module?): RunningServer {
+    val server = embeddedServer(CIO, port = EPHEMERAL_PORT) {
+        module(NavigatorServerConfig.EMBEDDED, koinOverrides)
+    }
     server.startSuspend(wait = false)
     return RunningServer(server, server.engine.resolvedConnectors().first().port)
 }

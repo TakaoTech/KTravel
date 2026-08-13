@@ -29,13 +29,26 @@ data class ErrorResponse(
  * Deliberately small. Every entry answers a question the caller actually asks — retry, ask for
  * credentials, fall back to another provider, or show the user something — and a code that would
  * not change any of those answers belongs in [ErrorResponse.message] instead.
+ *
+ * Growing this enum is a change older clients feel: an unknown constant fails to decode, and a
+ * client that cannot read the failure reports it as [INTERNAL] instead. That is a survivable
+ * degradation and not a crash, but it is the reason a new code has to earn its place.
  */
 @Serializable
 enum class ErrorCode {
     /** The request did not satisfy the contract: bad coordinates, a count out of range, a bad body. */
     INVALID_REQUEST,
 
-    /** A profile that requires a provider key was called without one. */
+    /**
+     * The navigator does not accept calls from this caller.
+     *
+     * Distinct from [MISSING_CREDENTIALS] because the remedy is a different one: this is about the
+     * access token that says who may use *this server*, not about the key it uses to reach a routing
+     * provider on the caller's behalf. A deployment that is open to anyone never produces it.
+     */
+    UNAUTHENTICATED,
+
+    /** A profile that requires a provider key was called without one, and the server holds none. */
     MISSING_CREDENTIALS,
 
     /** The provider rejected the key. Asking again with the same one will not help. */

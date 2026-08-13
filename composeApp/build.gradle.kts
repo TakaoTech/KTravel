@@ -254,8 +254,14 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.immutable)
                 implementation(libs.maplibre.compose)
-                implementation(project(":gunzou-here-client"))
                 implementation(project(":password-strength"))
+
+                // The navigator, and no routing engine anywhere. The client is what the app talks
+                // to; the server is only here so it can be started in process, and nothing outside
+                // data/navigator imports it. :gunzou-here-client is deliberately absent: hiding it
+                // behind the contract is the whole reason the server exists.
+                implementation(project(":gunzou-navigator-client"))
+                implementation(project(":gunzou-navigator"))
 
                 // Archive secrets: scrypt key derivation and AES-256-GCM (see data/archive/crypto).
                 implementation(libs.signum.indispensable)
@@ -344,6 +350,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.compose.ui.test)
             implementation(libs.circuit.test)
+
+            // Stands in for the navigator, so the routing provider can be tested without a server
+            // and without a routing engine behind it.
+            implementation(libs.ktor.client.mock)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -440,8 +450,15 @@ compose.desktop {
             obfuscate.set(false)
             // Desktop ProGuard does not read the modules' consumer keep rules: aggregate them here.
             // `$rootDir` avoids a cross-project access, which the configuration cache dislikes.
+            //
+            // :gunzou-here-client is still listed even though the app no longer compiles against it:
+            // the embedded server runs in this process and serialises the HERE DTOs, so their
+            // generated serialisers have to survive the shrinker at runtime.
             configurationFiles.from(
                 file("$rootDir/gunzou/gunzou-here-client/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-navigator-api/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-navigator-client/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-navigator/proguard-consumer-rules.pro"),
                 file("proguard-consumer-rules.pro"),
                 file("proguard-desktop-rules.pro"),
             )

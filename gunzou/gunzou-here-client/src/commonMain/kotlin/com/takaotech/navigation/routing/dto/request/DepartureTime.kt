@@ -1,8 +1,11 @@
 package com.takaotech.navigation.routing.dto.request
 
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
@@ -50,10 +53,7 @@ sealed class DepartureTime {
      * @property dateTime The local date and time of departure
      */
     data class Local(val dateTime: LocalDateTime) : DepartureTime() {
-        override fun toQueryString(): String {
-            // Format: 2019-06-24T01:23:45
-            return dateTime.toString()
-        }
+        override fun toQueryString(): String = dateTime.toRfc3339()
     }
 
     /**
@@ -65,10 +65,7 @@ sealed class DepartureTime {
      * @property offset The UTC offset for the time
      */
     data class WithOffset(val dateTime: LocalDateTime, val offset: UtcOffset) : DepartureTime() {
-        override fun toQueryString(): String {
-            // Format with offset: 2019-06-24T01:23:45+02:00
-            return "${dateTime}${formatOffset(offset)}"
-        }
+        override fun toQueryString(): String = dateTime.toRfc3339() + formatOffset(offset)
 
         private fun formatOffset(offset: UtcOffset): String {
             val totalSeconds = offset.totalSeconds
@@ -128,4 +125,24 @@ sealed class DepartureTime {
             return WithOffset(localDateTime, UtcOffset.ZERO)
         }
     }
+}
+
+/**
+ * Formats a local date and time as RFC 3339 requires it, seconds included.
+ *
+ * [LocalDateTime.toString] drops the seconds when they are zero, producing `2019-06-24T01:23`.
+ * RFC 3339 makes them mandatory, and the HERE APIs reject the shorter form — which is a failure that
+ * only appears for departures set on a whole minute, and therefore not for most of the values a
+ * developer types by hand.
+ */
+private fun LocalDateTime.toRfc3339(): String = format(RFC_3339_LOCAL)
+
+private val RFC_3339_LOCAL = LocalDateTime.Format {
+    date(LocalDate.Formats.ISO)
+    char('T')
+    hour()
+    char(':')
+    minute()
+    char(':')
+    second()
 }

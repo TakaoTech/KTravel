@@ -5,7 +5,7 @@ import com.takaotech.navigation.common.model.Units
 import com.takaotech.navigation.publictransit.model.ReturnAttribute
 import com.takaotech.navigation.publictransit.model.TransitMode
 import com.vanniktech.locale.Locale
-import kotlinx.datetime.LocalDateTime
+import kotlin.time.Instant
 
 /**
  * Request parameters for the Public Transit Routes API.
@@ -14,8 +14,11 @@ import kotlinx.datetime.LocalDateTime
  * @property destination Trip destination coordinates
  * @property lang Preferred languages for the response (IETF BCP 47 format)
  * @property units Units of measurement (metric or imperial)
- * @property departureTime Time of departure (RFC 3339 format, e.g., "2019-06-24T01:23:45")
- * @property arrivalTime Time of arrival (RFC 3339 format)
+ * @property departureTime Time of departure. An absolute instant rather than a local date and time:
+ *   the API reads a bare `2019-06-24T01:23:45` as local at the origin, and a caller that is not at
+ *   the origin has no way to express what it means. It is sent in UTC, which the API accepts and
+ *   which cannot be misread.
+ * @property arrivalTime Time of arrival, under the same rule as [departureTime]
  * @property alternatives Number of alternative routes (0-5, default 0)
  * @property changes Maximum number of changes/transfers allowed (0-6)
  * @property modes Transit mode filter
@@ -29,8 +32,8 @@ data class TransitRoutesRequest(
     val destination: Coordinate,
     val lang: List<Locale> = listOf(Locale.from("it-IT")),
     val units: Units = Units.METRIC,
-    val departureTime: LocalDateTime? = null,
-    val arrivalTime: LocalDateTime? = null,
+    val departureTime: Instant? = null,
+    val arrivalTime: Instant? = null,
     val alternatives: Int = 0,
     val changes: Int? = null,
     val modes: TransitMode? = null,

@@ -38,32 +38,38 @@ class ServerTest {
     }
 
     @Test
-    fun `Given the server When the catalog is requested Then it lists the HERE road profile`() = testApplication {
+    fun `Given the server When the catalog is requested Then it lists both HERE profiles`() = testApplication {
         application { module() }
 
         val response = client.get(NavigatorApi.PROFILES)
 
         assertEquals(HttpStatusCode.OK, response.status)
         val catalog = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
-        val profile = catalog.profiles.single()
-        assertEquals(ProviderId.HERE, profile.provider)
-        assertEquals(ProviderProfile.CAR, profile.profile)
-        assertEquals(NavigatorApi.HERE_CAR, profile.path)
+        assertEquals(listOf(ProviderId.HERE, ProviderId.HERE), catalog.profiles.map { it.provider })
+        assertEquals(listOf(ProviderProfile.CAR, ProviderProfile.TRANSIT), catalog.profiles.map { it.profile })
+        assertEquals(
+            listOf(NavigatorApi.HERE_CAR, NavigatorApi.HERE_TRANSIT),
+            catalog.profiles.map { it.path },
+        )
     }
 
     @Test
-    fun `Given the catalog When a profile is read Then it advertises the limits the server enforces`() =
-        testApplication {
-            application { module() }
+    fun `Given the catalog When the two profiles are compared Then each publishes its own limits`() = testApplication {
+        application { module() }
 
-            val response = client.get(NavigatorApi.PROFILES)
+        val response = client.get(NavigatorApi.PROFILES)
 
-            val profile = NavigatorJson
-                .decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
-                .profiles.single()
-            assertTrue(profile.requiresApiKey, "The HERE profile is served through the caller's own key")
-            assertTrue(profile.maxAlternatives >= 1)
-        }
+        val profiles = NavigatorJson
+            .decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
+            .profiles.associateBy { it.profile }
+        val car = profiles.getValue(ProviderProfile.CAR)
+        val transit = profiles.getValue(ProviderProfile.TRANSIT)
+
+        assertTrue(car.requiresApiKey && transit.requiresApiKey, "Both are served through the caller's own key")
+        assertTrue(car.supportsTolls && !transit.supportsTolls, "Only a road route has tolls to pay")
+        assertTrue(car.maxVia > 0 && transit.maxVia == 0, "A journey is planned between two places")
+        assertTrue(car.maxAlternatives > transit.maxAlternatives)
+    }
 
     @Test
     fun `Given a path nobody serves When it is called Then it fails with the contract error body`() = testApplication {

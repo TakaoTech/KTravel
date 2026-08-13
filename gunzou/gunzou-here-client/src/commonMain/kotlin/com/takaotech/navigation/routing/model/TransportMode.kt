@@ -32,4 +32,17 @@ enum class TransportMode {
 
     @SerialName("privateBus")
     PRIVATE_BUS,
+    ;
+
+    /**
+     * The value the API expects in a query string.
+     *
+     * Not `name.lowercase()`: that turns `PRIVATE_BUS` into `private_bus`, which the API rejects.
+     * The mapping is the one the [SerialName] annotations already declare for the response body,
+     * spelled out here because a query parameter is not built by the serializer.
+     */
+    fun toQueryString(): String = when (this) {
+        PRIVATE_BUS -> "privateBus"
+        else -> name.lowercase()
+    }
 }

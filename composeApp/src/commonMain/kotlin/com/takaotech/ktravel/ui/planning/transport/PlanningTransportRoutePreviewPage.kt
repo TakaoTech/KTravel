@@ -49,8 +49,8 @@ import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.Routes
 import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import com.takaotech.navigation.common.GeoJsonConverter
-import com.takaotech.navigation.common.PolylineEncoderDecoder
+import com.takaotech.navigator.api.geometry.GeoJsonConverter
+import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
@@ -400,18 +400,22 @@ fun RouteStepSection(
         Text("Duration ${section.summary.durationSeconds}")
 
         for (action in section.actions) {
+            val polyline = section.polyline
+            val offset = action.offset
+
             RouteStep(
                 action = action,
-                onActionClick = {
-                    val polyline = section.polyline
-                    val offset = action.offset
-
-                    if (polyline != null && offset != null) {
+                onActionClick = if (polyline == null || offset == null) {
+                    null
+                } else {
+                    {
                         runCatching {
-                            val coord =
-                                PolylineEncoderDecoder.getCoordinateAtOffset(polyline, offset)
-                            onActionClick(coord)
+                            PolylineEncoderDecoder.getCoordinateAtOffset(
+                                polyline,
+                                offset,
+                            )
                         }
+                            .onSuccess(onActionClick)
                     }
                 },
             )

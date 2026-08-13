@@ -1,6 +1,6 @@
-package com.takaotech.navigation.common
+package com.takaotech.navigator.api.geometry
 
-import com.takaotech.navigation.common.PolylineEncoderDecoder.getThirdDimension
+import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder.getThirdDimension
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round
