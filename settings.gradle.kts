@@ -44,6 +44,8 @@ project(":gunzou-here-client").projectDir = file("gunzou/gunzou-here-client")
 include(":password-strength")
 // The server modules live under gunzou/ on disk, but keep their flat Gradle paths: every task
 // invocation, type-safe accessor and CI reference stays :gunzou-navigator and :gunzou-navigator-app.
+include(":gunzou-navigator-api")
+project(":gunzou-navigator-api").projectDir = file("gunzou/gunzou-navigator-api")
 include(":gunzou-navigator")
 project(":gunzou-navigator").projectDir = file("gunzou/gunzou-navigator")
 include(":gunzou-navigator-app")
