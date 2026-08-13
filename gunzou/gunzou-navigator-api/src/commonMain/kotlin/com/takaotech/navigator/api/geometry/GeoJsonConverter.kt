@@ -1,4 +1,4 @@
-package com.takaotech.navigation.common
+package com.takaotech.navigator.api.geometry
 
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray

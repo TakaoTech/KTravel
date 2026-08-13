@@ -61,6 +61,20 @@ fun Application.configureStatusPages() {
             )
         }
 
+        // The rate limit plugin refuses with a bare 429 and no body. The contract promises that
+        // every failure carries an ErrorResponse, and without one a throttled client reads the
+        // answer as an unparseable failure and loses the one piece of information that would tell
+        // it to back off rather than retry immediately.
+        status(HttpStatusCode.TooManyRequests) { call, status ->
+            call.respond(
+                status,
+                ErrorResponse(
+                    code = ErrorCode.PROVIDER_RATE_LIMITED,
+                    message = "Too many requests from this caller; retry later",
+                ),
+            )
+        }
+
         // A request to a path nobody serves. Answered with the same body as everything else so a
         // client never has to parse two shapes, and with INVALID_REQUEST because from the contract's
         // point of view that is what it is: a call that names an endpoint which does not exist.
@@ -85,11 +99,23 @@ fun Application.configureStatusPages() {
  */
 private fun ErrorCode.toHttpStatus(): HttpStatusCode = when (this) {
     ErrorCode.INVALID_REQUEST -> HttpStatusCode.BadRequest
+
+    // Unauthenticated is a 401 and missing provider credentials is too, which is not a collision to
+    // resolve: both mean "a credential is missing", and which one the caller has to go and find is
+    // exactly what the code in the body tells them.
+    ErrorCode.UNAUTHENTICATED -> HttpStatusCode.Unauthorized
+
     ErrorCode.MISSING_CREDENTIALS -> HttpStatusCode.Unauthorized
+
     ErrorCode.PROVIDER_UNAUTHORIZED -> HttpStatusCode.Unauthorized
+
     ErrorCode.PROVIDER_RATE_LIMITED -> HttpStatusCode.TooManyRequests
+
     ErrorCode.PROVIDER_UNAVAILABLE -> HttpStatusCode.BadGateway
+
     ErrorCode.UNSUPPORTED_OPTION -> HttpStatusCode.UnprocessableEntity
+
     ErrorCode.NO_ROUTE_FOUND -> HttpStatusCode.UnprocessableEntity
+
     ErrorCode.INTERNAL -> HttpStatusCode.InternalServerError
 }

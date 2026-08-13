@@ -1,6 +1,6 @@
 [versions]
 
-ktor-client = "3.4.0"
+ktor-client = "3.5.0"
 ktravel-version = "0.1.0"
 ktravel-code = "1"
 
@@ -97,6 +97,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-client" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-client" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor-client" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor-client" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 

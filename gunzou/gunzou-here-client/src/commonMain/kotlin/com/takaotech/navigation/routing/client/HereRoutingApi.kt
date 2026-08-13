@@ -30,7 +30,7 @@ class HereRoutingApi internal constructor(private val httpClient: HttpClient, pr
  * Maps a [RoutesRequest] onto the query string of the /routes endpoint.
  */
 private fun HttpRequestBuilder.applyRoutesParameters(request: RoutesRequest) {
-    parameter("transportMode", request.transportMode.name.lowercase())
+    parameter("transportMode", request.transportMode.toQueryString())
 
     // TODO Validate and sanitize query string components
     //  - WaypointOptions not available in "origin" param

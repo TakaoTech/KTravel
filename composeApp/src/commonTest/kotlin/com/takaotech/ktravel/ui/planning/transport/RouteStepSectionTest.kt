@@ -9,7 +9,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
-import com.takaotech.navigation.common.PolylineEncoderDecoder
+import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.nulls.shouldNotBeNull

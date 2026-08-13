@@ -1,4 +1,4 @@
-package com.takaotech.navigation.common
+package com.takaotech.navigator.api.geometry
 
 import kotlin.random.Random
 import kotlin.test.Test
