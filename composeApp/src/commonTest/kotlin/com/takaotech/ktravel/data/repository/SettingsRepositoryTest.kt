@@ -4,6 +4,7 @@ import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.TravelSettingsEntity
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import dev.mokkery.MockMode
 import dev.mokkery.mock
 import io.kotest.core.spec.style.BehaviorSpec
@@ -14,6 +15,7 @@ import kotlinx.datetime.LocalDate
 
 private const val TEST_PLAN_ID = "test-plan-id"
 private const val API_KEY = "here-api-key"
+private const val REMOTE_URL = "https://nav.example.com"
 
 /** Records what the repository writes, which is how the persistence assertions are made. */
 private class RecordingStorageDataSource(initial: TravelPlanEntity) : TravelPlanStorageDataSource {
@@ -111,6 +113,83 @@ class SettingsRepositoryTest :
                     repository.updateHereApiKey("")
 
                     repository.settings.hereApiKey shouldBe ""
+                }
+            }
+        }
+
+        // ---- which navigator this plan starts on --------------------------------------------------
+
+        given("a plan written before the navigator preference existed") {
+            `when`("its settings are read") {
+                then("it starts on the embedded server and overrides nothing") {
+                    val (repository, _) = repositoryOver(plan(TravelSettingsEntity(hereApiKey = API_KEY)))
+
+                    repository.settings.navigatorPreference shouldBe NavigatorKind.EMBEDDED
+                    repository.settings.overridesNavigatorRemote shouldBe false
+                }
+            }
+        }
+
+        given("a plan whose stored preference names a navigator this build does not know") {
+            `when`("its settings are read") {
+                then("it falls back to the embedded server rather than failing to load") {
+                    // The forward compatibility this field is a string for: a plan edited by a newer
+                    // build must still open here, and the embedded server always works.
+                    val (repository, _) = repositoryOver(
+                        plan(TravelSettingsEntity(navigatorPreference = "SATELLITE")),
+                    )
+
+                    repository.settings.navigatorPreference shouldBe NavigatorKind.EMBEDDED
+                }
+            }
+        }
+
+        given("a plan that should be computed on a remote navigator") {
+            `when`("the navigator settings are updated") {
+                then("the preference and the deployment are both exposed") {
+                    val (repository, _) = repositoryOver(plan())
+
+                    repository.updateNavigatorSettings(NavigatorKind.REMOTE, REMOTE_URL)
+
+                    repository.settings.navigatorPreference shouldBe NavigatorKind.REMOTE
+                    repository.settings.navigatorRemoteBaseUrl shouldBe REMOTE_URL
+                    repository.settings.overridesNavigatorRemote shouldBe true
+                }
+
+                then("they are persisted, and the HERE key is left alone") {
+                    val (repository, dataSource) = repositoryOver(
+                        plan(TravelSettingsEntity(hereApiKey = API_KEY)),
+                    )
+
+                    repository.updateNavigatorSettings(NavigatorKind.REMOTE, REMOTE_URL)
+
+                    val persisted = dataSource.writes.last().settings
+                    persisted.navigatorPreference shouldBe NavigatorKind.REMOTE.name
+                    persisted.navigatorRemoteBaseUrl shouldBe REMOTE_URL
+                    persisted.hereApiKey shouldBe API_KEY
+                }
+
+                then("surrounding whitespace is dropped from the address") {
+                    val (repository, _) = repositoryOver(plan())
+
+                    repository.updateNavigatorSettings(NavigatorKind.REMOTE, "  $REMOTE_URL ")
+
+                    repository.settings.navigatorRemoteBaseUrl shouldBe REMOTE_URL
+                }
+            }
+
+            `when`("the override is later cleared but the preference kept") {
+                then("the plan still prefers the remote, now the installation's one") {
+                    val (repository, _) = repositoryOver(plan())
+                    repository.updateNavigatorSettings(NavigatorKind.REMOTE, REMOTE_URL)
+
+                    repository.updateNavigatorSettings(NavigatorKind.REMOTE, "")
+
+                    // Preferring the remote and naming which remote are separate choices: dropping
+                    // the address means "use the one this device is configured with", not "go back
+                    // to embedded".
+                    repository.settings.navigatorPreference shouldBe NavigatorKind.REMOTE
+                    repository.settings.overridesNavigatorRemote shouldBe false
                 }
             }
         }

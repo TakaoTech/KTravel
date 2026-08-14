@@ -45,11 +45,14 @@ import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreview
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreviewPageNavigation
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
+import com.takaotech.ktravel.ui.settings.AppSettingsNavigation
+import com.takaotech.ktravel.ui.settings.AppSettingsPage
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -82,6 +85,20 @@ fun App() {
                                 appGraph.planningGraphStore.getOrCreate(id)
                                 navController.navigate(PlanningNavigation(id)) {
                                     popUpTo(TravelSelectionPage) { inclusive = false }
+                                }
+                            },
+                            onAppSettingsClick = { navController.navigate(AppSettingsNavigation) },
+                        )
+                    }
+
+                    // Settings of the installation, reachable without a trip: which navigator this
+                    // device talks to has to be configurable before any trip exists.
+                    composable<AppSettingsNavigation> { backStackEntry ->
+                        AppSettingsPage(
+                            viewModel = metroViewModel(),
+                            onNavigationBackClick = {
+                                if (backStackEntry.lifecycleIsResumed()) {
+                                    navController.navigateUp()
                                 }
                             },
                         )

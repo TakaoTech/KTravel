@@ -220,6 +220,97 @@ class NavigatorClientTest {
         )
     }
 
+    // ---- one client, two navigators ---------------------------------------------------------------
+
+    @Test
+    fun `Given a target When a call names it Then the request goes there and not to the configured one`() = clientTest {
+        val target = NavigatorTarget(baseUrl = "https://remote.test")
+
+        client().use { it.profiles(target) }
+
+        assertEquals("https://remote.test${NavigatorApi.PROFILES}", recorded.single().url.toString())
+    }
+
+    @Test
+    fun `Given a target with a trailing slash When a call names it Then the path is not doubled up`() = clientTest {
+        client().use { it.health(NavigatorTarget(baseUrl = "https://remote.test/")) }
+
+        assertEquals("https://remote.test${NavigatorApi.HEALTH}", recorded.single().url.toString())
+    }
+
+    @Test
+    fun `Given a target with a token When a route is asked for Then that token is presented`() = clientTest {
+        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+        val engine = MockEngine { request ->
+            recorded += request
+            respond(
+                NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "application/json"),
+            )
+        }
+
+        NavigatorClient.withEngine(engine, config).use {
+            it.hereCar(carRequest, apiKey = "provider-key", target = NavigatorTarget("https://remote.test", "its-own"))
+        }
+
+        val sent = recorded.single()
+        assertEquals("Bearer its-own", sent.headers[HttpHeaders.Authorization])
+        // The provider key is the caller's, not the deployment's, so it follows the caller everywhere.
+        assertEquals("provider-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+    }
+
+    @Test
+    fun `Given a target without a token When a call names it Then the configured token is not sent there`() =
+        clientTest {
+            val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+            val engine = MockEngine { request ->
+                recorded += request
+                respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            }
+
+            NavigatorClient.withEngine(engine, config).use { it.profiles(NavigatorTarget("https://elsewhere.test")) }
+
+            // A credential issued by one deployment must not reach another host just because the
+            // caller asked that host a question.
+            assertNull(recorded.single().headers[HttpHeaders.Authorization])
+        }
+
+    @Test
+    fun `Given no target When a call is made Then the configured navigator still answers it`() = clientTest {
+        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+        val engine = MockEngine { request ->
+            recorded += request
+            respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+        }
+
+        NavigatorClient.withEngine(engine, config).use { it.profiles() }
+
+        val sent = recorded.single()
+        assertEquals("http://navigator.test${NavigatorApi.PROFILES}", sent.url.toString())
+        assertEquals("Bearer configured-token", sent.headers[HttpHeaders.Authorization])
+    }
+
+    @Test
+    fun `Given two navigators When both are asked in turn Then one client serves both`() = clientTest {
+        val embedded = NavigatorTarget("http://127.0.0.1:54213")
+        val remote = NavigatorTarget("https://remote.test", "a-token")
+
+        client(body = """{ "profiles": [] }""").use {
+            it.profiles(embedded)
+            it.profiles(remote)
+        }
+
+        // The case the parameter exists for: a screen offering a choice between the two has to ask
+        // both what they serve, and building a second client for it would cost a second pool.
+        assertEquals(
+            listOf("http://127.0.0.1:54213/v1/profiles", "https://remote.test/v1/profiles"),
+            recorded.map { it.url.toString() },
+        )
+        assertNull(recorded.first().headers[HttpHeaders.Authorization])
+        assertEquals("Bearer a-token", recorded.last().headers[HttpHeaders.Authorization])
+    }
+
     @Test
     fun `Given a base URL with a trailing slash When a call is made Then the path is not doubled up`() = clientTest {
         val engine = MockEngine { request ->

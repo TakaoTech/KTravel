@@ -17,6 +17,7 @@ import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.toKotlinxIoPath
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -37,6 +38,7 @@ class TravelArchiveSecretsRoundTripTest :
         val zipFactory = createZipArchiveFactory()
         val apiKey = "HERE-secret-key-0123456789"
         val password = "a fairly long export password"
+        val navigatorUrl = "https://nav.example.com"
 
         class Installation(root: PlatformFile, name: String) {
             val attachmentRoot = root / "attachments"
@@ -112,6 +114,56 @@ class TravelArchiveSecretsRoundTripTest :
                         .import(staged, ImportConflictStrategy.DUPLICATE)
                         .getOrThrow()
                     target.storage.getTravelPlan(summary.id).settings.hereApiKey shouldBe ""
+                }
+            }
+        }
+
+        given("a plan that names a remote navigator of its own") {
+            val source = Installation(tempDir / "navigator-source", "secrets-navigator-source")
+            source.storage.insertTravelPlan(
+                planWithKey().let {
+                    it.copy(
+                        settings = it.settings.copy(
+                            navigatorPreference = "REMOTE",
+                            navigatorRemoteBaseUrl = navigatorUrl,
+                        ),
+                    )
+                },
+            )
+
+            val archive = tempDir / "navigator.ktravel"
+            source.exporter
+                .export(ArchiveTestFixtures.TRAVEL_ID, archive, secretsPassword = password)
+                .getOrThrow()
+
+            `when`("the archive is inspected") {
+                then("the address and the preference travel with the trip, because they are not secrets") {
+                    val plan = archive.entryText(TravelArchiveFormat.PLAN_ENTRY).orEmpty()
+
+                    plan shouldContain navigatorUrl
+                    plan shouldContain "\"navigator_preference\":\"REMOTE\""
+                }
+
+                then("the only credential stripped is still the HERE key") {
+                    archive.entryText(TravelArchiveFormat.PLAN_ENTRY).orEmpty() shouldNotContain apiKey
+                }
+            }
+
+            `when`("it is imported with the right password") {
+                val target = Installation(tempDir / "navigator-target", "secrets-navigator-target")
+                val staged = target.importer.stage(archive).getOrThrow()
+                val summary = target.importer
+                    .import(staged, ImportConflictStrategy.DUPLICATE, secretsPassword = password)
+                    .getOrThrow()
+                val settings = target.storage.getTravelPlan(summary.id).settings
+
+                then("the HERE key is restored") {
+                    settings.hereApiKey shouldBe apiKey
+                }
+
+                then("the trip still points at the navigator it was planned against") {
+                    settings.navigatorRemoteBaseUrl shouldBe navigatorUrl
+                    settings.navigatorPreference shouldBe "REMOTE"
                 }
             }
         }

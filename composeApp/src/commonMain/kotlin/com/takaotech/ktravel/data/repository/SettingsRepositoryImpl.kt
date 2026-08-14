@@ -2,6 +2,7 @@ package com.takaotech.ktravel.data.repository
 
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -22,4 +23,12 @@ class SettingsRepositoryImpl(private val travelPlanRepository: TravelPlanReposit
 
     override suspend fun updateHereApiKey(apiKey: String) =
         travelPlanRepository.updateSettings(settings.copy(hereApiKey = apiKey))
+
+    override suspend fun updateNavigatorSettings(preference: NavigatorKind, remoteBaseUrl: String) =
+        travelPlanRepository.updateSettings(
+            settings.copy(
+                navigatorPreference = preference,
+                navigatorRemoteBaseUrl = remoteBaseUrl.trim(),
+            ),
+        )
 }

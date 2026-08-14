@@ -473,7 +473,7 @@ compose.desktop {
 // verified on the JVM target only:
 //   - ui/**: Compose UI tests read android.os.Build.FINGERPRINT to pick an idling strategy,
 //     which is null without Robolectric.
-//   - the three specs that open the database: Couchbase Lite fails with "Did you forget to call
+//   - the specs that open the database: Couchbase Lite fails with "Did you forget to call
 //     CouchbaseLite.init()?" because the Android artifact needs a Context to initialise.
 // Everything else — domain, presentation, mappers, the rest of data — runs on both targets.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
@@ -484,6 +484,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "**/TravelArchiveSecretsRoundTripTest.kt",
             "**/TravelArchiveCorruptionTest.kt",
             "**/TravelPlanStorageDataSourceImplTest.kt",
+            "**/AppSettingsRepositoryTest.kt",
         )
     }
 }

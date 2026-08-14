@@ -1,6 +1,10 @@
 package com.takaotech.ktravel.data.routing
 
-import com.takaotech.ktravel.domain.routing.RoutingProviderSettings
+import com.takaotech.ktravel.domain.routing.ModeSelection
+import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingProfileId
+import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
@@ -11,12 +15,19 @@ import com.takaotech.ktravel.domain.routing.model.RouteTollCost
 import com.takaotech.ktravel.domain.routing.model.RouteTollSystem
 import com.takaotech.ktravel.domain.routing.model.RouteTransport
 import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.navigator.api.catalog.NavigatorProfile
+import com.takaotech.navigator.api.catalog.ProviderProfileDescriptor
 import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.RouteTime
+import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.common.ZonedTime
+import com.takaotech.navigator.api.here.HereAvoidFeature
+import com.takaotech.navigator.api.here.HereAvoidOptions
 import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereReturnAttribute
 import com.takaotech.navigator.api.here.HereRoutingMode
+import com.takaotech.navigator.api.here.HereTransitModeFilter
+import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.RouteResponse
 import com.takaotech.navigator.api.response.RouteSectionDto
@@ -37,32 +48,95 @@ import kotlin.time.Duration.Companion.seconds
 // domain types and cannot tell which engine, or which machine, produced the answer.
 
 /**
- * Builds the request for the road profile out of the plan's settings.
+ * What the app knows about a profile, out of what the contract declares about it.
  *
- * The settings model has one field per option because that is what the settings screen edits; the
- * contract has one request per provider API. This is where the two meet, and it is the only thing
- * that has to change when the app starts offering a second profile.
+ * The modes are read from the profile's own declaration and are never pooled with another's: the
+ * vocabularies of the two HERE APIs collide by name and not by meaning, so a mode only ever exists
+ * attached to the profile it came from.
  */
-fun RoutingProviderSettings.Here.toCarRouteRequest(origin: GeoPoint, destination: GeoPoint): HereCarRouteRequest =
+fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
+    is NavigatorProfile.HereCar -> RoutingProfileInfo(
+        id = descriptor.toProfileId(),
+        displayName = descriptor.displayName,
+        modes = modes.map { RoutingMode(it.name) },
+        // Upstream requires exactly one vehicle, so the selector is a choice.
+        modeSelection = ModeSelection.SINGLE,
+        modesSupportingShortest = modesSupportingShortest.map { RoutingMode(it.name) }.toSet(),
+        supportsTolls = descriptor.supportsTolls,
+        maxAlternatives = descriptor.maxAlternatives,
+        requiresApiKey = descriptor.requiresApiKey,
+    )
+
+    is NavigatorProfile.HereTransit -> RoutingProfileInfo(
+        id = descriptor.toProfileId(),
+        displayName = descriptor.displayName,
+        modes = modeFilter.map { RoutingMode(it.name) },
+        // Upstream takes a set that restricts the answer, so the selector is a filter. Nothing
+        // selected means no restriction, which is not the same as nothing allowed.
+        modeSelection = ModeSelection.FILTER,
+        supportsTolls = descriptor.supportsTolls,
+        maxAlternatives = descriptor.maxAlternatives,
+        requiresApiKey = descriptor.requiresApiKey,
+    )
+}
+
+fun ProviderProfileDescriptor.toProfileId(): RoutingProfileId =
+    RoutingProfileId(provider = provider.value, profile = profile.value)
+
+/**
+ * Builds the road request.
+ *
+ * The mode is translated back into the vendor vocabulary by name, which is safe precisely because it
+ * was produced from that vocabulary: a mode reaching here that HERE's road API does not have is a
+ * mode that came from somewhere it should never have crossed to, and failing loudly is the point.
+ */
+fun RouteSelection.Road.toCarRouteRequest(origin: GeoPoint, destination: GeoPoint): HereCarRouteRequest =
     HereCarRouteRequest(
         origin = origin,
         destination = destination,
-        transportMode = transportMode.toContract(),
-        routingMode = routingMode.toContract(),
+        transportMode = mode.toHereTransportMode(),
+        routingMode = if (shortestDistance) HereRoutingMode.SHORT else HereRoutingMode.FAST,
         alternatives = alternatives,
         time = departureRouteTime(),
+        avoid = if (avoidTolls) HereAvoidOptions(features = listOf(HereAvoidFeature.TOLL_ROAD)) else null,
         returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS,
     )
 
 /**
+ * Builds the journey request.
+ *
+ * An empty filter is sent as no filter at all rather than as an empty include list: upstream reads
+ * an empty inclusion as "nothing is acceptable", which would answer every journey with no route.
+ */
+fun RouteSelection.Transit.toTransitRouteRequest(origin: GeoPoint, destination: GeoPoint): HereTransitRouteRequest =
+    HereTransitRouteRequest(
+        origin = origin,
+        destination = destination,
+        alternatives = alternatives,
+        time = departureRouteTime(),
+        modes = modeFilter
+            .takeIf { it.isNotEmpty() }
+            ?.let { HereTransitModeFilter(include = it.map { mode -> mode.toTransitMode() }) },
+    )
+
+private fun RoutingMode.toHereTransportMode(): HereTransportMode =
+    requireNotNull(HereTransportMode.entries.firstOrNull { it.name == id }) {
+        "'$id' is not a HERE road mode; it belongs to another profile's vocabulary"
+    }
+
+private fun RoutingMode.toTransitMode(): TransitMode =
+    requireNotNull(TransitMode.entries.firstOrNull { it.name == id }) {
+        "'$id' is not a HERE transit mode; it belongs to another profile's vocabulary"
+    }
+
+/**
  * When the traveller wants to leave.
  *
- * The settings carry a date and a time separately and either can be unset, so only both together
- * mean anything — which is the behaviour the previous provider had, spelled out here instead of
- * being implied by a pair of null checks. The instant is resolved in the device's own timezone,
- * which is the one the user was looking at when they picked it.
+ * A date and a time separately, either of which can be unset, so only both together mean anything.
+ * The instant is resolved in the device's own timezone, which is the one the user was looking at
+ * when they picked it.
  */
-private fun RoutingProviderSettings.Here.departureRouteTime(): RouteTime {
+private fun RouteSelection.departureRouteTime(): RouteTime {
     val date = departureDate
     val time = departureTime
 
@@ -71,18 +145,6 @@ private fun RoutingProviderSettings.Here.departureRouteTime(): RouteTime {
     } else {
         RouteTime.DepartAt(LocalDateTime(date, time).toInstant(TimeZone.currentSystemDefault()))
     }
-}
-
-private fun RoutingProviderSettings.Here.HereTransportMode.toContract(): HereTransportMode = when (this) {
-    RoutingProviderSettings.Here.HereTransportMode.CAR -> HereTransportMode.CAR
-    RoutingProviderSettings.Here.HereTransportMode.PEDESTRIAN -> HereTransportMode.PEDESTRIAN
-    RoutingProviderSettings.Here.HereTransportMode.BICYCLE -> HereTransportMode.BICYCLE
-    RoutingProviderSettings.Here.HereTransportMode.SCOOTER -> HereTransportMode.SCOOTER
-}
-
-private fun RoutingProviderSettings.Here.HereRoutingMode.toContract(): HereRoutingMode = when (this) {
-    RoutingProviderSettings.Here.HereRoutingMode.FAST -> HereRoutingMode.FAST
-    RoutingProviderSettings.Here.HereRoutingMode.SHORT -> HereRoutingMode.SHORT
 }
 
 /**

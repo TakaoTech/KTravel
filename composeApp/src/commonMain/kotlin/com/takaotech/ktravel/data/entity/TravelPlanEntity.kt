@@ -24,11 +24,21 @@ data class TravelPlanEntity(
 /**
  * Preferences the user sets on a single travel plan. Every field has a default, so a document
  * written before a preference existed stays readable.
+ *
+ * @constructor Creates a new TravelSettingsEntity
+ * @property hereApiKey the here api key
+ * @property navigatorPreference Which navigator the transport screen of this plan starts on.
+ * A string rather than a serialized enum so that a document written by a newer build, naming a
+ * kind this one has never heard of, still decodes: an unknown value falls back to the embedded
+ * server instead of failing the whole plan.
+ * @property navigatorRemoteBaseUrl the navigator remote base url
  */
 @Serializable
 data class TravelSettingsEntity(
     // The exporter always clears this field: the key travels only inside `secrets.json`, encrypted.
     @SerialName("here_api_key") val hereApiKey: String = "",
+    @SerialName("navigator_preference") val navigatorPreference: String = "",
+    @SerialName("navigator_remote_base_url") val navigatorRemoteBaseUrl: String = "",
 )
 
 @Serializable

@@ -32,6 +32,25 @@ fun interface NavigatorAccessToken {
 }
 
 /**
+ * One navigator, named for a single call.
+ *
+ * The configuration answers "where do requests go" once for the lifetime of a client, which is right
+ * while there is one answer. A caller that has to reach two navigators in the same breath — asking an
+ * embedded server and a remote one which profiles they serve, so the user can choose between them —
+ * has two, and building a second client for it would mean a second connection pool and a second set
+ * of threads for a question that takes one request.
+ *
+ * The token travels with the address, in one object, and that is the point of the type. They are not
+ * two independent overrides: a token is issued by a particular deployment, so naming a different host
+ * while keeping the configured token would present a credential to a server it was never meant for.
+ * A target with no token therefore means *no token*, not *fall back to the configured one*.
+ *
+ * @property baseUrl The origin to call, with or without a trailing slash.
+ * @property accessToken The token this deployment accepts, or null when it accepts anyone.
+ */
+data class NavigatorTarget(val baseUrl: String, val accessToken: String? = null)
+
+/**
  * How a [NavigatorClient] behaves.
  *
  * @property baseUrl Where to send requests.

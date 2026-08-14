@@ -57,37 +57,50 @@ class NavigatorClient private constructor(
      *
      * @param apiKey The caller's key for the provider behind this profile. Required by every profile
      *   whose descriptor says [com.takaotech.navigator.api.catalog.ProviderProfileDescriptor.requiresApiKey].
+     * @param target Which navigator to ask, when it is not the configured one.
      */
-    suspend fun hereCar(request: HereCarRouteRequest, apiKey: String? = null): NavigatorResult<RouteResponse> =
-        post(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request, apiKey)
+    suspend fun hereCar(
+        request: HereCarRouteRequest,
+        apiKey: String? = null,
+        target: NavigatorTarget? = null,
+    ): NavigatorResult<RouteResponse> =
+        post(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request, apiKey, target)
 
     /** Routes on public transport. */
-    suspend fun hereTransit(request: HereTransitRouteRequest, apiKey: String? = null): NavigatorResult<RouteResponse> =
-        post(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request, apiKey)
+    suspend fun hereTransit(
+        request: HereTransitRouteRequest,
+        apiKey: String? = null,
+        target: NavigatorTarget? = null,
+    ): NavigatorResult<RouteResponse> =
+        post(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request, apiKey, target)
 
     /**
      * What the navigator can route with.
      *
      * Worth calling before drawing a provider selector: it is what lets the app offer a profile the
-     * server gained without the app being rebuilt for it.
+     * server gained without the app being rebuilt for it, and what tells it which of the profiles the
+     * contract declares this particular deployment actually mounts.
      */
-    suspend fun profiles(): NavigatorResult<ProviderCatalogResponse> = get(NavigatorApi.PROFILES)
+    suspend fun profiles(target: NavigatorTarget? = null): NavigatorResult<ProviderCatalogResponse> =
+        get(NavigatorApi.PROFILES, target)
 
     /**
      * Whether the navigator is answering.
      *
      * Liveness only — it says nothing about the providers behind it — which is exactly what an
-     * embedded host needs to decide whether the server it started is still there.
+     * embedded host needs to decide whether the server it started is still there, and what a settings
+     * screen needs to tell a mistyped address from a server that is down.
      */
-    suspend fun health(): NavigatorResult<HealthResponse> = get(NavigatorApi.HEALTH)
+    suspend fun health(target: NavigatorTarget? = null): NavigatorResult<HealthResponse> =
+        get(NavigatorApi.HEALTH, target)
 
     /** Releases the HTTP client. Nothing works afterwards. */
     override fun close() {
         httpClient.close()
     }
 
-    private suspend inline fun <reified T> get(path: String): NavigatorResult<T> = call {
-        httpClient.get(config.baseUrl.resolve() + path) { presentAccessToken() }
+    private suspend inline fun <reified T> get(path: String, target: NavigatorTarget?): NavigatorResult<T> = call {
+        httpClient.get(origin(target) + path) { presentAccessToken(target) }
     }
 
     private suspend inline fun <REQ, reified T> post(
@@ -95,10 +108,11 @@ class NavigatorClient private constructor(
         serializer: SerializationStrategy<REQ>,
         request: REQ,
         apiKey: String?,
+        target: NavigatorTarget?,
     ): NavigatorResult<T> = call {
-        httpClient.post(config.baseUrl.resolve() + path) {
+        httpClient.post(origin(target) + path) {
             contentType(ContentType.Application.Json)
-            presentAccessToken()
+            presentAccessToken(target)
             // The provider key and the access token answer different questions — which routing
             // engine account to bill, and who is allowed to ask — so they travel separately, and a
             // deployment that holds a key of its own means this one is simply absent.
@@ -108,6 +122,10 @@ class NavigatorClient private constructor(
             setBody(NavigatorJson.encodeToString(serializer, request))
         }
     }
+
+    /** Where this one call goes: the target when the caller named one, the configuration otherwise. */
+    private suspend fun origin(target: NavigatorTarget?): String =
+        target?.baseUrl?.trimEnd('/') ?: config.baseUrl.resolve()
 
     /**
      * Runs a call and sorts the outcome into the three cases the caller distinguishes.
@@ -132,11 +150,17 @@ class NavigatorClient private constructor(
         NavigatorResult.TransportError(e)
     }
 
-    /** Says who is calling, when there is a token to say it with. */
-    private suspend fun HttpRequestBuilder.presentAccessToken() {
-        config.accessToken.resolve()?.takeIf { it.isNotBlank() }?.let { token ->
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+    /**
+     * Says who is calling, when there is a token to say it with.
+     *
+     * A named target supplies its own token and never borrows the configured one, even when it has
+     * none. Falling back would present a credential issued by one deployment to a different host,
+     * which is a leak the caller did not ask for and could not see.
+     */
+    private suspend fun HttpRequestBuilder.presentAccessToken(target: NavigatorTarget?) {
+        val token = if (target != null) target.accessToken else config.accessToken.resolve()
+
+        token?.takeIf { it.isNotBlank() }?.let { header(HttpHeaders.Authorization, "Bearer $it") }
     }
 
     /** Alternative ways to build a client. */

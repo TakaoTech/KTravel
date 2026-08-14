@@ -2,6 +2,7 @@ package com.takaotech.ktravel.domain.repository
 
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
 
 /**
  * Preferences of a single travel plan: the one place that reads and writes them.
@@ -20,4 +21,12 @@ interface SettingsRepository {
 
     /** Sets the HERE API key of this plan; an empty value clears it. */
     suspend fun updateHereApiKey(apiKey: String)
+
+    /**
+     * Sets which navigator this plan starts on, and the deployment it uses instead of the
+     * installation's.
+     *
+     * A blank address means this plan uses whatever the installation is configured with.
+     */
+    suspend fun updateNavigatorSettings(preference: NavigatorKind, remoteBaseUrl: String)
 }

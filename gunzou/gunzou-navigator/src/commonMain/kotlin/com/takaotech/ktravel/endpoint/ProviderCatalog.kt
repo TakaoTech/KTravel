@@ -17,6 +17,13 @@ class ProviderCatalog(endpoints: List<NavigationEndpoint<*>>) {
     /** The mounted profiles, in the order the endpoints were declared. */
     val descriptors: List<ProviderProfileDescriptor> = endpoints.map { it.descriptor }
 
-    /** The body of `GET /v1/profiles`. */
-    fun toResponse(): ProviderCatalogResponse = ProviderCatalogResponse(descriptors)
+    /**
+     * The body of `GET /v1/profiles`.
+     *
+     * @param version The build serving it. Answered here as well as on the health endpoint because a
+     *   client loading the catalog has already proved the navigator is reachable, and asking again
+     *   just to learn its name would be a round trip for nothing.
+     */
+    fun toResponse(version: String): ProviderCatalogResponse =
+        ProviderCatalogResponse(profiles = descriptors, version = version)
 }

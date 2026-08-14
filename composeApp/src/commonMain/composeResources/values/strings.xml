@@ -78,9 +78,82 @@
     <string name="planning_trip_cd_expand_day">Expand day places</string>
     <string name="planning_trip_cd_collapse_day">Collapse day places</string>
 
-    <string name="planning_transport_provider_name_local">Local</string>
-    <string name="planning_transport_provider_name_here">Here</string>
-    <string name="planning_transport_provider_name_gmaps">Google Maps</string>
+    <!-- region Transport planning -->
+    <string name="planning_transport_title">Transport</string>
+    <string name="planning_transport_departure">Departure</string>
+    <string name="planning_transport_arrival">Arrival</string>
+    <string name="planning_transport_calculate">Calculate</string>
+
+    <string name="planning_transport_server_section">Compute server</string>
+    <string name="planning_transport_server_embedded">Embedded</string>
+    <string name="planning_transport_server_remote">Remote</string>
+    <string name="planning_transport_server_embedded_hint">Local engine, always available, even offline.</string>
+    <string name="planning_transport_status_checking">Checking…</string>
+    <string name="planning_transport_status_online">Reachable</string>
+    <string name="planning_transport_status_offline">Not reachable</string>
+    <string name="planning_transport_retry">Retry</string>
+    <string name="planning_transport_use_embedded">Use embedded</string>
+    <string name="planning_transport_navigator_version">gunzo-navigator %1$s</string>
+    <string name="planning_transport_profiles_declared">%1$d profiles declared</string>
+
+    <string name="planning_transport_profiles_section">Routing profile</string>
+    <string name="planning_transport_profiles_available">%1$d available</string>
+    <string name="planning_transport_profiles_none">none</string>
+    <string name="planning_transport_catalog_loading">Asking the navigator which profiles it serves…</string>
+    <string name="planning_transport_catalog_failed">The navigator is not answering, so we cannot tell which profiles are active. Retry, or switch to the embedded engine.</string>
+    <string name="planning_transport_unavailable_not_served">Not served by this navigator</string>
+    <string name="planning_transport_unavailable_missing_key">API key missing — set it in the trip settings</string>
+    <string name="planning_transport_unavailable_unreachable">The navigator did not answer</string>
+
+    <string name="planning_transport_profile_here_car">HERE — Road</string>
+    <string name="planning_transport_profile_here_car_desc">Live traffic, tolls and heavy vehicles</string>
+    <string name="planning_transport_profile_here_transit">HERE — Public transport</string>
+    <string name="planning_transport_profile_here_transit_desc">Timetables, changes and walking legs</string>
+
+    <string name="planning_transport_mode_section">Transport mode</string>
+    <string name="planning_transport_mode_filter_section">Accepted services</string>
+    <string name="planning_transport_mode_filter_hint">With none selected, every service is accepted.</string>
+    <string name="planning_transport_avoid_tolls">Avoid tolls</string>
+    <string name="planning_transport_avoid_tolls_hint">Prefer roads without a toll booth</string>
+    <string name="planning_transport_avoid_tolls_unsupported">This profile does not handle tolls</string>
+
+    <string name="planning_transport_options_section">Calculation options</string>
+    <string name="planning_transport_alternatives">Alternative routes: %1$d</string>
+    <string name="planning_transport_shortest">Shortest distance</string>
+    <string name="planning_transport_shortest_hint">Optimise for distance instead of time</string>
+    <string name="planning_transport_shortest_unsupported">Not available for this mode</string>
+
+    <string name="planning_transport_mode_car">Car</string>
+    <string name="planning_transport_mode_truck">Lorry</string>
+    <string name="planning_transport_mode_taxi">Taxi</string>
+    <string name="planning_transport_mode_bus">Coach</string>
+    <string name="planning_transport_mode_private_bus">Private coach</string>
+    <string name="planning_transport_mode_pedestrian">On foot</string>
+    <string name="planning_transport_mode_bicycle">Bicycle</string>
+    <string name="planning_transport_mode_scooter">Scooter</string>
+    <string name="planning_transport_mode_high_speed_train">High speed train</string>
+    <string name="planning_transport_mode_intercity_train">Intercity train</string>
+    <string name="planning_transport_mode_inter_regional_train">Inter-regional train</string>
+    <string name="planning_transport_mode_regional_train">Regional train</string>
+    <string name="planning_transport_mode_city_train">City train</string>
+    <string name="planning_transport_mode_subway">Underground</string>
+    <string name="planning_transport_mode_light_rail">Tram</string>
+    <string name="planning_transport_mode_monorail">Monorail</string>
+    <string name="planning_transport_mode_bus_rapid">Rapid bus</string>
+    <string name="planning_transport_mode_ferry">Ferry</string>
+    <string name="planning_transport_mode_inclined">Funicular</string>
+    <string name="planning_transport_mode_aerial">Cable car</string>
+    <string name="planning_transport_mode_flight">Flight</string>
+
+    <string name="planning_transport_error_unreachable">The navigator could not be reached. Check the connection, or switch to the embedded engine.</string>
+    <string name="planning_transport_error_not_authenticated">This navigator requires an access token, which the app does not send.</string>
+    <string name="planning_transport_error_provider_credentials">The routing provider rejected the API key, or none is configured for this trip.</string>
+    <string name="planning_transport_error_rate_limited">Too many requests. Wait a moment and try again.</string>
+    <string name="planning_transport_error_provider_unavailable">The routing provider is not answering right now.</string>
+    <string name="planning_transport_error_no_route">No route was found between these two places.</string>
+    <string name="planning_transport_error_invalid_request">The navigator rejected the request.</string>
+    <string name="planning_transport_error_unexpected">The route could not be calculated.</string>
+    <!-- endregion Transport planning -->
 
     <string name="travel_creation_title">Create New Trip</string>
     <string name="travel_creation_hero_subtitle">START YOUR ADVENTURE</string>
@@ -179,4 +252,18 @@
     <string name="settings_hide_api_key">Hide</string>
     <string name="settings_save">Save</string>
     <string name="settings_saved">API key saved.</string>
+
+    <string name="settings_navigator_section">Navigator</string>
+    <string name="settings_navigator_hint">Where the routes of this trip are computed.</string>
+    <string name="settings_navigator_base_url">Server address</string>
+    <string name="settings_navigator_override_hint">Leave empty to use the server configured for the app.</string>
+    <string name="settings_navigator_not_checked">Not checked</string>
+    <string name="settings_navigator_not_configured">Not configured</string>
+
+    <string name="app_settings_title">App settings</string>
+    <string name="app_settings_navigator_section">Remote navigator</string>
+    <string name="app_settings_navigator_hint">Used by every trip that does not name one of its own.</string>
+    <string name="app_settings_test_connection">Test connection</string>
+    <string name="app_settings_saved">Settings saved.</string>
+    <string name="app_settings_cd_open">Open the app settings</string>
 </resources>
