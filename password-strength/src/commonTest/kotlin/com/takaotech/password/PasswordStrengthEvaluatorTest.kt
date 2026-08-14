@@ -92,6 +92,19 @@ class PasswordStrengthEvaluatorTest :
             }
         }
 
+        given("a block whose repeating unit the greedy and lazy passes disagree on") {
+            `when`("it is evaluated") {
+                val strength = evaluator.evaluate("aabaabaab")
+
+                then("the longer unit wins, so it is priced as `aab` three times over") {
+                    strength.entropy shouldBe (6.285402 plusOrMinus tolerance)
+                }
+                then("the repeated block is recognised") {
+                    strength.warning shouldBe PasswordWarning.REPEATED_PATTERN
+                }
+            }
+        }
+
         given("a digit sequence") {
             `when`("it is evaluated") {
                 val strength = evaluator.evaluate("1234567890")
