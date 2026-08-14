@@ -97,15 +97,18 @@ class HereClientPool(
      */
     private fun evictWhileOverCapacity() {
         while (clients.size > maxClients) {
-            val eldest = clients.entries.first()
-            clients.remove(eldest.key)
+            // The key is read out before the removal, and the entry is never touched afterward: on
+            // Kotlin/Native and Kotlin/Wasm a map entry obtained from the iterator is invalidated by
+            // a structural change and throws ConcurrentModificationException when read again.
+            val eldestKey = clients.keys.first()
+            val eldest = clients.remove(eldestKey) ?: break
 
             // Nothing is using it, so it can go now. Otherwise it is marked and closed by whichever
             // call releases it last.
-            if (eldest.value.inUse == 0) {
-                eldest.value.client.close()
+            if (eldest.inUse == 0) {
+                eldest.client.close()
             } else {
-                eldest.value.evicted = true
+                eldest.evicted = true
             }
         }
     }
