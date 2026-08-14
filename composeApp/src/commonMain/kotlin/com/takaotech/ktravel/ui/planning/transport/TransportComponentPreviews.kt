@@ -21,21 +21,19 @@ import ktravel.composeapp.generated.resources.planning_transport_status_offline
 import ktravel.composeapp.generated.resources.planning_transport_status_online
 import org.jetbrains.compose.resources.stringResource
 
-
 @Preview(showBackground = true)
 @Composable
-private fun ProfileRowPreview(
-    @PreviewParameter(ProfileRowPreviewParams::class) state: ProfileRowPreviewState,
-) = KTravelTheme {
-    Surface {
-        ProfileRow(
-            modifier = Modifier.padding(12.dp),
-            option = state.option,
-            selected = state.selected,
-            onSelect = {},
-        )
+private fun ProfileRowPreview(@PreviewParameter(ProfileRowPreviewParams::class) state: ProfileRowPreviewState) =
+    KTravelTheme {
+        Surface {
+            ProfileRow(
+                modifier = Modifier.padding(12.dp),
+                option = state.option,
+                selected = state.selected,
+                onSelect = {},
+            )
+        }
     }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -57,25 +55,21 @@ private fun ReachabilityPillPreview(
 
 @Preview(showBackground = true)
 @Composable
-private fun ModeChipPreview(
-    @PreviewParameter(ModeChipPreviewParams::class) state: ModeChipPreviewState,
-) = KTravelTheme {
-    Surface {
-        ModeChip(
-            modifier = Modifier.padding(12.dp),
-            mode = state.mode,
-            selected = state.selected,
-            enabled = state.enabled,
-            onClick = {},
-        )
+private fun ModeChipPreview(@PreviewParameter(ModeChipPreviewParams::class) state: ModeChipPreviewState) =
+    KTravelTheme {
+        Surface {
+            ModeChip(
+                modifier = Modifier.padding(12.dp),
+                mode = state.mode,
+                selected = state.selected,
+                enabled = state.enabled,
+                onClick = {},
+            )
+        }
     }
-}
 
 /** A profile, and whether the row draws it as the chosen one. */
-internal data class ProfileRowPreviewState(
-    val option: RoutingProfileOption,
-    val selected: Boolean,
-)
+internal data class ProfileRowPreviewState(val option: RoutingProfileOption, val selected: Boolean)
 
 /**
  * Every shape a profile row takes.
@@ -124,8 +118,7 @@ internal data class ReachabilityPillPreviewState(
 )
 
 /** Checking, answered, answered without a timing, and silent. */
-internal class ReachabilityPillPreviewParams :
-    PreviewParameterProvider<ReachabilityPillPreviewState> {
+internal class ReachabilityPillPreviewParams : PreviewParameterProvider<ReachabilityPillPreviewState> {
     override val values = sequenceOf(
         ReachabilityPillPreviewState(isChecking = true, isReachable = false, latencyMillis = null),
         ReachabilityPillPreviewState(isChecking = false, isReachable = true, latencyMillis = 87),
@@ -135,11 +128,7 @@ internal class ReachabilityPillPreviewParams :
 }
 
 /** One mode, as the chip is asked to draw it. */
-internal data class ModeChipPreviewState(
-    val mode: RoutingMode,
-    val selected: Boolean,
-    val enabled: Boolean,
-)
+internal data class ModeChipPreviewState(val mode: RoutingMode, val selected: Boolean, val enabled: Boolean)
 
 /**
  * The chip states, plus both fallbacks.

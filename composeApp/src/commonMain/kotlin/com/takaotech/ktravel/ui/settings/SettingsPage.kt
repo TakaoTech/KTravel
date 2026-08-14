@@ -191,7 +191,6 @@ private fun NavigatorSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             NavigatorKind.entries.forEachIndexed { index, kind ->
                 SegmentedButton(

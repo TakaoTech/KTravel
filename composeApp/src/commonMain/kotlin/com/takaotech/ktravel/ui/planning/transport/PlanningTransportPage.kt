@@ -96,18 +96,10 @@ import org.jetbrains.compose.resources.stringResource
 object PlanningTransportNavigation
 
 @Serializable
-data class PlanningTransportPageNavigation(
-    val dayId: String,
-    val startPlaceId: String,
-    val endPlaceId: String
-)
+data class PlanningTransportPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
 
 @Serializable
-class PlanningTransportRoutePreviewPageNavigation(
-    val dayId: String,
-    val startPlaceId: String,
-    val endPlaceId: String
-)
+class PlanningTransportRoutePreviewPageNavigation(val dayId: String, val startPlaceId: String, val endPlaceId: String)
 
 @Composable
 fun PlanningTransportPage(
@@ -159,7 +151,7 @@ private fun PlanningTransportPage(
                     IconButton(onClick = onNavigationBackClick) {
                         Icon(
                             painter = painterResource(Res.drawable.arrow_back),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 },
@@ -195,7 +187,7 @@ private fun PlanningTransportPage(
             LegEndpoints(
                 modifier = Modifier.fillMaxWidth(),
                 start = uiState.startPlace,
-                end = uiState.endPlace
+                end = uiState.endPlace,
             )
 
             NavigatorBlock(
@@ -255,7 +247,7 @@ private fun LegEndpoints(start: StepUi.Place?, end: StepUi.Place?, modifier: Mod
     if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
         Row(
             modifier = modifier.padding(top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             PlaceEndpoint(
                 modifier = Modifier.weight(1f),
@@ -266,12 +258,15 @@ private fun LegEndpoints(start: StepUi.Place?, end: StepUi.Place?, modifier: Mod
 
             val composition by rememberLottieComposition {
                 LottieCompositionSpec.JsonString(
-                    Res.readBytes("files/lottie_paper_airplane.json").decodeToString()
+                    Res.readBytes("files/lottie_paper_airplane.json").decodeToString(),
                 )
             }
 
             val width =
-                if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+                if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
+                        WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
+                    )
+                ) {
                     Modifier.width(128.dp)
                 } else {
                     Modifier.width(56.dp)
@@ -281,7 +276,7 @@ private fun LegEndpoints(start: StepUi.Place?, end: StepUi.Place?, modifier: Mod
                 modifier = Modifier.padding(horizontal = 8.dp) then width,
                 painter = rememberLottiePainter(
                     composition = composition,
-                    iterations = Compottie.IterateForever
+                    iterations = Compottie.IterateForever,
                 ),
                 contentDescription = null,
             )
@@ -302,7 +297,7 @@ private fun LegEndpoints(start: StepUi.Place?, end: StepUi.Place?, modifier: Mod
                 icon = Res.drawable.place,
             )
 
-            //TODO Add icon for indicate destination
+            // TODO Add icon for indicate destination
             Spacer(modifier = Modifier.height(16.dp))
 
             PlaceEndpoint(
@@ -312,7 +307,6 @@ private fun LegEndpoints(start: StepUi.Place?, end: StepUi.Place?, modifier: Mod
                 icon = Res.drawable.flag,
             )
         }
-
     }
 }
 
@@ -386,7 +380,7 @@ private fun NavigatorBlock(
                     version?.let {
                         stringResource(
                             Res.string.planning_transport_navigator_version,
-                            it
+                            it,
                         )
                     },
                     stringResource(Res.string.planning_transport_profiles_declared, declared),
@@ -415,9 +409,10 @@ private fun ProfileBlock(
             text = stringResource(Res.string.planning_transport_profiles_section),
             trailing = when {
                 catalog == null || unreachable -> stringResource(Res.string.planning_transport_profiles_none)
+
                 else -> stringResource(
                     Res.string.planning_transport_profiles_available,
-                    catalog.selectable.size
+                    catalog.selectable.size,
                 )
             },
         )
@@ -439,7 +434,7 @@ private fun ProfileBlock(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         text = stringResource(Res.string.planning_transport_catalog_failed),
@@ -502,7 +497,7 @@ private fun ModeBlock(
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             profile.modes.forEach { mode ->
                 ModeChip(
@@ -591,7 +586,7 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
             startPlace = StepUi.Place(
                 name = "P.za del Colosseo, 1, 00184 Roma RM",
                 lat = 0.0,
-                lng = 0.0
+                lng = 0.0,
             ),
             endPlace = StepUi.Place(name = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0),
         ),

@@ -12,7 +12,9 @@ enum class NavigatorKind {
     EMBEDDED,
 
     /** A deployment reached over the network, at the address the settings hold. */
-    REMOTE;
+    REMOTE,
+
+    ;
 
     companion object {
         /**
