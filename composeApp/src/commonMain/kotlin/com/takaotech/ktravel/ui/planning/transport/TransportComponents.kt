@@ -46,8 +46,7 @@ internal object PlanningTransportTestTags {
     const val SHORTEST = "transport_shortest"
     const val FAILURE = "transport_failure"
 
-    fun profileTag(provider: String, profile: String): String =
-        "transport_profile_${provider}_$profile"
+    fun profileTag(provider: String, profile: String): String = "transport_profile_${provider}_$profile"
 
     fun modeTag(modeId: String): String = "transport_mode_$modeId"
 }
@@ -116,8 +115,8 @@ internal fun ReachabilityPill(
                 modifier = Modifier.size(8.dp)
                     .background(
                         color = dot,
-                        shape = CircleShape
-                    )
+                        shape = CircleShape,
+                    ),
             ) {}
             Text(
                 text = if (isReachable && latencyMillis != null) "$text · $latencyMillis ms" else text,
@@ -154,24 +153,28 @@ internal fun ProfileRow(
             .testTag(
                 PlanningTransportTestTags.profileTag(
                     option.profile.id.provider,
-                    option.profile.id.profile
+                    option.profile.id.profile,
                 ),
             )
             .selectable(
                 selected = selected,
                 enabled = enabled,
                 role = Role.RadioButton,
-                onClick = onSelect
+                onClick = onSelect,
             ),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = if (selected) scheme.primaryContainer else scheme.surfaceContainerLow,
             contentColor = if (selected) scheme.onPrimaryContainer else scheme.onSurface,
         ),
-        border = if (selected) null else androidx.compose.foundation.BorderStroke(
-            1.dp,
-            scheme.outlineVariant
-        ),
+        border = if (selected) {
+            null
+        } else {
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                scheme.outlineVariant,
+            )
+        },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -277,12 +280,7 @@ internal fun TransportCard(modifier: Modifier = Modifier, content: @Composable (
 
 /** One of the two places this leg runs between. */
 @Composable
-internal fun PlaceEndpoint(
-    label: String,
-    name: String,
-    icon: DrawableResource,
-    modifier: Modifier = Modifier
-) {
+internal fun PlaceEndpoint(label: String, name: String, icon: DrawableResource, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
@@ -329,7 +327,7 @@ internal fun ToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = LocalContentColorOf(enabled)
+                color = LocalContentColorOf(enabled),
             )
             Text(
                 text = subtitle,
@@ -341,7 +339,7 @@ internal fun ToggleRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            enabled = enabled
+            enabled = enabled,
         )
     }
 }
