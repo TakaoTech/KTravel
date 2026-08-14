@@ -1,8 +1,9 @@
 package com.takaotech.ktravel.di
 
+import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.domain.routing.RoutingProviderFactory
+import com.takaotech.ktravel.domain.routing.RoutingService
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
 import dev.zacsweers.metro.GraphExtension
@@ -18,8 +19,14 @@ interface PlanningGraph {
     val savePlaceUseCase: SavePlaceUseCase
     val saveTransportStepUseCase: SaveTransportStepUseCase
 
-    /** Exposed here, not injected directly, because the HERE provider needs this plan's API key. */
-    val routingProviderFactory: RoutingProviderFactory
+    /**
+     * Exposed here, not injected directly, because it reads this plan's API key and this plan's
+     * choice of navigator.
+     */
+    val routingService: RoutingService
+
+    /** Which navigator this plan starts on, and whether the remote one can be offered at all. */
+    val navigatorTargetResolver: NavigatorTargetResolver
 
     @GraphExtension.Factory
     fun interface Factory {

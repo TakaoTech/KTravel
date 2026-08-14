@@ -19,6 +19,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.model.VisitScheduleDomain
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
@@ -48,6 +49,8 @@ object TravelPlanEntityMapper {
 
     fun TravelSettingsDomain.toEntity(): TravelSettingsEntity = TravelSettingsEntity(
         hereApiKey = hereApiKey,
+        navigatorPreference = navigatorPreference.name,
+        navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
     fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
@@ -142,8 +145,17 @@ object TravelPlanEntityMapper {
         settings = settings.toDomain(),
     )
 
+    /**
+     * Converts the domain on the receiver [TravelSettingsEntity].
+     * [navigatorPreference] Lenient by design: a plan stored before the preference existed carries an empty string,
+     * and one stored by a newer build may carry a name this build does not know. Both mean the
+     * embedded server, which is the choice that always works.
+     * @return the travel settings domain
+     */
     fun TravelSettingsEntity.toDomain(): TravelSettingsDomain = TravelSettingsDomain(
         hereApiKey = hereApiKey,
+        navigatorPreference = NavigatorKind.ofOrEmbedded(navigatorPreference),
+        navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
     fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(

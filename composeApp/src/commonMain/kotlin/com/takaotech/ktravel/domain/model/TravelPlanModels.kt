@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlin.uuid.ExperimentalUuidApi
@@ -35,7 +36,23 @@ data class TravelPlanDomain(
 data class TravelSettingsDomain(
     /** HERE API key of this plan, empty when none is configured. */
     val hereApiKey: String = "",
-)
+    /**
+     * Which navigator the transport screen starts on for this plan.
+     *
+     * A default and not a lock: the screen lets the choice be changed for a single calculation, and
+     * that change is not written back here. A trip planned abroad may be worth computing on a
+     * deployment with better coverage without that becoming permanent.
+     */
+    val navigatorPreference: NavigatorKind = NavigatorKind.EMBEDDED,
+    /**
+     * Remote navigator this plan uses instead of the one configured for the installation, empty when
+     * it uses that one.
+     */
+    val navigatorRemoteBaseUrl: String = "",
+) {
+    /** Whether this plan names a navigator of its own rather than using the installation's. */
+    val overridesNavigatorRemote: Boolean get() = navigatorRemoteBaseUrl.isNotBlank()
+}
 
 data class TravelDayDomain(
     val id: String = newId(),

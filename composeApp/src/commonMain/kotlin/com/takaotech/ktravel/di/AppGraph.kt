@@ -6,9 +6,7 @@ import com.slack.circuit.runtime.ui.Ui
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
-import com.takaotech.ktravel.data.navigator.NavigatorEndpoint
 import com.takaotech.ktravel.data.storage.DatabaseProvider
-import com.takaotech.navigator.client.NavigatorBaseUrl
 import com.takaotech.navigator.client.NavigatorClient
 import com.takaotech.navigator.client.NavigatorClientConfig
 import dev.zacsweers.metro.DependencyGraph
@@ -37,30 +35,21 @@ interface AppGraph : ViewModelGraph {
         fun provideZipArchiveFactory(): ZipArchiveFactory = createZipArchiveFactory()
 
         /**
-         * Which navigator the app talks to.
-         *
-         * Embedded for now. When the remote deployment exists this reads the choice out of the
-         * settings instead, and nothing above it changes: the endpoint is resolved per request, so
-         * switching does not require rebuilding the client or restarting the app.
-         *
-         * Deliberately unscoped. Metro turns any binding into a `() -> T` provider, and
-         * [com.takaotech.ktravel.data.navigator.NavigatorBaseUrlResolver] takes it in that form so
-         * that it re-reads the choice on every request. Scoping this would freeze the answer at the
-         * first one and quietly make the setting take effect only after a restart.
-         */
-        @Provides
-        fun provideNavigatorEndpoint(): NavigatorEndpoint = NavigatorEndpoint.Embedded
-
-        /**
-         * The one client the app routes through.
+         * The one client the app routes through, for every navigator it talks to.
          *
          * Application scoped because it owns a connection pool and threads: one per request would
-         * cost more to build than the request it is built for.
+         * cost more to build than the request it is built for, and one per navigator would double
+         * that for a screen that has to ask both which profiles they serve.
+         *
+         * Which navigator a given call goes to is not configured here — it is passed per call, by
+         * [com.takaotech.ktravel.data.navigator.NavigatorTargetResolver], because the answer depends
+         * on the plan and on what the traveller picked a moment ago. The base URL below is only the
+         * fallback for a call that names none, and the embedded server is the one that always exists.
          */
         @Provides
         @SingleIn(AppScope::class)
-        fun provideNavigatorClient(baseUrl: NavigatorBaseUrl): NavigatorClient =
-            NavigatorClient(NavigatorClientConfig(baseUrl = baseUrl))
+        fun provideNavigatorClient(embeddedHost: EmbeddedNavigatorHost): NavigatorClient =
+            NavigatorClient(NavigatorClientConfig(baseUrl = { embeddedHost.baseUrl() }))
 
         @Provides
         @SingleIn(AppScope::class)

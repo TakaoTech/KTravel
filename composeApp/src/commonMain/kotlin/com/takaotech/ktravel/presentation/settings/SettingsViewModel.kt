@@ -5,12 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.navigator.client.NavigatorClient
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +27,11 @@ import kotlinx.coroutines.launch
  * page is only ever reached from a trip, and each trip carries its own key.
  */
 @AssistedInject
-class SettingsViewModel(@Assisted private val travelId: String, private val planningGraphStore: PlanningGraphStore) :
-    ViewModel() {
+class SettingsViewModel(
+    @Assisted private val travelId: String,
+    private val planningGraphStore: PlanningGraphStore,
+    private val navigatorClient: NavigatorClient,
+) : ViewModel() {
 
     @AssistedFactory
     @ContributesIntoMap(AppScope::class)
@@ -42,8 +48,18 @@ class SettingsViewModel(@Assisted private val travelId: String, private val plan
     init {
         // Read once instead of collecting: the plan emits on every edit, and re-seeding the field
         // from it would wipe whatever the user is typing.
+        val stored = settingsRepository.settings
         _uiState.update {
-            it.copy(hereApiKey = TextFieldValue(settingsRepository.settings.hereApiKey))
+            it.copy(
+                hereApiKey = TextFieldValue(stored.hereApiKey),
+                navigatorPreference = stored.navigatorPreference,
+                navigatorBaseUrl = TextFieldValue(stored.navigatorRemoteBaseUrl),
+                reachability = if (stored.overridesNavigatorRemote) {
+                    NavigatorReachability.Unknown
+                } else {
+                    NavigatorReachability.NotConfigured
+                },
+            )
         }
     }
 
@@ -55,10 +71,40 @@ class SettingsViewModel(@Assisted private val travelId: String, private val plan
         _uiState.update { it.copy(isApiKeyVisible = !it.isApiKeyVisible) }
     }
 
+    fun onNavigatorPreferenceChanged(preference: NavigatorKind) {
+        _uiState.update { it.copy(navigatorPreference = preference) }
+    }
+
+    fun onNavigatorBaseUrlChanged(value: TextFieldValue) {
+        // An edited address invalidates whatever the last check said about the previous one.
+        _uiState.update { it.copy(navigatorBaseUrl = value, reachability = NavigatorReachability.Unknown) }
+    }
+
+    private var checkJob: Job? = null
+
+    fun checkNavigatorReachability() {
+        checkJob?.cancel()
+        val state = _uiState.value
+        if (state.navigatorBaseUrl.text.isBlank()) {
+            _uiState.update { it.copy(reachability = NavigatorReachability.NotConfigured) }
+            return
+        }
+
+        _uiState.update { it.copy(reachability = NavigatorReachability.Checking) }
+        checkJob = viewModelScope.launch {
+            val result = navigatorClient.checkReachability(baseUrl = state.navigatorBaseUrl.text)
+            _uiState.update { it.copy(reachability = result) }
+        }
+    }
+
     fun saveSettings() {
-        val apiKey = _uiState.value.hereApiKey.text
+        val state = _uiState.value
         viewModelScope.launch {
-            settingsRepository.updateHereApiKey(apiKey)
+            settingsRepository.updateHereApiKey(state.hereApiKey.text)
+            settingsRepository.updateNavigatorSettings(
+                preference = state.navigatorPreference,
+                remoteBaseUrl = state.navigatorBaseUrl.text,
+            )
             _uiState.update { it.copy(isSaved = true) }
         }
     }

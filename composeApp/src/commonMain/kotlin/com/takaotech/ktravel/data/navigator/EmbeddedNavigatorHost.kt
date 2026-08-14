@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.data.navigator
 
 import com.takaotech.ktravel.RunningServer
+import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.startServerOnFreePort
 import dev.zacsweers.metro.Inject
@@ -36,6 +37,7 @@ private const val LOOPBACK_HOST = "127.0.0.1"
  *   binds a different port, and callers have to follow it without being rebuilt.
  */
 @SingleIn(AppScope::class)
+@OpenForMokkery
 @Inject
 class EmbeddedNavigatorHost {
 

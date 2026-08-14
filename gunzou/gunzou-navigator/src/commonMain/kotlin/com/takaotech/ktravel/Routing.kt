@@ -50,7 +50,7 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
         }
 
         get(NavigatorApi.PROFILES) {
-            call.respond(catalog.toResponse())
+            call.respond(catalog.toResponse(config.version))
         }
 
         // `optional` always, so an unknown caller reaches the handler and is refused there with the

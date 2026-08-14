@@ -78,9 +78,82 @@
     <string name="planning_trip_cd_expand_day">Espandi le tappe del giorno</string>
     <string name="planning_trip_cd_collapse_day">Comprimi le tappe del giorno</string>
 
-    <string name="planning_transport_provider_name_local">Locale</string>
-    <string name="planning_transport_provider_name_here">Here</string>
-    <string name="planning_transport_provider_name_gmaps">Google Maps</string>
+    <!-- region Transport planning -->
+    <string name="planning_transport_title">Trasporto</string>
+    <string name="planning_transport_departure">Partenza</string>
+    <string name="planning_transport_arrival">Arrivo</string>
+    <string name="planning_transport_calculate">Calcola</string>
+
+    <string name="planning_transport_server_section">Server di calcolo</string>
+    <string name="planning_transport_server_embedded">Integrato</string>
+    <string name="planning_transport_server_remote">Remoto</string>
+    <string name="planning_transport_server_embedded_hint">Motore locale, sempre disponibile, anche offline.</string>
+    <string name="planning_transport_status_checking">Verifica in corso…</string>
+    <string name="planning_transport_status_online">Raggiungibile</string>
+    <string name="planning_transport_status_offline">Non raggiungibile</string>
+    <string name="planning_transport_retry">Riprova</string>
+    <string name="planning_transport_use_embedded">Usa il motore integrato</string>
+    <string name="planning_transport_navigator_version">gunzo-navigator %1$s</string>
+    <string name="planning_transport_profiles_declared">%1$d profili dichiarati</string>
+
+    <string name="planning_transport_profiles_section">Profilo di calcolo</string>
+    <string name="planning_transport_profiles_available">%1$d disponibili</string>
+    <string name="planning_transport_profiles_none">nessuno</string>
+    <string name="planning_transport_catalog_loading">Stiamo chiedendo al navigator quali profili offre…</string>
+    <string name="planning_transport_catalog_failed">Il navigator non risponde, quindi non possiamo sapere quali profili sono attivi. Riprova, oppure passa al motore integrato.</string>
+    <string name="planning_transport_unavailable_not_served">Non servito da questo navigator</string>
+    <string name="planning_transport_unavailable_missing_key">Chiave API mancante — impostala nelle impostazioni del viaggio</string>
+    <string name="planning_transport_unavailable_unreachable">Il navigator non ha risposto</string>
+
+    <string name="planning_transport_profile_here_car">HERE — Strada</string>
+    <string name="planning_transport_profile_here_car_desc">Traffico in tempo reale, pedaggi e mezzi pesanti</string>
+    <string name="planning_transport_profile_here_transit">HERE — Mezzi pubblici</string>
+    <string name="planning_transport_profile_here_transit_desc">Orari, cambi e tratte a piedi</string>
+
+    <string name="planning_transport_mode_section">Modalità di trasporto</string>
+    <string name="planning_transport_mode_filter_section">Mezzi ammessi</string>
+    <string name="planning_transport_mode_filter_hint">Se non ne selezioni nessuno, sono ammessi tutti.</string>
+    <string name="planning_transport_avoid_tolls">Evita i pedaggi</string>
+    <string name="planning_transport_avoid_tolls_hint">Preferisci strade senza casello</string>
+    <string name="planning_transport_avoid_tolls_unsupported">Questo profilo non gestisce i pedaggi</string>
+
+    <string name="planning_transport_options_section">Opzioni di calcolo</string>
+    <string name="planning_transport_alternatives">Percorsi alternativi: %1$d</string>
+    <string name="planning_transport_shortest">Distanza più breve</string>
+    <string name="planning_transport_shortest_hint">Ottimizza sulla distanza invece che sul tempo</string>
+    <string name="planning_transport_shortest_unsupported">Non disponibile per questa modalità</string>
+
+    <string name="planning_transport_mode_car">Auto</string>
+    <string name="planning_transport_mode_truck">Mezzo pesante</string>
+    <string name="planning_transport_mode_taxi">Taxi</string>
+    <string name="planning_transport_mode_bus">Pullman</string>
+    <string name="planning_transport_mode_private_bus">Pullman privato</string>
+    <string name="planning_transport_mode_pedestrian">A piedi</string>
+    <string name="planning_transport_mode_bicycle">Bicicletta</string>
+    <string name="planning_transport_mode_scooter">Scooter</string>
+    <string name="planning_transport_mode_high_speed_train">Alta velocità</string>
+    <string name="planning_transport_mode_intercity_train">Intercity</string>
+    <string name="planning_transport_mode_inter_regional_train">Interregionale</string>
+    <string name="planning_transport_mode_regional_train">Regionale</string>
+    <string name="planning_transport_mode_city_train">Treno urbano</string>
+    <string name="planning_transport_mode_subway">Metropolitana</string>
+    <string name="planning_transport_mode_light_rail">Tram</string>
+    <string name="planning_transport_mode_monorail">Monorotaia</string>
+    <string name="planning_transport_mode_bus_rapid">Bus rapido</string>
+    <string name="planning_transport_mode_ferry">Traghetto</string>
+    <string name="planning_transport_mode_inclined">Funicolare</string>
+    <string name="planning_transport_mode_aerial">Funivia</string>
+    <string name="planning_transport_mode_flight">Volo</string>
+
+    <string name="planning_transport_error_unreachable">Non siamo riusciti a raggiungere il navigator. Controlla la connessione, oppure passa al motore integrato.</string>
+    <string name="planning_transport_error_not_authenticated">Questo navigator richiede un token di accesso, che l app non invia.</string>
+    <string name="planning_transport_error_provider_credentials">Il provider di routing ha rifiutato la chiave API, oppure non ne è configurata nessuna per questo viaggio.</string>
+    <string name="planning_transport_error_rate_limited">Troppe richieste. Aspetta un momento e riprova.</string>
+    <string name="planning_transport_error_provider_unavailable">Il provider di routing non sta rispondendo in questo momento.</string>
+    <string name="planning_transport_error_no_route">Nessun percorso trovato fra questi due luoghi.</string>
+    <string name="planning_transport_error_invalid_request">Il navigator ha rifiutato la richiesta.</string>
+    <string name="planning_transport_error_unexpected">Non è stato possibile calcolare il percorso.</string>
+    <!-- endregion Transport planning -->
 
     <string name="travel_creation_title">Crea Nuovo Viaggio</string>
     <string name="travel_creation_hero_subtitle">INIZIA LA TUA AVVENTURA</string>
@@ -122,6 +195,20 @@
     <string name="settings_hide_api_key">Nascondi</string>
     <string name="settings_save">Salva</string>
     <string name="settings_saved">Chiave API salvata.</string>
+
+    <string name="settings_navigator_section">Navigator</string>
+    <string name="settings_navigator_hint">Dove vengono calcolati i percorsi di questo viaggio.</string>
+    <string name="settings_navigator_base_url">Indirizzo del server</string>
+    <string name="settings_navigator_override_hint">Lascia vuoto per usare il server configurato per l app.</string>
+    <string name="settings_navigator_not_checked">Non verificato</string>
+    <string name="settings_navigator_not_configured">Non configurato</string>
+
+    <string name="app_settings_title">Impostazioni dell app</string>
+    <string name="app_settings_navigator_section">Navigator remoto</string>
+    <string name="app_settings_navigator_hint">Usato da tutti i viaggi che non ne indicano uno proprio.</string>
+    <string name="app_settings_test_connection">Verifica connessione</string>
+    <string name="app_settings_saved">Impostazioni salvate.</string>
+    <string name="app_settings_cd_open">Apri le impostazioni dell app</string>
 
     <string name="import_secrets_choice_title">Importare la chiave API?</string>
     <string name="import_secrets_choice_message">Questo archivio contiene una chiave API HERE protetta da password. Puoi importare il viaggio anche senza.</string>

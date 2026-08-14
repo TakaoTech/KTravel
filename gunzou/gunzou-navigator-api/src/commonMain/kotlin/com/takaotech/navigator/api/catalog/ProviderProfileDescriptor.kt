@@ -46,5 +46,21 @@ data class ProviderProfileDescriptor(
  * @property profiles The available profiles. A profile whose provider is misconfigured is absent
  *   rather than present and broken, so a client can trust that what it lists will answer.
  */
+
+/**
+ * What one navigator serves.
+ *
+ * @property profiles The profiles this deployment actually mounts, which is only half of what a
+ *   client needs: the other half is [NavigatorProfile.ALL], the profiles the contract can express.
+ *   Subtracting one from the other is how a caller tells "this server does not serve it" from "this
+ *   version cannot ask for it".
+ * @property version The build answering, defaulted so that a response from a server older than this
+ *   field still decodes. Carried here as well as on the health endpoint because loading the catalog
+ *   is already the proof that a navigator is reachable, and a second call to learn its name would be
+ *   a second round trip for something the first one could have said.
+ */
 @Serializable
-data class ProviderCatalogResponse(val profiles: List<ProviderProfileDescriptor> = emptyList())
+data class ProviderCatalogResponse(
+    val profiles: List<ProviderProfileDescriptor> = emptyList(),
+    val version: String = "",
+)

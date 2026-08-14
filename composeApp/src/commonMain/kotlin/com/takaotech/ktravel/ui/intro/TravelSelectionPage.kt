@@ -79,10 +79,12 @@ import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
+import ktravel.composeapp.generated.resources.app_settings_cd_open
 import ktravel.composeapp.generated.resources.close
 import ktravel.composeapp.generated.resources.date_range
 import ktravel.composeapp.generated.resources.delete
 import ktravel.composeapp.generated.resources.file_open
+import ktravel.composeapp.generated.resources.settings
 import ktravel.composeapp.generated.resources.travel_selection_cd_delete_selected
 import ktravel.composeapp.generated.resources.travel_selection_cd_exit_selection
 import ktravel.composeapp.generated.resources.travel_selection_cd_import
@@ -105,6 +107,7 @@ internal object TravelSelectionTestTags {
     const val TOP_BAR_EXIT_SELECTION = "travel_selection_exit_selection"
     const val TOP_BAR_DELETE_SELECTED = "travel_selection_delete_selected"
     const val TOP_BAR_IMPORT = "travel_selection_import"
+    const val TOP_BAR_APP_SETTINGS = "travel_selection_app_settings"
     fun travelItemTag(id: String) = "travel_item_$id"
 }
 
@@ -137,7 +140,11 @@ private fun ImportUiState.message(): String? = when (this) {
 }
 
 @Composable
-fun TravelSelectionPage(onTravelClick: (id: String) -> Unit, onNewTravelClick: () -> Unit) {
+fun TravelSelectionPage(
+    onTravelClick: (id: String) -> Unit,
+    onNewTravelClick: () -> Unit,
+    onAppSettingsClick: () -> Unit,
+) {
     val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -206,6 +213,7 @@ fun TravelSelectionPage(onTravelClick: (id: String) -> Unit, onNewTravelClick: (
         onDeleteSelectedClick = { deleteDialogState.show(uiState.selectedIds) },
         onSwipeToDelete = { id -> deleteDialogState.show(persistentSetOf(id)) },
         onImportClick = { importLauncher.launch() },
+        onAppSettingsClick = onAppSettingsClick,
         onImportMessageShown = viewModel::onImportMessageShown,
         newTravelClick = onNewTravelClick,
     )
@@ -226,6 +234,7 @@ internal fun TravelSelectionPage(
     onSwipeToDelete: (id: String) -> Unit = {},
     onImportClick: () -> Unit = {},
     onImportMessageShown: () -> Unit = {},
+    onAppSettingsClick: () -> Unit = {},
     newTravelClick: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -263,6 +272,16 @@ internal fun TravelSelectionPage(
                                     contentDescription = stringResource(
                                         Res.string.travel_selection_cd_import,
                                     ),
+                                )
+                            }
+
+                            IconButton(
+                                modifier = Modifier.testTag(TravelSelectionTestTags.TOP_BAR_APP_SETTINGS),
+                                onClick = onAppSettingsClick,
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.settings),
+                                    contentDescription = stringResource(Res.string.app_settings_cd_open),
                                 )
                             }
                         },
