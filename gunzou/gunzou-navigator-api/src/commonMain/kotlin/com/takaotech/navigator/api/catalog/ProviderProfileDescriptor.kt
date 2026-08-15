@@ -2,7 +2,6 @@ package com.takaotech.navigator.api.catalog
 
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
-import com.takaotech.navigator.api.common.TravelMode
 import kotlinx.serialization.Serializable
 
 /**
@@ -19,7 +18,11 @@ import kotlinx.serialization.Serializable
  * @property path Where to POST a request for it, such as `/v1/here/car`.
  * @property displayName A name to put in a selector. English, like everything else in the contract:
  *   translating it is the client's job, since only the client knows the user's language.
- * @property supportedModes The modes this profile can route for.
+ * @property supportedModes The modes this profile accepts, spelled in the vocabulary of the API that
+ *   answers it — see [SupportedModes]. It is not a flat list precisely because two profiles of the
+ *   same provider do not share one: what the road endpoint calls a `bus` and what the transit one
+ *   calls a `bus` are different vehicles, and merging them would offer a caller a mode the endpoint
+ *   would reject.
  * @property maxAlternatives The largest `alternatives` it accepts.
  * @property maxVia The most intermediate stops it accepts. Zero means the profile takes none.
  * @property supportsArriveBy Whether [com.takaotech.navigator.api.common.RouteTime.ArriveBy] works.
@@ -32,7 +35,7 @@ data class ProviderProfileDescriptor(
     val profile: ProviderProfile,
     val path: String,
     val displayName: String,
-    val supportedModes: List<TravelMode> = emptyList(),
+    val supportedModes: SupportedModes = SupportedModes.None,
     val maxAlternatives: Int,
     val maxVia: Int = 0,
     val supportsArriveBy: Boolean = false,

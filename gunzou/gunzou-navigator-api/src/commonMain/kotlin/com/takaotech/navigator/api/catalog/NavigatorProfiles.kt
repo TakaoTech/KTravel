@@ -4,7 +4,6 @@ import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
 import com.takaotech.navigator.api.common.TransitMode
-import com.takaotech.navigator.api.common.TravelMode
 import com.takaotech.navigator.api.here.HereTransportMode
 
 /**
@@ -16,14 +15,13 @@ import com.takaotech.navigator.api.here.HereTransportMode
  * answers. Subtracting one from the other is how a caller tells "this deployment does not serve it"
  * from "this version does not have it", which are different problems with different remedies.
  *
- * Keeping the requestable modes here rather than in [ProviderProfileDescriptor] is deliberate. They
- * are declared in the vocabulary of the profile's own upstream API — [HereTransportMode] for the road
- * profile, [TransitMode] for the transit one — and those vocabularies must not be merged into a
- * single set. `bus`, `privateBus` and `pedestrian` appear in both with the same spelling and do not
- * mean the same thing: HERE's road `bus` is a coach the traveller drives, its transit `bus` is a
- * scheduled service; road `pedestrian` is a route you ask for, transit walking is how the answer
- * describes the legs between stops. A common enum would spell them once and lose exactly the
- * distinction that makes them two endpoints.
+ * Each profile declares the modes it accepts in the vocabulary of its own upstream API —
+ * [HereTransportMode] for the road profile, [TransitMode] for the transit one — carried as a
+ * [SupportedModes] variant so the two can never be merged into a single set. `bus`, `privateBus` and
+ * `pedestrian` appear in both with the same spelling and do not mean the same thing: HERE's road
+ * `bus` is a coach the traveller drives, its transit `bus` is a scheduled service; road `pedestrian`
+ * is a route you ask for, transit walking is how the answer describes the legs between stops. A
+ * common enum would spell them once and lose exactly the distinction that makes them two endpoints.
  *
  * A profile is added here in the same change that adds its request model, so a UI driven by this list
  * shows a new engine as soon as the contract can express it — greyed out until a navigator serves it.
@@ -44,32 +42,27 @@ sealed class NavigatorProfile {
      */
     data object HereCar : NavigatorProfile() {
 
+        /**
+         * What may be asked for, as a single choice: HERE's `transportMode` is a required parameter
+         * with exactly one value.
+         *
+         * Declared before [descriptor] because the descriptor publishes it: a property initializer
+         * in an object runs in source order, and reading it from above would publish an empty list.
+         */
+        val modes: List<HereTransportMode> = HereTransportMode.entries
+
         override val descriptor: ProviderProfileDescriptor = ProviderProfileDescriptor(
             provider = ProviderId.HERE,
             profile = ProviderProfile.CAR,
             path = NavigatorApi.HERE_CAR,
             displayName = "HERE road routing",
-            supportedModes = listOf(
-                TravelMode.CAR,
-                TravelMode.TRUCK,
-                TravelMode.TAXI,
-                TravelMode.BUS,
-                TravelMode.PEDESTRIAN,
-                TravelMode.BICYCLE,
-                TravelMode.SCOOTER,
-            ),
+            supportedModes = SupportedModes.HereRoad(modes),
             maxAlternatives = 6,
             maxVia = 20,
             supportsArriveBy = true,
             supportsTolls = true,
             requiresApiKey = true,
         )
-
-        /**
-         * What may be asked for, as a single choice: HERE's `transportMode` is a required parameter
-         * with exactly one value.
-         */
-        val modes: List<HereTransportMode> = HereTransportMode.entries
 
         /**
          * The modes HERE refuses to optimize for distance.
@@ -93,27 +86,30 @@ sealed class NavigatorProfile {
      */
     data object HereTransit : NavigatorProfile() {
 
+        /**
+         * What may be asked for, as a *filter* rather than a choice: HERE's `modes` is an optional
+         * set restricting which vehicles the answer may use, and an empty filter admits them all.
+         *
+         * These are the fifteen the Public Transit v8 `modes` parameter names, and nothing else.
+         * [TransitMode.OTHER] is excluded because it carries no meaning in a request: it exists so a
+         * vehicle this contract does not name yet still decodes in a response.
+         *
+         * Declared before [descriptor] for the same initialization-order reason as [HereCar.modes].
+         */
+        val modeFilter: List<TransitMode> = TransitMode.entries.filterNot { it == TransitMode.OTHER }
+
         override val descriptor: ProviderProfileDescriptor = ProviderProfileDescriptor(
             provider = ProviderId.HERE,
             profile = ProviderProfile.TRANSIT,
             path = NavigatorApi.HERE_TRANSIT,
             displayName = "HERE public transit",
-            supportedModes = listOf(TravelMode.TRANSIT, TravelMode.PEDESTRIAN),
+            supportedModes = SupportedModes.Transit(modeFilter),
             maxAlternatives = 5,
             maxVia = 0,
             supportsArriveBy = true,
             supportsTolls = false,
             requiresApiKey = true,
         )
-
-        /**
-         * What may be asked for, as a *filter* rather than a choice: HERE's `modes` is an optional
-         * set restricting which vehicles the answer may use, and an empty filter admits them all.
-         *
-         * [TransitMode.OTHER] is excluded because it carries no meaning in a request: it exists so a
-         * vehicle this contract does not name yet still decodes in a response.
-         */
-        val modeFilter: List<TransitMode> = TransitMode.entries.filterNot { it == TransitMode.OTHER }
     }
 
     companion object {
