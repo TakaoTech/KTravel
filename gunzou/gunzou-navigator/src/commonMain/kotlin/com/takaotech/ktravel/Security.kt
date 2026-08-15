@@ -32,7 +32,16 @@ data class NavigatorCaller(val isKnown: Boolean)
  */
 fun Application.configureSecurity(config: NavigatorServerConfig) {
     install(Authentication) {
-        bearer(NAVIGATOR_AUTH) {
+        // The description is what `ktor-server-routing-openapi` publishes as the security scheme of
+        // every authenticated operation. It belongs here rather than in the OpenAPI document: the
+        // scheme is inferred from this provider, so describing it anywhere else would be describing
+        // a copy that nothing keeps in step with the provider it claims to document.
+        bearer(
+            name = NAVIGATOR_AUTH,
+            description = "Who may call this server. Configured through `NAVIGATOR_ACCESS_TOKENS`; a deployment " +
+                "with none configured accepts anyone, which is only ever right for a server on a loopback socket " +
+                "inside the application that started it.",
+        ) {
             realm = "gunzo-navigator"
 
             // Always a principal, never null, and the verdict travels inside it. Returning null is

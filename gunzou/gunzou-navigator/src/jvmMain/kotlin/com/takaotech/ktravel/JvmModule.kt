@@ -12,8 +12,12 @@ private const val DEFAULT_RATE_LIMIT_REFILL_SECONDS = 60L
  * on the JVM, so Android and iOS call [startServer], which installs [module] directly.
  */
 fun Application.jvmModule() {
-    module(environment.config.toNavigatorServerConfig())
-    configureHttpJvm()
+    // Read once and passed on: reading it twice would log the startup line twice, and the version in
+    // the OpenAPI document has to be the version `GET /v1/health` reports.
+    val config = environment.config.toNavigatorServerConfig()
+
+    module(config)
+    configureHttpJvm(config)
     configureMonitoring()
 }
 

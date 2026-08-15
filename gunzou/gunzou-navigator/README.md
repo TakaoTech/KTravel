@@ -12,8 +12,8 @@ disables `buildFatJar` and `runDocker` as soon as it detects the multiplatform p
 
 | Source set | Holds |
 |---|---|
-| `commonMain` | `module()`, routing, resources, serialization, request validation, caching headers, Koin, `startServer()`, `startServerOnFreePort()` |
-| `jvmMain` | `jvmModule()`, compression, OpenAPI, Swagger UI, Dropwizard metrics, the Kermit to SLF4J bridge |
+| `commonMain` | `module()`, routing, the OpenAPI document, resources, serialization, request validation, caching headers, Koin, `startServer()`, `startServerOnFreePort()` |
+| `jvmMain` | `jvmModule()`, compression, Swagger UI, Dropwizard metrics, the Kermit to SLF4J bridge |
 | `androidMain`, `iosMain` | the `appLogWriter()` actual only |
 | `commonTest` | `ServerTest`, run on all three targets |
 
@@ -29,17 +29,47 @@ below are JVM only, and are therefore installed by `jvmModule()` rather than by 
 | `server-resources`, `server-routing-openapi`, `serialization-kotlinx-json` | ✅ | ✅ | ✅ |
 | `server-compression` | ✅ | ✅ | ❌ |
 | `server-metrics` | ✅ | ✅ | ❌ |
-| `server-openapi` | ✅ | ✅ | ❌ |
 | `server-swagger` | ✅ | ✅ | ❌ |
 | `server-call-logging` | ✅ | ✅ | ❌ |
 
 Android has no dedicated `androidJvm` variant anywhere in this table: it consumes the `jvm` one
 through the KGP `jvm -> androidJvm` compatibility rule.
 
+`server-openapi` was dropped with the hand written specification it served (see **The OpenAPI
+document** below): it renders a second, static copy of the same document through swagger-codegen,
+which costs a code generation pass at every startup and writes the result into a `docs/` directory
+relative to the working directory — inside the repository, when the server is started from Gradle.
+
 `server-call-logging` was dropped: it is JVM only and no code ever installed it. Its blocker is
 `MDC`, which has no Native counterpart. If per-call logging is ever needed on all targets, a ~30 line
 plugin built on the `CallSetup` and `ResponseSent` hooks — both public in `commonMain` of
 `ktor-server-core` — replaces it without any dependency.
+
+## The OpenAPI document
+
+The specification is generated from the routing tree by `ktor-server-routing-openapi`, not written
+by hand. The paths, the methods, the header parameters and the security requirement of each
+operation are read off the routes; every schema is inferred from the `kotlinx.serialization`
+descriptor of the type the endpoint receives or answers with. What is left — the prose, the tags and
+the statuses an endpoint can fail with — lives in `OpenApi.kt` in `commonMain`, attached to the
+routes through `Route.describe`.
+
+| Where | What |
+|---|---|
+| `commonMain/OpenApi.kt` | `info`, `servers`, tags, and one `RouteOperationFunction` per endpoint |
+| `commonMain/Routing.kt` | `.describe(HealthOperation)` and friends, one per route |
+| `commonMain/Security.kt` | the bearer scheme's description, on the provider it is inferred from |
+| `jvmMain/HttpJvm.kt` | `swaggerUI("swagger")`, reading from `OpenApiDocSource.Routing` |
+
+On the JVM that makes `/swagger` the UI and `/swagger/documentation.yaml` the specification, both
+built on the first request. `Application.navigatorOpenApiDoc(version)` returns the same document to
+anything else that wants it, on every target — `OpenApiDocumentTest` is what uses it today.
+
+This replaces `gunzou-navigator-app/src/main/resources/openapi/documentation.yaml`, which had
+already drifted from the contract it described: it declared a `ProviderCatalogResponse` without the
+`version` field the type has carried for some time, and nothing in the build could notice. A schema
+that comes from the serializer cannot drift, because it is the same descriptor the endpoint encodes
+through.
 
 ## Logging
 
