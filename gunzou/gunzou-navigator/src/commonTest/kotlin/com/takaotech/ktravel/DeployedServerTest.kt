@@ -9,7 +9,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
+// AUTH DISABLED: import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -23,7 +23,10 @@ import kotlin.test.assertTrue
  *
  * Nothing here is a different code path — that is the property being checked. The embedded server is
  * not a reduced build that skips its checks; it is this build with an empty configuration, so a bug
- * in the authenticated path is a bug in the path everyone runs, and these tests reach it.
+ * in the throttled path is a bug in the path everyone runs, and these tests reach it.
+ *
+ * AUTH DISABLED: the "who may call" section is commented out below. It exercises
+ * `NavigatorServerConfig.accessTokens`, which no longer exists, so `@Ignore` would not compile.
  */
 class DeployedServerTest {
 
@@ -34,81 +37,95 @@ class DeployedServerTest {
 
     /** Posts a route request, presenting whichever credentials the test is about. */
     private suspend fun ApplicationTestBuilder.requestRoute(
-        accessToken: String? = null,
+        // AUTH DISABLED: accessToken: String? = null,
         providerKey: String? = null,
     ): HttpResponse = client.post(NavigatorApi.HERE_CAR) {
         contentType(ContentType.Application.Json)
-        accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+        // AUTH DISABLED: accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         providerKey?.let { header(NavigatorApi.PROVIDER_KEY_HEADER, it) }
         setBody(com.takaotech.navigator.api.NavigatorJson.encodeToString(HereCarRouteRequest.serializer(), carRequest))
     }
 
     // ---- who may call ---------------------------------------------------------------------------
 
+    // AUTH DISABLED: every test in this section configured a deployment with access tokens.
+    // @Test
+    // fun `Given a deployment with access tokens When one is not presented Then the call is refused`() =
+    //     testApplication {
+    //         val here = HereMockServer(HerePayloads.CAR_ROUTE)
+    //         application {
+    //             module(NavigatorServerConfig(accessTokens = setOf("a-token")), here.asKoinModule())
+    //         }
+    //
+    //         val response = requestRoute(providerKey = "caller-key")
+    //
+    //         assertEquals(HttpStatusCode.Unauthorized, response.status)
+    //         assertEquals(ErrorCode.UNAUTHENTICATED, response.decodeError().code)
+    //         assertEquals(emptyList(), here.requests, "An unknown caller costs nothing upstream")
+    //     }
+    //
+    // @Test
+    // fun `Given a deployment with access tokens When an unknown one is presented Then the call is refused`() =
+    //     testApplication {
+    //         val here = HereMockServer(HerePayloads.CAR_ROUTE)
+    //         application {
+    //             module(NavigatorServerConfig(accessTokens = setOf("a-token")), here.asKoinModule())
+    //         }
+    //
+    //         val response = requestRoute(accessToken = "someone-elses-token", providerKey = "caller-key")
+    //
+    //         assertEquals(HttpStatusCode.Unauthorized, response.status)
+    //         assertEquals(ErrorCode.UNAUTHENTICATED, response.decodeError().code)
+    //     }
+    //
+    // @Test
+    // fun `Given a deployment with access tokens When a known one is presented Then the route is computed`() =
+    //     testApplication {
+    //         val here = HereMockServer(HerePayloads.CAR_ROUTE)
+    //         application {
+    //             module(NavigatorServerConfig(accessTokens = setOf("a-token", "another")), here.asKoinModule())
+    //         }
+    //
+    //         val response = requestRoute(accessToken = "another", providerKey = "caller-key")
+    //
+    //         assertEquals(HttpStatusCode.OK, response.status)
+    //     }
+    //
+    // // A probe that has to hold a token is a probe that reports an outage the server does not have,
+    // // and the endpoint carries nothing worth protecting.
+    // @Test
+    // fun `Given a deployment with access tokens When health is probed without one Then it still answers`() =
+    //     testApplication {
+    //         application {
+    //             module(
+    //                 NavigatorServerConfig(accessTokens = setOf("a-token")),
+    //                 HereMockServer(HerePayloads.CAR_ROUTE).asKoinModule(),
+    //             )
+    //         }
+    //
+    //         assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.HEALTH).status)
+    //         assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.PROFILES).status)
+    //     }
+
+    // What is left of that section: nobody has to say who they are, on any deployment.
     @Test
-    fun `Given a deployment with access tokens When one is not presented Then the call is refused`() = testApplication {
-        val here = HereMockServer(HerePayloads.CAR_ROUTE)
+    fun `Given a server with authentication disabled When no token is presented Then nothing is required`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.CAR_ROUTE)
+            application { module(NavigatorServerConfig.EMBEDDED, here.asKoinModule()) }
+
+            assertEquals(HttpStatusCode.OK, requestRoute(providerKey = "caller-key").status)
+        }
+
+    @Test
+    fun `Given the discovery paths When they are probed Then they answer without any credential`() = testApplication {
         application {
-            module(NavigatorServerConfig(accessTokens = setOf("a-token")), here.asKoinModule())
+            module(NavigatorServerConfig.EMBEDDED, HereMockServer(HerePayloads.CAR_ROUTE).asKoinModule())
         }
 
-        val response = requestRoute(providerKey = "caller-key")
-
-        assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertEquals(ErrorCode.UNAUTHENTICATED, response.decodeError().code)
-        assertEquals(emptyList(), here.requests, "An unknown caller costs nothing upstream")
+        assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.HEALTH).status)
+        assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.PROFILES).status)
     }
-
-    @Test
-    fun `Given a deployment with access tokens When an unknown one is presented Then the call is refused`() =
-        testApplication {
-            val here = HereMockServer(HerePayloads.CAR_ROUTE)
-            application {
-                module(NavigatorServerConfig(accessTokens = setOf("a-token")), here.asKoinModule())
-            }
-
-            val response = requestRoute(accessToken = "someone-elses-token", providerKey = "caller-key")
-
-            assertEquals(HttpStatusCode.Unauthorized, response.status)
-            assertEquals(ErrorCode.UNAUTHENTICATED, response.decodeError().code)
-        }
-
-    @Test
-    fun `Given a deployment with access tokens When a known one is presented Then the route is computed`() =
-        testApplication {
-            val here = HereMockServer(HerePayloads.CAR_ROUTE)
-            application {
-                module(NavigatorServerConfig(accessTokens = setOf("a-token", "another")), here.asKoinModule())
-            }
-
-            val response = requestRoute(accessToken = "another", providerKey = "caller-key")
-
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
-
-    @Test
-    fun `Given an embedded server When no token is presented Then nothing is required`() = testApplication {
-        val here = HereMockServer(HerePayloads.CAR_ROUTE)
-        application { module(NavigatorServerConfig.EMBEDDED, here.asKoinModule()) }
-
-        assertEquals(HttpStatusCode.OK, requestRoute(providerKey = "caller-key").status)
-    }
-
-    // A probe that has to hold a token is a probe that reports an outage the server does not have,
-    // and the endpoint carries nothing worth protecting.
-    @Test
-    fun `Given a deployment with access tokens When health is probed without one Then it still answers`() =
-        testApplication {
-            application {
-                module(
-                    NavigatorServerConfig(accessTokens = setOf("a-token")),
-                    HereMockServer(HerePayloads.CAR_ROUTE).asKoinModule(),
-                )
-            }
-
-            assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.HEALTH).status)
-            assertEquals(HttpStatusCode.OK, client.get(NavigatorApi.PROFILES).status)
-        }
 
     // ---- whose provider key ---------------------------------------------------------------------
 
@@ -197,27 +214,31 @@ class DeployedServerTest {
         assertTrue(statuses.all { it == HttpStatusCode.OK }, "A load balancer polls this: $statuses")
     }
 
-    @Test
-    fun `Given a rate limit and two callers When one exhausts it Then the other is unaffected`() = testApplication {
-        val here = HereMockServer(HerePayloads.CAR_ROUTE)
-        application {
-            module(
-                NavigatorServerConfig(
-                    accessTokens = setOf("noisy", "quiet"),
-                    providerApiKey = "server-held-key",
-                    rateLimit = NavigatorRateLimit(requests = 1, refillPeriodSeconds = 60),
-                ),
-                here.asKoinModule(),
-            )
-        }
-
-        assertEquals(HttpStatusCode.OK, requestRoute(accessToken = "noisy").status)
-        assertEquals(HttpStatusCode.TooManyRequests, requestRoute(accessToken = "noisy").status)
-
-        // The failure a shared bucket would produce: one client in a retry loop locking out
-        // everybody else, which is the thing the limit exists to prevent.
-        assertEquals(HttpStatusCode.OK, requestRoute(accessToken = "quiet").status)
-    }
+    // AUTH DISABLED: two callers are no longer distinguishable. The limit is keyed by remote host,
+    // and every client of a `testApplication` shares one, so this property cannot be expressed here
+    // any more — it is kept as it was rather than rewritten into something weaker.
+    // @Test
+    // fun `Given a rate limit and two callers When one exhausts it Then the other is unaffected`() =
+    //     testApplication {
+    //         val here = HereMockServer(HerePayloads.CAR_ROUTE)
+    //         application {
+    //             module(
+    //                 NavigatorServerConfig(
+    //                     accessTokens = setOf("noisy", "quiet"),
+    //                     providerApiKey = "server-held-key",
+    //                     rateLimit = NavigatorRateLimit(requests = 1, refillPeriodSeconds = 60),
+    //                 ),
+    //                 here.asKoinModule(),
+    //             )
+    //         }
+    //
+    //         assertEquals(HttpStatusCode.OK, requestRoute(accessToken = "noisy").status)
+    //         assertEquals(HttpStatusCode.TooManyRequests, requestRoute(accessToken = "noisy").status)
+    //
+    //         // The failure a shared bucket would produce: one client in a retry loop locking out
+    //         // everybody else, which is the thing the limit exists to prevent.
+    //         assertEquals(HttpStatusCode.OK, requestRoute(accessToken = "quiet").status)
+    //     }
 
     @Test
     fun `Given an embedded server When it is called repeatedly Then nothing is throttled`() = testApplication {

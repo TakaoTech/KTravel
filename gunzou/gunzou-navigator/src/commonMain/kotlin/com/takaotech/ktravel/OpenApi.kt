@@ -16,7 +16,7 @@ import io.ktor.openapi.Operation
 import io.ktor.openapi.jsonSchema
 import io.ktor.server.application.Application
 import io.ktor.server.routing.openapi.RouteOperationFunction
-import io.ktor.server.routing.openapi.findSecuritySchemes
+// AUTH DISABLED: import io.ktor.server.routing.openapi.findSecuritySchemes
 import io.ktor.server.routing.openapi.plus
 import io.ktor.server.routing.routingRoot
 
@@ -40,7 +40,7 @@ import io.ktor.server.routing.routingRoot
  * did have.
  */
 
-/** Computing routes. Authenticated and rate limited. */
+/** Computing routes. Rate limited. */
 private const val TAG_ROUTING = "routing"
 
 /** What this server can do, and whether it is alive. */
@@ -53,8 +53,9 @@ private const val TAG_DISCOVERY = "discovery"
  * serves Swagger UI on the JVM and the plain document a test or another target asks for.
  *
  * The security schemes are deliberately absent: `ktor-server-routing-openapi` infers them from the
- * installed `Authentication` providers, so the bearer scheme is described once — where it is
- * configured, in [configureSecurity] — instead of once there and once here.
+ * installed `Authentication` providers, so the bearer scheme was described once — where it is
+ * configured, in [configureSecurity] — instead of once there and once here. With authentication
+ * switched off there is no provider installed and therefore no scheme to publish.
  *
  * @param version The build being documented, which is the build answering.
  */
@@ -93,32 +94,34 @@ internal fun OpenApiDocDsl.navigatorApiDocument(version: String) {
 /**
  * The whole document, as this application would serve it.
  *
- * Assembled from the three sources the library keeps separate — what this file says, what the
- * installed authentication providers imply, and what the routing tree carries — so that a caller
- * that is not Swagger UI can get the same document Swagger UI renders.
+ * Assembled from what this file says and what the routing tree carries, so that a caller that is not
+ * Swagger UI can get the same document Swagger UI renders. The third source the library keeps
+ * separate — what the installed authentication providers imply — is switched off with them.
  *
  * Reads the routing tree, so it is only meaningful once the routes are installed.
  *
  * @param version The build being documented.
  */
 internal fun Application.navigatorOpenApiDoc(version: String): OpenApiDoc =
-    OpenApiDoc.build { navigatorApiDocument(version) } + findSecuritySchemes() + routingRoot.descendants()
+    // AUTH DISABLED: `+ findSecuritySchemes()` published the bearer scheme inferred from the
+    // installed provider. There is none to infer while authentication is off.
+    OpenApiDoc.build { navigatorApiDocument(version) } +
+//            + findSecuritySchemes()
+        routingRoot.descendants()
 
 /**
  * `GET /v1/health`.
  *
- * Outside both the authentication and the rate limit, which the generated document says on its own:
- * the operation carries no security requirement because the route it is attached to sits under no
- * `authenticate` block.
+ * Outside the rate limit, and — like every other path now that authentication is switched off —
+ * outside any security requirement, which the generated document says on its own.
  */
 internal val HealthOperation: RouteOperationFunction = {
     tag(TAG_DISCOVERY)
     summary = "Whether the server is answering"
     description = """
         Liveness only: it says nothing about the providers behind it. Checking those would turn a
-        health probe into a call to a paid third party on every poll. Deliberately outside both the
-        authentication and the rate limit, so a probe never reports an outage the server does not
-        have.
+        health probe into a call to a paid third party on every poll. Deliberately outside the rate
+        limit, so a probe never reports an outage the server does not have.
     """.trimIndent()
 
     responses {
@@ -233,9 +236,9 @@ private fun Operation.Builder.routeResponses() {
  * The statuses a routing endpoint refuses with, each named in the contract's own terms.
  *
  * The sentence is the [ErrorCode] a client will find in the body rather than the reason phrase of
- * the status, because the status alone does not say which of them it is: a `401` is three different
- * remedies — present an access token, send a provider key, or replace the one that was rejected —
- * and only the code distinguishes them. See [ErrorCode] for the mapping this mirrors.
+ * the status, because the status alone does not say which of them it is: a `401` is two different
+ * remedies — send a provider key, or replace the one that was rejected — and only the code
+ * distinguishes them. See [ErrorCode] for the mapping this mirrors.
  *
  * `404` is absent on purpose: the endpoints exist, and the one thing this server answers a `404` to
  * is a path nobody serves, which belongs to no operation.
@@ -243,9 +246,11 @@ private fun Operation.Builder.routeResponses() {
 private val ROUTING_FAILURES: List<Pair<HttpStatusCode, String>> = listOf(
     HttpStatusCode.BadRequest to
         "INVALID_REQUEST: the body or a parameter does not satisfy the contract",
+    // AUTH DISABLED: UNAUTHENTICATED was the third code this status carried, and nothing raises it
+    // while the bearer provider is switched off.
     HttpStatusCode.Unauthorized to
-        "UNAUTHENTICATED, MISSING_CREDENTIALS or PROVIDER_UNAUTHORIZED: which credential is missing, " +
-        "and from whom, is what the code in the body says",
+        "MISSING_CREDENTIALS or PROVIDER_UNAUTHORIZED: which credential is missing, and from whom, " +
+        "is what the code in the body says",
     HttpStatusCode.UnprocessableEntity to
         "UNSUPPORTED_OPTION or NO_ROUTE_FOUND: the request is well formed and could not be served",
     HttpStatusCode.TooManyRequests to

@@ -13,8 +13,10 @@ import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import io.ktor.server.application.Application
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
+// AUTH DISABLED: authentication is switched off; uncomment these imports together with every other
+// `AUTH DISABLED` marker to put the routing paths back behind the bearer provider.
+// import io.ktor.server.auth.authenticate
+// import io.ktor.server.auth.principal
 import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.header
@@ -36,10 +38,14 @@ import org.koin.ktor.ext.inject
  * reach something that is not the HERE road endpoint. The price is a line per profile here, which is
  * the same line that would otherwise be a registry entry.
  *
- * The routing paths are the only ones behind authentication and a rate limit. `/v1/health` is left
- * open on purpose: it is what a load balancer polls to decide whether this instance is alive, it
- * carries nothing worth protecting, and a probe that has to hold a token — or that can be throttled
- * — is a probe that reports an outage the server does not have.
+ * The routing paths are the only ones behind a rate limit. `/v1/health` is left open on purpose: it
+ * is what a load balancer polls to decide whether this instance is alive, it carries nothing worth
+ * protecting, and a probe that can be throttled is a probe that reports an outage the server does
+ * not have.
+ *
+ * Authentication is switched off. Every caller reaches the routing paths, and the only credential
+ * left is the routing provider key in [NavigatorApi.PROVIDER_KEY_HEADER], resolved per request by
+ * [providerCredentials]. What used to guard them is kept below as commented out code.
  *
  * Each route carries the operation that documents it. The tree built here *is* the OpenAPI document:
  * `ktor-server-routing-openapi` reads the paths, the methods and the security requirements off it,
@@ -62,41 +68,38 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
             call.respond(catalog.toResponse(config.version))
         }.describe(ProfilesOperation)
 
-        // `optional` always, so an unknown caller reaches the handler and is refused there with the
-        // contract's error body. The plugin's own challenge answers an empty 401, which a client
-        // would have to special case.
-        authenticate(NAVIGATOR_AUTH, optional = true) {
-            rateLimit(NAVIGATOR_ROUTING_LIMIT) {
-                post(NavigatorApi.HERE_CAR) {
-                    requireCaller(config)
-                    respondWithRoute(hereCar, call.receive<HereCarRouteRequest>(), config)
-                }.describe(HereCarOperation)
+        // AUTH DISABLED: the routing paths used to sit inside this block. `optional` always, so an
+        // unknown caller reached the handler and was refused there with the contract's error body —
+        // the plugin's own challenge answers an empty 401, which a client would have to special case.
+        // authenticate(NAVIGATOR_AUTH, optional = true) {
+        rateLimit(NAVIGATOR_ROUTING_LIMIT) {
+            post(NavigatorApi.HERE_CAR) {
+                // AUTH DISABLED: requireCaller(config)
+                respondWithRoute(hereCar, call.receive<HereCarRouteRequest>(), config)
+            }.describe(HereCarOperation)
 
-                post(NavigatorApi.HERE_TRANSIT) {
-                    requireCaller(config)
-                    respondWithRoute(hereTransit, call.receive<HereTransitRouteRequest>(), config)
-                }.describe(HereTransitOperation)
-            }
+            post(NavigatorApi.HERE_TRANSIT) {
+                // AUTH DISABLED: requireCaller(config)
+                respondWithRoute(hereTransit, call.receive<HereTransitRouteRequest>(), config)
+            }.describe(HereTransitOperation)
         }
+        // }
     }
 }
 
-/**
- * Refuses a caller this server does not know.
- *
- * @throws NavigatorException [ErrorCode.UNAUTHENTICATED] when the deployment requires an access
- *   token and the request carried none this server accepts.
- */
-private fun RoutingContext.requireCaller(config: NavigatorServerConfig) {
-    // Null when nothing was presented, and present-but-unknown when the token was not one of ours.
-    // Both are the same refusal, and neither reaches a provider.
-    if (config.requiresAccessToken && call.principal<NavigatorCaller>()?.isKnown != true) {
-        throw NavigatorException(
-            code = ErrorCode.UNAUTHENTICATED,
-            message = "This navigator only answers callers presenting a known access token",
-        )
-    }
-}
+// AUTH DISABLED: what refused a caller this server did not know. It threw
+// `NavigatorException(ErrorCode.UNAUTHENTICATED)` when the deployment required an access token and
+// the request carried none this server accepts.
+// private fun RoutingContext.requireCaller(config: NavigatorServerConfig) {
+//     // Null when nothing was presented, and present-but-unknown when the token was not one of
+//     // ours. Both are the same refusal, and neither reaches a provider.
+//     if (config.requiresAccessToken && call.principal<NavigatorCaller>()?.isKnown != true) {
+//         throw NavigatorException(
+//             code = ErrorCode.UNAUTHENTICATED,
+//             message = "This navigator only answers callers presenting a known access token",
+//         )
+//     }
+// }
 
 /**
  * Runs one endpoint and answers with its routes.

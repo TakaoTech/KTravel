@@ -12,14 +12,14 @@ import com.takaotech.navigator.api.response.RouteResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.request.HttpRequestBuilder
+// AUTH DISABLED: import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
+// AUTH DISABLED: import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.ContentConvertException
@@ -100,7 +100,8 @@ class NavigatorClient private constructor(
     }
 
     private suspend inline fun <reified T> get(path: String, target: NavigatorTarget?): NavigatorResult<T> = call {
-        httpClient.get(origin(target) + path) { presentAccessToken(target) }
+        // AUTH DISABLED: httpClient.get(origin(target) + path) { presentAccessToken(target) }
+        httpClient.get(origin(target) + path)
     }
 
     private suspend inline fun <REQ, reified T> post(
@@ -112,10 +113,10 @@ class NavigatorClient private constructor(
     ): NavigatorResult<T> = call {
         httpClient.post(origin(target) + path) {
             contentType(ContentType.Application.Json)
-            presentAccessToken(target)
-            // The provider key and the access token answer different questions — which routing
-            // engine account to bill, and who is allowed to ask — so they travel separately, and a
-            // deployment that holds a key of its own means this one is simply absent.
+            // AUTH DISABLED: presentAccessToken(target)
+            // The provider key says which routing engine account to bill, and it is the only
+            // credential left in the contract: a deployment that holds a key of its own means this
+            // one is simply absent.
             apiKey?.let { header(NavigatorApi.PROVIDER_KEY_HEADER, it) }
             // Encoded here rather than handed to content negotiation as an object: the body must be
             // written by the contract's own Json, the same one the server reads it with.
@@ -150,18 +151,15 @@ class NavigatorClient private constructor(
         NavigatorResult.TransportError(e)
     }
 
-    /**
-     * Says who is calling, when there is a token to say it with.
-     *
-     * A named target supplies its own token and never borrows the configured one, even when it has
-     * none. Falling back would present a credential issued by one deployment to a different host,
-     * which is a leak the caller did not ask for and could not see.
-     */
-    private suspend fun HttpRequestBuilder.presentAccessToken(target: NavigatorTarget?) {
-        val token = if (target != null) target.accessToken else config.accessToken.resolve()
-
-        token?.takeIf { it.isNotBlank() }?.let { header(HttpHeaders.Authorization, "Bearer $it") }
-    }
+    // AUTH DISABLED: what said who is calling, when there was a token to say it with. A named target
+    // supplied its own token and never borrowed the configured one, even when it had none: falling
+    // back would present a credential issued by one deployment to a different host, which is a leak
+    // the caller did not ask for and could not see.
+    // private suspend fun HttpRequestBuilder.presentAccessToken(target: NavigatorTarget?) {
+    //     val token = if (target != null) target.accessToken else config.accessToken.resolve()
+    //
+    //     token?.takeIf { it.isNotBlank() }?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+    // }
 
     /** Alternative ways to build a client. */
     companion object {

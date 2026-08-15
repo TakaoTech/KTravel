@@ -29,20 +29,20 @@ fun Application.jvmModule() {
  * variables onto these keys; an unset variable leaves the key absent, and absent means "not
  * required" throughout.
  *
- * That default matters: a server started with nothing set is open, and open is right for exactly one
- * deployment — the one inside the app, on a loopback socket. Anything reachable from outside the
- * machine has to be given tokens, and the startup log says so when it has none.
+ * Authentication is switched off, so every deployment is open to any caller and the startup log says
+ * so unconditionally. Reading the tokens back is a matter of uncommenting the lines below.
  */
 internal fun ApplicationConfig.toNavigatorServerConfig(): NavigatorServerConfig {
-    val tokens = tryGetString("navigator.accessTokens")
-        ?.split(',')
-        ?.map { it.trim() }
-        ?.filter { it.isNotEmpty() }
-        ?.toSet()
-        .orEmpty()
+    // AUTH DISABLED: the tokens this deployment accepted, comma separated.
+    // val tokens = tryGetString("navigator.accessTokens")
+    //     ?.split(',')
+    //     ?.map { it.trim() }
+    //     ?.filter { it.isNotEmpty() }
+    //     ?.toSet()
+    //     .orEmpty()
 
     val config = NavigatorServerConfig(
-        accessTokens = tokens,
+        // AUTH DISABLED: accessTokens = tokens,
         providerApiKey = tryGetString("navigator.providerApiKey")?.takeIf { it.isNotBlank() },
         rateLimit = readRateLimit(),
         version = tryGetString("navigator.version")?.takeIf { it.isNotBlank() } ?: NAVIGATOR_VERSION,
@@ -50,7 +50,8 @@ internal fun ApplicationConfig.toNavigatorServerConfig(): NavigatorServerConfig 
 
     appLog.i {
         "gunzo-navigator ${config.version}: " +
-            (if (config.requiresAccessToken) "${tokens.size} access token(s)" else "OPEN TO ANY CALLER") +
+            // AUTH DISABLED: (if (config.requiresAccessToken) "${tokens.size} access token(s)" else ...)
+            "OPEN TO ANY CALLER (authentication disabled)" +
             ", provider key " + (if (config.providerApiKey != null) "configured" else "expected from the caller") +
             ", " + (config.rateLimit?.let { "${it.requests} requests / ${it.refillPeriodSeconds}s" } ?: "no rate limit")
     }

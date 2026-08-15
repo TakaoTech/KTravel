@@ -111,41 +111,44 @@ class NavigatorClientTest {
         assertNull(sent.url.parameters["apiKey"], "A key in a query string ends up in every access log")
     }
 
+    // AUTH DISABLED: the tests whose subject is the access token. They reference
+    // `NavigatorClientConfig.accessToken`, which no longer exists, so `@Ignore` would not compile.
+    // @Test
+    // fun `Given an access token When a call is made Then it is presented as a bearer token`() = clientTest {
+    //     val engine = MockEngine { request ->
+    //         recorded += request
+    //         respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+    //     }
+    //     val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "an-access-token")
+    //
+    //     NavigatorClient.withEngine(engine, config).use { it.profiles() }
+    //
+    //     assertEquals("Bearer an-access-token", recorded.single().headers[HttpHeaders.Authorization])
+    // }
+    //
+    // @Test
+    // fun `Given an access token and a provider key When routing Then the two travel separately`() = clientTest {
+    //     val engine = MockEngine { request ->
+    //         recorded += request
+    //         respond(
+    //             NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+    //             HttpStatusCode.OK,
+    //             headersOf(HttpHeaders.ContentType, "application/json"),
+    //         )
+    //     }
+    //     val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "an-access-token")
+    //
+    //     NavigatorClient.withEngine(engine, config).use { it.hereCar(carRequest, apiKey = "provider-key") }
+    //
+    //     // Different questions: who is allowed to ask, and which routing account to bill.
+    //     val sent = recorded.single()
+    //     assertEquals("Bearer an-access-token", sent.headers[HttpHeaders.Authorization])
+    //     assertEquals("provider-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+    // }
+
+    // The client no longer has a token to present, on any call.
     @Test
-    fun `Given an access token When a call is made Then it is presented as a bearer token`() = clientTest {
-        val engine = MockEngine { request ->
-            recorded += request
-            respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
-        }
-        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "an-access-token")
-
-        NavigatorClient.withEngine(engine, config).use { it.profiles() }
-
-        assertEquals("Bearer an-access-token", recorded.single().headers[HttpHeaders.Authorization])
-    }
-
-    @Test
-    fun `Given an access token and a provider key When routing Then the two travel separately`() = clientTest {
-        val engine = MockEngine { request ->
-            recorded += request
-            respond(
-                NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
-                HttpStatusCode.OK,
-                headersOf(HttpHeaders.ContentType, "application/json"),
-            )
-        }
-        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "an-access-token")
-
-        NavigatorClient.withEngine(engine, config).use { it.hereCar(carRequest, apiKey = "provider-key") }
-
-        // Different questions: who is allowed to ask, and which routing account to bill.
-        val sent = recorded.single()
-        assertEquals("Bearer an-access-token", sent.headers[HttpHeaders.Authorization])
-        assertEquals("provider-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
-    }
-
-    @Test
-    fun `Given no access token When a call is made Then no authorization header is sent`() = clientTest {
+    fun `Given authentication is disabled When a call is made Then no authorization header is sent`() = clientTest {
         client().use { it.hereCar(carRequest) }
 
         assertNull(recorded.single().headers[HttpHeaders.Authorization])
@@ -238,47 +241,50 @@ class NavigatorClientTest {
         assertEquals("https://remote.test${NavigatorApi.HEALTH}", recorded.single().url.toString())
     }
 
-    @Test
-    fun `Given a target with a token When a route is asked for Then that token is presented`() = clientTest {
-        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
-        val engine = MockEngine { request ->
-            recorded += request
-            respond(
-                NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
-                HttpStatusCode.OK,
-                headersOf(HttpHeaders.ContentType, "application/json"),
-            )
-        }
-
-        NavigatorClient.withEngine(engine, config).use {
-            it.hereCar(carRequest, apiKey = "provider-key", target = NavigatorTarget("https://remote.test", "its-own"))
-        }
-
-        val sent = recorded.single()
-        assertEquals("Bearer its-own", sent.headers[HttpHeaders.Authorization])
-        // The provider key is the caller's, not the deployment's, so it follows the caller everywhere.
-        assertEquals("provider-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
-    }
-
-    @Test
-    fun `Given a target without a token When a call names it Then the configured token is not sent there`() =
-        clientTest {
-            val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
-            val engine = MockEngine { request ->
-                recorded += request
-                respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
-            }
-
-            NavigatorClient.withEngine(engine, config).use { it.profiles(NavigatorTarget("https://elsewhere.test")) }
-
-            // A credential issued by one deployment must not reach another host just because the
-            // caller asked that host a question.
-            assertNull(recorded.single().headers[HttpHeaders.Authorization])
-        }
+    // AUTH DISABLED: a target no longer carries a token, so neither does the question of which token
+    // a named target presents.
+    // @Test
+    // fun `Given a target with a token When a route is asked for Then that token is presented`() = clientTest {
+    //     val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+    //     val engine = MockEngine { request ->
+    //         recorded += request
+    //         respond(
+    //             NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+    //             HttpStatusCode.OK,
+    //             headersOf(HttpHeaders.ContentType, "application/json"),
+    //         )
+    //     }
+    //
+    //     NavigatorClient.withEngine(engine, config).use {
+    //         it.hereCar(carRequest, apiKey = "provider-key", target = NavigatorTarget("https://remote.test", "its-own"))
+    //     }
+    //
+    //     val sent = recorded.single()
+    //     assertEquals("Bearer its-own", sent.headers[HttpHeaders.Authorization])
+    //     // The provider key is the caller's, not the deployment's, so it follows the caller
+    //     // everywhere.
+    //     assertEquals("provider-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+    // }
+    //
+    // @Test
+    // fun `Given a target without a token When a call names it Then the configured token is not sent there`() =
+    //     clientTest {
+    //         val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+    //         val engine = MockEngine { request ->
+    //             recorded += request
+    //             respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+    //         }
+    //
+    //         NavigatorClient.withEngine(engine, config).use { it.profiles(NavigatorTarget("https://elsewhere.test")) }
+    //
+    //         // A credential issued by one deployment must not reach another host just because the
+    //         // caller asked that host a question.
+    //         assertNull(recorded.single().headers[HttpHeaders.Authorization])
+    //     }
 
     @Test
     fun `Given no target When a call is made Then the configured navigator still answers it`() = clientTest {
-        val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "configured-token")
+        val config = NavigatorClientConfig(baseUrl = "http://navigator.test")
         val engine = MockEngine { request ->
             recorded += request
             respond("{}", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
@@ -288,13 +294,15 @@ class NavigatorClientTest {
 
         val sent = recorded.single()
         assertEquals("http://navigator.test${NavigatorApi.PROFILES}", sent.url.toString())
-        assertEquals("Bearer configured-token", sent.headers[HttpHeaders.Authorization])
+        // AUTH DISABLED: assertEquals("Bearer configured-token", sent.headers[HttpHeaders.Authorization])
+        assertNull(sent.headers[HttpHeaders.Authorization])
     }
 
     @Test
     fun `Given two navigators When both are asked in turn Then one client serves both`() = clientTest {
         val embedded = NavigatorTarget("http://127.0.0.1:54213")
-        val remote = NavigatorTarget("https://remote.test", "a-token")
+        // AUTH DISABLED: val remote = NavigatorTarget("https://remote.test", "a-token")
+        val remote = NavigatorTarget("https://remote.test")
 
         client(body = """{ "profiles": [] }""").use {
             it.profiles(embedded)
@@ -308,7 +316,8 @@ class NavigatorClientTest {
             recorded.map { it.url.toString() },
         )
         assertNull(recorded.first().headers[HttpHeaders.Authorization])
-        assertEquals("Bearer a-token", recorded.last().headers[HttpHeaders.Authorization])
+        // AUTH DISABLED: assertEquals("Bearer a-token", recorded.last().headers[HttpHeaders.Authorization])
+        assertNull(recorded.last().headers[HttpHeaders.Authorization])
     }
 
     @Test
