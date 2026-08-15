@@ -9,7 +9,7 @@ import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.nulls.shouldBeNull
+// AUTH DISABLED: import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,12 +58,13 @@ class NavigatorTargetResolverTest :
                     target.baseUrl shouldBe APP_URL
                 }
 
-                then("no credential is attached to it") {
-                    // The app authenticates to no navigator. The only key that travels is the trip's
-                    // provider key, and the routing call carries that, not the destination.
-                    resolverOver(app, TravelSettingsDomain())
-                        .resolve(NavigatorKind.REMOTE).accessToken.shouldBeNull()
-                }
+                // AUTH DISABLED: a target no longer has an `accessToken` to assert on. The app
+                // authenticates to no navigator, and the only key that travels is the trip's
+                // provider key, which the routing call carries rather than the destination.
+                // then("no credential is attached to it") {
+                //     resolverOver(app, TravelSettingsDomain())
+                //         .resolve(NavigatorKind.REMOTE).accessToken.shouldBeNull()
+                // }
             }
 
             `when`("the embedded one is resolved") {
@@ -71,7 +72,7 @@ class NavigatorTargetResolverTest :
                     val target = resolverOver(app, TravelSettingsDomain()).resolve(NavigatorKind.EMBEDDED)
 
                     target.baseUrl shouldBe EMBEDDED_URL
-                    target.accessToken.shouldBeNull()
+                    // AUTH DISABLED: target.accessToken.shouldBeNull()
                 }
             }
         }

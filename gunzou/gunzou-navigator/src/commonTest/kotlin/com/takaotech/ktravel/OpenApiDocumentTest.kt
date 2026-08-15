@@ -35,8 +35,8 @@ class OpenApiDocumentTest {
 
         application {
             module()
-            // Inside the module block the routes of this module are installed, but the plugins that
-            // register security schemes are too, which is all the generator reads.
+            // Inside the module block the routes of this module are installed, which is all the
+            // generator reads now that no security scheme is registered.
             monitor.subscribe(io.ktor.server.application.ApplicationStarted) {
                 doc = it.navigatorOpenApiDoc(TEST_VERSION)
             }
@@ -111,23 +111,46 @@ class OpenApiDocumentTest {
             )
         }
 
+    // AUTH DISABLED: what the document said while the routes sat under an `authenticate` block. It
+    // references `NAVIGATOR_AUTH`, which no longer exists, so `@Ignore` would not compile.
+    // @Test
+    // fun `Given the authenticated routes When the document is generated Then only they require the token`() =
+    //     testApplication {
+    //         val doc = generateDocument()
+    //
+    //         // Inferred from the `authenticate` block the routes sit under, not declared by hand.
+    //         assertTrue(
+    //             doc.operationAt(NavigatorApi.HERE_CAR).security.orEmpty().any { NAVIGATOR_AUTH in it },
+    //             "the routing paths are the ones behind the access token",
+    //         )
+    //         assertTrue(
+    //             doc.operationAt(NavigatorApi.HEALTH).security.isNullOrEmpty(),
+    //             "a health probe that has to hold a token reports outages the server does not have",
+    //         )
+    //         assertTrue(
+    //             doc.components?.securitySchemes.orEmpty().containsKey(NAVIGATOR_AUTH),
+    //             "the bearer scheme is inferred from the installed provider",
+    //         )
+    //     }
+
+    // The property that replaces it: with the provider switched off, nothing in the document asks a
+    // caller for a credential the server no longer checks.
     @Test
-    fun `Given the authenticated routes When the document is generated Then only they require the token`() =
+    fun `Given authentication is disabled When the document is generated Then no operation requires a token`() =
         testApplication {
             val doc = generateDocument()
 
-            // Inferred from the `authenticate` block the routes sit under, not declared by hand.
             assertTrue(
-                doc.operationAt(NavigatorApi.HERE_CAR).security.orEmpty().any { NAVIGATOR_AUTH in it },
-                "the routing paths are the ones behind the access token",
+                doc.operationAt(NavigatorApi.HERE_CAR).security.isNullOrEmpty(),
+                "the routing paths sit under no `authenticate` block any more",
             )
             assertTrue(
                 doc.operationAt(NavigatorApi.HEALTH).security.isNullOrEmpty(),
                 "a health probe that has to hold a token reports outages the server does not have",
             )
             assertTrue(
-                doc.components?.securitySchemes.orEmpty().containsKey(NAVIGATOR_AUTH),
-                "the bearer scheme is inferred from the installed provider",
+                doc.components?.securitySchemes.isNullOrEmpty(),
+                "there is no installed provider left for a scheme to be inferred from",
             )
         }
 

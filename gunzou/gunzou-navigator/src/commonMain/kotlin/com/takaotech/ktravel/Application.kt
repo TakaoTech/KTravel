@@ -12,8 +12,8 @@ import org.koin.core.module.Module
  * Order matters in one place: [configureStatusPages] must be installed before the routes, so the
  * plugin is wrapping them when one throws.
  *
- * Called with no argument this is the embedded server — no caller to authenticate, no key of its
- * own, no limit. A deployment passes a [NavigatorServerConfig] instead.
+ * Called with no argument this is the embedded server — no key of its own, no limit. A deployment
+ * passes a [NavigatorServerConfig] instead.
  */
 fun Application.module(): Unit = module(NavigatorServerConfig.EMBEDDED, koinOverrides = null)
 

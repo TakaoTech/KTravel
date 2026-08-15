@@ -20,16 +20,20 @@ fun interface NavigatorBaseUrl {
     suspend fun resolve(): String
 }
 
-/**
- * The token that says who is calling, resolved per request for the same reason as [NavigatorBaseUrl].
- *
- * Null for a navigator that accepts anyone, which is what an embedded server does: its only caller
- * is the process it runs in, and there is nobody else to tell apart.
- */
-fun interface NavigatorAccessToken {
-    /** The token to present, or null to present none. */
-    suspend fun resolve(): String?
-}
+// AUTH DISABLED: the navigator authenticates nobody, so there is no token to say who is calling.
+// Uncomment this interface together with every other `AUTH DISABLED` marker to send bearer tokens
+// again.
+// /**
+//  * The token that says who is calling, resolved per request for the same reason as
+//  * [NavigatorBaseUrl].
+//  *
+//  * Null for a navigator that accepts anyone, which is what an embedded server does: its only
+//  * caller is the process it runs in, and there is nobody else to tell apart.
+//  */
+// fun interface NavigatorAccessToken {
+//     /** The token to present, or null to present none. */
+//     suspend fun resolve(): String?
+// }
 
 /**
  * One navigator, named for a single call.
@@ -40,22 +44,24 @@ fun interface NavigatorAccessToken {
  * has two, and building a second client for it would mean a second connection pool and a second set
  * of threads for a question that takes one request.
  *
- * The token travels with the address, in one object, and that is the point of the type. They are not
- * two independent overrides: a token is issued by a particular deployment, so naming a different host
- * while keeping the configured token would present a credential to a server it was never meant for.
- * A target with no token therefore means *no token*, not *fall back to the configured one*.
+ * AUTH DISABLED: a token used to travel with the address, in one object, and that was the point of
+ * the type. They were not two independent overrides: a token is issued by a particular deployment,
+ * so naming a different host while keeping the configured token would present a credential to a
+ * server it was never meant for. A target with no token therefore meant *no token*, not *fall back
+ * to the configured one*.
  *
  * @property baseUrl The origin to call, with or without a trailing slash.
- * @property accessToken The token this deployment accepts, or null when it accepts anyone.
  */
-data class NavigatorTarget(val baseUrl: String, val accessToken: String? = null)
+data class NavigatorTarget(
+    val baseUrl: String,
+    // AUTH DISABLED: the token this deployment accepts, or null when it accepts anyone.
+    // val accessToken: String? = null,
+)
 
 /**
  * How a [NavigatorClient] behaves.
  *
  * @property baseUrl Where to send requests.
- * @property accessToken Who to say is calling. Resolved per request, so a token edited in settings
- *   takes effect on the next call rather than on the next launch.
  * @property enableLogging Logs every request and response. Off by default: the bodies carry the
  *   caller's provider key in a header, and a log is somewhere it should not end up by accident.
  * @property requestTimeoutMillis How long to wait for a whole call. A routing request goes on to a
@@ -63,7 +69,9 @@ data class NavigatorTarget(val baseUrl: String, val accessToken: String? = null)
  */
 class NavigatorClientConfig(
     val baseUrl: NavigatorBaseUrl,
-    val accessToken: NavigatorAccessToken = NavigatorAccessToken { null },
+    // AUTH DISABLED: who to say is calling. Resolved per request, so a token edited in settings took
+    // effect on the next call rather than on the next launch.
+    // val accessToken: NavigatorAccessToken = NavigatorAccessToken { null },
     val enableLogging: Boolean = false,
     val requestTimeoutMillis: Long = DEFAULT_REQUEST_TIMEOUT_MILLIS,
 ) {
@@ -72,12 +80,12 @@ class NavigatorClientConfig(
      */
     constructor(
         baseUrl: String,
-        accessToken: String? = null,
+        // AUTH DISABLED: accessToken: String? = null,
         enableLogging: Boolean = false,
         requestTimeoutMillis: Long = DEFAULT_REQUEST_TIMEOUT_MILLIS,
     ) : this(
         baseUrl = NavigatorBaseUrl { baseUrl.trimEnd('/') },
-        accessToken = NavigatorAccessToken { accessToken },
+        // AUTH DISABLED: accessToken = NavigatorAccessToken { accessToken },
         enableLogging = enableLogging,
         requestTimeoutMillis = requestTimeoutMillis,
     )
