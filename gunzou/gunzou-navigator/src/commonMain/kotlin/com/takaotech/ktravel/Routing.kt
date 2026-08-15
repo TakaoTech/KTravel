@@ -22,8 +22,10 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
+import io.ktor.server.routing.openapi.describe
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
+import io.ktor.utils.io.ExperimentalKtorApi
 import org.koin.ktor.ext.inject
 
 /**
@@ -38,7 +40,14 @@ import org.koin.ktor.ext.inject
  * open on purpose: it is what a load balancer polls to decide whether this instance is alive, it
  * carries nothing worth protecting, and a probe that has to hold a token — or that can be throttled
  * — is a probe that reports an outage the server does not have.
+ *
+ * Each route carries the operation that documents it. The tree built here *is* the OpenAPI document:
+ * `ktor-server-routing-openapi` reads the paths, the methods and the security requirements off it,
+ * and [OpenApi.kt][HealthOperation] supplies the prose and the schemas. A route added without an
+ * operation is still documented, only without a description — which is a far smaller drift than a
+ * separate file that describes an endpoint nobody serves any more.
  */
+@OptIn(ExperimentalKtorApi::class)
 fun Application.configureRouting(config: NavigatorServerConfig) {
     val catalog: ProviderCatalog by inject()
     val hereCar: HereCarEndpoint by inject()
@@ -47,11 +56,11 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
     routing {
         get(NavigatorApi.HEALTH) {
             call.respond(HealthResponse(version = config.version))
-        }
+        }.describe(HealthOperation)
 
         get(NavigatorApi.PROFILES) {
             call.respond(catalog.toResponse(config.version))
-        }
+        }.describe(ProfilesOperation)
 
         // `optional` always, so an unknown caller reaches the handler and is refused there with the
         // contract's error body. The plugin's own challenge answers an empty 401, which a client
@@ -61,12 +70,12 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
                 post(NavigatorApi.HERE_CAR) {
                     requireCaller(config)
                     respondWithRoute(hereCar, call.receive<HereCarRouteRequest>(), config)
-                }
+                }.describe(HereCarOperation)
 
                 post(NavigatorApi.HERE_TRANSIT) {
                     requireCaller(config)
                     respondWithRoute(hereTransit, call.receive<HereTransitRouteRequest>(), config)
-                }
+                }.describe(HereTransitOperation)
             }
         }
     }

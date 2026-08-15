@@ -121,7 +121,10 @@ kotlin {
             // JVM only Ktor modules: none of these publishes a native variant.
             implementation(ktorLibs.server.compression)
             implementation(ktorLibs.server.metrics)
-            implementation(ktorLibs.server.openapi)
+
+            // Swagger UI only. `server-openapi` renders a second copy of the same document through
+            // swagger-codegen and writes it to disk at startup; the document itself now comes from
+            // the routing tree via `server-routing-openapi`, which is in commonMain.
             implementation(ktorLibs.server.swagger)
 
             // Kermit output is routed here; the binding is supplied by the consumer.
