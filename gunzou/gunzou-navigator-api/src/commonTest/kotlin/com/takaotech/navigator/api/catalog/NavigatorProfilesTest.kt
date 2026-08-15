@@ -8,6 +8,8 @@ import com.takaotech.navigator.api.here.HereTransportMode
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -85,6 +87,31 @@ class NavigatorProfilesTest {
             transit.none { it.contains("PEDESTRIAN") || it.contains("WALK") },
             "A walking entry in the transit filter means the two vocabularies were merged: $transit",
         )
+    }
+
+    @Test
+    fun `Given the published descriptors When their modes are read Then each carries its own API vocabulary`() {
+        // The descriptor is the half of the catalog that travels, so this is the check that a client
+        // reading `GET /v1/profiles` is offered what the endpoint accepts and not a coarser stand-in.
+        val road = NavigatorProfile.HereCar.descriptor.supportedModes
+        val transit = NavigatorProfile.HereTransit.descriptor.supportedModes
+
+        assertIs<SupportedModes.HereRoad>(road)
+        assertEquals(NavigatorProfile.HereCar.modes, road.modes)
+
+        assertIs<SupportedModes.Transit>(transit)
+        assertEquals(NavigatorProfile.HereTransit.modeFilter, transit.modes)
+    }
+
+    @Test
+    fun `Given the transit descriptor When its modes are read Then they are the fifteen Public Transit v8 names`() {
+        // The `modes` query parameter of GET /v8/routes: highSpeedTrain, intercityTrain,
+        // interRegionalTrain, regionalTrain, cityTrain, bus, ferry, subway, lightRail, privateBus,
+        // inclined, aerial, busRapid, monorail, flight. `OTHER` is ours, not HERE's.
+        val modes = assertIs<SupportedModes.Transit>(NavigatorProfile.HereTransit.descriptor.supportedModes).modes
+
+        assertEquals(15, modes.size)
+        assertFalse(modes.contains(TransitMode.OTHER), "OTHER is a decoding fallback, not a requestable mode")
     }
 
     @Test

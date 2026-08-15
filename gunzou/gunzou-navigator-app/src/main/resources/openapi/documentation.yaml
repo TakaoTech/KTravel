@@ -192,6 +192,54 @@ components:
         [HIGH_SPEED_TRAIN, INTERCITY_TRAIN, INTER_REGIONAL_TRAIN, REGIONAL_TRAIN, CITY_TRAIN, BUS,
          PRIVATE_BUS, BUS_RAPID, FERRY, SUBWAY, LIGHT_RAIL, MONORAIL, INCLINED, AERIAL, FLIGHT, OTHER]
 
+    SupportedModes:
+      description: |
+        The modes a profile accepts, spelled in the vocabulary of the API that answers it. The two
+        HERE endpoints do not share one: their `bus` and `pedestrian` collide by name and not by
+        meaning, so the list is discriminated by `type` and a client that does not know the variant
+        knows it cannot read the names either.
+      oneOf:
+        - $ref: "#/components/schemas/SupportedModesNone"
+        - $ref: "#/components/schemas/SupportedModesHereRoad"
+        - $ref: "#/components/schemas/SupportedModesTransit"
+      discriminator:
+        propertyName: type
+        mapping:
+          none: "#/components/schemas/SupportedModesNone"
+          hereRoad: "#/components/schemas/SupportedModesHereRoad"
+          transit: "#/components/schemas/SupportedModesTransit"
+
+    SupportedModesNone:
+      type: object
+      description: A profile that takes no mode at all.
+      required: [type]
+      properties:
+        type: { type: string, enum: [none] }
+
+    SupportedModesHereRoad:
+      type: object
+      description: HERE Routing v8, whose `transportMode` is required and single valued.
+      required: [type, modes]
+      properties:
+        type: { type: string, enum: [hereRoad] }
+        modes:
+          type: array
+          items:
+            type: string
+            enum: [CAR, TRUCK, PEDESTRIAN, BICYCLE, SCOOTER, TAXI, BUS, PRIVATE_BUS]
+
+    SupportedModesTransit:
+      type: object
+      description: |
+        The public transport vocabulary, which HERE Public Transit v8 takes as a filter over the
+        vehicles an answer may use; an empty filter admits all of them.
+      required: [type, modes]
+      properties:
+        type: { type: string, enum: [transit] }
+        modes:
+          type: array
+          items: { $ref: "#/components/schemas/TransitMode" }
+
     HereCarRouteRequest:
       type: object
       required: [origin, destination]
@@ -446,9 +494,7 @@ components:
         profile: { type: string, example: "car" }
         path: { type: string, example: "/v1/here/car" }
         displayName: { type: string, example: "HERE road routing" }
-        supportedModes:
-          type: array
-          items: { $ref: "#/components/schemas/TravelMode" }
+        supportedModes: { $ref: "#/components/schemas/SupportedModes" }
         maxAlternatives: { type: integer }
         maxVia: { type: integer, description: "Zero means the profile takes no intermediate stops" }
         supportsArriveBy: { type: boolean }

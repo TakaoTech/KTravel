@@ -4,9 +4,10 @@ import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.NavigatorJson
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
-import com.takaotech.navigator.api.common.TravelMode
+import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
+import com.takaotech.navigator.api.here.HereTransportMode
 import kotlinx.serialization.json.jsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,12 +22,14 @@ class CatalogAndErrorSerializationTest {
                 profile = ProviderProfile.CAR,
                 path = NavigatorApi.HERE_CAR,
                 displayName = "HERE road routing",
-                supportedModes = listOf(
-                    TravelMode.CAR,
-                    TravelMode.TRUCK,
-                    TravelMode.PEDESTRIAN,
-                    TravelMode.BICYCLE,
-                    TravelMode.SCOOTER,
+                supportedModes = SupportedModes.HereRoad(
+                    listOf(
+                        HereTransportMode.CAR,
+                        HereTransportMode.TRUCK,
+                        HereTransportMode.PEDESTRIAN,
+                        HereTransportMode.BICYCLE,
+                        HereTransportMode.SCOOTER,
+                    ),
                 ),
                 maxAlternatives = 6,
                 maxVia = 20,
@@ -39,7 +42,7 @@ class CatalogAndErrorSerializationTest {
                 profile = ProviderProfile.TRANSIT,
                 path = NavigatorApi.HERE_TRANSIT,
                 displayName = "HERE public transit",
-                supportedModes = listOf(TravelMode.TRANSIT, TravelMode.PEDESTRIAN),
+                supportedModes = SupportedModes.Transit(listOf(TransitMode.SUBWAY, TransitMode.BUS)),
                 maxAlternatives = 5,
                 supportsArriveBy = true,
                 requiresApiKey = true,
