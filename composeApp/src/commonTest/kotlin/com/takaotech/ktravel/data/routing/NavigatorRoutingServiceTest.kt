@@ -8,6 +8,7 @@ import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
+import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingMode
@@ -145,9 +146,9 @@ class NavigatorRoutingServiceTest :
 
                         // Walking is something you ask the road profile for; on the transit side it
                         // is only ever how the answer describes the legs between stops.
-                        road.modes.map { it.id } shouldContain "PEDESTRIAN"
-                        transit.modes.map { it.id }.joinToString() shouldNotContain "PEDESTRIAN"
-                        transit.modes.map { it.id } shouldContain "SUBWAY"
+                        road.options.modes.map { it.id } shouldContain "PEDESTRIAN"
+                        transit.options.modes.map { it.id }.joinToString() shouldNotContain "PEDESTRIAN"
+                        transit.options.modes.map { it.id } shouldContain "SUBWAY"
                     }
                 }
             }
@@ -220,7 +221,7 @@ class NavigatorRoutingServiceTest :
                                 profileId = HERE_CAR,
                                 mode = RoutingMode("TRUCK"),
                                 alternatives = 3,
-                                avoidTolls = true,
+                                avoid = setOf(RouteFeature.TOLL_ROAD),
                             ),
                         )
 

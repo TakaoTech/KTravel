@@ -6,20 +6,17 @@ import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
-import com.takaotech.ktravel.domain.routing.ModeSelection
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
-import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
+import com.takaotech.ktravel.presentation.planning.transport.options.routeOptionsScreen
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
-import kotlinx.collections.immutable.persistentSetOf
-import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,8 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 
 @AssistedInject
 class PlanningTransportViewModel(
@@ -57,6 +52,15 @@ class PlanningTransportViewModel(
     private val routingService get() = planningGraph.routingService
     private val navigatorTargets get() = planningGraph.navigatorTargetResolver
 
+    /**
+     * The request the options block is assembling.
+     *
+     * Read and never written here beyond clearing it: which vehicle, which options and the rules
+     * between them belong to the presenter of the profile's family, and this view model would only
+     * be a second place to keep them consistent.
+     */
+    private val routeOptionsDraft get() = planningGraph.routeOptionsDraft
+
     private val mUiState = MutableStateFlow(PlanningTransportUiState())
     val uiState = mUiState.asStateFlow()
 
@@ -78,6 +82,16 @@ class PlanningTransportViewModel(
                     }
                     mUiState.update { it.copy(startPlace = startUi, endPlace = endUi) }
                 }
+        }
+
+        // Calculate follows the options block: it lights up once that block has published a request
+        // for the profile currently chosen, and goes out again the moment the profile changes.
+        viewModelScope.launch {
+            routeOptionsDraft.selection.collect { selection ->
+                mUiState.update { state ->
+                    state.copy(isRequestReady = selection != null && selection.profileId == state.selectedProfileId)
+                }
+            }
         }
 
         // The plan's preference decides where the screen opens, and a remote it cannot reach is not
@@ -111,9 +125,8 @@ class PlanningTransportViewModel(
 
         catalogJob = viewModelScope.launch {
             val catalog = routingService.catalog(kind)
-            mUiState.update { state ->
-                state.copy(isCatalogLoading = false, catalog = catalog).withProfileStillValid(catalog)
-            }
+            mUiState.update { it.copy(isCatalogLoading = false, catalog = catalog) }
+            keepProfileValid(catalog)
         }
     }
 
@@ -124,78 +137,45 @@ class PlanningTransportViewModel(
      * leave Calculate pointing at something this server does not serve. Falling back to the first
      * usable one is what the traveller would do anyway.
      */
-    private fun PlanningTransportUiState.withProfileStillValid(catalog: RoutingCatalog): PlanningTransportUiState {
-        val stillUsable = catalog.options.firstOrNull { it.profile.id == selectedProfileId && it.isSelectable }
-        if (stillUsable != null) return this
+    private fun keepProfileValid(catalog: RoutingCatalog) {
+        val selectedId = mUiState.value.selectedProfileId
+        if (catalog.options.any { it.profile.id == selectedId && it.isSelectable }) return
 
-        val fallback = catalog.selectable.firstOrNull() ?: return copy(
-            selectedProfileId = null,
-            selectedMode = null,
-            modeFilter = persistentSetOf(),
-        )
+        val fallback = catalog.selectable.firstOrNull()
+        if (fallback == null) {
+            routeOptionsDraft.clear()
+            mUiState.update { it.copy(selectedProfileId = null, routeOptionsScreen = null) }
+            return
+        }
 
-        return withProfile(fallback.profile.id)
+        selectProfile(fallback.profile.id)
     }
 
     // ---- what to ask it for -------------------------------------------------------------------
 
-    fun selectProfile(profileId: RoutingProfileId) {
-        mUiState.update { it.withProfile(profileId) }
-    }
-
     /**
-     * Selects a profile and resets everything that belonged to the previous one.
+     * Selects a profile and hands the options over to the block that belongs to it.
      *
-     * The options are not carried across: modes are declared per profile and their vocabularies
-     * collide by name without meaning the same thing, so a mode kept from the previous profile would
-     * be a value from another API's list that happens to spell the same.
+     * The previous request is dropped rather than adapted: modes are declared per profile and their
+     * vocabularies collide by name without meaning the same thing, so a mode kept from the previous
+     * profile would be a value from another API's list that happens to spell the same. The new
+     * block seeds its own defaults as soon as it composes.
      */
-    private fun PlanningTransportUiState.withProfile(profileId: RoutingProfileId): PlanningTransportUiState {
-        val profile = catalog?.options?.firstOrNull { it.profile.id == profileId }?.profile
+    fun selectProfile(profileId: RoutingProfileId) {
+        // Outside the update: it retries its lambda under contention, and a side effect in there
+        // would run more than once for one choice.
+        routeOptionsDraft.clear()
 
-        return copy(
-            selectedProfileId = profileId,
-            selectedMode = profile?.takeIf { it.modeSelection == ModeSelection.SINGLE }?.modes?.firstOrNull(),
-            // Empty rather than everything: upstream reads no filter as no restriction, which is
-            // what a traveller who has not chosen means.
-            modeFilter = persistentSetOf(),
-            alternatives = alternatives.coerceAtMost(profile?.maxAlternatives ?: 1),
-            avoidTolls = avoidTolls && profile?.supportsTolls == true,
-            shortestDistance = false,
-            failure = null,
-        )
-    }
+        mUiState.update { state ->
+            val profile = state.catalog?.options?.firstOrNull { it.profile.id == profileId }?.profile
 
-    fun selectMode(mode: RoutingMode) {
-        mUiState.update {
-            it.copy(
-                selectedMode = mode,
-                // The option does not survive a mode that upstream refuses it on.
-                shortestDistance =
-                it.shortestDistance && mode in (it.selectedProfile?.modesSupportingShortest ?: emptySet()),
+            state.copy(
+                selectedProfileId = profileId,
+                routeOptionsScreen = profile?.routeOptionsScreen(travelId),
+                failure = null,
             )
         }
     }
-
-    fun toggleModeFilter(mode: RoutingMode) {
-        mUiState.update { state ->
-            val updated = if (mode in state.modeFilter) state.modeFilter - mode else state.modeFilter + mode
-            state.copy(modeFilter = updated.toPersistentSet())
-        }
-    }
-
-    fun setAlternatives(count: Int) {
-        mUiState.update {
-            it.copy(alternatives = count.coerceIn(1, it.selectedProfile?.maxAlternatives ?: 1))
-        }
-    }
-
-    fun setAvoidTolls(avoid: Boolean) = mUiState.update { it.copy(avoidTolls = avoid) }
-
-    fun setShortestDistance(shortest: Boolean) = mUiState.update { it.copy(shortestDistance = shortest) }
-
-    fun setDeparture(date: LocalDate?, time: LocalTime?) =
-        mUiState.update { it.copy(departureDate = date, departureTime = time) }
 
     // ---- the answer ---------------------------------------------------------------------------
 
@@ -205,7 +185,7 @@ class PlanningTransportViewModel(
         if (calculateTransportJob?.isActive == true) return
 
         val state = mUiState.value
-        val selection = state.toSelection() ?: return
+        val selection = routeOptionsDraft.selection.value?.takeIf { it.profileId == state.selectedProfileId } ?: return
         val start = state.startPlace ?: return
         val end = state.endPlace ?: return
 

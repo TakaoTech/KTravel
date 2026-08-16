@@ -1,8 +1,9 @@
 package com.takaotech.ktravel.data.routing
 
-import com.takaotech.ktravel.domain.routing.ModeSelection
+import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.model.Route
@@ -58,24 +59,25 @@ fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
     is NavigatorProfile.HereCar -> RoutingProfileInfo(
         id = descriptor.toProfileId(),
         displayName = descriptor.displayName,
-        modes = modes.map { RoutingMode(it.name) },
         // Upstream requires exactly one vehicle, so the selector is a choice.
-        modeSelection = ModeSelection.SINGLE,
-        modesSupportingShortest = modesSupportingShortest.map { RoutingMode(it.name) }.toSet(),
-        supportsTolls = descriptor.supportsTolls,
-        maxAlternatives = descriptor.maxAlternatives,
+        options = RoutingOptionsSpec.RoadSingleMode(
+            modes = modes.map { RoutingMode(it.name) },
+            maxAlternatives = descriptor.maxAlternatives,
+            modesSupportingShortest = modesSupportingShortest.map { RoutingMode(it.name) }.toSet(),
+            supportsTolls = descriptor.supportsTolls,
+        ),
         requiresApiKey = descriptor.requiresApiKey,
     )
 
     is NavigatorProfile.HereTransit -> RoutingProfileInfo(
         id = descriptor.toProfileId(),
         displayName = descriptor.displayName,
-        modes = modeFilter.map { RoutingMode(it.name) },
         // Upstream takes a set that restricts the answer, so the selector is a filter. Nothing
         // selected means no restriction, which is not the same as nothing allowed.
-        modeSelection = ModeSelection.FILTER,
-        supportsTolls = descriptor.supportsTolls,
-        maxAlternatives = descriptor.maxAlternatives,
+        options = RoutingOptionsSpec.TransitFilter(
+            modes = modeFilter.map { RoutingMode(it.name) },
+            maxAlternatives = descriptor.maxAlternatives,
+        ),
         requiresApiKey = descriptor.requiresApiKey,
     )
 }
@@ -98,7 +100,9 @@ fun RouteSelection.Road.toCarRouteRequest(origin: GeoPoint, destination: GeoPoin
         routingMode = if (shortestDistance) HereRoutingMode.SHORT else HereRoutingMode.FAST,
         alternatives = alternatives,
         time = departureRouteTime(),
-        avoid = if (avoidTolls) HereAvoidOptions(features = listOf(HereAvoidFeature.TOLL_ROAD)) else null,
+        avoid = avoid
+            .takeIf { it.isNotEmpty() }
+            ?.let { features -> HereAvoidOptions(features = features.map { it.toHereAvoidFeature() }) },
         returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS,
     )
 
@@ -117,7 +121,21 @@ fun RouteSelection.Transit.toTransitRouteRequest(origin: GeoPoint, destination: 
         modes = modeFilter
             .takeIf { it.isNotEmpty() }
             ?.let { HereTransitModeFilter(include = it.map { mode -> mode.toTransitMode() }) },
+        changes = maxChanges,
+        pedestrianSpeedMetersPerSecond = pedestrianSpeedMetersPerSecond,
+        pedestrianMaxDistanceMeters = pedestrianMaxDistanceMeters,
     )
+
+/**
+ * Translates a feature by name, which holds because the app's enum is a subset of the contract's.
+ *
+ * A name that does not resolve is a feature added on one side and not the other, and failing here is
+ * better than dropping it and answering with a route through the thing the traveller excluded.
+ */
+private fun RouteFeature.toHereAvoidFeature(): HereAvoidFeature =
+    requireNotNull(HereAvoidFeature.entries.firstOrNull { it.name == name }) {
+        "'$name' is not a feature the navigator contract can be asked to avoid"
+    }
 
 private fun RoutingMode.toHereTransportMode(): HereTransportMode =
     requireNotNull(HereTransportMode.entries.firstOrNull { it.name == id }) {

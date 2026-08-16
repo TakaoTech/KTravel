@@ -8,9 +8,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import com.takaotech.ktravel.domain.routing.ModeSelection
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
 import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
@@ -149,30 +149,35 @@ internal class ModeChipPreviewParams : PreviewParameterProvider<ModeChipPreviewS
 private val HERE_CAR = RoutingProfileInfo(
     id = RoutingProfileId(provider = "here", profile = "car"),
     displayName = "HERE Routing",
-    modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),
-    modeSelection = ModeSelection.SINGLE,
-    modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
-    supportsTolls = true,
-    maxAlternatives = 3,
+    options = RoutingOptionsSpec.RoadSingleMode(
+        modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),
+        maxAlternatives = 3,
+        modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
+        supportsTolls = true,
+    ),
     requiresApiKey = true,
 )
 
 private val HERE_TRANSIT = RoutingProfileInfo(
     id = RoutingProfileId(provider = "here", profile = "transit"),
     displayName = "HERE Transit",
-    modes = listOf(
-        RoutingMode("SUBWAY"),
-        RoutingMode("BUS"),
-        RoutingMode("REGIONAL_TRAIN"),
-        RoutingMode("FERRY"),
+    options = RoutingOptionsSpec.TransitFilter(
+        modes = listOf(
+            RoutingMode("SUBWAY"),
+            RoutingMode("BUS"),
+            RoutingMode("REGIONAL_TRAIN"),
+            RoutingMode("FERRY"),
+        ),
+        maxAlternatives = 5,
     ),
-    modeSelection = ModeSelection.FILTER,
     requiresApiKey = true,
 )
 
 private val UNKNOWN_PROFILE = RoutingProfileInfo(
     id = RoutingProfileId(provider = "gunzou", profile = "hiking"),
     displayName = "Gunzou Hiking",
-    modes = listOf(RoutingMode("HIKING")),
-    modeSelection = ModeSelection.SINGLE,
+    options = RoutingOptionsSpec.RoadSingleMode(
+        modes = listOf(RoutingMode("HIKING")),
+        maxAlternatives = 1,
+    ),
 )

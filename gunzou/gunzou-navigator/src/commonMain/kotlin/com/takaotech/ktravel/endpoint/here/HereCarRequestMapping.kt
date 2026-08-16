@@ -3,6 +3,8 @@ package com.takaotech.ktravel.endpoint.here
 import com.takaotech.navigation.routing.dto.request.DepartureTime
 import com.takaotech.navigation.routing.dto.request.RoutesRequest
 import com.takaotech.navigation.routing.dto.request.Waypoint
+import com.takaotech.navigation.routing.model.AvoidFeature
+import com.takaotech.navigation.routing.model.AvoidOptions
 import com.takaotech.navigation.routing.model.ReturnAttribute
 import com.takaotech.navigation.routing.model.RoutingMode
 import com.takaotech.navigation.routing.model.TransportMode
@@ -34,6 +36,7 @@ fun HereCarRouteRequest.toHereRoutesRequest(): RoutesRequest = RoutesRequest(
     alternatives = alternatives,
     departureTime = (time as? RouteTime.DepartAt)?.let { DepartureTime.fromInstantUtc(it.instant) },
     arrivalTime = (time as? RouteTime.ArriveBy)?.instant?.toHereTimestamp(),
+    avoid = avoid?.features?.takeIf { it.isNotEmpty() }?.let { AvoidOptions(features = it.map { f -> f.toHere() }) },
     units = units.toHere(),
     // Never the server's own locale: RoutesRequest defaults to it, which would answer a caller in
     // whatever language the machine running the server happens to be configured for.
@@ -45,9 +48,9 @@ fun HereCarRouteRequest.toHereRoutesRequest(): RoutesRequest = RoutesRequest(
  * Tolls have to be computed to be avoided intelligently, so asking to avoid them implies asking for
  * them back.
  *
- * The `avoid` parameter itself is not yet forwarded: `HereRoutingApi` does not build one. Requesting
- * the toll data is the part that already works, and it is what lets a client show the user what a
- * route they asked to be toll free still costs.
+ * The avoidance itself travels in `avoid[features]`; this is the other half. HERE treats avoidance
+ * as a preference and routes through a toll road where there is no alternative, so a client that
+ * asked for a toll-free route still has to be able to show what the answer costs.
  */
 private fun HereCarRouteRequest.avoidAsReturnAttributes(): List<ReturnAttribute> =
     if (avoid?.features?.contains(HereAvoidFeature.TOLL_ROAD) == true &&
@@ -74,6 +77,18 @@ private fun HereTransportMode.toHere(): TransportMode = when (this) {
 private fun HereRoutingMode.toHere(): RoutingMode = when (this) {
     HereRoutingMode.FAST -> RoutingMode.FAST
     HereRoutingMode.SHORT -> RoutingMode.SHORT
+}
+
+private fun HereAvoidFeature.toHere(): AvoidFeature = when (this) {
+    HereAvoidFeature.TOLL_ROAD -> AvoidFeature.TOLL_ROAD
+    HereAvoidFeature.CONTROLLED_ACCESS_HIGHWAY -> AvoidFeature.CONTROLLED_ACCESS_HIGHWAY
+    HereAvoidFeature.FERRY -> AvoidFeature.FERRY
+    HereAvoidFeature.CAR_SHUTTLE_TRAIN -> AvoidFeature.CAR_SHUTTLE_TRAIN
+    HereAvoidFeature.TUNNEL -> AvoidFeature.TUNNEL
+    HereAvoidFeature.DIRT_ROAD -> AvoidFeature.DIRT_ROAD
+    HereAvoidFeature.DIFFICULT_TURNS -> AvoidFeature.DIFFICULT_TURNS
+    HereAvoidFeature.U_TURNS -> AvoidFeature.U_TURNS
+    HereAvoidFeature.SEASONAL_CLOSURE -> AvoidFeature.SEASONAL_CLOSURE
 }
 
 internal fun Units.toHere(): HereUnits = when (this) {

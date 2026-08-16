@@ -75,97 +75,100 @@ fun App() {
             val navController = rememberNavController()
 
             CompositionLocalProvider(LocalMetroViewModelFactory provides appGraph.metroViewModelFactory) {
-                NavHost(navController = navController, startDestination = TravelSelectionPage) {
-                    composable<TravelSelectionPage> {
-                        TravelSelectionPage(
-                            onNewTravelClick = {
-                                navController.navigate(TravelCreationPage)
-                            },
-                            onTravelClick = { id ->
-                                appGraph.planningGraphStore.getOrCreate(id)
-                                navController.navigate(PlanningNavigation(id)) {
-                                    popUpTo(TravelSelectionPage) { inclusive = false }
-                                }
-                            },
-                            onAppSettingsClick = { navController.navigate(AppSettingsNavigation) },
-                        )
-                    }
-
-                    // Settings of the installation, reachable without a trip: which navigator this
-                    // device talks to has to be configurable before any trip exists.
-                    composable<AppSettingsNavigation> { backStackEntry ->
-                        AppSettingsPage(
-                            viewModel = metroViewModel(),
-                            onNavigationBackClick = {
-                                if (backStackEntry.lifecycleIsResumed()) {
-                                    navController.navigateUp()
-                                }
-                            },
-                        )
-                    }
-
-                    composable<TravelCreationPage> {
-                        TravelCreationPage(
-                            onBackClick = {
-                                if (it.lifecycleIsResumed()) {
-                                    navController.navigateUp()
-                                }
-                            },
-                            onNavigateToPlanning = { travelId ->
-                                navController.navigate(PlanningNavigation(travelId)) {
-                                    popUpTo(TravelSelectionPage) { inclusive = false }
-                                }
-                            },
-                        )
-                    }
-
-                    navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
-                        composable<PlanningTripPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
-                            val viewModel =
-                                assistedMetroViewModel<PlanningViewModel, PlanningViewModel.Factory>(
-                                    viewModelStoreOwner = backStackEntry,
-                                    key = args.travelId,
-                                ) { _ -> create(args.travelId) }
-
-                            NavigationBackHandler(
-                                state = rememberNavigationEventState(NavigationEventInfo.None),
-                                isBackEnabled = true,
-                                onBackCompleted = {
-                                    if (backStackEntry.lifecycleIsResumed()) {
-                                        appGraph.planningGraphStore.release(args.travelId)
-                                        navController.navigateUp()
+                // Hoisted around the whole graph rather than repeated per destination: the
+                // transport screen draws its options through CircuitContent too, and a Circuit
+                // only some destinations can see is a crash waiting for the next one that needs it.
+                CircuitCompositionLocals(appGraph.circuit) {
+                    NavHost(navController = navController, startDestination = TravelSelectionPage) {
+                        composable<TravelSelectionPage> {
+                            TravelSelectionPage(
+                                onNewTravelClick = {
+                                    navController.navigate(TravelCreationPage)
+                                },
+                                onTravelClick = { id ->
+                                    appGraph.planningGraphStore.getOrCreate(id)
+                                    navController.navigate(PlanningNavigation(id)) {
+                                        popUpTo(TravelSelectionPage) { inclusive = false }
                                     }
                                 },
+                                onAppSettingsClick = { navController.navigate(AppSettingsNavigation) },
                             )
+                        }
 
-                            PlanningTripPage(
-                                viewModel = viewModel,
-                                onBackClick = {
+                        // Settings of the installation, reachable without a trip: which navigator this
+                        // device talks to has to be configurable before any trip exists.
+                        composable<AppSettingsNavigation> { backStackEntry ->
+                            AppSettingsPage(
+                                viewModel = metroViewModel(),
+                                onNavigationBackClick = {
                                     if (backStackEntry.lifecycleIsResumed()) {
-                                        appGraph.planningGraphStore.release(args.travelId)
                                         navController.navigateUp()
                                     }
-                                },
-                                onAddPlaceClicked = {
-                                    navController.navigate(PlaceInsertNavigation())
-                                },
-                                onDateClicked = {
-                                    navController.navigate(PlanningDetailPageNavigation(it))
-                                },
-                                onSettingClicked = {
-                                    navController.navigate(SettingsNavigation)
                                 },
                             )
                         }
 
-                        composable<PlanningDetailPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
-                            val parentArgs =
-                                navController.getBackStackEntry<PlanningNavigation>()
-                                    .toRoute<PlanningNavigation>()
+                        composable<TravelCreationPage> {
+                            TravelCreationPage(
+                                onBackClick = {
+                                    if (it.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
+                                },
+                                onNavigateToPlanning = { travelId ->
+                                    navController.navigate(PlanningNavigation(travelId)) {
+                                        popUpTo(TravelSelectionPage) { inclusive = false }
+                                    }
+                                },
+                            )
+                        }
 
-                            CircuitCompositionLocals(appGraph.circuit) {
+                        navigation<PlanningNavigation>(startDestination = PlanningTripPageNavigation::class) {
+                            composable<PlanningTripPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<PlanningTripPageNavigation>()
+                                val viewModel =
+                                    assistedMetroViewModel<PlanningViewModel, PlanningViewModel.Factory>(
+                                        viewModelStoreOwner = backStackEntry,
+                                        key = args.travelId,
+                                    ) { _ -> create(args.travelId) }
+
+                                NavigationBackHandler(
+                                    state = rememberNavigationEventState(NavigationEventInfo.None),
+                                    isBackEnabled = true,
+                                    onBackCompleted = {
+                                        if (backStackEntry.lifecycleIsResumed()) {
+                                            appGraph.planningGraphStore.release(args.travelId)
+                                            navController.navigateUp()
+                                        }
+                                    },
+                                )
+
+                                PlanningTripPage(
+                                    viewModel = viewModel,
+                                    onBackClick = {
+                                        if (backStackEntry.lifecycleIsResumed()) {
+                                            appGraph.planningGraphStore.release(args.travelId)
+                                            navController.navigateUp()
+                                        }
+                                    },
+                                    onAddPlaceClicked = {
+                                        navController.navigate(PlaceInsertNavigation())
+                                    },
+                                    onDateClicked = {
+                                        navController.navigate(PlanningDetailPageNavigation(it))
+                                    },
+                                    onSettingClicked = {
+                                        navController.navigate(SettingsNavigation)
+                                    },
+                                )
+                            }
+
+                            composable<PlanningDetailPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<PlanningDetailPageNavigation>()
+                                val parentArgs =
+                                    navController.getBackStackEntry<PlanningNavigation>()
+                                        .toRoute<PlanningNavigation>()
+
                                 CircuitContent(
                                     screen = PlanningDetailScreen(parentArgs.travelId, args.id),
                                     onNavEvent = { event ->
@@ -205,12 +208,10 @@ fun App() {
                                     },
                                 )
                             }
-                        }
 
-                        composable<StepDetailPageNavigation> { backStackEntry ->
-                            val args = backStackEntry.toRoute<StepDetailPageNavigation>()
+                            composable<StepDetailPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<StepDetailPageNavigation>()
 
-                            CircuitCompositionLocals(appGraph.circuit) {
                                 CircuitContent(
                                     screen = StepDetailScreen(
                                         travelId = args.travelId,
@@ -230,123 +231,123 @@ fun App() {
                                     },
                                 )
                             }
-                        }
 
-                        navigation<PlanningTransportNavigation>(
-                            startDestination = PlanningTransportPageNavigation::class,
-                        ) {
-                            composable<PlanningTransportPageNavigation> { backStackEntry ->
-                                val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
-                                val parentArgs =
-                                    navController.getBackStackEntry<PlanningNavigation>()
-                                        .toRoute<PlanningNavigation>()
-                                val transportEntry = remember(backStackEntry) {
-                                    navController.getBackStackEntry<PlanningTransportNavigation>()
-                                }
-                                val viewModel =
-                                    assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
-                                        viewModelStoreOwner = transportEntry,
-                                    ) { _ ->
-                                        create(
-                                            parentArgs.travelId,
-                                            args.dayId,
-                                            args.startPlaceId,
-                                            args.endPlaceId,
-                                        )
+                            navigation<PlanningTransportNavigation>(
+                                startDestination = PlanningTransportPageNavigation::class,
+                            ) {
+                                composable<PlanningTransportPageNavigation> { backStackEntry ->
+                                    val args = backStackEntry.toRoute<PlanningTransportPageNavigation>()
+                                    val parentArgs =
+                                        navController.getBackStackEntry<PlanningNavigation>()
+                                            .toRoute<PlanningNavigation>()
+                                    val transportEntry = remember(backStackEntry) {
+                                        navController.getBackStackEntry<PlanningTransportNavigation>()
                                     }
+                                    val viewModel =
+                                        assistedMetroViewModel<PlanningTransportViewModel, PlanningTransportViewModel.Factory>(
+                                            viewModelStoreOwner = transportEntry,
+                                        ) { _ ->
+                                            create(
+                                                parentArgs.travelId,
+                                                args.dayId,
+                                                args.startPlaceId,
+                                                args.endPlaceId,
+                                            )
+                                        }
 
-                                LaunchedEffect(viewModel) {
-                                    viewModel.navigationEvent.collect { event ->
-                                        when (event) {
-                                            is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
-                                                navController.navigate(
-                                                    PlanningTransportRoutePreviewPageNavigation(
-                                                        args.dayId,
-                                                        args.startPlaceId,
-                                                        args.endPlaceId,
-                                                    ),
-                                                )
+                                    LaunchedEffect(viewModel) {
+                                        viewModel.navigationEvent.collect { event ->
+                                            when (event) {
+                                                is PlanningTransportNavigationEvent.NavigateToRoutePreview -> {
+                                                    navController.navigate(
+                                                        PlanningTransportRoutePreviewPageNavigation(
+                                                            args.dayId,
+                                                            args.startPlaceId,
+                                                            args.endPlaceId,
+                                                        ),
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                PlanningTransportPage(
-                                    viewModel = viewModel,
-                                    onNavigationBackClick = {
-                                        if (backStackEntry.lifecycleIsResumed()) {
-                                            navController.navigateUp()
-                                        }
-                                    },
-                                )
-                            }
-
-                            composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
-                                val transportEntry = remember(backStackEntry) {
-                                    navController.getBackStackEntry<PlanningTransportNavigation>()
-                                }
-                                val viewModel =
-                                    viewModel<PlanningTransportViewModel>(viewModelStoreOwner = transportEntry)
-
-                                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-                                uiState.routes?.let { routes ->
-                                    PlanningTransportRoutePreviewPage(
-                                        routes = routes,
-                                        selectedRouteIndex = uiState.selectedRouteIndex,
-                                        onRouteConfirm = {
-                                            viewModel.saveSelectedRoute()
-                                            navController.popBackStack<PlanningDetailPageNavigation>(
-                                                inclusive = false,
-                                            )
+                                    PlanningTransportPage(
+                                        viewModel = viewModel,
+                                        onNavigationBackClick = {
+                                            if (backStackEntry.lifecycleIsResumed()) {
+                                                navController.navigateUp()
+                                            }
                                         },
-                                        onRouteChange = { viewModel.selectRoute(it) },
                                     )
+                                }
+
+                                composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
+                                    val transportEntry = remember(backStackEntry) {
+                                        navController.getBackStackEntry<PlanningTransportNavigation>()
+                                    }
+                                    val viewModel =
+                                        viewModel<PlanningTransportViewModel>(viewModelStoreOwner = transportEntry)
+
+                                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                                    uiState.routes?.let { routes ->
+                                        PlanningTransportRoutePreviewPage(
+                                            routes = routes,
+                                            selectedRouteIndex = uiState.selectedRouteIndex,
+                                            onRouteConfirm = {
+                                                viewModel.saveSelectedRoute()
+                                                navController.popBackStack<PlanningDetailPageNavigation>(
+                                                    inclusive = false,
+                                                )
+                                            },
+                                            onRouteChange = { viewModel.selectRoute(it) },
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    composable<PlaceInsertNavigation> { backStackEntry ->
-                        val args = backStackEntry.toRoute<PlaceInsertNavigation>()
-                        val travelId = navController.getBackStackEntry<PlanningNavigation>()
-                            .toRoute<PlanningNavigation>().travelId
-                        val viewModel =
-                            assistedMetroViewModel<PlaceInsertViewModel, PlaceInsertViewModel.Factory>(
-                                key = "place_${travelId}_${args.dayId}",
-                            ) { _ -> create(travelId, args.dayId) }
+                        composable<PlaceInsertNavigation> { backStackEntry ->
+                            val args = backStackEntry.toRoute<PlaceInsertNavigation>()
+                            val travelId = navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>().travelId
+                            val viewModel =
+                                assistedMetroViewModel<PlaceInsertViewModel, PlaceInsertViewModel.Factory>(
+                                    key = "place_${travelId}_${args.dayId}",
+                                ) { _ -> create(travelId, args.dayId) }
 
-                        PlaceInsertPage(
-                            viewModel = viewModel,
-                            onExit = {
-                                if (backStackEntry.lifecycleIsResumed()) {
+                            PlaceInsertPage(
+                                viewModel = viewModel,
+                                onExit = {
+                                    if (backStackEntry.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
+                                },
+                                onSaveClicked = {
                                     navController.navigateUp()
-                                }
-                            },
-                            onSaveClicked = {
-                                navController.navigateUp()
-                            },
-                        )
-                    }
+                                },
+                            )
+                        }
 
-                    composable<SettingsNavigation> { backStackEntry ->
-                        // The settings page is only reachable from a trip, and the API key belongs
-                        // to that trip: the id comes off the planning entry still on the back stack.
-                        val travelId = navController.getBackStackEntry<PlanningNavigation>()
-                            .toRoute<PlanningNavigation>().travelId
-                        val viewModel =
-                            assistedMetroViewModel<SettingsViewModel, SettingsViewModel.Factory>(
-                                key = "settings_$travelId",
-                            ) { _ -> create(travelId) }
+                        composable<SettingsNavigation> { backStackEntry ->
+                            // The settings page is only reachable from a trip, and the API key belongs
+                            // to that trip: the id comes off the planning entry still on the back stack.
+                            val travelId = navController.getBackStackEntry<PlanningNavigation>()
+                                .toRoute<PlanningNavigation>().travelId
+                            val viewModel =
+                                assistedMetroViewModel<SettingsViewModel, SettingsViewModel.Factory>(
+                                    key = "settings_$travelId",
+                                ) { _ -> create(travelId) }
 
-                        SettingsPage(
-                            viewModel = viewModel,
-                            onNavigationBackClick = {
-                                if (backStackEntry.lifecycleIsResumed()) {
-                                    navController.navigateUp()
-                                }
-                            },
-                        )
+                            SettingsPage(
+                                viewModel = viewModel,
+                                onNavigationBackClick = {
+                                    if (backStackEntry.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }

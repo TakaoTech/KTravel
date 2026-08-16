@@ -42,13 +42,21 @@ internal object PlanningTransportTestTags {
     const val REACHABILITY = "transport_reachability"
     const val RETRY_CATALOG = "transport_retry_catalog"
     const val CALCULATE = "transport_calculate"
-    const val AVOID_TOLLS = "transport_avoid_tolls"
     const val SHORTEST = "transport_shortest"
+    const val ALTERNATIVES = "transport_alternatives"
+    const val CHANGES_LIMIT = "transport_changes_limit"
+    const val CHANGES_SLIDER = "transport_changes_slider"
+    const val WALK_DISTANCE_LIMIT = "transport_walk_distance_limit"
+    const val WALK_DISTANCE_SLIDER = "transport_walk_distance_slider"
     const val FAILURE = "transport_failure"
 
     fun profileTag(provider: String, profile: String): String = "transport_profile_${provider}_$profile"
 
     fun modeTag(modeId: String): String = "transport_mode_$modeId"
+
+    fun avoidTag(featureName: String): String = "transport_avoid_$featureName"
+
+    fun walkingPaceTag(paceName: String): String = "transport_walking_pace_$paceName"
 }
 
 /** The uppercase eyebrow that opens each block. */
@@ -206,7 +214,7 @@ internal fun ProfileRow(
                         color = scheme.error,
                     )
                 }
-                ModeIconStrip(modes = option.profile.modes, alpha = alpha)
+                ModeIconStrip(modes = option.profile.options.modes, alpha = alpha)
             }
         }
     }

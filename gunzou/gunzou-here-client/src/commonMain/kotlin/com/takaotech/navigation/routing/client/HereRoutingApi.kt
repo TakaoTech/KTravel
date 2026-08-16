@@ -60,7 +60,11 @@ private fun HttpRequestBuilder.applyRoutesParameters(request: RoutesRequest) {
         parameter("alternatives", it)
     }
 
-    // TODO Add "avoid" param?
+    // Sent only when there is something to avoid: HERE rejects an empty avoid[features].
+    request.avoid?.featuresQueryString()?.let {
+        parameter("avoid[features]", it)
+    }
+
     // TODO Add "allow" param?
     // TODO Add "exclude" param?
 

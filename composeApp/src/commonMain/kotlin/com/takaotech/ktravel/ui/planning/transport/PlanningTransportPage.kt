@@ -3,7 +3,6 @@ package com.takaotech.ktravel.ui.planning.transport
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,12 +20,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,10 +38,15 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
+import com.slack.circuit.foundation.CircuitContent
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
-import com.takaotech.ktravel.domain.routing.ModeSelection
+import com.takaotech.ktravel.domain.routing.ProfileAvailability
+import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
+import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
+import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportUiState
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
@@ -58,20 +60,12 @@ import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.flag
 import ktravel.composeapp.generated.resources.place
-import ktravel.composeapp.generated.resources.planning_transport_alternatives
 import ktravel.composeapp.generated.resources.planning_transport_arrival
-import ktravel.composeapp.generated.resources.planning_transport_avoid_tolls
-import ktravel.composeapp.generated.resources.planning_transport_avoid_tolls_hint
-import ktravel.composeapp.generated.resources.planning_transport_avoid_tolls_unsupported
 import ktravel.composeapp.generated.resources.planning_transport_calculate
 import ktravel.composeapp.generated.resources.planning_transport_catalog_failed
 import ktravel.composeapp.generated.resources.planning_transport_catalog_loading
 import ktravel.composeapp.generated.resources.planning_transport_departure
-import ktravel.composeapp.generated.resources.planning_transport_mode_filter_hint
-import ktravel.composeapp.generated.resources.planning_transport_mode_filter_section
-import ktravel.composeapp.generated.resources.planning_transport_mode_section
 import ktravel.composeapp.generated.resources.planning_transport_navigator_version
-import ktravel.composeapp.generated.resources.planning_transport_options_section
 import ktravel.composeapp.generated.resources.planning_transport_profiles_available
 import ktravel.composeapp.generated.resources.planning_transport_profiles_declared
 import ktravel.composeapp.generated.resources.planning_transport_profiles_none
@@ -81,9 +75,6 @@ import ktravel.composeapp.generated.resources.planning_transport_server_embedded
 import ktravel.composeapp.generated.resources.planning_transport_server_embedded_hint
 import ktravel.composeapp.generated.resources.planning_transport_server_remote
 import ktravel.composeapp.generated.resources.planning_transport_server_section
-import ktravel.composeapp.generated.resources.planning_transport_shortest
-import ktravel.composeapp.generated.resources.planning_transport_shortest_hint
-import ktravel.composeapp.generated.resources.planning_transport_shortest_unsupported
 import ktravel.composeapp.generated.resources.planning_transport_status_checking
 import ktravel.composeapp.generated.resources.planning_transport_status_offline
 import ktravel.composeapp.generated.resources.planning_transport_status_online
@@ -116,11 +107,6 @@ fun PlanningTransportPage(
         onNavigatorChange = viewModel::selectNavigator,
         onRetryCatalog = viewModel::retryCatalog,
         onProfileChange = viewModel::selectProfile,
-        onModeChange = viewModel::selectMode,
-        onModeFilterToggle = viewModel::toggleModeFilter,
-        onAlternativesChange = viewModel::setAlternatives,
-        onAvoidTollsChange = viewModel::setAvoidTolls,
-        onShortestChange = viewModel::setShortestDistance,
         onCalculateClick = viewModel::calculateTransport,
     )
 }
@@ -134,11 +120,6 @@ private fun PlanningTransportPage(
     onNavigatorChange: (NavigatorKind) -> Unit,
     onRetryCatalog: () -> Unit,
     onProfileChange: (RoutingProfileId) -> Unit,
-    onModeChange: (RoutingMode) -> Unit,
-    onModeFilterToggle: (RoutingMode) -> Unit,
-    onAlternativesChange: (Int) -> Unit,
-    onAvoidTollsChange: (Boolean) -> Unit,
-    onShortestChange: (Boolean) -> Unit,
     onCalculateClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -199,22 +180,16 @@ private fun PlanningTransportPage(
             ProfileBlock(
                 uiState = uiState,
                 onProfileChange = onProfileChange,
-                onRetryCatalog = onRetryCatalog,
                 onUseEmbedded = { onNavigatorChange(NavigatorKind.EMBEDDED) },
             )
 
-            ModeBlock(
-                uiState = uiState,
-                onModeChange = onModeChange,
-                onModeFilterToggle = onModeFilterToggle,
-                onAvoidTollsChange = onAvoidTollsChange,
-            )
-
-            OptionsBlock(
-                uiState = uiState,
-                onAlternativesChange = onAlternativesChange,
-                onShortestChange = onShortestChange,
-            )
+            // Which controls belong here is not this screen's question. The profile decides the
+            // family, the family decides the vehicle's own options, and both arrive as a screen the
+            // Circuit factories resolve — so a new provider reaches the traveller without this file
+            // gaining a branch.
+            uiState.routeOptionsScreen
+                ?.takeIf { uiState.selectedOption?.isSelectable == true }
+                ?.let { CircuitContent(screen = it, onNavEvent = {}) }
 
             uiState.failure?.let { failure ->
                 Surface(
@@ -397,7 +372,6 @@ private fun NavigatorBlock(
 private fun ProfileBlock(
     uiState: PlanningTransportUiState,
     onProfileChange: (RoutingProfileId) -> Unit,
-    onRetryCatalog: () -> Unit,
     onUseEmbedded: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -434,20 +408,15 @@ private fun ProfileBlock(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         text = stringResource(Res.string.planning_transport_catalog_failed),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onRetryCatalog) {
-                            Text(stringResource(Res.string.planning_transport_retry))
-                        }
-                        if (uiState.navigatorKind == NavigatorKind.REMOTE) {
-                            TextButton(onClick = onUseEmbedded) {
-                                Text(stringResource(Res.string.planning_transport_use_embedded))
-                            }
+
+                    if (uiState.navigatorKind == NavigatorKind.REMOTE) {
+                        TextButton(onClick = onUseEmbedded) {
+                            Text(stringResource(Res.string.planning_transport_use_embedded))
                         }
                     }
                 }
@@ -467,121 +436,21 @@ private fun ProfileBlock(
 }
 
 /**
- * The modes of the profile that is selected, and nothing else.
+ * The screen as a traveller normally meets it: a remote navigator that answered, and a catalog with
+ * something picked in it.
  *
- * Which control this is depends on the profile, not on the provider: a road API takes one vehicle and
- * a transit API takes a set of acceptable ones, so the same block renders a choice or a filter.
+ * The empty state renders as a title and two addresses, which says nothing about how the blocks sit
+ * together — so the preview carries a whole catalog, including the profiles that cannot be picked,
+ * because the reason lines under them are the part most likely to be laid out wrong.
+ *
+ * [PlanningTransportUiState.routeOptionsScreen] stays null: the options block is drawn through
+ * `CircuitContent`, which needs a Circuit the preview has no way to provide.
  */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ModeBlock(
-    uiState: PlanningTransportUiState,
-    onModeChange: (RoutingMode) -> Unit,
-    onModeFilterToggle: (RoutingMode) -> Unit,
-    onAvoidTollsChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val profile = uiState.selectedProfile ?: return
-    val isFilter = profile.modeSelection == ModeSelection.FILTER
-
-    Column(modifier = modifier) {
-        SectionLabel(
-            stringResource(
-                if (isFilter) {
-                    Res.string.planning_transport_mode_filter_section
-                } else {
-                    Res.string.planning_transport_mode_section
-                },
-            ),
-        )
-
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            profile.modes.forEach { mode ->
-                ModeChip(
-                    mode = mode,
-                    selected = if (isFilter) mode in uiState.modeFilter else mode == uiState.selectedMode,
-                    enabled = uiState.selectedOption?.isSelectable == true,
-                    onClick = { if (isFilter) onModeFilterToggle(mode) else onModeChange(mode) },
-                )
-            }
-        }
-
-        if (isFilter) {
-            // An empty filter is no restriction, which is not the same as nothing being allowed.
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = stringResource(Res.string.planning_transport_mode_filter_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            ToggleRow(
-                modifier = Modifier
-                    .padding(top = 18.dp)
-                    .testTag(PlanningTransportTestTags.AVOID_TOLLS),
-                title = stringResource(Res.string.planning_transport_avoid_tolls),
-                subtitle = if (profile.supportsTolls) {
-                    stringResource(Res.string.planning_transport_avoid_tolls_hint)
-                } else {
-                    stringResource(Res.string.planning_transport_avoid_tolls_unsupported)
-                },
-                checked = uiState.avoidTolls,
-                enabled = profile.supportsTolls,
-                onCheckedChange = onAvoidTollsChange,
-            )
-        }
-    }
-}
-
-/** How many routes, and what to optimize them for. */
-@Composable
-private fun OptionsBlock(
-    uiState: PlanningTransportUiState,
-    onAlternativesChange: (Int) -> Unit,
-    onShortestChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val profile = uiState.selectedProfile ?: return
-
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionLabel(stringResource(Res.string.planning_transport_options_section))
-
-        Text(
-            text = stringResource(Res.string.planning_transport_alternatives, uiState.alternatives),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
-        Slider(
-            value = uiState.alternatives.toFloat(),
-            onValueChange = { onAlternativesChange(it.toInt()) },
-            valueRange = 1f..profile.maxAlternatives.toFloat().coerceAtLeast(1f),
-            steps = (profile.maxAlternatives - 2).coerceAtLeast(0),
-        )
-
-        if (profile.modeSelection == ModeSelection.SINGLE) {
-            ToggleRow(
-                modifier = Modifier.testTag(PlanningTransportTestTags.SHORTEST),
-                title = stringResource(Res.string.planning_transport_shortest),
-                subtitle = if (uiState.canOptimizeForDistance) {
-                    stringResource(Res.string.planning_transport_shortest_hint)
-                } else {
-                    stringResource(Res.string.planning_transport_shortest_unsupported)
-                },
-                checked = uiState.shortestDistance,
-                enabled = uiState.canOptimizeForDistance,
-                onCheckedChange = onShortestChange,
-            )
-        }
-    }
-}
-
 @PreviewScreenSizes
 @Composable
 private fun PlanningTransportPagePreview() = KTravelTheme {
     PlanningTransportPage(
+        modifier = Modifier.fillMaxSize(),
         uiState = PlanningTransportUiState(
             startPlace = StepUi.Place(
                 name = "P.za del Colosseo, 1, 00184 Roma RM",
@@ -589,16 +458,63 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
                 lng = 0.0,
             ),
             endPlace = StepUi.Place(name = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0),
+            navigatorKind = NavigatorKind.REMOTE,
+            isRemoteConfigured = true,
+            catalog = PREVIEW_CATALOG,
+            selectedProfileId = PREVIEW_HERE_CAR.id,
+            isRequestReady = true,
         ),
         onNavigationBackClick = {},
         onNavigatorChange = {},
         onRetryCatalog = {},
         onProfileChange = {},
-        onModeChange = {},
-        onModeFilterToggle = {},
-        onAlternativesChange = {},
-        onAvoidTollsChange = {},
-        onShortestChange = {},
         onCalculateClick = {},
     )
 }
+
+private val PREVIEW_HERE_CAR = RoutingProfileInfo(
+    id = RoutingProfileId(provider = "here", profile = "car"),
+    displayName = "HERE Routing",
+    options = RoutingOptionsSpec.RoadSingleMode(
+        modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),
+        maxAlternatives = 3,
+        modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
+        supportsTolls = true,
+    ),
+    requiresApiKey = true,
+)
+
+private val PREVIEW_HERE_TRANSIT = RoutingProfileInfo(
+    id = RoutingProfileId(provider = "here", profile = "transit"),
+    displayName = "HERE Transit",
+    options = RoutingOptionsSpec.TransitFilter(
+        modes = listOf(
+            RoutingMode("SUBWAY"),
+            RoutingMode("BUS"),
+            RoutingMode("REGIONAL_TRAIN"),
+            RoutingMode("FERRY"),
+        ),
+        maxAlternatives = 5,
+    ),
+    requiresApiKey = true,
+)
+
+/** A profile from a newer navigator: no localized name, no description. */
+private val PREVIEW_UNKNOWN = RoutingProfileInfo(
+    id = RoutingProfileId(provider = "gunzou", profile = "hiking"),
+    displayName = "Gunzou Hiking",
+    options = RoutingOptionsSpec.RoadSingleMode(
+        modes = listOf(RoutingMode("HIKING")),
+        maxAlternatives = 1,
+    ),
+)
+
+private val PREVIEW_CATALOG = RoutingCatalog(
+    options = listOf(
+        RoutingProfileOption(PREVIEW_HERE_CAR, ProfileAvailability.Available),
+        RoutingProfileOption(PREVIEW_HERE_TRANSIT, ProfileAvailability.MissingApiKey),
+        RoutingProfileOption(PREVIEW_UNKNOWN, ProfileAvailability.NotServed),
+    ),
+    navigatorVersion = null,
+    latencyMillis = 87,
+)

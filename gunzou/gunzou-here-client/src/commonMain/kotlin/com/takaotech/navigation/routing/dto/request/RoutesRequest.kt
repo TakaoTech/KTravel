@@ -1,6 +1,7 @@
 package com.takaotech.navigation.routing.dto.request
 
 import com.takaotech.navigation.common.model.Units
+import com.takaotech.navigation.routing.model.AvoidOptions
 import com.takaotech.navigation.routing.model.ReturnAttribute
 import com.takaotech.navigation.routing.model.RoutingMode
 import com.takaotech.navigation.routing.model.TransportMode
@@ -39,6 +40,8 @@ import com.vanniktech.locale.Locales
  *                         If neither departureTime nor arrivalTime are specified, current time at
  *                         departure place will be used.
  * @property arrivalTime Arrival time in RFC 3339 format
+ * @property avoid What the route should stay away from. HERE treats it as a preference: where there
+ *                 is no alternative it routes through the feature anyway and reports a notice.
  * @property units Units of measurement
  * @property lang Language for instructions (BCP47 format)
  * @property returnAttributes List of attributes to include in response. See [ReturnAttribute] for available options.
@@ -57,6 +60,7 @@ data class RoutesRequest(
     val alternatives: Int? = null,
     val departureTime: DepartureTime? = DepartureTime.any(),
     val arrivalTime: String? = null,
+    val avoid: AvoidOptions? = null,
     val units: Units = Units.METRIC,
     val lang: Locale? = Locale.from(Locales.currentLocaleString()),
     val returnAttributes: List<ReturnAttribute>? = null,
