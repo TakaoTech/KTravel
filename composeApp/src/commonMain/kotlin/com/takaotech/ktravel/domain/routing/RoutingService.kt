@@ -7,10 +7,6 @@ import com.takaotech.ktravel.domain.routing.model.Routes
 /**
  * Computing routes, without knowing who computes them.
  *
- * This replaces the old provider-per-engine arrangement, where the app held one implementation per
- * routing service and a factory chose between three hardcoded constants — two of which were never
- * implemented. There is one implementation now, because there is one thing the app talks to; which
- * engines exist behind it is data, and [catalog] is where that data comes from.
  */
 @OpenForMokkery
 interface RoutingService {

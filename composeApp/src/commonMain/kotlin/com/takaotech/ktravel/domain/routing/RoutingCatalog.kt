@@ -21,38 +21,66 @@ data class RoutingProfileId(val provider: String, val profile: String)
 data class RoutingMode(val id: String)
 
 /**
- * How a profile lets its modes be chosen, which is not the same question for every API.
+ * What a profile lets a traveller ask for, in the shape of the API family that answers it.
  *
- * The difference is upstream and real: HERE's road API takes a required `transportMode` with exactly
- * one value, while its transit API takes an optional set of modes that restricts which vehicles the
- * answer may use. Naming it here is what lets a selector render both without knowing which provider
- * it is drawing.
+ * A sealed type rather than a flat list of fields, and it mirrors
+ * [com.takaotech.navigator.api.catalog.SupportedModes] on the wire for the same reason: the two
+ * families do not take the same parameters. A road profile has a single required vehicle and things
+ * to keep off the route; a transit profile has a set of acceptable vehicles and a tolerance for
+ * transfers. Flattening both into one record forces every profile to carry the other's fields
+ * emptied out, and a reader cannot tell an option that is switched off from one that does not apply.
+ *
+ * Which variant a profile has is also what decides which options control the screen draws, so a
+ * family added here does not compile until it is given one.
+ *
+ * @property modes What may be asked for, in this profile's own vocabulary.
+ * @property maxAlternatives How many routes may be asked for at once.
  */
-enum class ModeSelection {
-    /** Exactly one mode, always. */
-    SINGLE,
+sealed interface RoutingOptionsSpec {
 
-    /** Any number of them, where none means no restriction rather than nothing. */
-    FILTER,
+    val modes: List<RoutingMode>
+    val maxAlternatives: Int
+
+    /** A profile that takes no mode at all, and therefore has nothing to configure. */
+    data object None : RoutingOptionsSpec {
+        override val modes: List<RoutingMode> get() = emptyList()
+        override val maxAlternatives: Int get() = 1
+    }
+
+    /**
+     * A route on roads, travelled by exactly one vehicle.
+     *
+     * @property modesSupportingShortest The subset that can be optimized for distance rather than
+     *   time. Upstream refuses the option on the others, so it is not offered rather than sent and
+     *   rejected.
+     * @property supportsTolls Whether the profile understands being asked to keep off toll roads.
+     */
+    data class RoadSingleMode(
+        override val modes: List<RoutingMode>,
+        override val maxAlternatives: Int,
+        val modesSupportingShortest: Set<RoutingMode> = emptySet(),
+        val supportsTolls: Boolean = false,
+    ) : RoutingOptionsSpec
+
+    /**
+     * A journey on scheduled services, restricted by which vehicles it may use.
+     *
+     * The modes are a filter and not a choice, and an empty one admits all of them.
+     */
+    data class TransitFilter(override val modes: List<RoutingMode>, override val maxAlternatives: Int) :
+        RoutingOptionsSpec
 }
 
 /**
  * What a profile can do, as the app needs to know it.
  *
- * @property modes What may be asked for, in this profile's own vocabulary.
- * @property modesSupportingShortest The subset that can be optimized for distance rather than time.
- *   Upstream refuses the option on the others, so it is not offered rather than sent and rejected.
- * @property maxAlternatives How many routes may be asked for at once.
+ * @property options Everything that depends on the family of API behind the profile.
  * @property requiresApiKey Whether a route needs the traveller's own provider key.
  */
 data class RoutingProfileInfo(
     val id: RoutingProfileId,
     val displayName: String,
-    val modes: List<RoutingMode>,
-    val modeSelection: ModeSelection,
-    val modesSupportingShortest: Set<RoutingMode> = emptySet(),
-    val supportsTolls: Boolean = false,
-    val maxAlternatives: Int = 1,
+    val options: RoutingOptionsSpec,
     val requiresApiKey: Boolean = false,
 )
 

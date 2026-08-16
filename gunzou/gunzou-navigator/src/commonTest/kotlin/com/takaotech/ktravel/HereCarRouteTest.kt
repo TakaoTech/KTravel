@@ -150,6 +150,35 @@ class HereCarRouteTest {
         }
 
     @Test
+    fun `Given features to avoid When routing Then they reach HERE as avoid features`() = testApplication {
+        val here = HereMockServer(HerePayloads.CAR_ROUTE)
+        application { module(here.asKoinModule()) }
+
+        val avoiding = request.copy(
+            avoid = HereAvoidOptions(
+                features = listOf(HereAvoidFeature.TOLL_ROAD, HereAvoidFeature.FERRY, HereAvoidFeature.TUNNEL),
+            ),
+        )
+
+        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), avoiding)
+
+        assertEquals("tollRoad,ferry,tunnel", here.requestUrl.query("avoid[features]"))
+    }
+
+    @Test
+    fun `Given nothing to avoid When routing Then no avoid parameter is sent at all`() = testApplication {
+        val here = HereMockServer(HerePayloads.CAR_ROUTE)
+        application { module(here.asKoinModule()) }
+
+        // An empty avoid[features] is rejected upstream, so absent and empty must not be confused.
+        val nothing = request.copy(avoid = HereAvoidOptions(features = emptyList()))
+
+        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), nothing)
+
+        assertNull(here.requestUrl.query("avoid[features]"))
+    }
+
+    @Test
     fun `Given a private bus When routing Then the mode is spelled the way HERE spells it`() = testApplication {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }

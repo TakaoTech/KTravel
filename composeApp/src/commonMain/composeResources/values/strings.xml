@@ -113,8 +113,15 @@
     <string name="planning_transport_mode_section">Transport mode</string>
     <string name="planning_transport_mode_filter_section">Accepted services</string>
     <string name="planning_transport_mode_filter_hint">With none selected, every service is accepted.</string>
-    <string name="planning_transport_avoid_tolls">Avoid tolls</string>
-    <string name="planning_transport_avoid_tolls_hint">Prefer roads without a toll booth</string>
+
+    <string name="planning_transport_avoid_section">Keep off the route</string>
+    <string name="planning_transport_avoid_hint">A preference, not a rule: where there is no alternative the route goes through anyway.</string>
+    <string name="planning_transport_avoid_toll_road">Toll roads</string>
+    <string name="planning_transport_avoid_controlled_access_highway">Motorways</string>
+    <string name="planning_transport_avoid_ferry">Ferries</string>
+    <string name="planning_transport_avoid_tunnel">Tunnels</string>
+    <string name="planning_transport_avoid_dirt_road">Unpaved roads</string>
+    <string name="planning_transport_avoid_car_shuttle_train">Car shuttle trains</string>
     <string name="planning_transport_avoid_tolls_unsupported">This profile does not handle tolls</string>
 
     <string name="planning_transport_options_section">Calculation options</string>
@@ -122,6 +129,17 @@
     <string name="planning_transport_shortest">Shortest distance</string>
     <string name="planning_transport_shortest_hint">Optimise for distance instead of time</string>
     <string name="planning_transport_shortest_unsupported">Not available for this mode</string>
+
+    <string name="planning_transport_changes_limit">Limit transfers</string>
+    <string name="planning_transport_changes_limit_hint">Without a limit the provider decides how many are worth it</string>
+    <string name="planning_transport_changes_count">At most %1$d transfers</string>
+    <string name="planning_transport_walking_pace_section">Walking pace</string>
+    <string name="planning_transport_walking_pace_slow">Slow</string>
+    <string name="planning_transport_walking_pace_normal">Normal</string>
+    <string name="planning_transport_walking_pace_fast">Fast</string>
+    <string name="planning_transport_walk_distance_limit">Limit walking distance</string>
+    <string name="planning_transport_walk_distance_limit_hint">How far you are willing to walk in a single leg</string>
+    <string name="planning_transport_walk_distance">At most %1$d m on foot</string>
 
     <string name="planning_transport_mode_car">Car</string>
     <string name="planning_transport_mode_truck">Lorry</string>

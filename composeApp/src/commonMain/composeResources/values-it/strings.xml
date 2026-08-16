@@ -113,8 +113,15 @@
     <string name="planning_transport_mode_section">Modalità di trasporto</string>
     <string name="planning_transport_mode_filter_section">Mezzi ammessi</string>
     <string name="planning_transport_mode_filter_hint">Se non ne selezioni nessuno, sono ammessi tutti.</string>
-    <string name="planning_transport_avoid_tolls">Evita i pedaggi</string>
-    <string name="planning_transport_avoid_tolls_hint">Preferisci strade senza casello</string>
+
+    <string name="planning_transport_avoid_section">Cosa evitare</string>
+    <string name="planning_transport_avoid_hint">È una preferenza, non un vincolo: dove non c'è alternativa il percorso ci passa comunque.</string>
+    <string name="planning_transport_avoid_toll_road">Strade a pedaggio</string>
+    <string name="planning_transport_avoid_controlled_access_highway">Autostrade</string>
+    <string name="planning_transport_avoid_ferry">Traghetti</string>
+    <string name="planning_transport_avoid_tunnel">Gallerie</string>
+    <string name="planning_transport_avoid_dirt_road">Strade sterrate</string>
+    <string name="planning_transport_avoid_car_shuttle_train">Treni navetta</string>
     <string name="planning_transport_avoid_tolls_unsupported">Questo profilo non gestisce i pedaggi</string>
 
     <string name="planning_transport_options_section">Opzioni di calcolo</string>
@@ -122,6 +129,17 @@
     <string name="planning_transport_shortest">Distanza più breve</string>
     <string name="planning_transport_shortest_hint">Ottimizza sulla distanza invece che sul tempo</string>
     <string name="planning_transport_shortest_unsupported">Non disponibile per questa modalità</string>
+
+    <string name="planning_transport_changes_limit">Limita i cambi</string>
+    <string name="planning_transport_changes_limit_hint">Senza limite è il provider a decidere quanti valgono la pena</string>
+    <string name="planning_transport_changes_count">Al massimo %1$d cambi</string>
+    <string name="planning_transport_walking_pace_section">Passo a piedi</string>
+    <string name="planning_transport_walking_pace_slow">Lento</string>
+    <string name="planning_transport_walking_pace_normal">Normale</string>
+    <string name="planning_transport_walking_pace_fast">Veloce</string>
+    <string name="planning_transport_walk_distance_limit">Limita la distanza a piedi</string>
+    <string name="planning_transport_walk_distance_limit_hint">Quanto sei disposto a camminare in una singola tratta</string>
+    <string name="planning_transport_walk_distance">Al massimo %1$d m a piedi</string>
 
     <string name="planning_transport_mode_car">Auto</string>
     <string name="planning_transport_mode_truck">Mezzo pesante</string>

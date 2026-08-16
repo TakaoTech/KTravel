@@ -1,20 +1,14 @@
 package com.takaotech.ktravel.presentation.planning.transport
 
 import androidx.compose.runtime.Stable
+import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
-import com.takaotech.ktravel.domain.routing.ModeSelection
-import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
-import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.domain.routing.model.Routes
 import com.takaotech.ktravel.presentation.planning.StepUi
-import kotlinx.collections.immutable.PersistentSet
-import kotlinx.collections.immutable.persistentSetOf
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 
 sealed interface PlanningTransportNavigationEvent {
     data object NavigateToRoutePreview : PlanningTransportNavigationEvent
@@ -69,15 +63,17 @@ data class PlanningTransportUiState(
 
     // ---- what to ask it for ---------------------------------------------------------------------
     val selectedProfileId: RoutingProfileId? = null,
-    /** The single mode, for a profile whose selection is [ModeSelection.SINGLE]. */
-    val selectedMode: RoutingMode? = null,
-    /** The accepted modes, for a profile whose selection is [ModeSelection.FILTER]. Empty admits all. */
-    val modeFilter: PersistentSet<RoutingMode> = persistentSetOf(),
-    val alternatives: Int = 1,
-    val avoidTolls: Boolean = false,
-    val shortestDistance: Boolean = false,
-    val departureDate: LocalDate? = null,
-    val departureTime: LocalTime? = null,
+    /**
+     * The options controls to draw for the chosen profile, or null when there is nothing to
+     * configure.
+     *
+     * A [Screen] and not a set of fields: which controls a profile takes depends on the family of
+     * API behind it and, within a road profile, on the vehicle chosen — so the screen renders it
+     * through `CircuitContent` and the presenter behind it owns both the choices and the rules.
+     */
+    val routeOptionsScreen: Screen? = null,
+    /** Whether those controls have produced a request that can be sent. */
+    val isRequestReady: Boolean = false,
 
     // ---- the answer -----------------------------------------------------------------------------
     val isLoading: Boolean = false,
@@ -92,51 +88,17 @@ data class PlanningTransportUiState(
 
     val selectedProfile: RoutingProfileInfo? get() = selectedOption?.profile
 
-    /** Whether the shortest-distance option applies to the mode currently picked. */
-    val canOptimizeForDistance: Boolean
-        get() = selectedMode != null && selectedMode in (selectedProfile?.modesSupportingShortest ?: emptySet())
-
     /**
      * Whether pressing Calculate can produce anything.
      *
      * The button was previously always enabled, and pressing it on a provider that did not exist
-     * threw straight past the screen. Everything it takes to build a request is checked here instead.
+     * threw straight past the screen. Everything it takes to build a request is checked here
+     * instead — including [isRequestReady], which is the options block saying it has one.
      */
     val canCalculate: Boolean
         get() = !isLoading &&
             startPlace != null &&
             endPlace != null &&
             selectedOption?.isSelectable == true &&
-            (selectedProfile?.modeSelection != ModeSelection.SINGLE || selectedMode != null)
-
-    /**
-     * The request, or null when the choices do not add up to one.
-     *
-     * Which variant is built follows from the profile rather than from the provider's name: a road
-     * API takes one vehicle, a transit API takes a set of acceptable ones, and a second road engine
-     * would take the first branch without anything here changing.
-     */
-    fun toSelection(): RouteSelection? {
-        val profile = selectedProfile ?: return null
-
-        return when (profile.modeSelection) {
-            ModeSelection.SINGLE -> RouteSelection.Road(
-                profileId = profile.id,
-                mode = selectedMode ?: return null,
-                alternatives = alternatives,
-                avoidTolls = avoidTolls && profile.supportsTolls,
-                shortestDistance = shortestDistance && canOptimizeForDistance,
-                departureDate = departureDate,
-                departureTime = departureTime,
-            )
-
-            ModeSelection.FILTER -> RouteSelection.Transit(
-                profileId = profile.id,
-                modeFilter = modeFilter,
-                alternatives = alternatives,
-                departureDate = departureDate,
-                departureTime = departureTime,
-            )
-        }
-    }
+            isRequestReady
 }

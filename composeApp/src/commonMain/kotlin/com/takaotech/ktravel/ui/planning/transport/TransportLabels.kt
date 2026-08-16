@@ -1,13 +1,21 @@
 package com.takaotech.ktravel.ui.planning.transport
 
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
+import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.presentation.planning.transport.TransportFailureReason
+import com.takaotech.ktravel.presentation.planning.transport.options.WalkingPace
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.directions_bus
 import ktravel.composeapp.generated.resources.directions_car
 import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.planning_transport_avoid_car_shuttle_train
+import ktravel.composeapp.generated.resources.planning_transport_avoid_controlled_access_highway
+import ktravel.composeapp.generated.resources.planning_transport_avoid_dirt_road
+import ktravel.composeapp.generated.resources.planning_transport_avoid_ferry
+import ktravel.composeapp.generated.resources.planning_transport_avoid_toll_road
+import ktravel.composeapp.generated.resources.planning_transport_avoid_tunnel
 import ktravel.composeapp.generated.resources.planning_transport_error_invalid_request
 import ktravel.composeapp.generated.resources.planning_transport_error_no_route
 import ktravel.composeapp.generated.resources.planning_transport_error_not_authenticated
@@ -44,6 +52,9 @@ import ktravel.composeapp.generated.resources.planning_transport_profile_here_tr
 import ktravel.composeapp.generated.resources.planning_transport_unavailable_missing_key
 import ktravel.composeapp.generated.resources.planning_transport_unavailable_not_served
 import ktravel.composeapp.generated.resources.planning_transport_unavailable_unreachable
+import ktravel.composeapp.generated.resources.planning_transport_walking_pace_fast
+import ktravel.composeapp.generated.resources.planning_transport_walking_pace_normal
+import ktravel.composeapp.generated.resources.planning_transport_walking_pace_slow
 import ktravel.composeapp.generated.resources.train
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
@@ -115,6 +126,28 @@ fun RoutingMode.iconOrNull(): DrawableResource? = when (id) {
     "FLIGHT" -> Res.drawable.flight
 
     else -> null
+}
+
+/**
+ * The localized name of something a route can be asked to avoid.
+ *
+ * Exhaustive rather than nullable, unlike the mode lookup above: this set is the app's own and does
+ * not arrive from a catalog, so a feature added without a label does not compile.
+ */
+fun RouteFeature.label(): StringResource = when (this) {
+    RouteFeature.TOLL_ROAD -> Res.string.planning_transport_avoid_toll_road
+    RouteFeature.CONTROLLED_ACCESS_HIGHWAY -> Res.string.planning_transport_avoid_controlled_access_highway
+    RouteFeature.FERRY -> Res.string.planning_transport_avoid_ferry
+    RouteFeature.TUNNEL -> Res.string.planning_transport_avoid_tunnel
+    RouteFeature.DIRT_ROAD -> Res.string.planning_transport_avoid_dirt_road
+    RouteFeature.CAR_SHUTTLE_TRAIN -> Res.string.planning_transport_avoid_car_shuttle_train
+}
+
+/** How fast the traveller walks, as the three paces the screen offers. */
+fun WalkingPace.label(): StringResource = when (this) {
+    WalkingPace.SLOW -> Res.string.planning_transport_walking_pace_slow
+    WalkingPace.NORMAL -> Res.string.planning_transport_walking_pace_normal
+    WalkingPace.FAST -> Res.string.planning_transport_walking_pace_fast
 }
 
 /** Why a profile cannot be picked, said where the traveller can act on it. */

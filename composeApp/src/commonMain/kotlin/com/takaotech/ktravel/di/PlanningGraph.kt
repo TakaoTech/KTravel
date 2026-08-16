@@ -6,6 +6,7 @@ import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingService
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
+import com.takaotech.ktravel.presentation.planning.transport.RouteOptionsDraft
 import dev.zacsweers.metro.GraphExtension
 import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.Provides
@@ -27,6 +28,15 @@ interface PlanningGraph {
 
     /** Which navigator this plan starts on, and whether the remote one can be offered at all. */
     val navigatorTargetResolver: NavigatorTargetResolver
+
+    /**
+     * The route request the transport screen is assembling.
+     *
+     * Shared between the options presenters, which write it, and the screen's view model, which
+     * sends it. Scoped to the plan rather than to the composition so it survives the trip to the
+     * route preview and back.
+     */
+    val routeOptionsDraft: RouteOptionsDraft
 
     @GraphExtension.Factory
     fun interface Factory {
