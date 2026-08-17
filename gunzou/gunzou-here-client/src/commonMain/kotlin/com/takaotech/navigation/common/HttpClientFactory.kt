@@ -36,11 +36,16 @@ internal fun createHereHttpClient(config: HereClientConfig): HttpClient =
     createPlatformHttpClient().withHereDefaults(config)
 
 /**
- * Applies the configuration every HERE API expects: JSON negotiation, the API key, and logging
- * when asked for.
+ * Applies the configuration every HERE API expects: JSON negotiation, the API key, and logging.
  *
  * No base URL is installed: the APIs live on different hosts, so each one builds an absolute URL
  * from its own base. Only the API key, which is common to all of them, is applied globally.
+ *
+ * Logging is installed unconditionally and there is no flag to turn it off, because the logger in
+ * [HereClientConfig] already is that flag: every line is written at `Severity.Debug`, and a caller
+ * whose logger keeps `Severity.Info` — which is what a release build does — drops them before they
+ * are formatted. Note that `LogLevel.ALL` prints the request URL, and the HERE API key travels in it
+ * as a query parameter: a build that logs at debug is a build that logs the key.
  */
 internal fun HttpClient.withHereDefaults(config: HereClientConfig): HttpClient = this.config {
     install(ContentNegotiation) {
@@ -49,10 +54,9 @@ internal fun HttpClient.withHereDefaults(config: HereClientConfig): HttpClient =
 
     install(hereApiKeyPlugin(config.apiKey))
 
-    if (config.enableLogging) {
-        install(Logging) {
-            level = LogLevel.ALL
-        }
+    install(Logging) {
+        level = LogLevel.ALL
+        logger = KermitKtorLogger(config.logger)
     }
 
     defaultRequest {

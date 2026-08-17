@@ -75,9 +75,6 @@ fun App() {
             val navController = rememberNavController()
 
             CompositionLocalProvider(LocalMetroViewModelFactory provides appGraph.metroViewModelFactory) {
-                // Hoisted around the whole graph rather than repeated per destination: the
-                // transport screen draws its options through CircuitContent too, and a Circuit
-                // only some destinations can see is a crash waiting for the next one that needs it.
                 CircuitCompositionLocals(appGraph.circuit) {
                     NavHost(navController = navController, startDestination = TravelSelectionPage) {
                         composable<TravelSelectionPage> {
@@ -95,8 +92,6 @@ fun App() {
                             )
                         }
 
-                        // Settings of the installation, reachable without a trip: which navigator this
-                        // device talks to has to be configurable before any trip exists.
                         composable<AppSettingsNavigation> { backStackEntry ->
                             AppSettingsPage(
                                 viewModel = metroViewModel(),

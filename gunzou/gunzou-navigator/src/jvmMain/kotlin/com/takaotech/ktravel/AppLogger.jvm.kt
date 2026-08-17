@@ -4,7 +4,7 @@ import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Severity
 import org.slf4j.LoggerFactory
 
-internal actual fun appLogWriter(): LogWriter = Slf4jLogWriter()
+actual fun appLogWriter(): LogWriter = Slf4jLogWriter()
 
 /**
  * Routes Kermit into SLF4J so that on the JVM every log line, both the application's and Ktor's own,

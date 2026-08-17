@@ -1,5 +1,7 @@
 package com.takaotech.navigator.client
 
+import co.touchlab.kermit.Logger
+
 /**
  * Where the navigator is, resolved per request rather than once.
  *
@@ -61,9 +63,15 @@ data class NavigatorTarget(
 /**
  * How a [NavigatorClient] behaves.
  *
+ * There is no logging flag: every request and response is written through [logger] at
+ * `Severity.Debug`, and what decides whether those lines exist is that logger's minimum severity —
+ * one decision, taken where the logger is built, instead of a boolean each call site has to
+ * remember. The bodies carry the caller's provider key, so a build that logs at debug is a build
+ * that logs the key.
+ *
  * @property baseUrl Where to send requests.
- * @property enableLogging Logs every request and response. Off by default: the bodies carry the
- *   caller's provider key in a header, and a log is somewhere it should not end up by accident.
+ * @property logger Where HTTP traffic is written. Null falls back to the Kermit singleton, which is
+ *   what a caller with no logger of its own — a test, a script — ends up on.
  * @property requestTimeoutMillis How long to wait for a whole call. A routing request goes on to a
  *   third party API, so it is well above what a local service would need.
  */
@@ -72,7 +80,7 @@ class NavigatorClientConfig(
     // AUTH DISABLED: who to say is calling. Resolved per request, so a token edited in settings took
     // effect on the next call rather than on the next launch.
     // val accessToken: NavigatorAccessToken = NavigatorAccessToken { null },
-    val enableLogging: Boolean = false,
+    val logger: Logger? = null,
     val requestTimeoutMillis: Long = DEFAULT_REQUEST_TIMEOUT_MILLIS,
 ) {
     /**
@@ -81,12 +89,12 @@ class NavigatorClientConfig(
     constructor(
         baseUrl: String,
         // AUTH DISABLED: accessToken: String? = null,
-        enableLogging: Boolean = false,
+        logger: Logger? = null,
         requestTimeoutMillis: Long = DEFAULT_REQUEST_TIMEOUT_MILLIS,
     ) : this(
         baseUrl = NavigatorBaseUrl { baseUrl.trimEnd('/') },
         // AUTH DISABLED: accessToken = NavigatorAccessToken { accessToken },
-        enableLogging = enableLogging,
+        logger = logger,
         requestTimeoutMillis = requestTimeoutMillis,
     )
 

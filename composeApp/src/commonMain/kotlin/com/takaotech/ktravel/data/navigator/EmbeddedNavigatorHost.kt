@@ -1,15 +1,15 @@
 package com.takaotech.ktravel.data.navigator
 
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.RunningServer
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.startServerOnFreePort
-import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Bound explicitly to the loopback address rather than to a hostname.
@@ -35,11 +35,19 @@ private const val LOOPBACK_HOST = "127.0.0.1"
  *   the foreground and the port that worked before is refused. [restart] is how a caller recovers,
  *   and it is why the base URL is resolved per request rather than captured once — the new server
  *   binds a different port, and callers have to follow it without being rebuilt.
+ *
+ * The logger is passed in rather than injected into this constructor, and it is nullable, for one
+ * reason: tests replace the host with a mock, and a mock has to be able to build one without a
+ * logger to give it. The application always gives it one — see `AppGraph.provideEmbeddedNavigatorHost`
+ * — and null only ever happens in a test that starts a real server to look at a real port.
+ *
+ * @param logger The application's logger, handed to the server so it writes where the rest of the
+ *   application writes. Null lets the server configure logging for itself, at a severity nobody
+ *   chose, which is why the application never passes null.
  */
 @SingleIn(AppScope::class)
 @OpenForMokkery
-@Inject
-class EmbeddedNavigatorHost {
+class EmbeddedNavigatorHost(private val logger: Logger? = null) {
 
     private val mutex = Mutex()
 
@@ -103,7 +111,7 @@ class EmbeddedNavigatorHost {
      */
     private suspend fun CompletableDeferred<RunningServer>.startServer() {
         try {
-            complete(startServerOnFreePort())
+            complete(startServerOnFreePort(logger))
         } catch (cancellation: CancellationException) {
             forget()
             cancel(cancellation)

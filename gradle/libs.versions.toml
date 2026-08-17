@@ -175,9 +175,6 @@ detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 logback-classic-server = { module = "ch.qos.logback:logback-classic", version = "1.5.35" }
 
-# Kermit is the multiplatform logging facade of :gunzou-navigator. On the JVM its output is routed
-# into SLF4J (see AppLogger.jvm.kt) so logback.xml keeps owning the format; Android and iOS use the
-# writers Kermit ships for Logcat and NSLog.
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kermit-koin = { module = "co.touchlab:kermit-koin", version.ref = "kermit" }
 # Version aligned with the one Ktor 3.5.0 already resolves.

@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.endpoint.here
 
+import co.touchlab.kermit.Logger
 import com.takaotech.navigation.HereClient
 import com.takaotech.navigation.common.HereClientConfig
 import kotlinx.coroutines.sync.Mutex
@@ -27,11 +28,14 @@ private const val DEFAULT_MAX_CLIENTS = 8
  * in flight call returns.
  *
  * @param maxClients How many keys stay resident. The least recently used one is evicted beyond it.
+ * @param logger What every client built here logs its HTTP traffic through. Null falls back to the
+ *   Kermit singleton, which is right for a process that configured it and wrong for one that runs
+ *   this server inside an application with a logger of its own.
  * @param createClient How a client is built. Overridden in tests to supply a mock engine.
  */
 class HereClientPool(
     private val maxClients: Int = DEFAULT_MAX_CLIENTS,
-    private val enableLogging: Boolean = false,
+    private val logger: Logger? = null,
     private val createClient: (HereClientConfig) -> HereClient = ::HereClient,
 ) : AutoCloseable {
 
@@ -69,7 +73,7 @@ class HereClientPool(
         // what makes the first entry the least recently used one.
         val existing = clients.remove(apiKey)
         val pooled = existing ?: PooledClient(
-            client = createClient(HereClientConfig(apiKey = apiKey, enableLogging = enableLogging)),
+            client = createClient(HereClientConfig(apiKey = apiKey, logger = logger)),
         )
         clients[apiKey] = pooled
         pooled.inUse++

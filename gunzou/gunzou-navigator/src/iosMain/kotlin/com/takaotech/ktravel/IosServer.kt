@@ -1,5 +1,7 @@
 package com.takaotech.ktravel
 
+import co.touchlab.kermit.Logger
+
 /**
  * Entry point of the GunzoNavigator framework.
  *
@@ -7,5 +9,8 @@ package com.takaotech.ktravel
  *
  * Does not block: the caller keeps its run loop and stops the returned server itself. Note that iOS
  * suspends open sockets once the app leaves the foreground.
+ *
+ * @param logger The host's logger, so the server's lines land wherever the host sends its own. Null
+ *   lets the server configure logging itself.
  */
-suspend fun startGunzoNavigator(): RunningServer = startServerOnFreePort()
+suspend fun startGunzouNavigator(logger: Logger? = null): RunningServer = startServerOnFreePort(logger)
