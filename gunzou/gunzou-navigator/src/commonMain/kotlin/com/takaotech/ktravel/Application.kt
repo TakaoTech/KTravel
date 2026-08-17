@@ -1,5 +1,6 @@
 package com.takaotech.ktravel
 
+import co.touchlab.kermit.Logger
 import io.ktor.server.application.Application
 import org.koin.core.module.Module
 
@@ -15,19 +16,20 @@ import org.koin.core.module.Module
  * Called with no argument this is the embedded server — no key of its own, no limit. A deployment
  * passes a [NavigatorServerConfig] instead.
  */
-fun Application.module(): Unit = module(NavigatorServerConfig.EMBEDDED, koinOverrides = null)
+fun Application.module(): Unit = module(NavigatorServerConfig.EMBEDDED, koinOverrides = null, logger = null)
 
 /**
  * The same, configured for a deployment.
  *
  * @param config What this instance requires of its callers and what it can do for them.
  */
-fun Application.module(config: NavigatorServerConfig): Unit = module(config, koinOverrides = null)
+fun Application.module(config: NavigatorServerConfig): Unit = module(config, koinOverrides = null, logger = null)
 
 /**
  * The embedded configuration, with part of its wiring replaced. Only tests use this.
  */
-internal fun Application.module(koinOverrides: Module?): Unit = module(NavigatorServerConfig.EMBEDDED, koinOverrides)
+internal fun Application.module(koinOverrides: Module?): Unit =
+    module(NavigatorServerConfig.EMBEDDED, koinOverrides, logger = null)
 
 /**
  * The same, with part of its wiring replaced.
@@ -36,9 +38,11 @@ internal fun Application.module(koinOverrides: Module?): Unit = module(Navigator
  * resolve: koin-ktor is an implementation dependency of this module.
  *
  * @param koinOverrides Definitions replacing the real ones. Only tests pass this.
+ * @param logger The host's logger, when this server runs inside an application rather than as one.
+ *   Null means there is no host and the server configures logging itself. See [installLogging].
  */
-internal fun Application.module(config: NavigatorServerConfig, koinOverrides: Module?) {
-    installLogging()
+internal fun Application.module(config: NavigatorServerConfig, koinOverrides: Module?, logger: Logger? = null) {
+    installLogging(logger)
     configureKoin(koinOverrides)
     configureSerialization()
     configureStatusPages()

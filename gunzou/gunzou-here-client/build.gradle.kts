@@ -77,6 +77,7 @@ kotlin {
 
             // Coroutines
             implementation(libs.kotlinx.coroutines)
+            api(libs.kermit)
         }
 
         commonTest.dependencies {

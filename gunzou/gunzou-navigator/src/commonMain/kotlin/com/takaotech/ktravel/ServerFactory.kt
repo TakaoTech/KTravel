@@ -1,5 +1,6 @@
 package com.takaotech.ktravel
 
+import co.touchlab.kermit.Logger
 import io.ktor.server.cio.CIO
 import io.ktor.server.cio.CIOApplicationEngine
 import io.ktor.server.engine.EmbeddedServer
@@ -64,12 +65,17 @@ class RunningServer internal constructor(
  *
  * @param wait blocks the calling thread until the server stops. Pass `false` when the caller owns
  * the run loop, as an iOS or Android host does.
+ * @param logger The host's logger, so the server's lines join the application's instead of going
+ *   somewhere of their own. Null lets the server configure logging itself, which is what a process
+ *   that is only this server wants.
  */
 fun startServer(
     port: Int = EPHEMERAL_PORT,
     wait: Boolean = true,
-): EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration> =
-    embeddedServer(CIO, port = port) { module() }.apply { start(wait) }
+    logger: Logger? = null,
+): EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration> = embeddedServer(CIO, port = port) {
+    module(NavigatorServerConfig.EMBEDDED, koinOverrides = null, logger = logger)
+}.apply { start(wait) }
 
 /**
  * Starts the server on a port the operating system picks, and reports which one it picked.
@@ -77,8 +83,12 @@ fun startServer(
  * Does not block: the caller keeps its run loop and stops the returned server itself. The port is
  * read once the socket is bound, so it is the real one rather than the [EPHEMERAL_PORT] placeholder.
  *
+ * @param logger The host's logger. Embedded there always is a host, and it is the one that decided
+ *   where log lines go; a server that ignored it would write its own somewhere else, at a severity
+ *   the application never asked for.
  */
-suspend fun startServerOnFreePort(): RunningServer = startServerOnFreePort(koinOverrides = null)
+suspend fun startServerOnFreePort(logger: Logger? = null): RunningServer =
+    startServerOnFreePort(koinOverrides = null, logger = logger)
 
 /**
  * Starts the server with part of its wiring replaced.
@@ -89,10 +99,11 @@ suspend fun startServerOnFreePort(): RunningServer = startServerOnFreePort(koinO
  *
  * @param koinOverrides Definitions replacing the real ones. It is what lets an integration test
  *   reach a real socket without also reaching a paid third party API.
+ * @param logger The host's logger, as in [startServerOnFreePort].
  */
-internal suspend fun startServerOnFreePort(koinOverrides: Module?): RunningServer {
+internal suspend fun startServerOnFreePort(koinOverrides: Module?, logger: Logger? = null): RunningServer {
     val server = embeddedServer(CIO, port = EPHEMERAL_PORT) {
-        module(NavigatorServerConfig.EMBEDDED, koinOverrides)
+        module(NavigatorServerConfig.EMBEDDED, koinOverrides, logger)
     }
     server.startSuspend(wait = false)
     return RunningServer(server, server.engine.resolvedConnectors().first().port)

@@ -263,6 +263,9 @@ kotlin {
                 implementation(project(":gunzou-navigator-client"))
                 implementation(project(":gunzou-navigator"))
 
+                // Logging facade of the whole process, configured by core/AppLogging.kt.
+                implementation(libs.kermit)
+
                 // Archive secrets: scrypt key derivation and AES-256-GCM (see data/archive/crypto).
                 implementation(libs.signum.indispensable)
                 implementation(libs.signum.supreme)

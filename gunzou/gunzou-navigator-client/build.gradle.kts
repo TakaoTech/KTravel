@@ -62,6 +62,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
             implementation(libs.kotlinx.coroutines)
+            api(libs.kermit)
         }
 
         commonTest.dependencies {

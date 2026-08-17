@@ -98,8 +98,7 @@ kotlin {
             // Dependency injection
             implementation(libs.koin.ktor)
 
-            // Logging
-            implementation(libs.kermit)
+            api(libs.kermit)
             implementation(libs.kermit.koin)
         }
 

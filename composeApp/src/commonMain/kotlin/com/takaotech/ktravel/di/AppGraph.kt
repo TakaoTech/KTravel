@@ -1,8 +1,10 @@
 package com.takaotech.ktravel.di
 
+import co.touchlab.kermit.Logger
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.runtime.ui.Ui
+import com.takaotech.ktravel.core.createAppLogger
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
@@ -26,6 +28,27 @@ interface AppGraph : ViewModelGraph {
     val embeddedNavigatorHost: EmbeddedNavigatorHost
 
     companion object {
+        /**
+         * The one logger of the process.
+         *
+         * Bound here rather than reached for through the Kermit singleton so that a component which
+         * logs has to be given a logger, and so that what it writes through is the same instance the
+         * HTTP clients and the embedded navigator write through. See
+         * [com.takaotech.ktravel.core.createAppLogger] for what it is configured with.
+         */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogger(): Logger = createAppLogger()
+
+        /**
+         * The embedded navigator, built here rather than by its own `@Inject` constructor so the
+         * application's logger reaches it: the server writes through whatever it is given, and what
+         * it is given has to be the same logger everything else in the process writes through.
+         */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideEmbeddedNavigatorHost(logger: Logger): EmbeddedNavigatorHost = EmbeddedNavigatorHost(logger)
+
         @Provides
         @SingleIn(AppScope::class)
         fun provideDatabaseProvider(): DatabaseProvider = DatabaseProvider()
@@ -48,8 +71,13 @@ interface AppGraph : ViewModelGraph {
          */
         @Provides
         @SingleIn(AppScope::class)
-        fun provideNavigatorClient(embeddedHost: EmbeddedNavigatorHost): NavigatorClient =
-            NavigatorClient(NavigatorClientConfig(baseUrl = { embeddedHost.baseUrl() }))
+        fun provideNavigatorClient(embeddedHost: EmbeddedNavigatorHost, logger: Logger): NavigatorClient =
+            NavigatorClient(
+                NavigatorClientConfig(
+                    baseUrl = { embeddedHost.baseUrl() },
+                    logger = logger,
+                ),
+            )
 
         @Provides
         @SingleIn(AppScope::class)

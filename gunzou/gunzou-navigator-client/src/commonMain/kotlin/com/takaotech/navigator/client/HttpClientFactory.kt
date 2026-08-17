@@ -43,9 +43,8 @@ internal fun HttpClient.withNavigatorDefaults(config: NavigatorClientConfig): Ht
     // read, and turning it into an exception would throw that away before anyone saw it.
     expectSuccess = false
 
-    if (config.enableLogging) {
-        install(Logging) {
-            level = LogLevel.INFO
-        }
+    install(Logging) {
+        level = LogLevel.ALL
+        logger = KermitKtorLogger(config.logger)
     }
 }
