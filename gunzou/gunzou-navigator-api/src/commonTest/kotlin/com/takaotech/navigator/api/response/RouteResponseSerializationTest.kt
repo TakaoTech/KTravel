@@ -25,7 +25,7 @@ class RouteResponseSerializationTest {
 
     private val roadResponse = RouteResponse(
         provider = ProviderId.HERE,
-        profile = ProviderProfile.CAR,
+        profile = ProviderProfile.ROUTING,
         routes = listOf(
             RouteDto(
                 summary = RouteSummaryDto(
@@ -171,7 +171,7 @@ class RouteResponseSerializationTest {
         val encoded = NavigatorJson.encodeToJsonElement(RouteResponse.serializer(), roadResponse).jsonObject
 
         assertEquals("here", encoded["provider"]?.jsonPrimitive?.content)
-        assertEquals("car", encoded["profile"]?.jsonPrimitive?.content)
+        assertEquals("routing", encoded["profile"]?.jsonPrimitive?.content)
     }
 
     @Test

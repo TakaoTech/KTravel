@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api
 
+import com.takaotech.navigator.api.here.HereTransportMode
 import kotlinx.serialization.json.Json
 
 /**
@@ -18,8 +19,23 @@ object NavigatorApi {
      */
     const val VERSION: String = "v1"
 
-    /** Road routing through HERE. */
-    const val HERE_CAR: String = "/$VERSION/here/car"
+    /**
+     * Road routing through HERE, without the mode: the paths served under it are
+     * [HERE_ROUTING_TEMPLATE], one per mode of transport.
+     */
+    const val HERE_ROUTING: String = "/$VERSION/here/routing"
+
+    /** The path segment of [HERE_ROUTING_TEMPLATE] that names the mode. */
+    const val HERE_ROUTING_TRANSPORT_MODE_PARAMETER: String = "transportMode"
+
+    /**
+     * Road routing through HERE, as a template.
+     *
+     * This is how the path is written where a mode has not been chosen yet — the routing tree that
+     * serves it, the OpenAPI document that describes it, the catalog entry that advertises it. A
+     * caller that has a mode builds the real path with [hereRouting].
+     */
+    const val HERE_ROUTING_TEMPLATE: String = "$HERE_ROUTING/{$HERE_ROUTING_TRANSPORT_MODE_PARAMETER}"
 
     /** Public transport routing through HERE. */
     const val HERE_TRANSIT: String = "/$VERSION/here/transit"
@@ -37,6 +53,15 @@ object NavigatorApi {
      * that owns it, and it stays that way when the same app talks to a remote deployment instead.
      */
     const val PROVIDER_KEY_HEADER: String = "X-Gunzo-Provider-Key"
+
+    /**
+     * Where a road route for [mode] is asked for, such as `/v1/here/routing/pedestrian`.
+     *
+     * The mode is in the path and not in the body, so a request cannot ask one path for another
+     * vehicle, and a proxy or a log in front of this server can tell a walk from a truck without
+     * reading a payload.
+     */
+    fun hereRouting(mode: HereTransportMode): String = "$HERE_ROUTING/${mode.pathSegment}"
 }
 
 /**

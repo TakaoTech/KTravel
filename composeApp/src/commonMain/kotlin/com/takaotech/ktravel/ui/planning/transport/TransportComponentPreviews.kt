@@ -80,7 +80,7 @@ internal data class ProfileRowPreviewState(val option: RoutingProfileOption, val
 internal class ProfileRowPreviewParams : PreviewParameterProvider<ProfileRowPreviewState> {
     override val values = sequenceOf(
         ProfileRowPreviewState(
-            option = RoutingProfileOption(HERE_CAR, ProfileAvailability.Available),
+            option = RoutingProfileOption(HERE_ROUTING, ProfileAvailability.Available),
             selected = true,
         ),
         ProfileRowPreviewState(
@@ -97,7 +97,7 @@ internal class ProfileRowPreviewParams : PreviewParameterProvider<ProfileRowPrev
         ),
         ProfileRowPreviewState(
             option = RoutingProfileOption(
-                HERE_CAR,
+                HERE_ROUTING,
                 ProfileAvailability.NavigatorUnreachable("connection refused"),
             ),
             selected = false,
@@ -146,8 +146,8 @@ internal class ModeChipPreviewParams : PreviewParameterProvider<ModeChipPreviewS
     )
 }
 
-private val HERE_CAR = RoutingProfileInfo(
-    id = RoutingProfileId(provider = "here", profile = "car"),
+private val HERE_ROUTING = RoutingProfileInfo(
+    id = RoutingProfileId(provider = "here", profile = "routing"),
     displayName = "HERE Routing",
     options = RoutingOptionsSpec.RoadSingleMode(
         modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),

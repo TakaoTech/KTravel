@@ -1,8 +1,7 @@
 package com.takaotech.navigator.api
 
 import com.takaotech.navigator.api.common.GeoPoint
-import com.takaotech.navigator.api.here.HereCarRouteRequest
-import com.takaotech.navigator.api.here.HereTransportMode
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
@@ -18,7 +17,7 @@ import kotlin.test.assertTrue
  */
 class NavigatorJsonTest {
 
-    private val request = HereCarRouteRequest(
+    private val request = HereRoutingRequest(
         origin = GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
@@ -29,20 +28,20 @@ class NavigatorJsonTest {
             {
               "origin": { "lat": 44.4949, "lng": 11.3426, "elevation": 54.0 },
               "destination": { "lat": 43.7696, "lng": 11.2558 },
-              "transportMode": "CAR",
+              "language": "it-IT",
               "somethingAddedByANewerServer": { "nested": [1, 2, 3] }
             }
         """.trimIndent()
 
-        val decoded = NavigatorJson.decodeFromString<HereCarRouteRequest>(json)
+        val decoded = NavigatorJson.decodeFromString<HereRoutingRequest>(json)
 
         assertEquals(GeoPoint(lat = 44.4949, lng = 11.3426), decoded.origin)
-        assertEquals(HereTransportMode.CAR, decoded.transportMode)
+        assertEquals("it-IT", decoded.language)
     }
 
     @Test
     fun `Given an optional field left unset When encoding Then the key is omitted instead of written as null`() {
-        val encoded = NavigatorJson.encodeToJsonElement(HereCarRouteRequest.serializer(), request).jsonObject
+        val encoded = NavigatorJson.encodeToJsonElement(HereRoutingRequest.serializer(), request).jsonObject
 
         assertFalse(encoded.containsKey("language"))
         assertFalse(encoded.containsKey("avoid"))
@@ -52,7 +51,7 @@ class NavigatorJsonTest {
     fun `Given a payload without an optional field When decoding Then it reads as null`() {
         val json = """{ "origin": { "lat": 1.0, "lng": 2.0 }, "destination": { "lat": 3.0, "lng": 4.0 } }"""
 
-        val decoded = NavigatorJson.decodeFromString<HereCarRouteRequest>(json)
+        val decoded = NavigatorJson.decodeFromString<HereRoutingRequest>(json)
 
         assertNull(decoded.language)
         assertNull(decoded.avoid)
@@ -60,9 +59,8 @@ class NavigatorJsonTest {
 
     @Test
     fun `Given a request that relies on its defaults When encoding Then the defaults are written out explicitly`() {
-        val encoded = NavigatorJson.encodeToJsonElement(HereCarRouteRequest.serializer(), request).jsonObject
+        val encoded = NavigatorJson.encodeToJsonElement(HereRoutingRequest.serializer(), request).jsonObject
 
-        assertEquals("CAR", encoded["transportMode"]?.jsonPrimitive?.content)
         assertEquals("FAST", encoded["routingMode"]?.jsonPrimitive?.content)
         assertEquals("1", encoded["alternatives"]?.jsonPrimitive?.content)
         assertTrue(encoded.containsKey("time"))

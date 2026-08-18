@@ -62,7 +62,7 @@ class OpenApiDocumentTest {
                 setOf(
                     NavigatorApi.HEALTH,
                     NavigatorApi.PROFILES,
-                    NavigatorApi.HERE_CAR,
+                    NavigatorApi.HERE_ROUTING_TEMPLATE,
                     NavigatorApi.HERE_TRANSIT,
                 ),
                 paths,
@@ -72,7 +72,7 @@ class OpenApiDocumentTest {
     @Test
     fun `Given a routing path When its operation is read Then it declares the body and the failures`() =
         testApplication {
-            val operation = generateDocument().operationAt(NavigatorApi.HERE_CAR)
+            val operation = generateDocument().operationAt(NavigatorApi.HERE_ROUTING_TEMPLATE)
 
             assertNotNull(operation.requestBody, "the routing endpoints take a body")
             assertTrue(
@@ -120,7 +120,7 @@ class OpenApiDocumentTest {
     //
     //         // Inferred from the `authenticate` block the routes sit under, not declared by hand.
     //         assertTrue(
-    //             doc.operationAt(NavigatorApi.HERE_CAR).security.orEmpty().any { NAVIGATOR_AUTH in it },
+    //             doc.operationAt(NavigatorApi.HERE_ROUTING_TEMPLATE).security.orEmpty().any { NAVIGATOR_AUTH in it },
     //             "the routing paths are the ones behind the access token",
     //         )
     //         assertTrue(
@@ -141,7 +141,7 @@ class OpenApiDocumentTest {
             val doc = generateDocument()
 
             assertTrue(
-                doc.operationAt(NavigatorApi.HERE_CAR).security.isNullOrEmpty(),
+                doc.operationAt(NavigatorApi.HERE_ROUTING_TEMPLATE).security.isNullOrEmpty(),
                 "the routing paths sit under no `authenticate` block any more",
             )
             assertTrue(

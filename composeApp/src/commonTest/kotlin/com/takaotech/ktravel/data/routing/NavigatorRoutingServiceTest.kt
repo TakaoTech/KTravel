@@ -41,24 +41,24 @@ import kotlinx.coroutines.withContext
 private const val EMBEDDED_URL = "http://127.0.0.1:54213"
 private const val API_KEY = "here-key"
 
-private val HERE_CAR = RoutingProfileId("here", "car")
+private val HERE_ROUTING = RoutingProfileId("here", "routing")
 private val HERE_TRANSIT = RoutingProfileId("here", "transit")
 
 private const val BOTH_PROFILES = """
 {"version":"1.2.3","profiles":[
-  {"provider":"here","profile":"car","path":"/v1/here/car","displayName":"HERE road routing","maxAlternatives":6},
+  {"provider":"here","profile":"routing","path":"/v1/here/routing/{transportMode}","displayName":"HERE road routing","maxAlternatives":6},
   {"provider":"here","profile":"transit","path":"/v1/here/transit","displayName":"HERE public transit","maxAlternatives":5}
 ]}
 """
 
-private const val ONLY_CAR = """
+private const val ONLY_ROUTING = """
 {"version":"1.2.3","profiles":[
-  {"provider":"here","profile":"car","path":"/v1/here/car","displayName":"HERE road routing","maxAlternatives":6}
+  {"provider":"here","profile":"routing","path":"/v1/here/routing/{transportMode}","displayName":"HERE road routing","maxAlternatives":6}
 ]}
 """
 
 private const val ONE_ROUTE = """
-{"provider":"here","profile":"car","routes":[
+{"provider":"here","profile":"routing","routes":[
   {"summary":{"durationSeconds":600,"distanceMeters":4200},
    "sections":[{"summary":{"durationSeconds":600,"distanceMeters":4200},"mode":"CAR"}]}
 ]}
@@ -141,7 +141,7 @@ class NavigatorRoutingServiceTest :
                         val catalog = Harness { HttpStatusCode.OK to BOTH_PROFILES }
                             .service.catalog(NavigatorKind.EMBEDDED)
 
-                        val road = catalog.options.first { it.profile.id == HERE_CAR }.profile
+                        val road = catalog.options.first { it.profile.id == HERE_ROUTING }.profile
                         val transit = catalog.options.first { it.profile.id == HERE_TRANSIT }.profile
 
                         // Walking is something you ask the road profile for; on the transit side it
@@ -158,7 +158,7 @@ class NavigatorRoutingServiceTest :
             `when`("the catalog is read") {
                 then("the transit one is still listed, and says why it cannot be picked") {
                     realTime {
-                        val catalog = Harness { HttpStatusCode.OK to ONLY_CAR }
+                        val catalog = Harness { HttpStatusCode.OK to ONLY_ROUTING }
                             .service.catalog(NavigatorKind.EMBEDDED)
 
                         // Omitting it would tell the traveller that HERE transit does not exist,
@@ -179,7 +179,7 @@ class NavigatorRoutingServiceTest :
                             .service.catalog(NavigatorKind.EMBEDDED)
 
                         catalog.selectable.shouldHaveSize(0)
-                        catalog.options.first { it.profile.id == HERE_CAR }
+                        catalog.options.first { it.profile.id == HERE_ROUTING }
                             .availability shouldBe ProfileAvailability.MissingApiKey
                     }
                 }
@@ -209,7 +209,7 @@ class NavigatorRoutingServiceTest :
 
         given("a road selection") {
             `when`("a route is computed") {
-                then("it goes to the road path, carrying the vehicle and the toll preference") {
+                then("it goes to the path of its vehicle, carrying the toll preference") {
                     realTime {
                         val harness = Harness { HttpStatusCode.OK to ONE_ROUTE }
 
@@ -218,7 +218,7 @@ class NavigatorRoutingServiceTest :
                             origin = "44.4949,11.3426",
                             destination = "43.7696,11.2558",
                             selection = RouteSelection.Road(
-                                profileId = HERE_CAR,
+                                profileId = HERE_ROUTING,
                                 mode = RoutingMode("TRUCK"),
                                 alternatives = 3,
                                 avoid = setOf(RouteFeature.TOLL_ROAD),
@@ -226,10 +226,60 @@ class NavigatorRoutingServiceTest :
                         )
 
                         val sent = harness.requests.single()
-                        sent.url.toString() shouldBe "$EMBEDDED_URL${NavigatorApi.HERE_CAR}"
-                        sent.bodyText() shouldContain "\"transportMode\":\"TRUCK\""
+                        // The vehicle is the path, so it is not repeated in the body.
+                        sent.url.toString() shouldBe "$EMBEDDED_URL/v1/here/routing/truck"
+                        sent.bodyText() shouldNotContain "transportMode"
                         sent.bodyText() shouldContain "TOLL_ROAD"
+                        sent.bodyText() shouldContain "TOLLS"
                         sent.headers[NavigatorApi.PROVIDER_KEY_HEADER] shouldBe API_KEY
+                    }
+                }
+            }
+        }
+
+        given("a road selection on foot") {
+            `when`("a route is computed") {
+                then("nothing about tolls is asked for, because a walk pays none") {
+                    realTime {
+                        val harness = Harness { HttpStatusCode.OK to ONE_ROUTE }
+
+                        harness.service.routes(
+                            kind = NavigatorKind.EMBEDDED,
+                            origin = "44.4949,11.3426",
+                            destination = "43.7696,11.2558",
+                            selection = RouteSelection.Road(
+                                profileId = HERE_ROUTING,
+                                mode = RoutingMode("PEDESTRIAN"),
+                            ),
+                        )
+
+                        val sent = harness.requests.single()
+                        sent.url.toString() shouldBe "$EMBEDDED_URL/v1/here/routing/pedestrian"
+                        sent.bodyText() shouldNotContain "TOLLS"
+                    }
+                }
+            }
+        }
+
+        given("a road selection by bicycle") {
+            `when`("a route is computed") {
+                then("nothing about tolls is asked for either") {
+                    realTime {
+                        val harness = Harness { HttpStatusCode.OK to ONE_ROUTE }
+
+                        harness.service.routes(
+                            kind = NavigatorKind.EMBEDDED,
+                            origin = "44.4949,11.3426",
+                            destination = "43.7696,11.2558",
+                            selection = RouteSelection.Road(
+                                profileId = HERE_ROUTING,
+                                mode = RoutingMode("BICYCLE"),
+                            ),
+                        )
+
+                        val sent = harness.requests.single()
+                        sent.url.toString() shouldBe "$EMBEDDED_URL/v1/here/routing/bicycle"
+                        sent.bodyText() shouldNotContain "TOLLS"
                     }
                 }
             }
@@ -295,7 +345,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_CAR, RoutingMode("CAR")),
+                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
                     }
@@ -316,7 +366,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_CAR, RoutingMode("CAR")),
+                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
                     }
@@ -339,7 +389,7 @@ class NavigatorRoutingServiceTest :
                             NavigatorKind.EMBEDDED,
                             "44.4949,11.3426",
                             "43.7696,11.2558",
-                            RouteSelection.Road(HERE_CAR, RoutingMode("CAR")),
+                            RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
                         )
 
                         routes.routes shouldHaveSize 1
@@ -364,7 +414,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_CAR, RoutingMode("CAR")),
+                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
 

@@ -45,8 +45,8 @@ import ktravel.composeapp.generated.resources.planning_transport_mode_scooter
 import ktravel.composeapp.generated.resources.planning_transport_mode_subway
 import ktravel.composeapp.generated.resources.planning_transport_mode_taxi
 import ktravel.composeapp.generated.resources.planning_transport_mode_truck
-import ktravel.composeapp.generated.resources.planning_transport_profile_here_car
-import ktravel.composeapp.generated.resources.planning_transport_profile_here_car_desc
+import ktravel.composeapp.generated.resources.planning_transport_profile_here_routing
+import ktravel.composeapp.generated.resources.planning_transport_profile_here_routing_desc
 import ktravel.composeapp.generated.resources.planning_transport_profile_here_transit
 import ktravel.composeapp.generated.resources.planning_transport_profile_here_transit_desc
 import ktravel.composeapp.generated.resources.planning_transport_unavailable_missing_key
@@ -61,14 +61,14 @@ import org.jetbrains.compose.resources.StringResource
 
 /** The localized name of a profile, or null when this build has never heard of it. */
 fun RoutingProfileId.labelOrNull(): StringResource? = when (this) {
-    HERE_CAR -> Res.string.planning_transport_profile_here_car
+    HERE_ROUTING -> Res.string.planning_transport_profile_here_routing
     HERE_TRANSIT -> Res.string.planning_transport_profile_here_transit
     else -> null
 }
 
 /** What the profile is good for, in one line, as the selector shows under its name. */
 fun RoutingProfileId.descriptionOrNull(): StringResource? = when (this) {
-    HERE_CAR -> Res.string.planning_transport_profile_here_car_desc
+    HERE_ROUTING -> Res.string.planning_transport_profile_here_routing_desc
     HERE_TRANSIT -> Res.string.planning_transport_profile_here_transit_desc
     else -> null
 }
@@ -170,5 +170,5 @@ fun TransportFailureReason.label(): StringResource = when (this) {
     TransportFailureReason.UNEXPECTED -> Res.string.planning_transport_error_unexpected
 }
 
-private val HERE_CAR = RoutingProfileId(provider = "here", profile = "car")
+private val HERE_ROUTING = RoutingProfileId(provider = "here", profile = "routing")
 private val HERE_TRANSIT = RoutingProfileId(provider = "here", profile = "transit")

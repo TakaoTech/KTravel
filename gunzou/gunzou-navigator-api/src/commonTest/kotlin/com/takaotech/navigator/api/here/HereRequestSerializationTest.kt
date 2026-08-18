@@ -9,6 +9,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.time.Instant
 
 /**
@@ -18,12 +20,11 @@ import kotlin.time.Instant
 class HereRequestSerializationTest {
 
     @Test
-    fun `Given a fully populated car request When encoding and decoding Then every field survives`() {
-        val request = HereCarRouteRequest(
+    fun `Given a fully populated routing request When encoding and decoding Then every field survives`() {
+        val request = HereRoutingRequest(
             origin = GeoPoint(lat = 44.4949, lng = 11.3426),
             destination = GeoPoint(lat = 43.7696, lng = 11.2558),
             via = listOf(GeoPoint(lat = 44.1391, lng = 11.1583)),
-            transportMode = HereTransportMode.TRUCK,
             routingMode = HereRoutingMode.SHORT,
             alternatives = 3,
             time = RouteTime.DepartAt(Instant.parse("2026-08-12T07:30:00Z")),
@@ -33,22 +34,21 @@ class HereRequestSerializationTest {
             returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS,
         )
 
-        val encoded = NavigatorJson.encodeToString(HereCarRouteRequest.serializer(), request)
+        val encoded = NavigatorJson.encodeToString(HereRoutingRequest.serializer(), request)
 
-        assertEquals(request, NavigatorJson.decodeFromString(HereCarRouteRequest.serializer(), encoded))
+        assertEquals(request, NavigatorJson.decodeFromString(HereRoutingRequest.serializer(), encoded))
     }
 
     @Test
-    fun `Given a car request with only mandatory fields When decoding Then the defaults are the documented ones`() {
-        val request = HereCarRouteRequest(
+    fun `Given a routing request with only mandatory fields When decoding Then the defaults are the documented ones`() {
+        val request = HereRoutingRequest(
             origin = GeoPoint(lat = 44.4949, lng = 11.3426),
             destination = GeoPoint(lat = 43.7696, lng = 11.2558),
         )
 
-        val encoded = NavigatorJson.encodeToString(HereCarRouteRequest.serializer(), request)
-        val decoded = NavigatorJson.decodeFromString(HereCarRouteRequest.serializer(), encoded)
+        val encoded = NavigatorJson.encodeToString(HereRoutingRequest.serializer(), request)
+        val decoded = NavigatorJson.decodeFromString(HereRoutingRequest.serializer(), encoded)
 
-        assertEquals(HereTransportMode.CAR, decoded.transportMode)
         assertEquals(HereRoutingMode.FAST, decoded.routingMode)
         assertEquals(1, decoded.alternatives)
         assertEquals(RouteTime.Now, decoded.time)
@@ -93,20 +93,49 @@ class HereRequestSerializationTest {
     }
 
     @Test
-    fun `Given a car request When encoding Then the enums travel as their declared names`() {
-        val request = HereCarRouteRequest(
+    fun `Given a routing request When encoding Then the enums travel as their declared names`() {
+        val request = HereRoutingRequest(
             origin = GeoPoint(lat = 1.0, lng = 2.0),
             destination = GeoPoint(lat = 3.0, lng = 4.0),
-            transportMode = HereTransportMode.PRIVATE_BUS,
+            routingMode = HereRoutingMode.SHORT,
             avoid = HereAvoidOptions(features = listOf(HereAvoidFeature.CONTROLLED_ACCESS_HIGHWAY)),
         )
 
-        val encoded = NavigatorJson.encodeToJsonElement(HereCarRouteRequest.serializer(), request).jsonObject
+        val encoded = NavigatorJson.encodeToJsonElement(HereRoutingRequest.serializer(), request).jsonObject
 
-        assertEquals("PRIVATE_BUS", encoded["transportMode"]?.jsonPrimitive?.content)
+        assertEquals("SHORT", encoded["routingMode"]?.jsonPrimitive?.content)
         assertEquals(
             """{"features":["CONTROLLED_ACCESS_HIGHWAY"]}""",
             encoded["avoid"].toString(),
         )
+    }
+
+    @Test
+    fun `Given a routing request When encoding Then the vehicle is absent because it travels in the path`() {
+        val request = HereRoutingRequest(
+            origin = GeoPoint(lat = 1.0, lng = 2.0),
+            destination = GeoPoint(lat = 3.0, lng = 4.0),
+        )
+
+        val encoded = NavigatorJson.encodeToJsonElement(HereRoutingRequest.serializer(), request).jsonObject
+
+        assertFalse(encoded.containsKey("transportMode"), "The mode is named by the path, not by the body")
+    }
+
+    @Test
+    fun `Given every road mode When its path segment is read Then it reads back as the same mode`() {
+        HereTransportMode.entries.forEach { mode ->
+            assertEquals(mode, HereTransportMode.fromPathSegment(mode.pathSegment))
+        }
+
+        assertEquals("privateBus", HereTransportMode.PRIVATE_BUS.pathSegment, "Not private_bus")
+        assertNull(HereTransportMode.fromPathSegment("hovercraft"))
+    }
+
+    @Test
+    fun `Given a mode that pays no toll When it is asked Then walking and cycling are the two`() {
+        val tollFree = HereTransportMode.entries.filterNot { it.hasTolls }
+
+        assertEquals(listOf(HereTransportMode.PEDESTRIAN, HereTransportMode.BICYCLE), tollFree)
     }
 }

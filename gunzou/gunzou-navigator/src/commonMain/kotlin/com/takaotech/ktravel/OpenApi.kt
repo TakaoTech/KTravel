@@ -5,7 +5,7 @@ import com.takaotech.navigator.api.catalog.HealthResponse
 import com.takaotech.navigator.api.catalog.ProviderCatalogResponse
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.response.RouteResponse
 import io.ktor.http.HttpStatusCode
@@ -72,9 +72,10 @@ internal fun OpenApiDocDsl.navigatorApiDocument(version: String) {
             are one shape, `RouteResponse`, and that is where the value is — a client draws a route
             without knowing which engine produced it.
 
-            The rule for new paths is one path per distinct provider API, never one per mode of
-            transport: a car and a bicycle route are the same API with a different field, so they
-            share `${NavigatorApi.HERE_CAR}`.
+            The rule for new paths is one path per distinct provider API: a road router and a
+            timetable are two, so they are two. Within the road profile the mode of transport is the
+            last segment of the path — `${NavigatorApi.HERE_ROUTING_TEMPLATE}` — so a car and a
+            bicycle route are addressed apart while remaining one upstream API and one body.
         """.trimIndent(),
     )
 
@@ -149,19 +150,23 @@ internal val ProfilesOperation: RouteOperationFunction = {
     }
 }
 
-/** `POST /v1/here/car`. */
-internal val HereCarOperation: RouteOperationFunction = {
+/** `POST /v1/here/routing/{transportMode}`. */
+internal val HereRoutingOperation: RouteOperationFunction = {
     tag(TAG_ROUTING)
     summary = "Route on roads, whatever the vehicle"
     description = """
-        `car` names the profile, not the vehicle: pedestrian, bicycle and truck routes all come from
-        the same upstream API with a different `transportMode`.
+        One path per mode of transport — `car`, `truck`, `pedestrian`, `bicycle`, `scooter`, `taxi`,
+        `bus`, `privateBus` — all served by the same upstream API and taking the same body.
+
+        A mode that pays no toll, which is `pedestrian` and `bicycle`, refuses to be asked about
+        them: neither `TOLLS` among the return attributes nor `TOLL_ROAD` among the features to
+        avoid, since both are empty by construction and the call upstream is paid for all the same.
     """.trimIndent()
 
     providerKeyHeader()
     requestBody {
         required = true
-        schema = jsonSchema<HereCarRouteRequest>()
+        schema = jsonSchema<HereRoutingRequest>()
     }
     routeResponses()
 }

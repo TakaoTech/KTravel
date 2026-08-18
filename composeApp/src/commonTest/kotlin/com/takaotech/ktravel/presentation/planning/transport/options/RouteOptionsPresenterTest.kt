@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val TRAVEL_ID = "TRAVEL_ID"
 
-private val ROAD_PROFILE = RoutingProfileId(provider = "here", profile = "car")
+private val ROAD_PROFILE = RoutingProfileId(provider = "here", profile = "routing")
 private val TRANSIT_PROFILE = RoutingProfileId(provider = "here", profile = "transit")
 
 private val CAR = RoutingMode("CAR")

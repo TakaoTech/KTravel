@@ -8,7 +8,7 @@ import com.takaotech.navigator.api.here.HereTransitRouteRequest
 /**
  * Whatever is mounted at `/v1/here/transit`.
  *
- * A separate path from [HereCarEndpoint] because it is a separate upstream API — a different host,
+ * A separate path from [HereRoutingEndpoint] because it is a separate upstream API — a different host,
  * a different request, a different answer — and that is the rule the contract follows: one path per
  * distinct provider API, never one per mode of transport. It is also the second profile, which is
  * what makes the shared [com.takaotech.navigator.api.response.RouteResponse] worth anything: until

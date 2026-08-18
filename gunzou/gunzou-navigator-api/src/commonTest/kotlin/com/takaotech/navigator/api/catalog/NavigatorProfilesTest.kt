@@ -23,13 +23,26 @@ import kotlin.test.assertTrue
  */
 class NavigatorProfilesTest {
 
-    private val routingPaths = setOf(NavigatorApi.HERE_CAR, NavigatorApi.HERE_TRANSIT)
+    private val routingPaths = setOf(NavigatorApi.HERE_ROUTING_TEMPLATE, NavigatorApi.HERE_TRANSIT)
 
     @Test
     fun `Given every declared profile When its path is read Then the contract serves that path`() {
         NavigatorProfile.ALL.forEach { profile ->
             assertContains(routingPaths, profile.descriptor.path, "${profile.id} advertises an unserved path")
         }
+    }
+
+    @Test
+    fun `Given the road profile When a mode is chosen Then the path it is asked for names that mode`() {
+        // What a client actually calls: the descriptor advertises the template, and the mode picked
+        // out of `supportedModes` is what fills it in.
+        assertEquals("/v1/here/routing/pedestrian", NavigatorApi.hereRouting(HereTransportMode.PEDESTRIAN))
+        assertEquals("/v1/here/routing/privateBus", NavigatorApi.hereRouting(HereTransportMode.PRIVATE_BUS))
+        assertEquals(
+            NavigatorProfile.HereRouting.descriptor.path,
+            NavigatorApi.HERE_ROUTING_TEMPLATE,
+            "The road profile advertises the template it serves",
+        )
     }
 
     @Test
@@ -45,7 +58,7 @@ class NavigatorProfilesTest {
     fun `Given a profile this version does not have When it is looked up Then nothing is found`() {
         // What a client does when a newer navigator serves something it was not built against: it has
         // to degrade to "unknown", not to a wrong profile.
-        assertNull(NavigatorProfile.find(ProviderId.VALHALLA, ProviderProfile.CAR))
+        assertNull(NavigatorProfile.find(ProviderId.VALHALLA, ProviderProfile.ROUTING))
     }
 
     @Test
@@ -59,7 +72,7 @@ class NavigatorProfilesTest {
     @Test
     fun `Given the road profile When its modes are read Then they are the whole HERE routing vocabulary`() {
         // The upstream parameter is required and single valued, so every value it accepts is offerable.
-        assertEquals(HereTransportMode.entries.toSet(), NavigatorProfile.HereCar.modes.toSet())
+        assertEquals(HereTransportMode.entries.toSet(), NavigatorProfile.HereRouting.modes.toSet())
     }
 
     @Test
@@ -72,7 +85,7 @@ class NavigatorProfilesTest {
 
     @Test
     fun `Given both HERE profiles When their vocabularies are compared Then neither borrows from the other`() {
-        val road = NavigatorProfile.HereCar.modes.map { it.name }.toSet()
+        val road = NavigatorProfile.HereRouting.modes.map { it.name }.toSet()
         val transit = NavigatorProfile.HereTransit.modeFilter.map { it.name }.toSet()
 
         // `BUS` and `PRIVATE_BUS` are spelled the same on both sides and mean different things: a
@@ -93,11 +106,11 @@ class NavigatorProfilesTest {
     fun `Given the published descriptors When their modes are read Then each carries its own API vocabulary`() {
         // The descriptor is the half of the catalog that travels, so this is the check that a client
         // reading `GET /v1/profiles` is offered what the endpoint accepts and not a coarser stand-in.
-        val road = NavigatorProfile.HereCar.descriptor.supportedModes
+        val road = NavigatorProfile.HereRouting.descriptor.supportedModes
         val transit = NavigatorProfile.HereTransit.descriptor.supportedModes
 
         assertIs<SupportedModes.HereRoad>(road)
-        assertEquals(NavigatorProfile.HereCar.modes, road.modes)
+        assertEquals(NavigatorProfile.HereRouting.modes, road.modes)
 
         assertIs<SupportedModes.Transit>(transit)
         assertEquals(NavigatorProfile.HereTransit.modeFilter, transit.modes)
@@ -118,17 +131,17 @@ class NavigatorProfilesTest {
     fun `Given the road profile When the shortest distance modes are read Then only those HERE accepts are there`() {
         // HERE Routing v8 supports `routingMode=short` on cars and trucks; everything else, taxis
         // included, is fast only. Offering it elsewhere buys a request the provider refuses.
-        val shortest = NavigatorProfile.HereCar.modesSupportingShortest
+        val shortest = NavigatorProfile.HereRouting.modesSupportingShortest
 
         assertEquals(setOf(HereTransportMode.CAR, HereTransportMode.TRUCK), shortest)
-        assertTrue(NavigatorProfile.HereCar.modes.containsAll(shortest), "A mode that is not offerable at all")
+        assertTrue(NavigatorProfile.HereRouting.modes.containsAll(shortest), "A mode that is not offerable at all")
     }
 
     // ---- capabilities the app reads to shape its controls ----------------------------------------
 
     @Test
     fun `Given the road profile When its capabilities are read Then they match the HERE routing limits`() {
-        val descriptor = NavigatorProfile.HereCar.descriptor
+        val descriptor = NavigatorProfile.HereRouting.descriptor
 
         assertEquals(6, descriptor.maxAlternatives)
         assertEquals(20, descriptor.maxVia)

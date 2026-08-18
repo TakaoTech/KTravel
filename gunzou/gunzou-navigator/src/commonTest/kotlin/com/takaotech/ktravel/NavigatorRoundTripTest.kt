@@ -5,8 +5,9 @@ import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
 import com.takaotech.navigator.api.common.TravelMode
 import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.PolylineEncoding
 import com.takaotech.navigator.client.NavigatorClient
 import com.takaotech.navigator.client.NavigatorClientConfig
@@ -36,7 +37,7 @@ import kotlin.test.assertTrue
  */
 class NavigatorRoundTripTest {
 
-    private val carRequest = HereCarRouteRequest(
+    private val routingRequest = HereRoutingRequest(
         origin = GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
@@ -73,14 +74,18 @@ class NavigatorRoundTripTest {
         roundTrip { client ->
             val profiles = client.profiles().getOrThrow().profiles
 
-            assertEquals(listOf(ProviderProfile.CAR, ProviderProfile.TRANSIT), profiles.map { it.profile })
+            assertEquals(listOf(ProviderProfile.ROUTING, ProviderProfile.TRANSIT), profiles.map { it.profile })
             assertTrue(profiles.all { it.provider == ProviderId.HERE })
         }
 
     @Test
     fun `Given a route is asked for over HTTP When it comes back Then it is the contract and not a string`() =
         roundTrip { client ->
-            val routes = client.hereCar(carRequest, apiKey = "round-trip-key").getOrThrow()
+            val routes = client.hereRouting(
+                HereTransportMode.CAR,
+                routingRequest,
+                apiKey = "round-trip-key",
+            ).getOrThrow()
 
             assertEquals(ProviderId.HERE, routes.provider)
             val route = routes.routes.single()
@@ -108,7 +113,7 @@ class NavigatorRoundTripTest {
     @Test
     fun `Given the key is missing When a route is asked for Then the refusal survives as a refusal`() =
         roundTrip { client ->
-            val result = client.hereCar(carRequest, apiKey = null)
+            val result = client.hereRouting(HereTransportMode.CAR, routingRequest, apiKey = null)
 
             // Not a TransportError: the navigator was reached and it said no. An embedded host that
             // confused the two would restart a healthy server every time a key was unconfigured.
@@ -119,7 +124,9 @@ class NavigatorRoundTripTest {
 
     @Test
     fun `Given a request the profile rejects When it is sent Then the reason arrives readable`() = roundTrip { client ->
-        val result = client.hereCar(carRequest.copy(alternatives = 99), apiKey = "round-trip-key")
+        val tooMany = routingRequest.copy(alternatives = 99)
+
+        val result = client.hereRouting(HereTransportMode.CAR, tooMany, apiKey = "round-trip-key")
 
         val failure = assertIs<NavigatorResult.ServerError>(result)
         assertEquals(ErrorCode.INVALID_REQUEST, failure.error.code)

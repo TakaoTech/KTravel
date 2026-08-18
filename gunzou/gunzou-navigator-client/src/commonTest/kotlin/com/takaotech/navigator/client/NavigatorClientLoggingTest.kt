@@ -8,7 +8,8 @@ import com.takaotech.navigator.api.NavigatorJson
 import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.RouteResponse
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -34,7 +35,7 @@ import kotlin.test.assertTrue
  */
 class NavigatorClientLoggingTest {
 
-    private val carRequest = HereCarRouteRequest(
+    private val routingRequest = HereRoutingRequest(
         origin = GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
@@ -49,7 +50,7 @@ class NavigatorClientLoggingTest {
 
     @Test
     fun `Given a logger keeping debug When a call is made Then the traffic is logged`() = runTest {
-        client(minSeverity = Severity.Debug).hereCar(carRequest)
+        client(minSeverity = Severity.Debug).hereRouting(HereTransportMode.CAR, routingRequest)
 
         assertTrue(recorded.isNotEmpty(), "the Ktor plugin wrote nothing through the logger")
         assertTrue(
@@ -64,7 +65,7 @@ class NavigatorClientLoggingTest {
 
     @Test
     fun `Given a logger keeping info only When a call is made Then nothing is logged`() = runTest {
-        client(minSeverity = Severity.Info).hereCar(carRequest)
+        client(minSeverity = Severity.Info).hereRouting(HereTransportMode.CAR, routingRequest)
 
         assertEquals(emptyList(), recorded, "a release severity must not let request bodies through")
     }
@@ -74,7 +75,7 @@ class NavigatorClientLoggingTest {
             respond(
                 content = NavigatorJson.encodeToString(
                     RouteResponse.serializer(),
-                    RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.CAR),
+                    RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING),
                 ),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),

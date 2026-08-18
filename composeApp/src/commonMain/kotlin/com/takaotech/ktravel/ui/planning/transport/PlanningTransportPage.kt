@@ -473,7 +473,7 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
 }
 
 private val PREVIEW_HERE_CAR = RoutingProfileInfo(
-    id = RoutingProfileId(provider = "here", profile = "car"),
+    id = RoutingProfileId(provider = "here", profile = "routing"),
     displayName = "HERE Routing",
     options = RoutingOptionsSpec.RoadSingleMode(
         modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),

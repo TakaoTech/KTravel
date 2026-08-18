@@ -10,8 +10,8 @@ import kotlin.jvm.JvmInline
  * One routing profile of one provider: everything behind a single path.
  *
  * Deliberately thin. Ktor already dispatches on the path, so this is not a registry and there is no
- * `when` over providers anywhere in the server — a request for `/v1/here/car` can only ever reach
- * the endpoint mounted there. What the interface exists for is the other half of the contract: every
+ * `when` over providers anywhere in the server — a request for `/v1/here/routing/car` can only ever
+ * reach the endpoint mounted there. What the interface exists for is the other half of the contract: every
  * profile, however different its input, must answer with the same [RouteResponse] and fail with the
  * same [com.takaotech.navigator.api.error.ErrorResponse]. Making that a type is what stops the two
  * halves from drifting as providers are added.

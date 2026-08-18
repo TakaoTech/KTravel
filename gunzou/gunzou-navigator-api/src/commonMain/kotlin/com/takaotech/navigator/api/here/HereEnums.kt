@@ -13,8 +13,10 @@ import kotlinx.serialization.Serializable
 /**
  * How the traveller moves on the road profile.
  *
- * All of these go to the same HERE endpoint with a different `transportMode`, which is why they are
- * a field here and not separate paths.
+ * All of these reach the same upstream HERE endpoint with a different `transportMode`, but they do
+ * not share one path here: each is asked for on
+ * [its own][com.takaotech.navigator.api.NavigatorApi.hereRouting], such as
+ * `/v1/here/routing/pedestrian`. The mode is therefore never a field of the request body.
  */
 @Serializable
 enum class HereTransportMode {
@@ -41,6 +43,37 @@ enum class HereTransportMode {
 
     /** A coach run by a private operator, which HERE routes under its own access rules. */
     PRIVATE_BUS,
+    ;
+
+    /**
+     * How this mode is spelled in a path.
+     *
+     * Not `name.lowercase()`: that turns `PRIVATE_BUS` into `private_bus`, which is neither what
+     * HERE calls it nor what [fromPathSegment] would read back.
+     */
+    val pathSegment: String
+        get() = when (this) {
+            PRIVATE_BUS -> "privateBus"
+            else -> name.lowercase()
+        }
+
+    /**
+     * Whether travelling this way can be charged a toll.
+     *
+     * A walk and a bicycle ride cannot, so asking for
+     * [HereReturnAttribute.TOLLS] on one is a question with no answer rather than an answer of zero
+     * — and it is paid for upstream all the same. Declared here, on the vocabulary itself, because
+     * both the client that builds the request and the server that refuses it need the same fact.
+     */
+    val hasTolls: Boolean
+        get() = this != PEDESTRIAN && this != BICYCLE
+
+    /** How a mode is read back out of a path. */
+    companion object {
+        /** The mode this path segment names, or `null` when it names none. */
+        fun fromPathSegment(segment: String): HereTransportMode? =
+            entries.firstOrNull { it.pathSegment.equals(segment, ignoreCase = true) }
+    }
 }
 
 /** What the router optimizes for. */

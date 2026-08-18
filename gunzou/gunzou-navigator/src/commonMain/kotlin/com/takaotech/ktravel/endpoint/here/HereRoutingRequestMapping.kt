@@ -12,22 +12,27 @@ import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.RouteTime
 import com.takaotech.navigator.api.common.Units
 import com.takaotech.navigator.api.here.HereAvoidFeature
-import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereReturnAttribute
 import com.takaotech.navigator.api.here.HereRoutingMode
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransportMode
 import com.vanniktech.locale.Locale
 import kotlin.time.Instant
 import com.takaotech.navigation.common.model.Units as HereUnits
 
-// What this server sends to the HERE road API. Its counterpart is HereCarResponseMapping.
+// What this server sends to the HERE road API. Its counterpart is HereRoutingResponseMapping.
 //
 // The two halves share one decision worth stating once: the enums on the wire are this contract's,
 // never HERE's. Copying them costs this file, and buys a contract that does not change under a
 // client the day a vendor renames a constant.
 
-/** Builds the vendor request the HERE road API expects. */
-fun HereCarRouteRequest.toHereRoutesRequest(): RoutesRequest = RoutesRequest(
+/**
+ * Builds the vendor request the HERE road API expects.
+ *
+ * @param transportMode The vehicle, which travels in the path rather than in the body and is
+ *   therefore passed in beside it.
+ */
+fun HereRoutingRequest.toHereRoutesRequest(transportMode: HereTransportMode): RoutesRequest = RoutesRequest(
     transportMode = transportMode.toHere(),
     origin = origin.toWaypoint(),
     destination = destination.toWaypoint(),
@@ -52,7 +57,7 @@ fun HereCarRouteRequest.toHereRoutesRequest(): RoutesRequest = RoutesRequest(
  * as a preference and routes through a toll road where there is no alternative, so a client that
  * asked for a toll-free route still has to be able to show what the answer costs.
  */
-private fun HereCarRouteRequest.avoidAsReturnAttributes(): List<ReturnAttribute> =
+private fun HereRoutingRequest.avoidAsReturnAttributes(): List<ReturnAttribute> =
     if (avoid?.features?.contains(HereAvoidFeature.TOLL_ROAD) == true &&
         HereReturnAttribute.TOLLS !in returnAttributes
     ) {
