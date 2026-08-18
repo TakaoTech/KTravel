@@ -11,7 +11,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-private val PROFILE = RoutingProfileId(provider = "here", profile = "car")
+private val PROFILE = RoutingProfileId(provider = "here", profile = "routing")
 private val TRANSIT_PROFILE = RoutingProfileId(provider = "here", profile = "transit")
 
 private val CAR = RoutingMode("CAR")

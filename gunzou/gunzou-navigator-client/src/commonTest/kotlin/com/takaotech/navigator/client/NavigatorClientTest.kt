@@ -7,8 +7,9 @@ import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.RouteResponse
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -38,12 +39,12 @@ import kotlin.test.assertNull
  */
 class NavigatorClientTest {
 
-    private val carRequest = HereCarRouteRequest(
+    private val routingRequest = HereRoutingRequest(
         origin = GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
 
-    private val routeResponse = RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.CAR)
+    private val routeResponse = RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING)
 
     private val recorded = mutableListOf<HttpRequestData>()
 
@@ -73,12 +74,19 @@ class NavigatorClientTest {
     }
 
     @Test
-    fun `Given a road request When it is sent Then it goes to the road path as a POST`() = clientTest {
-        client().use { it.hereCar(carRequest) }
+    fun `Given a road request When it is sent Then it goes to the path of its own vehicle as a POST`() = clientTest {
+        client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         val sent = recorded.single()
         assertEquals(HttpMethod.Post, sent.method)
-        assertEquals("http://navigator.test${NavigatorApi.HERE_CAR}", sent.url.toString())
+        assertEquals("http://navigator.test/v1/here/routing/car", sent.url.toString())
+    }
+
+    @Test
+    fun `Given a road request on foot When it is sent Then the vehicle is what tells the paths apart`() = clientTest {
+        client().use { it.hereRouting(HereTransportMode.PEDESTRIAN, routingRequest) }
+
+        assertEquals("http://navigator.test/v1/here/routing/pedestrian", recorded.single().url.toString())
     }
 
     @Test
@@ -104,7 +112,7 @@ class NavigatorClientTest {
 
     @Test
     fun `Given a provider key When a route is asked for Then it travels in the header and nowhere else`() = clientTest {
-        client().use { it.hereCar(carRequest, apiKey = "caller-key") }
+        client().use { it.hereRouting(HereTransportMode.CAR, routingRequest, apiKey = "caller-key") }
 
         val sent = recorded.single()
         assertEquals("caller-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
@@ -138,7 +146,8 @@ class NavigatorClientTest {
     //     }
     //     val config = NavigatorClientConfig(baseUrl = "http://navigator.test", accessToken = "an-access-token")
     //
-    //     NavigatorClient.withEngine(engine, config).use { it.hereCar(carRequest, apiKey = "provider-key") }
+    //     NavigatorClient.withEngine(engine, config)
+    //         .use { it.hereRouting(HereTransportMode.CAR, routingRequest, apiKey = "provider-key") }
     //
     //     // Different questions: who is allowed to ask, and which routing account to bill.
     //     val sent = recorded.single()
@@ -149,21 +158,21 @@ class NavigatorClientTest {
     // The client no longer has a token to present, on any call.
     @Test
     fun `Given authentication is disabled When a call is made Then no authorization header is sent`() = clientTest {
-        client().use { it.hereCar(carRequest) }
+        client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         assertNull(recorded.single().headers[HttpHeaders.Authorization])
     }
 
     @Test
     fun `Given no provider key When a route is asked for Then no key header is sent at all`() = clientTest {
-        client().use { it.hereCar(carRequest) }
+        client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         assertNull(recorded.single().headers[NavigatorApi.PROVIDER_KEY_HEADER])
     }
 
     @Test
     fun `Given the navigator answers a route When it is read Then the contract type comes back`() = clientTest {
-        val result = client().use { it.hereCar(carRequest) }
+        val result = client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         assertIs<NavigatorResult.Success<RouteResponse>>(result)
         assertEquals(ProviderId.HERE, result.value.provider)
@@ -176,7 +185,7 @@ class NavigatorClientTest {
         val result = client(
             status = HttpStatusCode.Unauthorized,
             body = NavigatorJson.encodeToString(ErrorResponse.serializer(), error),
-        ).use { it.hereCar(carRequest) }
+        ).use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         val failure = assertIs<NavigatorResult.ServerError>(result)
         assertEquals(401, failure.status)
@@ -187,7 +196,7 @@ class NavigatorClientTest {
     fun `Given a failing status with a body that is not the contract When read Then it is still a server error`() =
         clientTest {
             val result = client(status = HttpStatusCode.BadGateway, body = "<html>gateway timeout</html>")
-                .use { it.hereCar(carRequest) }
+                .use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
             val failure = assertIs<NavigatorResult.ServerError>(result)
             assertEquals(ErrorCode.INTERNAL, failure.error.code)
@@ -199,7 +208,7 @@ class NavigatorClientTest {
         val engine = MockEngine { throw IOException("Connection refused") }
         val client = NavigatorClient.withEngine(engine, NavigatorClientConfig("http://127.0.0.1:1"))
 
-        val result = client.use { it.hereCar(carRequest) }
+        val result = client.use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         // The distinction an embedded host acts on: this one means restart the server, a
         // ServerError never does.
@@ -256,7 +265,12 @@ class NavigatorClientTest {
     //     }
     //
     //     NavigatorClient.withEngine(engine, config).use {
-    //         it.hereCar(carRequest, apiKey = "provider-key", target = NavigatorTarget("https://remote.test", "its-own"))
+    //         it.hereRouting(
+    //             HereTransportMode.CAR,
+    //             routingRequest,
+    //             apiKey = "provider-key",
+    //             target = NavigatorTarget("https://remote.test", "its-own"),
+    //         )
     //     }
     //
     //     val sent = recorded.single()

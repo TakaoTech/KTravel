@@ -33,7 +33,7 @@ import com.takaotech.navigator.api.response.TollSystemDto
  */
 fun RouterRouteResponse.toRouteResponse(): RouteResponse = RouteResponse(
     provider = ProviderId.HERE,
-    profile = ProviderProfile.CAR,
+    profile = ProviderProfile.ROUTING,
     routes = routes.map { route ->
         val sections = route.sections.map { it.toSectionDto() }
         RouteDto(summary = sections.aggregateSummary(), sections = sections)

@@ -15,7 +15,9 @@ import kotlinx.serialization.Serializable
  *
  * @property provider The engine.
  * @property profile Which of its APIs this describes.
- * @property path Where to POST a request for it, such as `/v1/here/car`.
+ * @property path Where to POST a request for it, such as `/v1/here/transit`. A profile whose path
+ *   names something the caller chooses publishes the template — `/v1/here/routing/{transportMode}`
+ *   for the road profile — and the caller fills it in from [supportedModes].
  * @property displayName A name to put in a selector. English, like everything else in the contract:
  *   translating it is the client's job, since only the client knows the user's language.
  * @property supportedModes The modes this profile accepts, spelled in the vocabulary of the API that

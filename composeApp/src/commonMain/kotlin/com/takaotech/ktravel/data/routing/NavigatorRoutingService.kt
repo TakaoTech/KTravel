@@ -99,7 +99,12 @@ class NavigatorRoutingService(
 
         val response = callWithRecovery(kind) { target ->
             when (selection) {
-                is RouteSelection.Road -> client.hereCar(selection.toCarRouteRequest(from, to), apiKey, target)
+                is RouteSelection.Road -> client.hereRouting(
+                    selection.mode.toHereTransportMode(),
+                    selection.toRoutingRequest(from, to),
+                    apiKey,
+                    target,
+                )
 
                 is RouteSelection.Transit -> client.hereTransit(
                     selection.toTransitRouteRequest(from, to),

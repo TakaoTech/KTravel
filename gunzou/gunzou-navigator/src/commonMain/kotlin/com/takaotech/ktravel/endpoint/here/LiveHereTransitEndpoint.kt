@@ -10,7 +10,7 @@ import com.takaotech.navigator.api.response.RouteResponse
 /**
  * `/v1/here/transit`, served by the HERE Public Transit API.
  *
- * Structurally identical to [LiveHereCarEndpoint] and sharing its client pool, while talking to a
+ * Structurally identical to [LiveHereRoutingEndpoint] and sharing its client pool, while talking to a
  * different API with a different request and a different answer. That is what the second profile is
  * for: everything the two have in common turned out to be the server's own machinery, and the only
  * thing that differs is the translation.

@@ -19,8 +19,8 @@ class CatalogAndErrorSerializationTest {
         profiles = listOf(
             ProviderProfileDescriptor(
                 provider = ProviderId.HERE,
-                profile = ProviderProfile.CAR,
-                path = NavigatorApi.HERE_CAR,
+                profile = ProviderProfile.ROUTING,
+                path = NavigatorApi.HERE_ROUTING_TEMPLATE,
                 displayName = "HERE road routing",
                 supportedModes = SupportedModes.HereRoad(
                     listOf(
@@ -64,7 +64,7 @@ class CatalogAndErrorSerializationTest {
         val paths = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), encoded)
             .profiles.map { it.path }
 
-        assertEquals(listOf(NavigatorApi.HERE_CAR, NavigatorApi.HERE_TRANSIT), paths)
+        assertEquals(listOf(NavigatorApi.HERE_ROUTING_TEMPLATE, NavigatorApi.HERE_TRANSIT), paths)
     }
 
     @Test

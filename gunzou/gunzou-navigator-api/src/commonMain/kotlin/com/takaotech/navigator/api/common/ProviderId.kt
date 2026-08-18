@@ -50,7 +50,7 @@ value class ProviderProfile(val value: String) {
     /** The profiles this contract currently serves. */
     companion object {
         /** Road routing, whatever the vehicle. */
-        val CAR = ProviderProfile("car")
+        val ROUTING = ProviderProfile("routing")
 
         /** Public transport, on a timetable. */
         val TRANSIT = ProviderProfile("transit")

@@ -24,9 +24,9 @@ import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.common.ZonedTime
 import com.takaotech.navigator.api.here.HereAvoidFeature
 import com.takaotech.navigator.api.here.HereAvoidOptions
-import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereReturnAttribute
 import com.takaotech.navigator.api.here.HereRoutingMode
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitModeFilter
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
@@ -56,7 +56,7 @@ import kotlin.time.Duration.Companion.seconds
  * attached to the profile it came from.
  */
 fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
-    is NavigatorProfile.HereCar -> RoutingProfileInfo(
+    is NavigatorProfile.HereRouting -> RoutingProfileInfo(
         id = descriptor.toProfileId(),
         displayName = descriptor.displayName,
         // Upstream requires exactly one vehicle, so the selector is a choice.
@@ -88,22 +88,25 @@ fun ProviderProfileDescriptor.toProfileId(): RoutingProfileId =
 /**
  * Builds the road request.
  *
- * The mode is translated back into the vendor vocabulary by name, which is safe precisely because it
- * was produced from that vocabulary: a mode reaching here that HERE's road API does not have is a
- * mode that came from somewhere it should never have crossed to, and failing loudly is the point.
+ * Tolls are asked for only where they can be charged. A walk and a bicycle ride pay none, so
+ * computing them would be a question with no answer — one the navigator refuses and the provider
+ * would bill for anyway.
  */
-fun RouteSelection.Road.toCarRouteRequest(origin: GeoPoint, destination: GeoPoint): HereCarRouteRequest =
-    HereCarRouteRequest(
+fun RouteSelection.Road.toRoutingRequest(origin: GeoPoint, destination: GeoPoint): HereRoutingRequest =
+    HereRoutingRequest(
         origin = origin,
         destination = destination,
-        transportMode = mode.toHereTransportMode(),
         routingMode = if (shortestDistance) HereRoutingMode.SHORT else HereRoutingMode.FAST,
         alternatives = alternatives,
         time = departureRouteTime(),
         avoid = avoid
             .takeIf { it.isNotEmpty() }
             ?.let { features -> HereAvoidOptions(features = features.map { it.toHereAvoidFeature() }) },
-        returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS,
+        returnAttributes = if (mode.toHereTransportMode().hasTolls) {
+            HereReturnAttribute.NAVIGATION_WITH_TOLLS
+        } else {
+            HereReturnAttribute.NAVIGATION
+        },
     )
 
 /**
@@ -137,7 +140,17 @@ private fun RouteFeature.toHereAvoidFeature(): HereAvoidFeature =
         "'$name' is not a feature the navigator contract can be asked to avoid"
     }
 
-private fun RoutingMode.toHereTransportMode(): HereTransportMode =
+/**
+ * The vehicle, in the vocabulary of HERE's road API.
+ *
+ * Translated back into that vocabulary by name, which is safe precisely because it was produced from
+ * it: a mode reaching here that HERE's road API does not have is a mode that came from somewhere it
+ * should never have crossed to, and failing loudly is the point.
+ *
+ * Visible to the service beside this file because the mode is not part of the body: it is the path
+ * the request goes to, and that path is built where the call is made.
+ */
+internal fun RoutingMode.toHereTransportMode(): HereTransportMode =
     requireNotNull(HereTransportMode.entries.firstOrNull { it.name == id }) {
         "'$id' is not a HERE road mode; it belongs to another profile's vocabulary"
     }

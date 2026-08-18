@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 /**
  * Body of `POST /v1/here/transit`, the public transport profile of HERE.
  *
- * A separate path from [HereCarRouteRequest] because it is a separate upstream API, on its own host
+ * A separate path from [HereRoutingRequest] because it is a separate upstream API, on its own host
  * and with parameters that have no meaning on the road one — there is no `changes` on a car route
  * and no `routingMode` on a timetable.
  *

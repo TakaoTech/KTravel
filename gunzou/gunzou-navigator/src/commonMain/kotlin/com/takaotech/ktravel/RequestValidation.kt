@@ -1,8 +1,8 @@
 package com.takaotech.ktravel
 
 import com.takaotech.navigator.api.common.GeoPoint
-import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereReturnAttribute
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -29,19 +29,20 @@ private const val MAX_WALKING_SPEED = 2.0
  * descriptor lives. The plugin has no access to the call, so it could not read the descriptor even
  * if it wanted to.
  *
- * The types carry the rest. There is no check that `transportMode` is one of the known modes, or
- * that `time` is one of the three shapes, because a body that got this far already decoded into
- * those types — an invalid one never reaches validation and leaves as a 400 from the deserializer.
+ * The types carry the rest. There is no check that `time` is one of the three shapes, because a body
+ * that got this far already decoded into those types — an invalid one never reaches validation and
+ * leaves as a 400 from the deserializer. The vehicle is not checked here either: it is not in the
+ * body at all, and the route that reads it out of the path refuses a segment naming no known mode.
  */
 fun Application.configureRequestValidation() {
     install(RequestValidation) {
-        validate<HereCarRouteRequest> { it.invalidReasons().toValidationResult() }
+        validate<HereRoutingRequest> { it.invalidReasons().toValidationResult() }
         validate<HereTransitRouteRequest> { it.invalidReasons().toValidationResult() }
     }
 }
 
 /** Everything wrong with a road request, so the caller is told all of it at once. */
-private fun HereCarRouteRequest.invalidReasons(): List<String> = buildList {
+private fun HereRoutingRequest.invalidReasons(): List<String> = buildList {
     addAll(origin.invalidReasons("origin"))
     addAll(destination.invalidReasons("destination"))
     via.forEachIndexed { index, point -> addAll(point.invalidReasons("via[$index]")) }

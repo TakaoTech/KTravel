@@ -4,14 +4,16 @@ import com.takaotech.ktravel.endpoint.NavigationEndpoint
 import com.takaotech.ktravel.endpoint.NavigatorException
 import com.takaotech.ktravel.endpoint.ProviderCatalog
 import com.takaotech.ktravel.endpoint.ProviderCredentials
-import com.takaotech.ktravel.endpoint.here.HereCarEndpoint
+import com.takaotech.ktravel.endpoint.here.HereRoutingCall
+import com.takaotech.ktravel.endpoint.here.HereRoutingEndpoint
 import com.takaotech.ktravel.endpoint.here.HereTransitEndpoint
 import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.catalog.HealthResponse
 import com.takaotech.navigator.api.catalog.ProviderProfileDescriptor
 import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import io.ktor.server.application.Application
 // AUTH DISABLED: authentication is switched off; uncomment these imports together with every other
 // `AUTH DISABLED` marker to put the routing paths back behind the bearer provider.
@@ -34,9 +36,13 @@ import org.koin.ktor.ext.inject
  * Every path this server answers on.
  *
  * One route per provider profile, wired by hand. There is no registry and no dispatch table: Ktor
- * already picks the handler by path, so a generic one would only add a way for `/v1/here/car` to
- * reach something that is not the HERE road endpoint. The price is a line per profile here, which is
- * the same line that would otherwise be a registry entry.
+ * already picks the handler by path, so a generic one would only add a way for
+ * `/v1/here/routing/{transportMode}` to reach something that is not the HERE road endpoint. The
+ * price is a line per profile here, which is the same line that would otherwise be a registry entry.
+ *
+ * The road profile is the one path that carries a parameter: the vehicle is the last segment rather
+ * than a field of the body, so every mode is its own address and nothing has to read a payload to
+ * know whether a call was a walk or a truck.
  *
  * The routing paths are the only ones behind a rate limit. `/v1/health` is left open on purpose: it
  * is what a load balancer polls to decide whether this instance is alive, it carries nothing worth
@@ -56,7 +62,7 @@ import org.koin.ktor.ext.inject
 @OptIn(ExperimentalKtorApi::class)
 fun Application.configureRouting(config: NavigatorServerConfig) {
     val catalog: ProviderCatalog by inject()
-    val hereCar: HereCarEndpoint by inject()
+    val hereRouting: HereRoutingEndpoint by inject()
     val hereTransit: HereTransitEndpoint by inject()
 
     routing {
@@ -73,10 +79,13 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
         // the plugin's own challenge answers an empty 401, which a client would have to special case.
         // authenticate(NAVIGATOR_AUTH, optional = true) {
         rateLimit(NAVIGATOR_ROUTING_LIMIT) {
-            post(NavigatorApi.HERE_CAR) {
+            post(NavigatorApi.HERE_ROUTING_TEMPLATE) {
                 // AUTH DISABLED: requireCaller(config)
-                respondWithRoute(hereCar, call.receive<HereCarRouteRequest>(), config)
-            }.describe(HereCarOperation)
+                // The vehicle comes from the path and the rest from the body, which is what makes
+                // one endpoint out of two halves of the same request.
+                val road = HereRoutingCall(transportMode(), call.receive<HereRoutingRequest>())
+                respondWithRoute(hereRouting, road, config)
+            }.describe(HereRoutingOperation)
 
             post(NavigatorApi.HERE_TRANSIT) {
                 // AUTH DISABLED: requireCaller(config)
@@ -85,6 +94,26 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
         }
         // }
     }
+}
+
+/**
+ * The vehicle this call is for, which is the last segment of the road path.
+ *
+ * A segment that names no mode is a request for a profile this server does not have, and it is
+ * answered as such: the alternative is Ktor matching the path and the endpoint being handed a
+ * default the caller never asked for.
+ *
+ * @throws NavigatorException [ErrorCode.INVALID_REQUEST] when the segment is not a mode this
+ *   contract knows.
+ */
+private fun RoutingContext.transportMode(): HereTransportMode {
+    val segment = call.parameters[NavigatorApi.HERE_ROUTING_TRANSPORT_MODE_PARAMETER].orEmpty()
+
+    return HereTransportMode.fromPathSegment(segment) ?: throw NavigatorException(
+        code = ErrorCode.INVALID_REQUEST,
+        message = "'$segment' is not a mode this navigator routes on roads; it serves " +
+            HereTransportMode.entries.joinToString { it.pathSegment },
+    )
 }
 
 // AUTH DISABLED: what refused a caller this server did not know. It threw

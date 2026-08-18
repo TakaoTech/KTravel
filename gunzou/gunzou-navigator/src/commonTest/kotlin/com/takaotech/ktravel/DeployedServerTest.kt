@@ -2,7 +2,8 @@ package com.takaotech.ktravel
 
 import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -30,7 +31,7 @@ import kotlin.test.assertTrue
  */
 class DeployedServerTest {
 
-    private val carRequest = HereCarRouteRequest(
+    private val routingRequest = HereRoutingRequest(
         origin = com.takaotech.navigator.api.common.GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = com.takaotech.navigator.api.common.GeoPoint(lat = 43.7696, lng = 11.2558),
     )
@@ -39,11 +40,13 @@ class DeployedServerTest {
     private suspend fun ApplicationTestBuilder.requestRoute(
         // AUTH DISABLED: accessToken: String? = null,
         providerKey: String? = null,
-    ): HttpResponse = client.post(NavigatorApi.HERE_CAR) {
+    ): HttpResponse = client.post(NavigatorApi.hereRouting(HereTransportMode.CAR)) {
         contentType(ContentType.Application.Json)
         // AUTH DISABLED: accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         providerKey?.let { header(NavigatorApi.PROVIDER_KEY_HEADER, it) }
-        setBody(com.takaotech.navigator.api.NavigatorJson.encodeToString(HereCarRouteRequest.serializer(), carRequest))
+        setBody(
+            com.takaotech.navigator.api.NavigatorJson.encodeToString(HereRoutingRequest.serializer(), routingRequest),
+        )
     }
 
     // ---- who may call ---------------------------------------------------------------------------

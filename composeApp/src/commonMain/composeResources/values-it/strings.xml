@@ -105,8 +105,8 @@
     <string name="planning_transport_unavailable_missing_key">Chiave API mancante — impostala nelle impostazioni del viaggio</string>
     <string name="planning_transport_unavailable_unreachable">Il navigator non ha risposto</string>
 
-    <string name="planning_transport_profile_here_car">HERE — Strada</string>
-    <string name="planning_transport_profile_here_car_desc">Traffico in tempo reale, pedaggi e mezzi pesanti</string>
+    <string name="planning_transport_profile_here_routing">HERE — Strada</string>
+    <string name="planning_transport_profile_here_routing_desc">Traffico in tempo reale, pedaggi e mezzi pesanti</string>
     <string name="planning_transport_profile_here_transit">HERE — Mezzi pubblici</string>
     <string name="planning_transport_profile_here_transit_desc">Orari, cambi e tratte a piedi</string>
 

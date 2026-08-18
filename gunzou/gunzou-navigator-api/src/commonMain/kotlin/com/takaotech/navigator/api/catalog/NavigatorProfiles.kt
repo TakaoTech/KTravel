@@ -40,7 +40,7 @@ sealed class NavigatorProfile {
      * Limits from the HERE Routing v8 documentation: six alternatives and twenty via waypoints. They
      * are enforced before any upstream call, so a request that would be rejected is not paid for.
      */
-    data object HereCar : NavigatorProfile() {
+    data object HereRouting : NavigatorProfile() {
 
         /**
          * What may be asked for, as a single choice: HERE's `transportMode` is a required parameter
@@ -53,8 +53,10 @@ sealed class NavigatorProfile {
 
         override val descriptor: ProviderProfileDescriptor = ProviderProfileDescriptor(
             provider = ProviderId.HERE,
-            profile = ProviderProfile.CAR,
-            path = NavigatorApi.HERE_CAR,
+            profile = ProviderProfile.ROUTING,
+            // The template, since the mode is part of the path: a client picks a mode out of
+            // `supportedModes` and builds the real path with NavigatorApi.hereRouting.
+            path = NavigatorApi.HERE_ROUTING_TEMPLATE,
             displayName = "HERE road routing",
             supportedModes = SupportedModes.HereRoad(modes),
             maxAlternatives = 6,
@@ -94,7 +96,7 @@ sealed class NavigatorProfile {
          * [TransitMode.OTHER] is excluded because it carries no meaning in a request: it exists so a
          * vehicle this contract does not name yet still decodes in a response.
          *
-         * Declared before [descriptor] for the same initialization-order reason as [HereCar.modes].
+         * Declared before [descriptor] for the same initialization-order reason as [HereRouting.modes].
          */
         val modeFilter: List<TransitMode> = TransitMode.entries.filterNot { it == TransitMode.OTHER }
 
@@ -122,7 +124,7 @@ sealed class NavigatorProfile {
          * captures each of them while its own initializer has not run yet, and the list ends up full
          * of nulls that no type in the signature admits.
          */
-        val ALL: List<NavigatorProfile> by lazy { listOf(HereCar, HereTransit) }
+        val ALL: List<NavigatorProfile> by lazy { listOf(HereRouting, HereTransit) }
 
         /** The profile with this identity, or `null` when the caller knows one this version does not. */
         fun find(provider: ProviderId, profile: ProviderProfile): NavigatorProfile? =

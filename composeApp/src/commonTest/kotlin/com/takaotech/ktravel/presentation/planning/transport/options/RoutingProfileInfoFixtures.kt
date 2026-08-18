@@ -8,7 +8,7 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 internal object RoutingProfileInfoFixtures {
 
     fun road(spec: RoutingOptionsSpec.RoadSingleMode): RoutingProfileInfo = RoutingProfileInfo(
-        id = RoutingProfileId(provider = "here", profile = "car"),
+        id = RoutingProfileId(provider = "here", profile = "routing"),
         displayName = "HERE road routing",
         options = spec,
     )

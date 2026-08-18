@@ -6,8 +6,9 @@ import com.takaotech.navigator.api.catalog.HealthResponse
 import com.takaotech.navigator.api.catalog.ProviderCatalogResponse
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
-import com.takaotech.navigator.api.here.HereCarRouteRequest
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
+import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.RouteResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -55,16 +56,19 @@ class NavigatorClient private constructor(
     /**
      * Routes on roads, whatever the vehicle.
      *
+     * @param mode What the traveller is using. It is the path this call goes to rather than a field
+     *   of [request], which is why it is asked for separately.
      * @param apiKey The caller's key for the provider behind this profile. Required by every profile
      *   whose descriptor says [com.takaotech.navigator.api.catalog.ProviderProfileDescriptor.requiresApiKey].
      * @param target Which navigator to ask, when it is not the configured one.
      */
-    suspend fun hereCar(
-        request: HereCarRouteRequest,
+    suspend fun hereRouting(
+        mode: HereTransportMode,
+        request: HereRoutingRequest,
         apiKey: String? = null,
         target: NavigatorTarget? = null,
     ): NavigatorResult<RouteResponse> =
-        post(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request, apiKey, target)
+        post(NavigatorApi.hereRouting(mode), HereRoutingRequest.serializer(), request, apiKey, target)
 
     /** Routes on public transport. */
     suspend fun hereTransit(

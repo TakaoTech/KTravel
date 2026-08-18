@@ -3,10 +3,10 @@ package com.takaotech.ktravel
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.koin.KermitKoinLogger
 import com.takaotech.ktravel.endpoint.ProviderCatalog
-import com.takaotech.ktravel.endpoint.here.HereCarEndpoint
 import com.takaotech.ktravel.endpoint.here.HereClientPool
+import com.takaotech.ktravel.endpoint.here.HereRoutingEndpoint
 import com.takaotech.ktravel.endpoint.here.HereTransitEndpoint
-import com.takaotech.ktravel.endpoint.here.LiveHereCarEndpoint
+import com.takaotech.ktravel.endpoint.here.LiveHereRoutingEndpoint
 import com.takaotech.ktravel.endpoint.here.LiveHereTransitEndpoint
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -59,10 +59,10 @@ private fun navigatorModule(logger: Logger): Module = module {
     // routing and the transit host alike, so a second pool would double the connections for nothing.
     single { HereClientPool(logger = logger) }
 
-    single<HereCarEndpoint> { LiveHereCarEndpoint(get()) }
+    single<HereRoutingEndpoint> { LiveHereRoutingEndpoint(get()) }
     single<HereTransitEndpoint> { LiveHereTransitEndpoint(get()) }
 
     // Assembled from the endpoints that exist, so `GET /v1/profiles` cannot advertise a profile no
     // route serves.
-    single { ProviderCatalog(listOf(get<HereCarEndpoint>(), get<HereTransitEndpoint>())) }
+    single { ProviderCatalog(listOf(get<HereRoutingEndpoint>(), get<HereTransitEndpoint>())) }
 }

@@ -46,9 +46,9 @@ class ServerTest {
         assertEquals(HttpStatusCode.OK, response.status)
         val catalog = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
         assertEquals(listOf(ProviderId.HERE, ProviderId.HERE), catalog.profiles.map { it.provider })
-        assertEquals(listOf(ProviderProfile.CAR, ProviderProfile.TRANSIT), catalog.profiles.map { it.profile })
+        assertEquals(listOf(ProviderProfile.ROUTING, ProviderProfile.TRANSIT), catalog.profiles.map { it.profile })
         assertEquals(
-            listOf(NavigatorApi.HERE_CAR, NavigatorApi.HERE_TRANSIT),
+            listOf(NavigatorApi.HERE_ROUTING_TEMPLATE, NavigatorApi.HERE_TRANSIT),
             catalog.profiles.map { it.path },
         )
     }
@@ -62,13 +62,13 @@ class ServerTest {
         val profiles = NavigatorJson
             .decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
             .profiles.associateBy { it.profile }
-        val car = profiles.getValue(ProviderProfile.CAR)
+        val road = profiles.getValue(ProviderProfile.ROUTING)
         val transit = profiles.getValue(ProviderProfile.TRANSIT)
 
-        assertTrue(car.requiresApiKey && transit.requiresApiKey, "Both are served through the caller's own key")
-        assertTrue(car.supportsTolls && !transit.supportsTolls, "Only a road route has tolls to pay")
-        assertTrue(car.maxVia > 0 && transit.maxVia == 0, "A journey is planned between two places")
-        assertTrue(car.maxAlternatives > transit.maxAlternatives)
+        assertTrue(road.requiresApiKey && transit.requiresApiKey, "Both are served through the caller's own key")
+        assertTrue(road.supportsTolls && !transit.supportsTolls, "Only a road route has tolls to pay")
+        assertTrue(road.maxVia > 0 && transit.maxVia == 0, "A journey is planned between two places")
+        assertTrue(road.maxAlternatives > transit.maxAlternatives)
     }
 
     @Test

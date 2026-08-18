@@ -10,9 +10,9 @@ import com.takaotech.navigator.api.common.Units
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.here.HereAvoidFeature
 import com.takaotech.navigator.api.here.HereAvoidOptions
-import com.takaotech.navigator.api.here.HereCarRouteRequest
 import com.takaotech.navigator.api.here.HereReturnAttribute
 import com.takaotech.navigator.api.here.HereRoutingMode
+import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.NoticeSeverity
 import com.takaotech.navigator.api.response.PolylineEncoding
@@ -22,24 +22,28 @@ import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 /**
- * `POST /v1/here/car` end to end, with a recorded HERE answer behind it.
+ * `POST /v1/here/routing/{transportMode}` end to end, with a recorded HERE answer behind it.
  *
  * Two things are under test and they are worth naming apart. The first is the query string this
  * server builds from a contract request: it is the only part of the road profile that HERE ever
  * sees, and getting it wrong is invisible in every unit test of a mapper. The second is what the
  * server makes of the answer, which is what the app will draw.
  */
-class HereCarRouteTest {
+class HereRoutingTest {
 
-    private val request = HereCarRouteRequest(
+    private val request = HereRoutingRequest(
         origin = GeoPoint(lat = 44.4949, lng = 11.3426),
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
+
+    /** The road path of a car, which is what a test that is not about the vehicle calls. */
+    private val carPath = NavigatorApi.hereRouting(HereTransportMode.CAR)
 
     // ---- what reaches HERE -------------------------------------------------------------------
 
@@ -51,7 +55,6 @@ class HereCarRouteTest {
 
             val full = request.copy(
                 via = listOf(GeoPoint(lat = 44.1391, lng = 11.1583)),
-                transportMode = HereTransportMode.TRUCK,
                 routingMode = HereRoutingMode.SHORT,
                 alternatives = 3,
                 units = Units.IMPERIAL,
@@ -59,7 +62,11 @@ class HereCarRouteTest {
                 returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS,
             )
 
-            client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), full)
+            client.postJson(
+                NavigatorApi.hereRouting(HereTransportMode.TRUCK),
+                HereRoutingRequest.serializer(),
+                full,
+            )
 
             val url = here.requestUrl
             assertEquals("truck", url.query("transportMode"))
@@ -78,7 +85,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request, providerKey = "caller-key")
+        client.postJson(carPath, HereRoutingRequest.serializer(), request, providerKey = "caller-key")
 
         assertEquals("caller-key", here.requestUrl.query("apiKey"))
     }
@@ -88,7 +95,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertNull(here.requestUrl.query("lang"), "The machine running the server is not the traveller")
     }
@@ -98,7 +105,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         val url = here.requestUrl
         assertNull(url.query("departureTime"))
@@ -113,7 +120,7 @@ class HereCarRouteTest {
 
             val departAt = request.copy(time = RouteTime.DepartAt(Instant.parse("2026-08-13T07:30:00Z")))
 
-            client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), departAt)
+            client.postJson(carPath, HereRoutingRequest.serializer(), departAt)
 
             val sent = here.requestUrl.query("departureTime").orEmpty()
             assertContains(sent, "2026-08-13T07:30:00")
@@ -127,7 +134,7 @@ class HereCarRouteTest {
 
         val arriveBy = request.copy(time = RouteTime.ArriveBy(Instant.parse("2026-08-13T09:00:00Z")))
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), arriveBy)
+        client.postJson(carPath, HereRoutingRequest.serializer(), arriveBy)
 
         assertEquals("2026-08-13T09:00:00Z", here.requestUrl.query("arrivalTime"))
         assertNull(here.requestUrl.query("departureTime"))
@@ -144,7 +151,7 @@ class HereCarRouteTest {
                 returnAttributes = HereReturnAttribute.NAVIGATION,
             )
 
-            client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), avoidTolls)
+            client.postJson(carPath, HereRoutingRequest.serializer(), avoidTolls)
 
             assertContains(here.requestUrl.query("return").orEmpty(), "tolls")
         }
@@ -160,7 +167,7 @@ class HereCarRouteTest {
             ),
         )
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), avoiding)
+        client.postJson(carPath, HereRoutingRequest.serializer(), avoiding)
 
         assertEquals("tollRoad,ferry,tunnel", here.requestUrl.query("avoid[features]"))
     }
@@ -173,7 +180,7 @@ class HereCarRouteTest {
         // An empty avoid[features] is rejected upstream, so absent and empty must not be confused.
         val nothing = request.copy(avoid = HereAvoidOptions(features = emptyList()))
 
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), nothing)
+        client.postJson(carPath, HereRoutingRequest.serializer(), nothing)
 
         assertNull(here.requestUrl.query("avoid[features]"))
     }
@@ -183,9 +190,11 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val privateBus = request.copy(transportMode = HereTransportMode.PRIVATE_BUS)
-
-        client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), privateBus)
+        client.postJson(
+            NavigatorApi.hereRouting(HereTransportMode.PRIVATE_BUS),
+            HereRoutingRequest.serializer(),
+            request,
+        )
 
         assertEquals("privateBus", here.requestUrl.query("transportMode"))
     }
@@ -197,12 +206,12 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.OK, response.status)
         val routes = response.decodeRoutes()
         assertEquals(ProviderId.HERE, routes.provider)
-        assertEquals(ProviderProfile.CAR, routes.profile)
+        assertEquals(ProviderProfile.ROUTING, routes.profile)
         assertEquals(2, routes.routes.single().sections.size)
         assertEquals(TravelMode.CAR, routes.routes.single().sections.first().mode)
     }
@@ -212,7 +221,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val route = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val route = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single()
 
         assertEquals(2100 + 1800, route.summary.durationSeconds)
@@ -225,7 +234,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val geometry = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val geometry = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single().sections.first().geometry
 
         assertEquals(PolylineEncoding.HERE_FLEXIBLE, geometry?.encoding)
@@ -237,7 +246,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val departure = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val departure = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single().sections.first().departure
 
         assertEquals(Instant.parse("2026-08-13T07:00:00Z"), departure?.time?.instant)
@@ -250,7 +259,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val actions = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val actions = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single().sections.first().actions
 
         assertEquals(listOf("depart", "turn"), actions.map { it.action })
@@ -265,7 +274,7 @@ class HereCarRouteTest {
             val here = HereMockServer(HerePayloads.CAR_ROUTE)
             application { module(here.asKoinModule()) }
 
-            val section = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+            val section = client.postJson(carPath, HereRoutingRequest.serializer(), request)
                 .decodeRoutes().routes.single().sections.first()
 
             assertEquals(listOf("autostrade"), section.tollSystems.map { it.id })
@@ -283,7 +292,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE_WITH_PRICE_RANGE)
         application { module(here.asKoinModule()) }
 
-        val price = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val price = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single().sections.single().tolls.single().fares.single().price
 
         assertEquals("CHF", price.currency)
@@ -298,7 +307,7 @@ class HereCarRouteTest {
             val here = HereMockServer(HerePayloads.CAR_ROUTE)
             application { module(here.asKoinModule()) }
 
-            val notice = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+            val notice = client.postJson(carPath, HereRoutingRequest.serializer(), request)
                 .decodeRoutes().notices.single()
 
             assertEquals(NoticeSeverity.CRITICAL, notice.severity)
@@ -310,7 +319,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val sections = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val sections = client.postJson(carPath, HereRoutingRequest.serializer(), request)
             .decodeRoutes().routes.single().sections
 
         assertTrue(sections.all { it.transit == null })
@@ -323,7 +332,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.UNAUTHORIZED, HttpStatusCode.Unauthorized)
         application { module(here.asKoinModule()) }
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         val error = response.decodeError()
@@ -337,7 +346,7 @@ class HereCarRouteTest {
         val here = HereMockServer("""{ "title": "Too Many Requests", "status": 429 }""", HttpStatusCode.TooManyRequests)
         application { module(here.asKoinModule()) }
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.TooManyRequests, response.status)
         assertEquals(ErrorCode.PROVIDER_RATE_LIMITED, response.decodeError().code)
@@ -348,7 +357,7 @@ class HereCarRouteTest {
         val here = HereMockServer("""{ "title": "Internal Error", "status": 500 }""", HttpStatusCode.ServiceUnavailable)
         application { module(here.asKoinModule()) }
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.BadGateway, response.status)
         assertEquals(ErrorCode.PROVIDER_UNAVAILABLE, response.decodeError().code)
@@ -359,7 +368,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.NO_ROUTES)
         application { module(here.asKoinModule()) }
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
         assertEquals(ErrorCode.NO_ROUTE_FOUND, response.decodeError().code)
@@ -373,8 +382,8 @@ class HereCarRouteTest {
         application { module(here.asKoinModule()) }
 
         val response = client.postJson(
-            NavigatorApi.HERE_CAR,
-            HereCarRouteRequest.serializer(),
+            carPath,
+            HereRoutingRequest.serializer(),
             request,
             providerKey = null,
         )
@@ -390,8 +399,8 @@ class HereCarRouteTest {
         application { module(here.asKoinModule()) }
 
         val response = client.postJson(
-            NavigatorApi.HERE_CAR,
-            HereCarRouteRequest.serializer(),
+            carPath,
+            HereRoutingRequest.serializer(),
             request,
             providerKey = "   ",
         )
@@ -405,7 +414,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val response = client.postRaw(NavigatorApi.HERE_CAR, "{ this is not json")
+        val response = client.postRaw(carPath, "{ this is not json")
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertEquals(ErrorCode.INVALID_REQUEST, response.decodeError().code)
@@ -419,7 +428,7 @@ class HereCarRouteTest {
 
         val offGlobe = request.copy(origin = GeoPoint(lat = 200.0, lng = 11.3426))
 
-        val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), offGlobe)
+        val response = client.postJson(carPath, HereRoutingRequest.serializer(), offGlobe)
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
         assertContains(response.decodeError().message, "origin.lat")
@@ -433,7 +442,7 @@ class HereCarRouteTest {
             application { module(here.asKoinModule()) }
 
             val response = client
-                .postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), request.copy(alternatives = 7))
+                .postJson(carPath, HereRoutingRequest.serializer(), request.copy(alternatives = 7))
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals(ErrorCode.INVALID_REQUEST, response.decodeError().code)
@@ -448,10 +457,77 @@ class HereCarRouteTest {
 
             val unmet = request.copy(returnAttributes = listOf(HereReturnAttribute.ACTIONS))
 
-            val response = client.postJson(NavigatorApi.HERE_CAR, HereCarRouteRequest.serializer(), unmet)
+            val response = client.postJson(carPath, HereRoutingRequest.serializer(), unmet)
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertContains(response.decodeError().message, "POLYLINE")
+        }
+
+    @Test
+    fun `Given a path naming no known vehicle When routing Then it is refused before HERE is called`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.CAR_ROUTE)
+            application { module(here.asKoinModule()) }
+
+            val response = client.postJson("/v1/here/routing/hovercraft", HereRoutingRequest.serializer(), request)
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals(ErrorCode.INVALID_REQUEST, response.decodeError().code)
+            assertEquals(emptyList(), here.requests, "A vehicle this server does not route is not paid for")
+        }
+
+    @Test
+    fun `Given a walk asking for tolls When routing Then it is refused as an option that does not apply`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.CAR_ROUTE)
+            application { module(here.asKoinModule()) }
+
+            val withTolls = request.copy(returnAttributes = HereReturnAttribute.NAVIGATION_WITH_TOLLS)
+
+            val response = client.postJson(
+                NavigatorApi.hereRouting(HereTransportMode.PEDESTRIAN),
+                HereRoutingRequest.serializer(),
+                withTolls,
+            )
+
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+            assertEquals(ErrorCode.UNSUPPORTED_OPTION, response.decodeError().code)
+            assertEquals(emptyList(), here.requests, "A toll a pedestrian cannot pay is not worth a call")
+        }
+
+    @Test
+    fun `Given a bicycle avoiding toll roads When routing Then it is refused for the same reason`() = testApplication {
+        val here = HereMockServer(HerePayloads.CAR_ROUTE)
+        application { module(here.asKoinModule()) }
+
+        val avoidingTolls = request.copy(avoid = HereAvoidOptions(features = listOf(HereAvoidFeature.TOLL_ROAD)))
+
+        val response = client.postJson(
+            NavigatorApi.hereRouting(HereTransportMode.BICYCLE),
+            HereRoutingRequest.serializer(),
+            avoidingTolls,
+        )
+
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        assertEquals(ErrorCode.UNSUPPORTED_OPTION, response.decodeError().code)
+        assertEquals(emptyList(), here.requests)
+    }
+
+    @Test
+    fun `Given a walk asking for nothing about tolls When routing Then HERE is called without them`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.CAR_ROUTE)
+            application { module(here.asKoinModule()) }
+
+            client.postJson(
+                NavigatorApi.hereRouting(HereTransportMode.PEDESTRIAN),
+                HereRoutingRequest.serializer(),
+                request,
+            )
+
+            val url = here.requestUrl
+            assertEquals("pedestrian", url.query("transportMode"))
+            assertFalse(url.query("return").orEmpty().contains("tolls"), "Nothing asked for them")
         }
 
     @Test
@@ -459,7 +535,7 @@ class HereCarRouteTest {
         val here = HereMockServer(HerePayloads.CAR_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val response = client.get(NavigatorApi.HERE_CAR)
+        val response = client.get(carPath)
 
         assertTrue(
             response.status == HttpStatusCode.MethodNotAllowed || response.status == HttpStatusCode.NotFound,
