@@ -10,7 +10,7 @@ import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.domain.routing.RoutingService
-import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.navigator.api.catalog.NavigatorProfile
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.client.NavigatorClient
@@ -92,29 +92,32 @@ class NavigatorRoutingService(
         origin: String,
         destination: String,
         selection: RouteSelection,
-    ): Routes = withContext(Dispatchers.Default) {
+    ): RouteResult = withContext(Dispatchers.Default) {
         val from = origin.toGeoPoint()
         val to = destination.toGeoPoint()
         val apiKey = settingsRepository.settings.hereApiKey.takeIf { it.isNotBlank() }
 
-        val response = callWithRecovery(kind) { target ->
-            when (selection) {
-                is RouteSelection.Road -> client.hereRouting(
-                    selection.mode.toHereTransportMode(),
-                    selection.toRoutingRequest(from, to),
-                    apiKey,
-                    target,
-                )
+        // The one place a profile is dispatched on, and now also the one place the kind of answer is
+        // decided. The two halves cannot drift apart: each branch calls the method whose answer its
+        // own result variant is built from, and neither type fits the other.
+        when (selection) {
+            is RouteSelection.Routing -> RouteResult.Routing(
+                callWithRecovery(kind) { target ->
+                    client.hereRouting(
+                        selection.mode.toHereTransportMode(),
+                        selection.toRoutingRequest(from, to),
+                        apiKey,
+                        target,
+                    )
+                }.orThrow().toDomain(),
+            )
 
-                is RouteSelection.Transit -> client.hereTransit(
-                    selection.toTransitRouteRequest(from, to),
-                    apiKey,
-                    target,
-                )
-            }
+            is RouteSelection.Transit -> RouteResult.Transit(
+                callWithRecovery(kind) { target ->
+                    client.hereTransit(selection.toTransitRouteRequest(from, to), apiKey, target)
+                }.orThrow().toDomain(),
+            )
         }
-
-        response.orThrow().toDomainRoutes()
     }
 
     /**
@@ -126,10 +129,10 @@ class NavigatorRoutingService(
      * such retry — it did not answer, and asking the same host again in the same breath is a second
      * failure rather than a recovery.
      */
-    private suspend fun callWithRecovery(
+    private suspend fun <T : Any> callWithRecovery(
         kind: NavigatorKind,
-        call: suspend (NavigatorTarget) -> NavigatorResult<com.takaotech.navigator.api.response.RouteResponse>,
-    ): NavigatorResult<com.takaotech.navigator.api.response.RouteResponse> {
+        call: suspend (NavigatorTarget) -> NavigatorResult<T>,
+    ): NavigatorResult<T> {
         val first = call(targets.resolve(kind))
         if (first !is NavigatorResult.TransportError || kind != NavigatorKind.EMBEDDED) return first
 
@@ -166,28 +169,26 @@ private fun Throwable.reachabilityMessage(): String = message?.takeIf { it.isNot
  * one applies: a rejected access token is fixed in the app's settings, a rejected provider key in the
  * trip's, and an unreachable host in neither.
  */
-private fun NavigatorResult<com.takaotech.navigator.api.response.RouteResponse>.orThrow():
-    com.takaotech.navigator.api.response.RouteResponse =
-    when (this) {
-        is NavigatorResult.Success -> value
+private fun <T : Any> NavigatorResult<T>.orThrow(): T = when (this) {
+    is NavigatorResult.Success -> value
 
-        is NavigatorResult.TransportError -> throw RoutingFailure.NavigatorUnreachable(cause)
+    is NavigatorResult.TransportError -> throw RoutingFailure.NavigatorUnreachable(cause)
 
-        is NavigatorResult.ServerError -> throw when (error.code) {
-            ErrorCode.UNAUTHENTICATED -> RoutingFailure.NotAuthenticated(error.message)
+    is NavigatorResult.ServerError -> throw when (error.code) {
+        ErrorCode.UNAUTHENTICATED -> RoutingFailure.NotAuthenticated(error.message)
 
-            ErrorCode.MISSING_CREDENTIALS, ErrorCode.PROVIDER_UNAUTHORIZED -> RoutingFailure.ProviderCredentials(
-                error.message,
-            )
+        ErrorCode.MISSING_CREDENTIALS, ErrorCode.PROVIDER_UNAUTHORIZED -> RoutingFailure.ProviderCredentials(
+            error.message,
+        )
 
-            ErrorCode.PROVIDER_RATE_LIMITED -> RoutingFailure.RateLimited(error.message)
+        ErrorCode.PROVIDER_RATE_LIMITED -> RoutingFailure.RateLimited(error.message)
 
-            ErrorCode.PROVIDER_UNAVAILABLE -> RoutingFailure.ProviderUnavailable(error.message)
+        ErrorCode.PROVIDER_UNAVAILABLE -> RoutingFailure.ProviderUnavailable(error.message)
 
-            ErrorCode.NO_ROUTE_FOUND -> RoutingFailure.NoRouteFound(error.message)
+        ErrorCode.NO_ROUTE_FOUND -> RoutingFailure.NoRouteFound(error.message)
 
-            ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(error.message)
+        ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(error.message)
 
-            ErrorCode.INTERNAL -> RoutingFailure.Unexpected(error.message)
-        }
+        ErrorCode.INTERNAL -> RoutingFailure.Unexpected(error.message)
     }
+}

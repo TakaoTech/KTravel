@@ -25,10 +25,10 @@ sealed interface RouteTime {
     /** Leave at [instant]. */
     @Serializable
     @SerialName("departAt")
-    data class DepartAt(val instant: Instant) : RouteTime
+    data class DepartAt(@SerialName("instant") val instant: Instant) : RouteTime
 
     /** Arrive no later than [instant]; the departure time is computed backwards from it. */
     @Serializable
     @SerialName("arriveBy")
-    data class ArriveBy(val instant: Instant) : RouteTime
+    data class ArriveBy(@SerialName("instant") val instant: Instant) : RouteTime
 }

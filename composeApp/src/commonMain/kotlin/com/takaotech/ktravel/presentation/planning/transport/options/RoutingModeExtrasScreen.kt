@@ -12,9 +12,9 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toPersistentSet
 
 /**
- * The options that belong to one vehicle rather than to the road family as a whole.
+ * The options that belong to one vehicle rather than to the routing family as a whole.
  *
- * Separate from [RoadRouteOptionsScreen] because the answer to "which controls apply" changes with
+ * Separate from [RoutingRouteOptionsScreen] because the answer to "which controls apply" changes with
  * the vehicle and not with the profile: a car is asked about tolls and motorways, a scooter about
  * neither, a pedestrian about nothing at all. Keying a screen on the vehicle is what lets a new one
  * arrive with its own controls without the family's block knowing.
@@ -27,7 +27,7 @@ import kotlinx.collections.immutable.toPersistentSet
  * @property supportsShortest Whether upstream will optimize this vehicle for distance.
  */
 @Parcelize
-data class RoadModeExtrasScreen(
+data class RoutingModeExtrasScreen(
     val travelId: String,
     val provider: String,
     val profile: String,
@@ -56,7 +56,7 @@ data class RoadModeExtrasScreen(
             avoidable: Set<RouteFeature>,
             tollsUnsupported: Boolean,
             supportsShortest: Boolean,
-        ): RoadModeExtrasScreen = RoadModeExtrasScreen(
+        ): RoutingModeExtrasScreen = RoutingModeExtrasScreen(
             travelId = travelId,
             provider = profileId.provider,
             profile = profileId.profile,
@@ -68,19 +68,19 @@ data class RoadModeExtrasScreen(
     }
 }
 
-data class RoadModeExtrasUiState(
+data class RoutingModeExtrasUiState(
     val avoidable: ImmutableSet<RouteFeature>,
     val avoided: ImmutableSet<RouteFeature>,
     val tollsUnsupported: Boolean,
     val supportsShortest: Boolean,
     val shortestDistance: Boolean,
-    val eventSink: (RoadModeExtrasEvent) -> Unit,
+    val eventSink: (RoutingModeExtrasEvent) -> Unit,
 ) : CircuitUiState
 
-sealed interface RoadModeExtrasEvent : CircuitUiEvent {
+sealed interface RoutingModeExtrasEvent : CircuitUiEvent {
     /** Adds or removes one thing the route should stay away from. */
-    data class ToggleAvoid(val feature: RouteFeature) : RoadModeExtrasEvent
+    data class ToggleAvoid(val feature: RouteFeature) : RoutingModeExtrasEvent
 
     /** Optimizes for distance instead of time. */
-    data class SetShortestDistance(val shortest: Boolean) : RoadModeExtrasEvent
+    data class SetShortestDistance(val shortest: Boolean) : RoutingModeExtrasEvent
 }

@@ -14,11 +14,11 @@ import kotlinx.collections.immutable.ImmutableSet
 /**
  * The options of a transit profile: which vehicles are acceptable, and how the journey may be shaped.
  *
- * No per-vehicle extras screen, unlike the road family, and the asymmetry is the point: there is no
+ * No per-vehicle extras screen, unlike the routing family, and the asymmetry is the point: there is no
  * chosen vehicle here to hang a rule on. The modes restrict what the answer may use, and the rest of
  * the options — transfers, walking — apply to the journey as a whole.
  *
- * Flattened for the same reason as [RoadRouteOptionsScreen].
+ * Flattened for the same reason as [RoutingRouteOptionsScreen].
  */
 @Parcelize
 data class TransitRouteOptionsScreen(

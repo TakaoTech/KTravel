@@ -24,6 +24,7 @@ import com.slack.circuit.foundation.NavEvent
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.core.ui.lifecycleIsResumed
 import com.takaotech.ktravel.di.createAppGraph
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.ktravel.presentation.place.PlaceInsertViewModel
 import com.takaotech.ktravel.presentation.planning.PlanningViewModel
 import com.takaotech.ktravel.presentation.planning.detail.AddPlaceScreen
@@ -41,8 +42,9 @@ import com.takaotech.ktravel.ui.planning.detail.PlanningDetailPageNavigation
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportNavigation
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPage
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportPageNavigation
-import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreviewPage
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportRoutePreviewPageNavigation
+import com.takaotech.ktravel.ui.planning.transport.preview.RoutingRoutePreviewPage
+import com.takaotech.ktravel.ui.planning.transport.preview.TransitJourneyPreviewPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.AppSettingsNavigation
@@ -285,17 +287,27 @@ fun App() {
 
                                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-                                    uiState.routes?.let { routes ->
-                                        PlanningTransportRoutePreviewPage(
-                                            routes = routes,
+                                    val confirm = {
+                                        viewModel.saveSelectedRoute()
+                                        navController.popBackStack<PlanningDetailPageNavigation>(inclusive = false)
+                                        Unit
+                                    }
+
+                                    when (val result = uiState.result) {
+                                        null -> Unit
+
+                                        is RouteResult.Routing -> RoutingRoutePreviewPage(
+                                            routes = result.routes,
                                             selectedRouteIndex = uiState.selectedRouteIndex,
-                                            onRouteConfirm = {
-                                                viewModel.saveSelectedRoute()
-                                                navController.popBackStack<PlanningDetailPageNavigation>(
-                                                    inclusive = false,
-                                                )
-                                            },
                                             onRouteChange = { viewModel.selectRoute(it) },
+                                            onRouteConfirm = confirm,
+                                        )
+
+                                        is RouteResult.Transit -> TransitJourneyPreviewPage(
+                                            journeys = result.journeys,
+                                            selectedJourneyIndex = uiState.selectedRouteIndex,
+                                            onJourneyChange = { viewModel.selectRoute(it) },
+                                            onJourneyConfirm = confirm,
                                         )
                                     }
                                 }

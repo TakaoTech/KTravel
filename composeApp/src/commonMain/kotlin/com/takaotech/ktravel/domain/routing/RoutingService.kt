@@ -2,7 +2,7 @@ package com.takaotech.ktravel.domain.routing
 
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
-import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 
 /**
  * Computing routes, without knowing who computes them.
@@ -21,12 +21,21 @@ interface RoutingService {
     suspend fun catalog(kind: NavigatorKind): RoutingCatalog
 
     /**
-     * Computes routes between two places, expressed as `lat,lng`.
+     * Computes how to get between two places, expressed as `lat,lng`.
      *
-     * @throws RoutingFailure when the route cannot be produced. Typed, because each case has its own
+     * The answer is a [RouteResult] and not one route type, because the two profiles do not answer
+     * the same thing: which variant comes back follows from [selection] and is what decides the
+     * screen that draws it.
+     *
+     * @throws RoutingFailure when nothing can be produced. Typed, because each case has its own
      *   remedy and the screen has to say which one applies.
      */
-    suspend fun routes(kind: NavigatorKind, origin: String, destination: String, selection: RouteSelection): Routes
+    suspend fun routes(
+        kind: NavigatorKind,
+        origin: String,
+        destination: String,
+        selection: RouteSelection,
+    ): RouteResult
 }
 
 /**

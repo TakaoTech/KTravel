@@ -55,7 +55,7 @@ sealed interface RoutingOptionsSpec {
      *   rejected.
      * @property supportsTolls Whether the profile understands being asked to keep off toll roads.
      */
-    data class RoadSingleMode(
+    data class RoutingSingleMode(
         override val modes: List<RoutingMode>,
         override val maxAlternatives: Int,
         val modesSupportingShortest: Set<RoutingMode> = emptySet(),

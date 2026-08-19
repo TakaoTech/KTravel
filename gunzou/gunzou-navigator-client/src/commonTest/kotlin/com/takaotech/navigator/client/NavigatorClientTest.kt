@@ -5,12 +5,18 @@ import com.takaotech.navigator.api.NavigatorJson
 import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
+import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
 import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RouteSummaryDto
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.TransitJourneyDto
+import com.takaotech.navigator.api.response.TransitJourneyLeg
+import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.TransitLineDto
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
@@ -44,13 +50,13 @@ class NavigatorClientTest {
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
 
-    private val routeResponse = RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING)
+    private val routeResponse = RoutingRouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING)
 
     private val recorded = mutableListOf<HttpRequestData>()
 
     private fun client(
         status: HttpStatusCode = HttpStatusCode.OK,
-        body: String = NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+        body: String = NavigatorJson.encodeToString(RoutingRouteResponse.serializer(), routeResponse),
         baseUrl: NavigatorBaseUrl = NavigatorBaseUrl { "http://navigator.test" },
     ): NavigatorClient {
         val engine = MockEngine { request ->
@@ -139,7 +145,7 @@ class NavigatorClientTest {
     //     val engine = MockEngine { request ->
     //         recorded += request
     //         respond(
-    //             NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+    //             NavigatorJson.encodeToString(RoutingRouteResponse.serializer(), routeResponse),
     //             HttpStatusCode.OK,
     //             headersOf(HttpHeaders.ContentType, "application/json"),
     //         )
@@ -174,8 +180,41 @@ class NavigatorClientTest {
     fun `Given the navigator answers a route When it is read Then the contract type comes back`() = clientTest {
         val result = client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
-        assertIs<NavigatorResult.Success<RouteResponse>>(result)
+        assertIs<NavigatorResult.Success<RoutingRouteResponse>>(result)
         assertEquals(ProviderId.HERE, result.value.provider)
+    }
+
+    @Test
+    fun `Given the navigator answers a journey When it is read Then it is read as a journey`() = clientTest {
+        val body = NavigatorJson.encodeToString(
+            TransitJourneyResponse.serializer(),
+            TransitJourneyResponse(
+                provider = ProviderId.HERE,
+                profile = ProviderProfile.TRANSIT,
+                journeys = listOf(
+                    TransitJourneyDto(
+                        summary = RouteSummaryDto(durationSeconds = 600, distanceMeters = 4_000),
+                        legs = listOf(
+                            TransitJourneyLeg.Ride(
+                                summary = RouteSummaryDto(durationSeconds = 600, distanceMeters = 4_000),
+                                line = TransitLineDto(mode = TransitMode.SUBWAY, name = "M2"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val transit = HereTransitRouteRequest(
+            origin = GeoPoint(lat = 44.4949, lng = 11.3426),
+            destination = GeoPoint(lat = 44.5058, lng = 11.3428),
+        )
+
+        val result = client(body = body).use { it.hereTransit(transit) }
+
+        // The point of the assertion is the static type: this method and hereRouting no longer
+        // answer in one shape, so a caller cannot read a journey through the road model by accident.
+        val journeys = assertIs<NavigatorResult.Success<TransitJourneyResponse>>(result).value
+        assertEquals("M2", assertIs<TransitJourneyLeg.Ride>(journeys.journeys.single().legs.single()).line.name)
     }
 
     @Test
@@ -258,7 +297,7 @@ class NavigatorClientTest {
     //     val engine = MockEngine { request ->
     //         recorded += request
     //         respond(
-    //             NavigatorJson.encodeToString(RouteResponse.serializer(), routeResponse),
+    //             NavigatorJson.encodeToString(RoutingRouteResponse.serializer(), routeResponse),
     //             HttpStatusCode.OK,
     //             headersOf(HttpHeaders.ContentType, "application/json"),
     //         )

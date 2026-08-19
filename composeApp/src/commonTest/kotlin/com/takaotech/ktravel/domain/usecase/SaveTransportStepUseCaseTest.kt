@@ -5,10 +5,12 @@ import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
-import com.takaotech.ktravel.domain.routing.model.Route
-import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
-import com.takaotech.ktravel.domain.routing.model.RouteTransport
+import com.takaotech.ktravel.domain.routing.model.RoutingRoute
+import com.takaotech.ktravel.domain.routing.model.RoutingSection
+import com.takaotech.ktravel.domain.routing.model.TransitJourney
+import com.takaotech.ktravel.domain.routing.model.TransitLine
+import com.takaotech.ktravel.domain.routing.model.TransitStep
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -95,7 +97,10 @@ class SaveTransportStepUseCaseTest :
             `when`("invoked with a route that has no sections") {
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
-                val route = Route(sections = emptyList())
+                val route = RoutingRoute(
+                    summary = RouteSummary(durationSeconds = 0.minutes, distanceMeters = 0),
+                    sections = emptyList(),
+                )
 
                 useCase("day-1", "step-1", route)
 
@@ -109,21 +114,40 @@ class SaveTransportStepUseCaseTest :
             `when`("invoked with a route whose first section has no transport info") {
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
-                val route = Route(
-                    sections = listOf(
-                        RouteSection(
-                            summary = RouteSummary(
-                                durationSeconds = 30.minutes,
-                                distanceMeters = 1000,
-                            ),
-                            transport = null,
-                        ),
-                    ),
+                val route = RoutingRoute(
+                    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
+                    sections = emptyList(),
                 )
 
                 useCase("day-1", "step-1", route)
 
                 then("should save a Transport step with type CAR as default") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.CAR
+                }
+            }
+
+            `when`("invoked with a journey whose first leg is the walk to the station") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                useCase("day-1", "step-1", journeyRiding("REGIONAL_TRAIN"))
+
+                then("should file it under the first vehicle and not under the walk") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.type shouldBe TransportType.TRAIN
+                }
+            }
+
+            `when`("invoked with a journey on the underground") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                useCase("day-1", "step-1", journeyRiding("SUBWAY"))
+
+                then("should fall back to the default, which the plan's vocabulary has no word for") {
                     val saved = fakeRepository.savedStep
                     saved.shouldBeInstanceOf<StepDomain.Transport>()
                     saved.type shouldBe TransportType.CAR
@@ -145,12 +169,23 @@ class SaveTransportStepUseCaseTest :
         }
     })
 
-private fun routeWithMode(mode: String) = Route(
+private fun routeWithMode(mode: String) = RoutingRoute(
+    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
     sections = listOf(
-        RouteSection(
-            summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
-            transport = RouteTransport(mode = mode),
+        RoutingSection(summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000), mode = mode),
+    ),
+)
+
+/** A journey that walks to a stop, rides [mode], and walks off — which is every journey. */
+private fun journeyRiding(mode: String) = TransitJourney(
+    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
+    steps = listOf(
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 200)),
+        TransitStep.Ride(
+            summary = RouteSummary(durationSeconds = 22.minutes, distanceMeters = 700),
+            line = TransitLine(mode = mode, name = "M2"),
         ),
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 100)),
     ),
 )
 

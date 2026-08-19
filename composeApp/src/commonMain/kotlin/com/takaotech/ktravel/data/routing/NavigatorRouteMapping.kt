@@ -6,16 +6,23 @@ import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
-import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
 import com.takaotech.ktravel.domain.routing.model.RouteLocation
-import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.RouteTollCost
 import com.takaotech.ktravel.domain.routing.model.RouteTollSystem
-import com.takaotech.ktravel.domain.routing.model.RouteTransport
-import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.domain.routing.model.RoutingRoute
+import com.takaotech.ktravel.domain.routing.model.RoutingRoutes
+import com.takaotech.ktravel.domain.routing.model.RoutingSection
+import com.takaotech.ktravel.domain.routing.model.TransitAgency
+import com.takaotech.ktravel.domain.routing.model.TransitJourney
+import com.takaotech.ktravel.domain.routing.model.TransitJourneys
+import com.takaotech.ktravel.domain.routing.model.TransitLine
+import com.takaotech.ktravel.domain.routing.model.TransitStep
+import com.takaotech.ktravel.domain.routing.model.TransitStop
+import com.takaotech.ktravel.domain.routing.model.TransitTime
+import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
 import com.takaotech.navigator.api.catalog.NavigatorProfile
 import com.takaotech.navigator.api.catalog.ProviderProfileDescriptor
 import com.takaotech.navigator.api.common.GeoPoint
@@ -30,9 +37,17 @@ import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitModeFilter
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.RouteResponse
-import com.takaotech.navigator.api.response.RouteSectionDto
+import com.takaotech.navigator.api.response.PolylineEncoding
+import com.takaotech.navigator.api.response.RouteActionDto
+import com.takaotech.navigator.api.response.RouteGeometry
+import com.takaotech.navigator.api.response.RouteSummaryDto
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.RoutingSectionDto
 import com.takaotech.navigator.api.response.TollCostDto
+import com.takaotech.navigator.api.response.TransitJourneyLeg
+import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.TransitLineDto
+import com.takaotech.navigator.api.response.TransitStopDto
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime
@@ -42,6 +57,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.toInstant
 import kotlin.time.Duration.Companion.seconds
+import com.takaotech.navigator.api.response.WheelchairAccess as WheelchairAccessDto
 
 // Between the app's own routing model and the navigator contract.
 //
@@ -59,8 +75,8 @@ fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
     is NavigatorProfile.HereRouting -> RoutingProfileInfo(
         id = descriptor.toProfileId(),
         displayName = descriptor.displayName,
-        // Upstream requires exactly one vehicle, so the selector is a choice.
-        options = RoutingOptionsSpec.RoadSingleMode(
+        // Upstream Here Routing requires exactly one vehicle, so the selector is a choice.
+        options = RoutingOptionsSpec.RoutingSingleMode(
             modes = modes.map { RoutingMode(it.name) },
             maxAlternatives = descriptor.maxAlternatives,
             modesSupportingShortest = modesSupportingShortest.map { RoutingMode(it.name) }.toSet(),
@@ -92,7 +108,7 @@ fun ProviderProfileDescriptor.toProfileId(): RoutingProfileId =
  * computing them would be a question with no answer — one the navigator refuses and the provider
  * would bill for anyway.
  */
-fun RouteSelection.Road.toRoutingRequest(origin: GeoPoint, destination: GeoPoint): HereRoutingRequest =
+fun RouteSelection.Routing.toRoutingRequest(origin: GeoPoint, destination: GeoPoint): HereRoutingRequest =
     HereRoutingRequest(
         origin = origin,
         destination = destination,
@@ -194,45 +210,130 @@ fun String.toGeoPoint(): GeoPoint {
     return GeoPoint(lat = lat, lng = lng)
 }
 
-/** Translates a navigator answer into the model the app draws from. */
-fun RouteResponse.toDomainRoutes(): Routes = Routes(
-    routes = routes.map { route -> Route(sections = route.sections.map { it.toDomain() }) },
-)
-
-private fun RouteSectionDto.toDomain(): RouteSection = RouteSection(
-    summary = RouteSummary(
-        durationSeconds = summary.durationSeconds.seconds,
-        distanceMeters = summary.distanceMeters,
-    ),
-    actions = actions.map { action ->
-        RouteAction(
-            action = action.action,
-            durationSeconds = action.durationSeconds.seconds,
-            distanceMeters = (action.distanceMeters ?: 0) * Length.meters,
-            instruction = action.instruction,
-            offset = action.offset,
-            direction = action.direction,
-            severity = action.severity,
+/** Translates a road answer into the model the app draws from. */
+fun RoutingRouteResponse.toDomain(): RoutingRoutes = RoutingRoutes(
+    routes = routes.map { route ->
+        RoutingRoute(
+            summary = route.summary.toDomain(),
+            sections = route.sections.map { it.toDomain() },
         )
     },
+)
+
+/**
+ * Translates a journey answer into the model the app draws from.
+ *
+ * The `when` is exhaustive on purpose and there is no `else`: a kind of leg added to the contract
+ * has to be given a domain shape here before anything compiles, which is the whole reason the two
+ * answers stopped being one type.
+ */
+fun TransitJourneyResponse.toDomain(): TransitJourneys = TransitJourneys(
+    journeys = journeys.map { journey ->
+        TransitJourney(
+            summary = journey.summary.toDomain(),
+            steps = journey.legs.map { leg ->
+                when (leg) {
+                    is TransitJourneyLeg.Walk -> TransitStep.Walk(
+                        summary = leg.summary.toDomain(),
+                        polyline = leg.geometry.drawableOrNull(),
+                        departure = leg.departure?.time?.toTransitTime(),
+                        arrival = leg.arrival?.time?.toTransitTime(),
+                        from = leg.departure?.place?.toLocation(),
+                        to = leg.arrival?.place?.toLocation(),
+                    )
+
+                    is TransitJourneyLeg.Ride -> TransitStep.Ride(
+                        summary = leg.summary.toDomain(),
+                        line = leg.line.toDomain(),
+                        polyline = leg.geometry.drawableOrNull(),
+                        agency = leg.agency?.let { TransitAgency(it.name, it.id, it.website) },
+                        boarding = leg.boarding?.toDomain(),
+                        alighting = leg.alighting?.toDomain(),
+                        intermediateStops = leg.intermediateStops.map { it.toDomain() },
+                    )
+                }
+            },
+        )
+    },
+)
+
+private fun RouteSummaryDto.toDomain(): RouteSummary = RouteSummary(
+    durationSeconds = durationSeconds.seconds,
+    distanceMeters = distanceMeters,
+)
+
+private fun RoutingSectionDto.toDomain(): RoutingSection = RoutingSection(
+    summary = summary.toDomain(),
+    mode = mode.name,
+    actions = actions.map { it.toDomain() },
     departure = departure?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
     arrival = arrival?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
-    transport = RouteTransport(mode = mode.name),
-    // The encoding travels declared, and the app only knows how to draw one of them. Anything else
-    // is dropped rather than handed to a decoder that would read it as nonsense.
-    polyline = geometry?.takeIf { it.encoding == DRAWABLE_ENCODING }?.value,
+    polyline = geometry.drawableOrNull(),
     tollSystems = tollSystems.map { RouteTollSystem(id = it.id, name = it.name) },
     tolls = tolls.map { it.toDomain(tollSystems.map { system -> system.id }) },
 )
 
+private fun RouteActionDto.toDomain(): RouteAction = RouteAction(
+    action = action,
+    durationSeconds = durationSeconds.seconds,
+    distanceMeters = (distanceMeters ?: 0) * Length.meters,
+    instruction = instruction,
+    offset = offset,
+    direction = direction,
+    severity = severity,
+)
+
+private fun TransitLineDto.toDomain(): TransitLine = TransitLine(
+    mode = mode.name,
+    name = name,
+    shortName = shortName,
+    longName = longName,
+    category = category,
+    headsign = headsign,
+    color = color,
+    textColor = textColor,
+    url = url,
+    wheelchairAccessible = wheelchairAccessible.toDomain(),
+)
+
+private fun TransitStopDto.toDomain(): TransitStop = TransitStop(
+    location = place.toLocation(),
+    name = name,
+    arrival = arrival?.toTransitTime(),
+    departure = departure?.toTransitTime(),
+    dwell = dwellSeconds?.seconds,
+    offset = offset,
+    url = url,
+    wheelchairAccessible = wheelchairAccessible.toDomain(),
+)
+
+/**
+ * Accessibility, translated by name because the app's enum is the contract's.
+ *
+ * Anything that does not resolve is unknown rather than a refusal, for the same reason the navigator
+ * applies to a vocabulary it has not seen: it must never tell a traveller a station is unusable on
+ * the strength of a word this build does not recognise.
+ */
+private fun WheelchairAccessDto.toDomain(): WheelchairAccess =
+    WheelchairAccess.entries.firstOrNull { it.name == name } ?: WheelchairAccess.UNKNOWN
+
 private fun GeoPoint.toLocation(): RouteLocation = RouteLocation(lat = lat, lng = lng)
 
 /**
- * A toll, in the shape the app's model still has.
+ * The geometry, when it is one the map layer can draw.
+ *
+ * The encoding travels declared, and the app only knows how to read one of them. Anything else is
+ * dropped rather than handed to a decoder that would read it as nonsense.
+ */
+// FIXME: This is Wrong, this assert only HERE polyline is supported (currently is correct)
+private fun RouteGeometry?.drawableOrNull(): String? = this?.takeIf { it.encoding == DRAWABLE_ENCODING }?.value
+
+/**
+ * A toll, in the shape the stored model still has.
  *
  * That model carries HERE's deprecated singular fields as non-null, so they are filled from the
  * first reference rather than left out. Nothing reads them today; they disappear the next time the
- * domain model is touched.
+ * stored model is touched.
  */
 private fun TollCostDto.toDomain(systemIds: List<String>): RouteTollCost = RouteTollCost(
     tollSystem = tollSystemRefs.firstOrNull()?.let { systemIds.getOrNull(it) }.orEmpty(),
@@ -242,7 +343,7 @@ private fun TollCostDto.toDomain(systemIds: List<String>): RouteTollCost = Route
 )
 
 /**
- * The app's model dates from when times arrived as strings, so it holds a [DateTimeComponents].
+ * The stored model dates from when times arrived as strings, so it holds a [DateTimeComponents].
  *
  * Building one means formatting and parsing again, because that type has no public constructor: it
  * exists to be produced by a parser. The round trip is cheap and it is the only way to keep the
@@ -251,5 +352,9 @@ private fun TollCostDto.toDomain(systemIds: List<String>): RouteTollCost = Route
 private fun ZonedTime.toDateTimeComponents(): DateTimeComponents = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET
     .parse(instant.format(DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET, UtcOffset(seconds = offsetSeconds)))
 
+/** A moment on a timetable, which the journey model keeps as an instant it can subtract. */
+private fun ZonedTime.toTransitTime(): TransitTime =
+    TransitTime(instant = instant, offset = UtcOffset(seconds = offsetSeconds))
+
 /** The only polyline encoding the map layer can draw today. */
-private val DRAWABLE_ENCODING = com.takaotech.navigator.api.response.PolylineEncoding.HERE_FLEXIBLE
+private val DRAWABLE_ENCODING = PolylineEncoding.HERE_FLEXIBLE

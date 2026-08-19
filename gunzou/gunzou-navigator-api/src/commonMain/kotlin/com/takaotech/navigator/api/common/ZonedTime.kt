@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.common
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
@@ -14,4 +15,4 @@ import kotlin.time.Instant
  * @property offsetSeconds Offset from UTC at the place the time refers to, in seconds.
  */
 @Serializable
-data class ZonedTime(val instant: Instant, val offsetSeconds: Int)
+data class ZonedTime(@SerialName("instant") val instant: Instant, @SerialName("offsetSeconds") val offsetSeconds: Int)

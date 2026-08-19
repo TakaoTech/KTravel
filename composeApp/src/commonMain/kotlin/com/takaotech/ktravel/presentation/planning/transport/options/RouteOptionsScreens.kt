@@ -21,8 +21,8 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 fun RoutingProfileInfo.routeOptionsScreen(travelId: String): Screen? = when (val spec = options) {
     RoutingOptionsSpec.None -> null
 
-    is RoutingOptionsSpec.RoadSingleMode ->
-        if (spec.modes.isEmpty()) null else RoadRouteOptionsScreen.of(travelId, id, spec)
+    is RoutingOptionsSpec.RoutingSingleMode ->
+        if (spec.modes.isEmpty()) null else RoutingRouteOptionsScreen.of(travelId, id, spec)
 
     is RoutingOptionsSpec.TransitFilter ->
         if (spec.modes.isEmpty()) null else TransitRouteOptionsScreen.of(travelId, id, spec)

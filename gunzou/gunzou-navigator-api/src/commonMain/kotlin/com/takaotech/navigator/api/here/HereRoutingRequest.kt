@@ -3,6 +3,7 @@ package com.takaotech.navigator.api.here
 import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.RouteTime
 import com.takaotech.navigator.api.common.Units
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -28,14 +29,14 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class HereRoutingRequest(
-    val origin: GeoPoint,
-    val destination: GeoPoint,
-    val via: List<GeoPoint> = emptyList(),
-    val routingMode: HereRoutingMode = HereRoutingMode.FAST,
-    val alternatives: Int = 1,
-    val time: RouteTime = RouteTime.Now,
-    val units: Units = Units.METRIC,
-    val language: String? = null,
-    val avoid: HereAvoidOptions? = null,
-    val returnAttributes: List<HereReturnAttribute> = HereReturnAttribute.NAVIGATION,
+    @SerialName("origin") val origin: GeoPoint,
+    @SerialName("destination") val destination: GeoPoint,
+    @SerialName("via") val via: List<GeoPoint> = emptyList(),
+    @SerialName("routingMode") val routingMode: HereRoutingMode = HereRoutingMode.FAST,
+    @SerialName("alternatives") val alternatives: Int = 1,
+    @SerialName("time") val time: RouteTime = RouteTime.Now,
+    @SerialName("units") val units: Units = Units.METRIC,
+    @SerialName("language") val language: String? = null,
+    @SerialName("avoid") val avoid: HereAvoidOptions? = null,
+    @SerialName("returnAttributes") val returnAttributes: List<HereReturnAttribute> = HereReturnAttribute.NAVIGATION,
 )

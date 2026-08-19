@@ -5,28 +5,29 @@ import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.ProviderProfile
 import com.takaotech.navigator.api.common.RouteTime
 import com.takaotech.navigator.api.common.TransitMode
-import com.takaotech.navigator.api.common.TravelMode
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.here.HereTransitModeFilter
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
+import com.takaotech.navigator.api.response.TransitJourneyLeg
+import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.WheelchairAccess
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 /**
  * `POST /v1/here/transit` end to end, with a recorded HERE answer behind it.
  *
- * This is the profile that makes the contract worth having. The road API and the transit API share
- * nothing upstream — different host, different parameters, an answer with a shape of its own — and
- * if the single [com.takaotech.navigator.api.response.RouteResponse] could not carry both, the
- * server would be a proxy rather than a facade. The assertions below are what "it carries both"
- * means concretely: a walking leg and a train leg are the same section type, told apart by their
- * mode and by whether the transit details are there.
+ * The road API and the transit API share nothing upstream — different host, different parameters, an
+ * answer with a shape of its own — and the contract now says so on both halves. What these tests
+ * hold onto is the translation: that a section HERE marks `pedestrian` becomes a
+ * [TransitJourneyLeg.Walk] and everything else a [TransitJourneyLeg.Ride], and that everything the
+ * traveller reads off a ride — the line, the operator, the stops it calls at — survives it.
  */
 class HereTransitRouteTest {
 
@@ -119,81 +120,100 @@ class HereTransitRouteTest {
     // ---- what the caller gets back -------------------------------------------------------------
 
     @Test
-    fun `Given a journey When it is translated Then it is the same response type as a road route`() = testApplication {
+    fun `Given a journey When it is translated Then it answers as a journey and not as a route`() = testApplication {
         val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
         application { module(here.asKoinModule()) }
 
         val response = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
 
         assertEquals(HttpStatusCode.OK, response.status)
-        val routes = response.decodeRoutes()
-        assertEquals(ProviderProfile.TRANSIT, routes.profile)
-        assertEquals(2, routes.routes.single().sections.size)
+        val journeys = response.decodeJourneys()
+        assertEquals(ProviderProfile.TRANSIT, journeys.profile)
+        assertEquals(2, journeys.journeys.single().legs.size)
     }
 
     @Test
-    fun `Given a walking leg and a train leg When translated Then one section type carries both`() = testApplication {
-        val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
-        application { module(here.asKoinModule()) }
+    fun `Given a walking leg and a train leg When translated Then each becomes the kind of leg it is`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
+            application { module(here.asKoinModule()) }
 
-        val sections = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
-            .decodeRoutes().routes.single().sections
+            val legs = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
+                .decodeJourneys().journeys.single().legs
 
-        assertEquals(listOf(TravelMode.PEDESTRIAN, TravelMode.TRANSIT), sections.map { it.mode })
-        assertNull(sections.first().transit, "Nobody operates a walk")
-        assertEquals(TransitMode.REGIONAL_TRAIN, sections.last().transit?.mode)
-    }
+            assertIs<TransitJourneyLeg.Walk>(legs.first(), "Nobody operates a walk")
+            assertEquals(TransitMode.REGIONAL_TRAIN, assertIs<TransitJourneyLeg.Ride>(legs.last()).line.mode)
+        }
 
     @Test
     fun `Given a train leg When translated Then the line the traveller reads comes through`() = testApplication {
         val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val transit = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
-            .decodeRoutes().routes.single().sections.last().transit
+        val line = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
+            .decodeJourneys().rideLeg().line
 
-        assertEquals("R 2841", transit?.name)
-        assertEquals("Regionale", transit?.category)
-        assertEquals("Porretta Terme", transit?.headsign, "How the two directions of a line are told apart")
-        assertEquals("#008C45", transit?.color)
+        assertEquals("R 2841", line.name)
+        assertEquals("Regionale", line.category)
+        assertEquals("Porretta Terme", line.headsign, "How the two directions of a line are told apart")
+        assertEquals("#008C45", line.color)
+        assertEquals(WheelchairAccess.LIMITED, line.wheelchairAccessible)
     }
 
     @Test
-    fun `Given intermediate stops were requested When translated Then they come through with their times`() =
+    fun `Given a service with a named operator When translated Then the agency reaches the answer`() = testApplication {
+        val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
+        application { module(here.asKoinModule()) }
+
+        val agency = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
+            .decodeJourneys().rideLeg().agency
+
+        assertEquals("Trenitalia", agency?.name, "Who to ask about a disruption")
+        assertEquals("agency:trenitalia", agency?.id)
+        assertEquals("https://example.test/trenitalia", agency?.website)
+    }
+
+    @Test
+    fun `Given intermediate stops were requested When translated Then they keep their place on the line`() =
         testApplication {
             val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
             application { module(here.asKoinModule()) }
 
             val stop = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
-                .decodeRoutes().routes.single().sections.last().transit?.intermediateStops?.single()
+                .decodeJourneys().rideLeg().intermediateStops.single()
 
-            assertEquals("Casalecchio Garibaldi", stop?.name)
-            assertEquals(Instant.parse("2026-08-13T07:22:00Z"), stop?.departure?.instant)
+            assertEquals("Casalecchio Garibaldi", stop.name)
+            assertEquals(Instant.parse("2026-08-13T07:22:00Z"), stop.departure?.instant)
+            assertEquals(60, stop.dwellSeconds, "How long the train stands there")
+            assertEquals(23, stop.offset, "Where a marker goes without geocoding the stop again")
         }
 
     @Test
-    fun `Given a departure from a station When translated Then the local offset is kept`() = testApplication {
-        val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
-        application { module(here.asKoinModule()) }
+    fun `Given a boarding stop When translated Then the local time and the station details are kept`() =
+        testApplication {
+            val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
+            application { module(here.asKoinModule()) }
 
-        val departure = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
-            .decodeRoutes().routes.single().sections.last().departure
+            val boarding = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
+                .decodeJourneys().rideLeg().boarding
 
-        assertEquals("Bologna Centrale", departure?.name)
-        assertEquals(Instant.parse("2026-08-13T07:14:00Z"), departure?.time?.instant)
-        assertEquals(2 * 60 * 60, departure?.time?.offsetSeconds, "09:14 on the departure board")
-    }
+            assertEquals("Bologna Centrale", boarding?.name)
+            assertEquals(Instant.parse("2026-08-13T07:14:00Z"), boarding?.departure?.instant)
+            assertEquals(2 * 60 * 60, boarding?.departure?.offsetSeconds, "09:14 on the departure board")
+            assertEquals(WheelchairAccess.YES, boarding?.wheelchairAccessible)
+            assertEquals("https://example.test/stations/bologna-centrale", boarding?.url)
+        }
 
     @Test
     fun `Given a journey When translated Then the summary is the sum of its legs`() = testApplication {
         val here = HereMockServer(HerePayloads.TRANSIT_ROUTE)
         application { module(here.asKoinModule()) }
 
-        val route = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
-            .decodeRoutes().routes.single()
+        val journey = client.postJson(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request)
+            .decodeJourneys().journeys.single()
 
-        assertEquals(360 + 1620, route.summary.durationSeconds)
-        assertEquals(420 + 58_200, route.summary.distanceMeters)
+        assertEquals(360 + 1620, journey.summary.durationSeconds)
+        assertEquals(420 + 58_200, journey.summary.distanceMeters)
     }
 
     // ---- failures ------------------------------------------------------------------------------
@@ -258,3 +278,11 @@ class HereTransitRouteTest {
             assertEquals(emptyList(), here.requests)
         }
 }
+
+/**
+ * The one ride of the recorded journey.
+ *
+ * A helper rather than a chain repeated in every assertion, because the cast is the interesting part
+ * and it should fail in one place with one message when the translation stops producing a ride.
+ */
+private fun TransitJourneyResponse.rideLeg(): TransitJourneyLeg.Ride = assertIs(journeys.single().legs.last())

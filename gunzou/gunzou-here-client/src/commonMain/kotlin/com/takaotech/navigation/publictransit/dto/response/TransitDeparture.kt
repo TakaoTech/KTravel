@@ -1,5 +1,6 @@
 package com.takaotech.navigation.publictransit.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -7,8 +8,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TransitDeparture(
-    val time: String? = null,
-    val place: TransitPlace? = null,
-    val delay: Int? = null,
-    val platform: String? = null,
+    @SerialName("time") val time: String? = null,
+    @SerialName("place") val place: TransitPlace? = null,
+    @SerialName("delay") val delay: Int? = null,
+    @SerialName("platform") val platform: String? = null,
 )

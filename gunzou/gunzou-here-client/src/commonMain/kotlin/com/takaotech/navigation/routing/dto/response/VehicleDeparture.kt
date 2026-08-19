@@ -1,5 +1,6 @@
 package com.takaotech.navigation.routing.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,4 +11,8 @@ import kotlinx.serialization.Serializable
  * @property charge Estimated vehicle battery charge in kWh.
  */
 @Serializable
-data class VehicleDeparture(val place: Place, val time: String? = null, val charge: Double? = null)
+data class VehicleDeparture(
+    @SerialName("place") val place: Place,
+    @SerialName("time") val time: String? = null,
+    @SerialName("charge") val charge: Double? = null,
+)

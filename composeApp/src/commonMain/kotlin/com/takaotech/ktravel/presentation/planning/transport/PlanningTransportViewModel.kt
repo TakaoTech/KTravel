@@ -9,6 +9,7 @@ import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import com.takaotech.ktravel.presentation.planning.transport.options.routeOptionsScreen
 import dev.zacsweers.metro.Assisted
@@ -190,12 +191,9 @@ class PlanningTransportViewModel(
         val end = state.endPlace ?: return
 
         calculateTransportJob = viewModelScope.launch(Dispatchers.Default) {
-            mUiState.update { it.copy(isLoading = true, failure = null, routes = null) }
+            mUiState.update { it.copy(isLoading = true, failure = null, result = null) }
 
-            // Every failure is caught. The previous implementation caught none, so a rejected key
-            // escaped into the view model scope and left the screen loading forever — which stops
-            // being rare the moment a remote navigator, a token and a rate limit are involved.
-            val routes = try {
+            val result = try {
                 routingService.routes(
                     kind = state.navigatorKind,
                     origin = "${start.lat},${start.lng}",
@@ -207,7 +205,7 @@ class PlanningTransportViewModel(
                 return@launch
             }
 
-            mUiState.update { it.copy(isLoading = false, routes = routes, selectedRouteIndex = 0) }
+            mUiState.update { it.copy(isLoading = false, result = result, selectedRouteIndex = 0) }
             _navigationEvent.emit(PlanningTransportNavigationEvent.NavigateToRoutePreview)
         }
     }
@@ -216,11 +214,29 @@ class PlanningTransportViewModel(
 
     fun selectRoute(index: Int) = mUiState.update { it.copy(selectedRouteIndex = index) }
 
+    /**
+     * Files the alternative the traveller confirmed into the plan.
+     *
+     * Exhaustive on the kind of answer rather than on an index into one list, because the two are
+     * saved from different models — and a journey has to be filed under the vehicle it starts with
+     * rather than under the walk to the stop.
+     */
     fun saveSelectedRoute() {
         viewModelScope.launch(Dispatchers.Default) {
             val state = mUiState.value
-            val selectedRoute = state.routes?.routes?.getOrNull(state.selectedRouteIndex) ?: return@launch
-            planningGraph.saveTransportStepUseCase(dayId, startPlaceId, selectedRoute)
+            val index = state.selectedRouteIndex
+
+            when (val result = state.result) {
+                null -> return@launch
+
+                is RouteResult.Routing -> result.routes.routes.getOrNull(index)?.let {
+                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it)
+                }
+
+                is RouteResult.Transit -> result.journeys.journeys.getOrNull(index)?.let {
+                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it)
+                }
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 
-// The rules of the road family, and the only place a new one goes.
+// The rules of the routing family, and the only place a new one goes.
 //
 // Three kinds of rule meet on this screen and they do not live together:
 //
@@ -59,18 +59,18 @@ internal fun avoidableFor(mode: RoutingMode): Set<RouteFeature> = AVOIDABLE_BY_M
  * This is the extension point for a rule that belongs to a mode rather than to a family: a vehicle
  * that grows its own controls gets its own screen here, and the family's UI does not change.
  */
-internal fun roadModeExtrasScreen(
+internal fun routingModeExtrasScreen(
     travelId: String,
     profileId: RoutingProfileId,
     mode: RoutingMode,
-    spec: RoutingOptionsSpec.RoadSingleMode,
+    spec: RoutingOptionsSpec.RoutingSingleMode,
 ): Screen? {
     val avoidable = avoidableFor(mode)
     val supportsShortest = mode in spec.modesSupportingShortest
 
     if (avoidable.isEmpty() && !supportsShortest) return null
 
-    return RoadModeExtrasScreen.of(
+    return RoutingModeExtrasScreen.of(
         travelId = travelId,
         profileId = profileId,
         mode = mode,
@@ -84,18 +84,18 @@ internal fun roadModeExtrasScreen(
 }
 
 /** The request a profile starts on, before the traveller has touched anything. */
-internal fun defaultRoadSelection(
+internal fun defaultRoutingSelection(
     profileId: RoutingProfileId,
-    spec: RoutingOptionsSpec.RoadSingleMode,
-): RouteSelection.Road = RouteSelection.Road(
+    spec: RoutingOptionsSpec.RoutingSingleMode,
+): RouteSelection.Routing = RouteSelection.Routing(
     profileId = profileId,
     mode = spec.modes.first(),
     alternatives = 1,
 )
 
 /** The stored request, when it is a road one for this profile. */
-internal fun RouteSelection?.asRoadFor(profileId: RoutingProfileId): RouteSelection.Road? =
-    (this as? RouteSelection.Road)?.takeIf { it.profileId == profileId }
+internal fun RouteSelection?.asRoutingFor(profileId: RoutingProfileId): RouteSelection.Routing? =
+    (this as? RouteSelection.Routing)?.takeIf { it.profileId == profileId }
 
 /**
  * Applies a choice, keeping the request coherent with what the profile accepts.
@@ -104,11 +104,11 @@ internal fun RouteSelection?.asRoadFor(profileId: RoutingProfileId): RouteSelect
  * vehicle needed one place to remember to switch the distance option off. Here they are one
  * function, and one test.
  */
-internal fun RouteSelection.Road.reduce(
-    event: RoadRouteOptionsEvent,
-    spec: RoutingOptionsSpec.RoadSingleMode,
-): RouteSelection.Road = when (event) {
-    is RoadRouteOptionsEvent.SelectMode -> copy(
+internal fun RouteSelection.Routing.reduce(
+    event: RoutingRouteOptionsEvent,
+    spec: RoutingOptionsSpec.RoutingSingleMode,
+): RouteSelection.Routing = when (event) {
+    is RoutingRouteOptionsEvent.SelectMode -> copy(
         mode = event.mode,
         // Neither option survives a vehicle it does not apply to: upstream refuses the first, and
         // the second would keep avoiding something this vehicle is never asked about.
@@ -116,14 +116,14 @@ internal fun RouteSelection.Road.reduce(
         avoid = avoid intersect avoidableFor(event.mode),
     )
 
-    is RoadRouteOptionsEvent.SetAlternatives ->
+    is RoutingRouteOptionsEvent.SetAlternatives ->
         copy(alternatives = event.count.coerceIn(1, spec.maxAlternatives.coerceAtLeast(1)))
 }
 
 /** Applies a choice made in the extras block of one vehicle. */
-internal fun RouteSelection.Road.reduce(event: RoadModeExtrasEvent): RouteSelection.Road = when (event) {
-    is RoadModeExtrasEvent.ToggleAvoid ->
+internal fun RouteSelection.Routing.reduce(event: RoutingModeExtrasEvent): RouteSelection.Routing = when (event) {
+    is RoutingModeExtrasEvent.ToggleAvoid ->
         copy(avoid = if (event.feature in avoid) avoid - event.feature else avoid + event.feature)
 
-    is RoadModeExtrasEvent.SetShortestDistance -> copy(shortestDistance = event.shortest)
+    is RoutingModeExtrasEvent.SetShortestDistance -> copy(shortestDistance = event.shortest)
 }

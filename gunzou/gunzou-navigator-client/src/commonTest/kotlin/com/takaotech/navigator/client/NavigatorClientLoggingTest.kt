@@ -10,7 +10,7 @@ import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
 import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RoutingRouteResponse
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -74,8 +74,8 @@ class NavigatorClientLoggingTest {
         val engine = MockEngine {
             respond(
                 content = NavigatorJson.encodeToString(
-                    RouteResponse.serializer(),
-                    RouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING),
+                    RoutingRouteResponse.serializer(),
+                    RoutingRouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING),
                 ),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),

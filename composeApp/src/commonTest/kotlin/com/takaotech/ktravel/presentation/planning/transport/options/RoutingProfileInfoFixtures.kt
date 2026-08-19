@@ -7,7 +7,7 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 /** Profiles shaped like the ones the catalog produces, for the tests around the options block. */
 internal object RoutingProfileInfoFixtures {
 
-    fun road(spec: RoutingOptionsSpec.RoadSingleMode): RoutingProfileInfo = RoutingProfileInfo(
+    fun routing(spec: RoutingOptionsSpec.RoutingSingleMode): RoutingProfileInfo = RoutingProfileInfo(
         id = RoutingProfileId(provider = "here", profile = "routing"),
         displayName = "HERE road routing",
         options = spec,

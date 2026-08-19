@@ -1,5 +1,6 @@
 package com.takaotech.navigation.routing.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,9 +14,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class VehicleSummary(
-    val duration: Int,
-    val length: Int,
-    val baseDuration: Int? = null,
-    val typicalDuration: Int? = null,
-    val consumption: Double? = null,
+    @SerialName("duration") val duration: Int,
+    @SerialName("length") val length: Int,
+    @SerialName("baseDuration") val baseDuration: Int? = null,
+    @SerialName("typicalDuration") val typicalDuration: Int? = null,
+    @SerialName("consumption") val consumption: Double? = null,
 )

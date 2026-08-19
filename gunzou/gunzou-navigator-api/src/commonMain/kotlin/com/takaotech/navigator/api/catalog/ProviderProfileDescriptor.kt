@@ -2,6 +2,7 @@ package com.takaotech.navigator.api.catalog
 
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -33,16 +34,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ProviderProfileDescriptor(
-    val provider: ProviderId,
-    val profile: ProviderProfile,
-    val path: String,
-    val displayName: String,
-    val supportedModes: SupportedModes = SupportedModes.None,
-    val maxAlternatives: Int,
-    val maxVia: Int = 0,
-    val supportsArriveBy: Boolean = false,
-    val supportsTolls: Boolean = false,
-    val requiresApiKey: Boolean = false,
+    @SerialName("provider") val provider: ProviderId,
+    @SerialName("profile") val profile: ProviderProfile,
+    @SerialName("path") val path: String,
+    @SerialName("displayName") val displayName: String,
+    @SerialName("supportedModes") val supportedModes: SupportedModes = SupportedModes.None,
+    @SerialName("maxAlternatives") val maxAlternatives: Int,
+    @SerialName("maxVia") val maxVia: Int = 0,
+    @SerialName("supportsArriveBy") val supportsArriveBy: Boolean = false,
+    @SerialName("supportsTolls") val supportsTolls: Boolean = false,
+    @SerialName("requiresApiKey") val requiresApiKey: Boolean = false,
 )
 
 /**
@@ -66,6 +67,6 @@ data class ProviderProfileDescriptor(
  */
 @Serializable
 data class ProviderCatalogResponse(
-    val profiles: List<ProviderProfileDescriptor> = emptyList(),
-    val version: String = "",
+    @SerialName("profiles") val profiles: List<ProviderProfileDescriptor> = emptyList(),
+    @SerialName("version") val version: String = "",
 )

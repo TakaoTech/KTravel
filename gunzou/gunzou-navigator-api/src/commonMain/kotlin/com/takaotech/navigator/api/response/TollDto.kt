@@ -1,6 +1,7 @@
 package com.takaotech.navigator.api.response
 
 import com.takaotech.navigator.api.common.GeoPoint
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -14,7 +15,7 @@ import kotlinx.serialization.Serializable
  * @property name Display name, when the provider has one.
  */
 @Serializable
-data class TollSystemDto(val id: String, val name: String? = null)
+data class TollSystemDto(@SerialName("id") val id: String, @SerialName("name") val name: String? = null)
 
 /**
  * One payment due along a section.
@@ -29,10 +30,10 @@ data class TollSystemDto(val id: String, val name: String? = null)
  */
 @Serializable
 data class TollCostDto(
-    val tollSystemRefs: List<Int> = emptyList(),
-    val countryCode: String? = null,
-    val fares: List<TollFareDto> = emptyList(),
-    val collectionLocations: List<GeoPoint> = emptyList(),
+    @SerialName("tollSystemRefs") val tollSystemRefs: List<Int> = emptyList(),
+    @SerialName("countryCode") val countryCode: String? = null,
+    @SerialName("fares") val fares: List<TollFareDto> = emptyList(),
+    @SerialName("collectionLocations") val collectionLocations: List<GeoPoint> = emptyList(),
 )
 
 /**
@@ -44,9 +45,9 @@ data class TollCostDto(
  */
 @Serializable
 data class TollFareDto(
-    val price: TollPriceDto,
-    val name: String? = null,
-    val paymentMethods: List<String> = emptyList(),
+    @SerialName("price") val price: TollPriceDto,
+    @SerialName("name") val name: String? = null,
+    @SerialName("paymentMethods") val paymentMethods: List<String> = emptyList(),
 )
 
 /**
@@ -62,4 +63,9 @@ data class TollFareDto(
  *   tariff, which is worth telling the user before they budget on it.
  */
 @Serializable
-data class TollPriceDto(val currency: String, val minimum: Double, val maximum: Double, val estimated: Boolean = false)
+data class TollPriceDto(
+    @SerialName("currency") val currency: String,
+    @SerialName("minimum") val minimum: Double,
+    @SerialName("maximum") val maximum: Double,
+    @SerialName("estimated") val estimated: Boolean = false,
+)

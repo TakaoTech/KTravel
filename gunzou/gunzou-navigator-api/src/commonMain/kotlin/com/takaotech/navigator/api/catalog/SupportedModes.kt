@@ -43,8 +43,8 @@ sealed interface SupportedModes {
      * single valued.
      */
     @Serializable
-    @SerialName("hereRoad")
-    data class HereRoad(val modes: List<HereTransportMode>) : SupportedModes {
+    @SerialName("hereRouting")
+    data class HereRouting(@SerialName("modes") val modes: List<HereTransportMode>) : SupportedModes {
         override val names: List<String> get() = modes.map { it.name }
     }
 
@@ -55,7 +55,7 @@ sealed interface SupportedModes {
      */
     @Serializable
     @SerialName("transit")
-    data class Transit(val modes: List<TransitMode>) : SupportedModes {
+    data class Transit(@SerialName("modes") val modes: List<TransitMode>) : SupportedModes {
         override val names: List<String> get() = modes.map { it.name }
     }
 }

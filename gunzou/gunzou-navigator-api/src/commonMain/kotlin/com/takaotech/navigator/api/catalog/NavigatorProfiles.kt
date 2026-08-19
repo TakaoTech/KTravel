@@ -58,7 +58,7 @@ sealed class NavigatorProfile {
             // `supportedModes` and builds the real path with NavigatorApi.hereRouting.
             path = NavigatorApi.HERE_ROUTING_TEMPLATE,
             displayName = "HERE road routing",
-            supportedModes = SupportedModes.HereRoad(modes),
+            supportedModes = SupportedModes.HereRouting(modes),
             maxAlternatives = 6,
             maxVia = 20,
             supportsArriveBy = true,

@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.common
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,8 +14,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class Units {
     /** Meters and kilometers. */
+    @SerialName("METRIC")
     METRIC,
 
     /** Feet and miles. */
+    @SerialName("IMPERIAL")
     IMPERIAL,
 }

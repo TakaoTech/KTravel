@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -15,7 +16,10 @@ import kotlinx.serialization.Serializable
  * @property value The encoded geometry.
  */
 @Serializable
-data class RouteGeometry(val encoding: PolylineEncoding, val value: String)
+data class RouteGeometry(
+    @SerialName("encoding") val encoding: PolylineEncoding,
+    @SerialName("value") val value: String,
+)
 
 /**
  * The polyline encodings this contract can carry.
@@ -27,11 +31,14 @@ data class RouteGeometry(val encoding: PolylineEncoding, val value: String)
 @Serializable
 enum class PolylineEncoding {
     /** HERE flexible polyline, which also carries elevation when it was requested. */
+    @SerialName("HERE_FLEXIBLE")
     HERE_FLEXIBLE,
 
     /** Google encoded polyline, five decimal digits of precision. */
+    @SerialName("POLYLINE5")
     POLYLINE5,
 
     /** Google encoded polyline, six decimal digits of precision. */
+    @SerialName("POLYLINE6")
     POLYLINE6,
 }

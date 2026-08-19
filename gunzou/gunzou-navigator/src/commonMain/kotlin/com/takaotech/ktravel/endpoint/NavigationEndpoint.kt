@@ -3,7 +3,6 @@ package com.takaotech.ktravel.endpoint
 import com.takaotech.navigator.api.catalog.ProviderProfileDescriptor
 import com.takaotech.navigator.api.common.RouteTime
 import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.api.response.RouteResponse
 import kotlin.jvm.JvmInline
 
 /**
@@ -11,15 +10,18 @@ import kotlin.jvm.JvmInline
  *
  * Deliberately thin. Ktor already dispatches on the path, so this is not a registry and there is no
  * `when` over providers anywhere in the server — a request for `/v1/here/routing/car` can only ever
- * reach the endpoint mounted there. What the interface exists for is the other half of the contract: every
- * profile, however different its input, must answer with the same [RouteResponse] and fail with the
- * same [com.takaotech.navigator.api.error.ErrorResponse]. Making that a type is what stops the two
- * halves from drifting as providers are added.
+ * reach the endpoint mounted there. What is left for the interface to guarantee is the failure half
+ * of the contract: however different two profiles are, both refuse with the same
+ * [com.takaotech.navigator.api.error.ErrorResponse].
+ *
+ * The answer is a type parameter and not one shared response, because a road route and a journey on
+ * scheduled services are not one thing described twice. What they do have in common is the machinery
+ * around them — credentials, published limits, error codes — and that is what lives here.
  *
  * [REQ] is contravariant so an endpoint declared against a supertype of the body still satisfies the
- * path that receives it.
+ * path that receives it; [RES] is covariant for the mirror reason.
  */
-interface NavigationEndpoint<in REQ : Any> {
+interface NavigationEndpoint<in REQ : Any, out RES : Any> {
     /** What this profile can do, published verbatim through `GET /v1/profiles`. */
     val descriptor: ProviderProfileDescriptor
 
@@ -33,7 +35,7 @@ interface NavigationEndpoint<in REQ : Any> {
      *   escaping this method is a bug and is reported as
      *   [com.takaotech.navigator.api.error.ErrorCode.INTERNAL].
      */
-    suspend fun route(request: REQ, credentials: ProviderCredentials?): RouteResponse
+    suspend fun route(request: REQ, credentials: ProviderCredentials?): RES
 }
 
 /**
