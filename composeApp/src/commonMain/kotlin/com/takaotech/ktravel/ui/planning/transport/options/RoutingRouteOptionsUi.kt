@@ -18,9 +18,9 @@ import com.slack.circuit.foundation.CircuitContent
 import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.routing.RoutingMode
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadRouteOptionsEvent
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadRouteOptionsScreen
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadRouteOptionsUiState
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingRouteOptionsEvent
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingRouteOptionsScreen
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingRouteOptionsUiState
 import com.takaotech.ktravel.ui.planning.transport.ModeChip
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportTestTags
 import com.takaotech.ktravel.ui.planning.transport.SectionLabel
@@ -36,30 +36,30 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * The options of a road profile.
  *
- * Draws what does not depend on the vehicle and lets the vehicle draw the rest: [RoadModeExtrasUi]
+ * Draws what does not depend on the vehicle and lets the vehicle draw the rest: [RoutingModeExtrasUi]
  * arrives through a nested `CircuitContent`, so a vehicle that grows its own controls reaches this
  * screen without this file changing.
  */
-@CircuitInject(RoadRouteOptionsScreen::class, AppScope::class)
+@CircuitInject(RoutingRouteOptionsScreen::class, AppScope::class)
 @Composable
-fun RoadRouteOptionsUi(state: RoadRouteOptionsUiState, modifier: Modifier = Modifier) {
+fun RoutingRouteOptionsUi(state: RoutingRouteOptionsUiState, modifier: Modifier = Modifier) {
     val sink = state.eventSink
-    RoadRouteOptionsContent(
+    RoutingRouteOptionsContent(
         modes = state.modes,
         selectedMode = state.selectedMode,
         alternatives = state.alternatives,
         maxAlternatives = state.maxAlternatives,
         modeExtrasScreen = state.modeExtrasScreen,
         modifier = modifier,
-        onModeClick = { sink(RoadRouteOptionsEvent.SelectMode(it)) },
-        onAlternativesChange = { sink(RoadRouteOptionsEvent.SetAlternatives(it)) },
+        onModeClick = { sink(RoutingRouteOptionsEvent.SelectMode(it)) },
+        onAlternativesChange = { sink(RoutingRouteOptionsEvent.SetAlternatives(it)) },
     )
 }
 
 @Suppress("LongParameterList")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RoadRouteOptionsContent(
+internal fun RoutingRouteOptionsContent(
     modes: ImmutableList<RoutingMode>,
     selectedMode: RoutingMode,
     alternatives: Int,
@@ -112,8 +112,8 @@ internal fun RoadRouteOptionsContent(
 
 @Preview
 @Composable
-private fun RoadRouteOptionsContentPreview() = KTravelTheme {
-    RoadRouteOptionsContent(
+private fun RoutingRouteOptionsContentPreview() = KTravelTheme {
+    RoutingRouteOptionsContent(
         modes = persistentListOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("PEDESTRIAN")),
         selectedMode = RoutingMode("CAR"),
         alternatives = 2,

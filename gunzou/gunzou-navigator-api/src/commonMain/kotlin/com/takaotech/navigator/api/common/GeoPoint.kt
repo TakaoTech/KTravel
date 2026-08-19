@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.common
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -15,4 +16,4 @@ import kotlinx.serialization.Serializable
  * @property lng Longitude, expected in `-180..180`.
  */
 @Serializable
-data class GeoPoint(val lat: Double, val lng: Double)
+data class GeoPoint(@SerialName("lat") val lat: Double, @SerialName("lng") val lng: Double)

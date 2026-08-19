@@ -7,7 +7,7 @@ import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
-import com.takaotech.ktravel.domain.routing.model.Routes
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.ktravel.presentation.planning.StepUi
 
 sealed interface PlanningTransportNavigationEvent {
@@ -78,7 +78,13 @@ data class PlanningTransportUiState(
     // ---- the answer -----------------------------------------------------------------------------
     val isLoading: Boolean = false,
     val failure: TransportFailureReason? = null,
-    val routes: Routes? = null,
+    /**
+     * What came back, as one of the two things it can be.
+     *
+     * The sealed type is what picks the screen: a road route is drawn as a list of manoeuvres, a
+     * journey as a timeline of departures, and neither view can render the other's model.
+     */
+    val result: RouteResult? = null,
     val selectedRouteIndex: Int = 0,
 ) {
 

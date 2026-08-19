@@ -24,13 +24,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -108,6 +113,7 @@ fun PlanningTransportPage(
         onRetryCatalog = viewModel::retryCatalog,
         onProfileChange = viewModel::selectProfile,
         onCalculateClick = viewModel::calculateTransport,
+        onFailureDismiss = viewModel::dismissFailure,
     )
 }
 
@@ -121,10 +127,32 @@ private fun PlanningTransportPage(
     onRetryCatalog: () -> Unit,
     onProfileChange: (RoutingProfileId) -> Unit,
     onCalculateClick: () -> Unit,
+    onFailureDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val currentOnFailureDismiss by rememberUpdatedState(onFailureDismiss)
+
+    val failureMessage = uiState.failure?.let { stringResource(it.label()) }
+
+    LaunchedEffect(failureMessage) {
+        val message = failureMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            message = message,
+            withDismissAction = true,
+            duration = SnackbarDuration.Long,
+        )
+        currentOnFailureDismiss()
+    }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(
+                modifier = Modifier.testTag(PlanningTransportTestTags.FAILURE),
+                hostState = snackbarHostState,
+            )
+        },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(Res.string.planning_transport_title)) },
@@ -190,21 +218,6 @@ private fun PlanningTransportPage(
             uiState.routeOptionsScreen
                 ?.takeIf { uiState.selectedOption?.isSelectable == true }
                 ?.let { CircuitContent(screen = it, onNavEvent = {}) }
-
-            uiState.failure?.let { failure ->
-                Surface(
-                    modifier = Modifier.fillMaxWidth().testTag(PlanningTransportTestTags.FAILURE),
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                        text = stringResource(failure.label()),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
         }
     }
 }
@@ -469,13 +482,14 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
         onRetryCatalog = {},
         onProfileChange = {},
         onCalculateClick = {},
+        onFailureDismiss = {},
     )
 }
 
 private val PREVIEW_HERE_CAR = RoutingProfileInfo(
     id = RoutingProfileId(provider = "here", profile = "routing"),
     displayName = "HERE Routing",
-    options = RoutingOptionsSpec.RoadSingleMode(
+    options = RoutingOptionsSpec.RoutingSingleMode(
         modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),
         maxAlternatives = 3,
         modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
@@ -503,7 +517,7 @@ private val PREVIEW_HERE_TRANSIT = RoutingProfileInfo(
 private val PREVIEW_UNKNOWN = RoutingProfileInfo(
     id = RoutingProfileId(provider = "gunzou", profile = "hiking"),
     displayName = "Gunzou Hiking",
-    options = RoutingOptionsSpec.RoadSingleMode(
+    options = RoutingOptionsSpec.RoutingSingleMode(
         modes = listOf(RoutingMode("HIKING")),
         maxAlternatives = 1,
     ),

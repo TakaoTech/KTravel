@@ -3,7 +3,8 @@ package com.takaotech.ktravel
 import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.NavigatorJson
 import com.takaotech.navigator.api.error.ErrorResponse
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.TransitJourneyResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -39,9 +40,13 @@ suspend fun HttpClient.postRaw(path: String, body: String, providerKey: String? 
         setBody(body)
     }
 
-/** Reads a successful answer. */
-suspend fun HttpResponse.decodeRoutes(): RouteResponse =
-    NavigatorJson.decodeFromString(RouteResponse.serializer(), bodyAsText())
+/** Reads a successful answer from a road profile. */
+suspend fun HttpResponse.decodeRoutes(): RoutingRouteResponse =
+    NavigatorJson.decodeFromString(RoutingRouteResponse.serializer(), bodyAsText())
+
+/** Reads a successful answer from a transit profile. */
+suspend fun HttpResponse.decodeJourneys(): TransitJourneyResponse =
+    NavigatorJson.decodeFromString(TransitJourneyResponse.serializer(), bodyAsText())
 
 /** Reads a failure. */
 suspend fun HttpResponse.decodeError(): ErrorResponse =

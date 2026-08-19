@@ -1,5 +1,6 @@
 package com.takaotech.navigation.common.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -17,10 +18,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class HereErrorResponse(
-    val title: String? = null,
-    val status: Int? = null,
-    val code: String? = null,
-    val cause: String? = null,
-    val action: String? = null,
-    val correlationId: String? = null,
+    @SerialName("title") val title: String? = null,
+    @SerialName("status") val status: Int? = null,
+    @SerialName("code") val code: String? = null,
+    @SerialName("cause") val cause: String? = null,
+    @SerialName("action") val action: String? = null,
+    @SerialName("correlationId") val correlationId: String? = null,
 )

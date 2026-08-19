@@ -1,4 +1,4 @@
-package com.takaotech.ktravel.ui.planning.transport
+package com.takaotech.ktravel.ui.planning.transport.preview
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
@@ -7,8 +7,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.takaotech.ktravel.domain.routing.model.RouteAction
-import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.RoutingSection
 import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.doubles.plusOrMinus
@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
  * `stringResource`, so the query does not depend on the host machine's locale.
  */
 @OptIn(ExperimentalTestApi::class)
-class RouteStepSectionTest : BehaviorSpec() {
+class RoutingStepSectionTest : BehaviorSpec() {
 
     private val vertices = listOf(
         PolylineEncoderDecoder.LatLngZ(lat = 41.9028, lng = 12.4964),
@@ -52,8 +52,9 @@ class RouteStepSectionTest : BehaviorSpec() {
         severity = "normal",
     )
 
-    private fun section(polyline: String?, offset: Int?) = RouteSection(
+    private fun section(polyline: String?, offset: Int?) = RoutingSection(
         summary = RouteSummary(durationSeconds = 600.seconds, distanceMeters = 5000),
+        mode = "CAR",
         actions = listOf(action(offset)),
         polyline = polyline,
     )
@@ -66,7 +67,7 @@ class RouteStepSectionTest : BehaviorSpec() {
                         var clicked: PolylineEncoderDecoder.LatLngZ? = null
 
                         setContent {
-                            RouteStepSection(
+                            RoutingStepSection(
                                 section = section(polyline = polyline, offset = 2),
                                 onActionClick = { clicked = it },
                             )
@@ -89,7 +90,7 @@ class RouteStepSectionTest : BehaviorSpec() {
                     var clicked: PolylineEncoderDecoder.LatLngZ? = null
 
                     setContent {
-                        RouteStepSection(
+                        RoutingStepSection(
                             section = section(polyline = null, offset = 2),
                             onActionClick = { clicked = it },
                         )
@@ -105,7 +106,7 @@ class RouteStepSectionTest : BehaviorSpec() {
             then("the step should not be clickable") {
                 runComposeUiTest {
                     setContent {
-                        RouteStepSection(
+                        RoutingStepSection(
                             section = section(polyline = polyline, offset = null),
                             onActionClick = {},
                         )
@@ -123,7 +124,7 @@ class RouteStepSectionTest : BehaviorSpec() {
                         var clicked: PolylineEncoderDecoder.LatLngZ? = null
 
                         setContent {
-                            RouteStepSection(
+                            RoutingStepSection(
                                 section = section(polyline = polyline, offset = 99),
                                 onActionClick = { clicked = it },
                             )

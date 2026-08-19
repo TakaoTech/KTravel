@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.routing.RouteFeature
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadModeExtrasEvent
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadModeExtrasScreen
-import com.takaotech.ktravel.presentation.planning.transport.options.RoadModeExtrasUiState
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingModeExtrasEvent
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingModeExtrasScreen
+import com.takaotech.ktravel.presentation.planning.transport.options.RoutingModeExtrasUiState
 import com.takaotech.ktravel.ui.planning.transport.PlanningTransportTestTags
 import com.takaotech.ktravel.ui.planning.transport.SectionLabel
 import com.takaotech.ktravel.ui.planning.transport.ToggleRow
@@ -36,27 +36,27 @@ import ktravel.composeapp.generated.resources.planning_transport_shortest_hint
 import ktravel.composeapp.generated.resources.planning_transport_shortest_unsupported
 import org.jetbrains.compose.resources.stringResource
 
-/** The options that belong to the vehicle currently chosen, drawn inside the road family's block. */
-@CircuitInject(RoadModeExtrasScreen::class, AppScope::class)
+/** The options that belong to the vehicle currently chosen, drawn inside the routing family's block. */
+@CircuitInject(RoutingModeExtrasScreen::class, AppScope::class)
 @Composable
-fun RoadModeExtrasUi(state: RoadModeExtrasUiState, modifier: Modifier = Modifier) {
+fun RoutingModeExtrasUi(state: RoutingModeExtrasUiState, modifier: Modifier = Modifier) {
     val sink = state.eventSink
-    RoadModeExtrasContent(
+    RoutingModeExtrasContent(
         avoidable = state.avoidable,
         avoided = state.avoided,
         tollsUnsupported = state.tollsUnsupported,
         supportsShortest = state.supportsShortest,
         shortestDistance = state.shortestDistance,
         modifier = modifier,
-        onAvoidClick = { sink(RoadModeExtrasEvent.ToggleAvoid(it)) },
-        onShortestChange = { sink(RoadModeExtrasEvent.SetShortestDistance(it)) },
+        onAvoidClick = { sink(RoutingModeExtrasEvent.ToggleAvoid(it)) },
+        onShortestChange = { sink(RoutingModeExtrasEvent.SetShortestDistance(it)) },
     )
 }
 
 @Suppress("LongParameterList")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RoadModeExtrasContent(
+internal fun RoutingModeExtrasContent(
     avoidable: ImmutableSet<RouteFeature>,
     avoided: ImmutableSet<RouteFeature>,
     tollsUnsupported: Boolean,
@@ -134,8 +134,8 @@ private fun FilterChipFor(feature: RouteFeature, selected: Boolean, onClick: () 
 
 @Preview
 @Composable
-private fun RoadModeExtrasContentPreview() = KTravelTheme {
-    RoadModeExtrasContent(
+private fun RoutingModeExtrasContentPreview() = KTravelTheme {
+    RoutingModeExtrasContent(
         avoidable = persistentSetOf(
             RouteFeature.TOLL_ROAD,
             RouteFeature.CONTROLLED_ACCESS_HIGHWAY,
@@ -155,8 +155,8 @@ private fun RoadModeExtrasContentPreview() = KTravelTheme {
 
 @Preview
 @Composable
-private fun RoadModeExtrasContentScooterPreview() = KTravelTheme {
-    RoadModeExtrasContent(
+private fun RoutingModeExtrasContentScooterPreview() = KTravelTheme {
+    RoutingModeExtrasContent(
         avoidable = persistentSetOf(RouteFeature.FERRY, RouteFeature.TUNNEL, RouteFeature.DIRT_ROAD),
         avoided = persistentSetOf(),
         tollsUnsupported = false,

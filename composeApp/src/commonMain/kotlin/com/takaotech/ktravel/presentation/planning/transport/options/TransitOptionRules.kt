@@ -7,7 +7,7 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileId
 // The rules of the transit family. Same division as the road one: the catalog says what the profile
 // serves, these tables say what the app offers, and reduce() turns a choice into a request.
 //
-// Unlike the road family nothing here depends on a chosen vehicle, because there is no chosen
+// Unlike the routing family nothing here depends on a chosen vehicle, because there is no chosen
 // vehicle: the modes are a filter over what the answer may use. That is why this family has no
 // per-mode extras screen.
 

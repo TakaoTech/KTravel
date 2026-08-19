@@ -131,14 +131,18 @@ private fun RoutingContext.transportMode(): HereTransportMode {
 // }
 
 /**
- * Runs one endpoint and answers with its routes.
+ * Runs one endpoint and answers with what it produced.
  *
  * The only place a request turns into a response, so credentials are resolved in exactly one place
  * for every profile and a new endpoint cannot forget to do it. Failures are not caught here: they
  * leave as [NavigatorException] and are rendered by [configureStatusPages].
+ *
+ * Inline and reified because the two profiles no longer answer in one type, and `respond` picks the
+ * serializer from the static type of what it is given. The alternative — one erased response type
+ * for both — is exactly what this contract stopped doing.
  */
-private suspend fun <REQ : Any> RoutingContext.respondWithRoute(
-    endpoint: NavigationEndpoint<REQ>,
+private suspend inline fun <REQ : Any, reified RES : Any> RoutingContext.respondWithRoute(
+    endpoint: NavigationEndpoint<REQ, RES>,
     request: REQ,
     config: NavigatorServerConfig,
 ) {

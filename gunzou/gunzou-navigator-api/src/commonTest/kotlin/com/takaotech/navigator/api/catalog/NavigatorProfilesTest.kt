@@ -109,7 +109,7 @@ class NavigatorProfilesTest {
         val road = NavigatorProfile.HereRouting.descriptor.supportedModes
         val transit = NavigatorProfile.HereTransit.descriptor.supportedModes
 
-        assertIs<SupportedModes.HereRoad>(road)
+        assertIs<SupportedModes.HereRouting>(road)
         assertEquals(NavigatorProfile.HereRouting.modes, road.modes)
 
         assertIs<SupportedModes.Transit>(transit)

@@ -7,7 +7,7 @@ import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.here.HereAvoidFeature
 import com.takaotech.navigator.api.here.HereReturnAttribute
 import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RoutingRouteResponse
 
 /**
  * `/v1/here/routing/{transportMode}`, served by the HERE Routing API.
@@ -20,7 +20,7 @@ import com.takaotech.navigator.api.response.RouteResponse
  */
 class LiveHereRoutingEndpoint(private val clients: HereClientPool) : HereRoutingEndpoint {
 
-    override suspend fun route(request: HereRoutingCall, credentials: ProviderCredentials?): RouteResponse {
+    override suspend fun route(request: HereRoutingCall, credentials: ProviderCredentials?): RoutingRouteResponse {
         val (mode, body) = request
 
         descriptor.requireWithinLimits(
@@ -41,7 +41,7 @@ class LiveHereRoutingEndpoint(private val clients: HereClientPool) : HereRouting
 
         requireRouteFound(response.routes.size)
 
-        return response.toRouteResponse()
+        return response.toRoutingRouteResponse()
     }
 }
 

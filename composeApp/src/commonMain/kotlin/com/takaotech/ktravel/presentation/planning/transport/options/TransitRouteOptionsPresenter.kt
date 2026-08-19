@@ -14,7 +14,7 @@ import kotlinx.collections.immutable.toPersistentSet
 /**
  * The transit family: which vehicles are acceptable, and how the journey may be shaped.
  *
- * Same contract as the road family — it owns the request in the plan's draft and nothing above it
+ * Same contract as the routing family — it owns the request in the plan's draft and nothing above it
  * knows what a transfer is — with one difference that follows from the API rather than from taste:
  * there is no chosen vehicle, so there is no per-vehicle block to nest.
  */

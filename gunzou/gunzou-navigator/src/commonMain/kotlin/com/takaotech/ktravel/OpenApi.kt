@@ -7,8 +7,10 @@ import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.error.ErrorResponse
 import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.TransitJourneyResponse
 import io.ktor.http.HttpStatusCode
+import io.ktor.openapi.JsonSchema
 import io.ktor.openapi.OpenApiDoc
 import io.ktor.openapi.OpenApiDocDsl
 import io.ktor.openapi.OpenApiInfo
@@ -66,16 +68,21 @@ internal fun OpenApiDocDsl.navigatorApiDocument(version: String) {
         description = """
             One HTTP contract in front of several routing engines.
 
-            The requests are asymmetric on purpose: there is a path per provider API, each with its
-            own fully typed body, because the inputs of a road router and of a timetable have nothing
-            in common and flattening them would mean a denominator that fits neither. The *answers*
-            are one shape, `RouteResponse`, and that is where the value is — a client draws a route
-            without knowing which engine produced it.
+            There is a path per provider API, each with its own fully typed body, because the inputs
+            of a road router and of a timetable have nothing in common and flattening them would
+            mean a denominator that fits neither. The answers follow the same rule: `RoutingRouteResponse`
+            for a route on roads, `TransitJourneyResponse` for a journey on scheduled services.
 
-            The rule for new paths is one path per distinct provider API: a road router and a
-            timetable are two, so they are two. Within the road profile the mode of transport is the
-            last segment of the path — `${NavigatorApi.HERE_ROUTING_TEMPLATE}` — so a car and a
-            bicycle route are addressed apart while remaining one upstream API and one body.
+            The two were one shape for a while, and what that bought was every road section carrying
+            an empty list of stops and every journey leg an empty list of tolls, with no way for a
+            reader to tell a field that is off from one that does not apply. What is genuinely shared
+            — a duration, a manoeuvre, an advisory — is shared, and nothing else is.
+
+            The rule for new paths and new answers is one per distinct *family* of API, not one per
+            provider: a second road engine answers in `RoutingRouteResponse`, and an OpenTripPlanner in
+            `TransitJourneyResponse`. Within the road profile the mode of transport is the last
+            segment of the path — `${NavigatorApi.HERE_ROUTING_TEMPLATE}` — so a car and a bicycle
+            route are addressed apart while remaining one upstream API and one body.
         """.trimIndent(),
     )
 
@@ -168,7 +175,7 @@ internal val HereRoutingOperation: RouteOperationFunction = {
         required = true
         schema = jsonSchema<HereRoutingRequest>()
     }
-    routeResponses()
+    routeResponses(jsonSchema<RoutingRouteResponse>(), "The alternatives, best first")
 }
 
 /** `POST /v1/here/transit`. */
@@ -179,6 +186,11 @@ internal val HereTransitOperation: RouteOperationFunction = {
         A separate path from the road profile because it is a separate upstream API, with parameters
         that have no meaning on the other one — there is no `changes` on a car route and no
         `routingMode` on a timetable.
+
+        The answer is separate too. A journey is a sequence of departures the traveller has to be at
+        on time, run by operators, calling at stops; each of its legs is either a `walk` or a `ride`,
+        discriminated on `type`, which is the same shape the upstream API uses and the reason a
+        client's handling of the two cannot silently fall through.
     """.trimIndent()
 
     providerKeyHeader()
@@ -186,7 +198,7 @@ internal val HereTransitOperation: RouteOperationFunction = {
         required = true
         schema = jsonSchema<HereTransitRouteRequest>()
     }
-    routeResponses()
+    routeResponses(jsonSchema<TransitJourneyResponse>(), "The journeys, best first")
 }
 
 /**
@@ -215,17 +227,20 @@ private fun Operation.Builder.providerKeyHeader() {
 /**
  * What a routing endpoint can answer, in every case.
  *
+ * The success schema is a parameter because the two profiles no longer answer in one type; the
+ * failures are what they still share, and listing them once is the point of this function.
+ *
  * The failures are listed one by one rather than folded into a `default` response because the status
  * is half of what a client branches on, and a document that only promises "some error" is one a
  * generated client cannot type. Every one of them carries [ErrorResponse]: that is the contract, and
  * [configureStatusPages] is what makes it true of the responses this server has not thought about
  * either.
  */
-private fun Operation.Builder.routeResponses() {
+private fun Operation.Builder.routeResponses(success: JsonSchema, meaning: String) {
     responses {
         response(HttpStatusCode.OK.value) {
-            description = "The alternatives, best first"
-            schema = jsonSchema<RouteResponse>()
+            description = meaning
+            schema = success
         }
 
         for ((status, meaning) in ROUTING_FAILURES) {

@@ -1,5 +1,6 @@
 package com.takaotech.navigation.common.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,4 +11,8 @@ import kotlinx.serialization.Serializable
  * @property elv Ellipsoid (geodetic) height in meters, returned by the Routing API only
  */
 @Serializable
-data class Location(val lat: Double, val lng: Double, val elv: Double? = null)
+data class Location(
+    @SerialName("lat") val lat: Double,
+    @SerialName("lng") val lng: Double,
+    @SerialName("elv") val elv: Double? = null,
+)

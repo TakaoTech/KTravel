@@ -13,6 +13,7 @@ import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
+import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.navigator.api.NavigatorApi
 import com.takaotech.navigator.api.catalog.NavigatorProfile
 import com.takaotech.navigator.client.NavigatorClient
@@ -27,6 +28,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.HttpRequestData
@@ -141,12 +143,12 @@ class NavigatorRoutingServiceTest :
                         val catalog = Harness { HttpStatusCode.OK to BOTH_PROFILES }
                             .service.catalog(NavigatorKind.EMBEDDED)
 
-                        val road = catalog.options.first { it.profile.id == HERE_ROUTING }.profile
+                        val routing = catalog.options.first { it.profile.id == HERE_ROUTING }.profile
                         val transit = catalog.options.first { it.profile.id == HERE_TRANSIT }.profile
 
                         // Walking is something you ask the road profile for; on the transit side it
                         // is only ever how the answer describes the legs between stops.
-                        road.options.modes.map { it.id } shouldContain "PEDESTRIAN"
+                        routing.options.modes.map { it.id } shouldContain "PEDESTRIAN"
                         transit.options.modes.map { it.id }.joinToString() shouldNotContain "PEDESTRIAN"
                         transit.options.modes.map { it.id } shouldContain "SUBWAY"
                     }
@@ -217,7 +219,7 @@ class NavigatorRoutingServiceTest :
                             kind = NavigatorKind.EMBEDDED,
                             origin = "44.4949,11.3426",
                             destination = "43.7696,11.2558",
-                            selection = RouteSelection.Road(
+                            selection = RouteSelection.Routing(
                                 profileId = HERE_ROUTING,
                                 mode = RoutingMode("TRUCK"),
                                 alternatives = 3,
@@ -247,7 +249,7 @@ class NavigatorRoutingServiceTest :
                             kind = NavigatorKind.EMBEDDED,
                             origin = "44.4949,11.3426",
                             destination = "43.7696,11.2558",
-                            selection = RouteSelection.Road(
+                            selection = RouteSelection.Routing(
                                 profileId = HERE_ROUTING,
                                 mode = RoutingMode("PEDESTRIAN"),
                             ),
@@ -271,7 +273,7 @@ class NavigatorRoutingServiceTest :
                             kind = NavigatorKind.EMBEDDED,
                             origin = "44.4949,11.3426",
                             destination = "43.7696,11.2558",
-                            selection = RouteSelection.Road(
+                            selection = RouteSelection.Routing(
                                 profileId = HERE_ROUTING,
                                 mode = RoutingMode("BICYCLE"),
                             ),
@@ -345,7 +347,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
                     }
@@ -366,7 +368,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
                     }
@@ -385,14 +387,14 @@ class NavigatorRoutingServiceTest :
                             HttpStatusCode.OK to ONE_ROUTE
                         }
 
-                        val routes = harness.service.routes(
+                        val result = harness.service.routes(
                             NavigatorKind.EMBEDDED,
                             "44.4949,11.3426",
                             "43.7696,11.2558",
-                            RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
+                            RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
                         )
 
-                        routes.routes shouldHaveSize 1
+                        result.shouldBeInstanceOf<RouteResult.Routing>().routes.routes shouldHaveSize 1
                         calls shouldBe 2
                     }
                 }
@@ -414,7 +416,7 @@ class NavigatorRoutingServiceTest :
                                 NavigatorKind.EMBEDDED,
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
-                                RouteSelection.Road(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
                             )
                         }
 

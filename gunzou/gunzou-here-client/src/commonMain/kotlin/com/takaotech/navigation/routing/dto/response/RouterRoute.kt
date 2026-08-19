@@ -1,5 +1,6 @@
 package com.takaotech.navigation.routing.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,8 +13,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RouterRoute(
-    val id: String,
-    val sections: List<RouterSection>,
-    val notices: List<Notice>? = null,
-    val routeHandle: String? = null,
+    @SerialName("id") val id: String,
+    @SerialName("sections") val sections: List<RouterSection>,
+    @SerialName("notices") val notices: List<Notice>? = null,
+    @SerialName("routeHandle") val routeHandle: String? = null,
 )

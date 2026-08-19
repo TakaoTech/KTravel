@@ -1,6 +1,7 @@
 package com.takaotech.navigation.routing.dto.response
 
 import com.takaotech.navigation.common.dto.Location
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,11 +17,11 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Place(
-    val type: String,
-    val location: Location,
-    val originalLocation: Location? = null,
-    val displayLocation: Location? = null,
-    val name: String? = null,
-    val waypoint: Int? = null,
-    val sideOfStreet: String? = null,
+    @SerialName("type") val type: String,
+    @SerialName("location") val location: Location,
+    @SerialName("originalLocation") val originalLocation: Location? = null,
+    @SerialName("displayLocation") val displayLocation: Location? = null,
+    @SerialName("name") val name: String? = null,
+    @SerialName("waypoint") val waypoint: Int? = null,
+    @SerialName("sideOfStreet") val sideOfStreet: String? = null,
 )

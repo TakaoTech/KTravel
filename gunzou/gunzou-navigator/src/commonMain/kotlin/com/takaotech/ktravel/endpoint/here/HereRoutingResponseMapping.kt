@@ -14,29 +14,29 @@ import com.takaotech.navigator.api.common.TravelMode
 import com.takaotech.navigator.api.response.NoticeDto
 import com.takaotech.navigator.api.response.PolylineEncoding
 import com.takaotech.navigator.api.response.RouteActionDto
-import com.takaotech.navigator.api.response.RouteDto
 import com.takaotech.navigator.api.response.RouteGeometry
-import com.takaotech.navigator.api.response.RouteResponse
-import com.takaotech.navigator.api.response.RouteSectionDto
 import com.takaotech.navigator.api.response.RouteSummaryDto
 import com.takaotech.navigator.api.response.RouteWaypointDto
+import com.takaotech.navigator.api.response.RoutingRouteDto
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.RoutingSectionDto
 import com.takaotech.navigator.api.response.TollCostDto
 import com.takaotech.navigator.api.response.TollFareDto
 import com.takaotech.navigator.api.response.TollPriceDto
 import com.takaotech.navigator.api.response.TollSystemDto
 
 /**
- * Translates a HERE road answer into the response every profile shares.
+ * Translates a HERE road answer into the shape every road profile answers in.
  *
  * Moved here from `HereRoutingProvider` in the app: it is the same translation, and this is where it
  * belongs now that nothing but the server sees a HERE DTO.
  */
-fun RouterRouteResponse.toRouteResponse(): RouteResponse = RouteResponse(
+fun RouterRouteResponse.toRoutingRouteResponse(): RoutingRouteResponse = RoutingRouteResponse(
     provider = ProviderId.HERE,
     profile = ProviderProfile.ROUTING,
     routes = routes.map { route ->
         val sections = route.sections.map { it.toSectionDto() }
-        RouteDto(summary = sections.aggregateSummary(), sections = sections)
+        RoutingRouteDto(summary = sections.aggregateSummary(), sections = sections)
     },
     notices = notices.orEmpty().map { notice ->
         NoticeDto(
@@ -53,7 +53,7 @@ fun RouterRouteResponse.toRouteResponse(): RouteResponse = RouteResponse(
  * Summed here rather than asked of HERE, which reports no route level summary: doing it on the
  * server means every client gets the same number instead of each one writing the same loop.
  */
-private fun List<RouteSectionDto>.aggregateSummary(): RouteSummaryDto = RouteSummaryDto(
+private fun List<RoutingSectionDto>.aggregateSummary(): RouteSummaryDto = RouteSummaryDto(
     durationSeconds = sumOf { it.summary.durationSeconds },
     distanceMeters = sumOf { it.summary.distanceMeters },
     // Only reported when every section has it: a partial sum would understate the traffic delay
@@ -62,7 +62,7 @@ private fun List<RouteSectionDto>.aggregateSummary(): RouteSummaryDto = RouteSum
         ?.sumOf { it.summary.baseDurationSeconds ?: 0 },
 )
 
-private fun RouterSection.toSectionDto(): RouteSectionDto = RouteSectionDto(
+private fun RouterSection.toSectionDto(): RoutingSectionDto = RoutingSectionDto(
     summary = RouteSummaryDto(
         durationSeconds = (summary?.duration ?: 0).toLong(),
         distanceMeters = summary?.length ?: 0,

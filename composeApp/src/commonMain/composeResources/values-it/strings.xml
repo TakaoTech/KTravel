@@ -292,4 +292,23 @@
     <string name="travel_archive_error_io">Non è stato possibile leggere o scrivere il file.</string>
     <string name="travel_archive_error_wrong_password">Password errata. Riprova.</string>
     <string name="travel_archive_error_unsupported_secrets_scheme">La chiave API di questo archivio è protetta con un metodo non supportato da questa versione. Aggiorna l'app per importarla.</string>
+
+    <string name="route_preview_title">Anteprima percorso</string>
+    <string name="route_preview_alternative">Opzione %1$d</string>
+    <string name="route_preview_cd_confirm">Usa questa opzione</string>
+    <string name="route_preview_distance_km">%1$s km</string>
+    <string name="route_preview_distance_m">%1$d m</string>
+    <string name="route_preview_duration_minutes">%1$d min</string>
+    <string name="route_preview_duration_hours_minutes">%1$dh %2$02d</string>
+    <string name="transit_preview_walk">Cammina %1$s</string>
+    <string name="transit_preview_changes">%1$d cambi</string>
+    <string name="transit_preview_no_change">Nessun cambio</string>
+    <string name="transit_preview_towards">verso %1$s</string>
+    <string name="transit_preview_stops">%1$d fermate</string>
+    <string name="transit_preview_direct">Senza fermate</string>
+    <string name="transit_preview_cd_expand_stops">Mostra le fermate intermedie</string>
+    <string name="transit_preview_cd_collapse_stops">Nascondi le fermate intermedie</string>
+    <string name="transit_preview_wheelchair_yes">Accessibile</string>
+    <string name="transit_preview_wheelchair_limited">Accessibile con assistenza</string>
+    <string name="transit_preview_wheelchair_no">Non accessibile</string>
 </resources>

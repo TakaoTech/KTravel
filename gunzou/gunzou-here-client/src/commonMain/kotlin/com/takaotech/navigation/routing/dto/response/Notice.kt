@@ -11,7 +11,11 @@ import kotlinx.serialization.Serializable
  * @property severity Severity level (critical, info, warning)
  */
 @Serializable
-data class Notice(val title: String, val code: NoticeCode? = null, val severity: String? = null)
+data class Notice(
+    @SerialName("title") val title: String,
+    @SerialName("code") val code: NoticeCode? = null,
+    @SerialName("severity") val severity: String? = null,
+)
 
 @Serializable
 enum class NoticeCode {

@@ -5,19 +5,22 @@ import com.takaotech.ktravel.endpoint.ProviderCredentials
 import com.takaotech.ktravel.endpoint.requireWithinLimits
 import com.takaotech.navigator.api.error.ErrorCode
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.TransitJourneyResponse
 
 /**
  * `/v1/here/transit`, served by the HERE Public Transit API.
  *
- * Structurally identical to [LiveHereRoutingEndpoint] and sharing its client pool, while talking to a
- * different API with a different request and a different answer. That is what the second profile is
- * for: everything the two have in common turned out to be the server's own machinery, and the only
- * thing that differs is the translation.
+ * Structurally identical to [LiveHereRoutingEndpoint] and sharing its client pool, while talking to
+ * a different API with a different request and a different answer. That is the finding of the second
+ * profile: everything the two have in common is the server's own machinery — credentials, published
+ * limits, error codes — and everything a traveller looks at differs.
  */
 class LiveHereTransitEndpoint(private val clients: HereClientPool) : HereTransitEndpoint {
 
-    override suspend fun route(request: HereTransitRouteRequest, credentials: ProviderCredentials?): RouteResponse {
+    override suspend fun route(
+        request: HereTransitRouteRequest,
+        credentials: ProviderCredentials?,
+    ): TransitJourneyResponse {
         descriptor.requireWithinLimits(
             alternatives = request.alternatives,
             viaCount = 0,
@@ -35,6 +38,6 @@ class LiveHereTransitEndpoint(private val clients: HereClientPool) : HereTransit
 
         requireRouteFound(response.routes.size)
 
-        return response.toRouteResponse()
+        return response.toJourneyResponse()
     }
 }

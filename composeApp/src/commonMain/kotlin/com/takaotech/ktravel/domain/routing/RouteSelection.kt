@@ -40,7 +40,7 @@ enum class RouteFeature {
  * [RoutingOptionsSpec] of the profile the traveller picked.
  *
  * The variants are named after the kind of API rather than after HERE: a second road engine produces
- * a [Road] too, and that is the point of the profile being chosen rather than the provider.
+ * a [Routing] too, and that is the point of the profile being chosen rather than the provider.
  */
 sealed interface RouteSelection {
 
@@ -64,9 +64,9 @@ sealed interface RouteSelection {
      *   profile declares and the chosen [mode] can be asked about, which is why changing the vehicle
      *   narrows it rather than carrying a stale option across.
      * @property shortestDistance Optimizes for distance instead of time. Offered only for the modes
-     *   in [RoutingOptionsSpec.RoadSingleMode.modesSupportingShortest].
+     *   in [RoutingOptionsSpec.RoutingSingleMode.modesSupportingShortest].
      */
-    data class Road(
+    data class Routing(
         override val profileId: RoutingProfileId,
         val mode: RoutingMode,
         override val alternatives: Int = 1,

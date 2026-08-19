@@ -4,6 +4,7 @@ import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.RouteTime
 import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.common.Units
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -28,16 +29,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class HereTransitRouteRequest(
-    val origin: GeoPoint,
-    val destination: GeoPoint,
-    val alternatives: Int = 1,
-    val time: RouteTime = RouteTime.Now,
-    val modes: HereTransitModeFilter? = null,
-    val changes: Int? = null,
-    val pedestrianSpeedMetersPerSecond: Double? = null,
-    val pedestrianMaxDistanceMeters: Int? = null,
-    val language: String? = null,
-    val units: Units = Units.METRIC,
+    @SerialName("origin") val origin: GeoPoint,
+    @SerialName("destination") val destination: GeoPoint,
+    @SerialName("alternatives") val alternatives: Int = 1,
+    @SerialName("time") val time: RouteTime = RouteTime.Now,
+    @SerialName("modes") val modes: HereTransitModeFilter? = null,
+    @SerialName("changes") val changes: Int? = null,
+    @SerialName("pedestrianSpeedMetersPerSecond") val pedestrianSpeedMetersPerSecond: Double? = null,
+    @SerialName("pedestrianMaxDistanceMeters") val pedestrianMaxDistanceMeters: Int? = null,
+    @SerialName("language") val language: String? = null,
+    @SerialName("units") val units: Units = Units.METRIC,
 )
 
 /**
@@ -54,6 +55,6 @@ data class HereTransitRouteRequest(
  */
 @Serializable
 data class HereTransitModeFilter(
-    val include: List<TransitMode> = emptyList(),
-    val exclude: List<TransitMode> = emptyList(),
+    @SerialName("include") val include: List<TransitMode> = emptyList(),
+    @SerialName("exclude") val exclude: List<TransitMode> = emptyList(),
 )

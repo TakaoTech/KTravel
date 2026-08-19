@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val TRAVEL_ID = "TRAVEL_ID"
 
-private val ROAD_PROFILE = RoutingProfileId(provider = "here", profile = "routing")
+private val ROUTING_PROFILE = RoutingProfileId(provider = "here", profile = "routing")
 private val TRANSIT_PROFILE = RoutingProfileId(provider = "here", profile = "transit")
 
 private val CAR = RoutingMode("CAR")
@@ -31,7 +31,7 @@ private val SCOOTER = RoutingMode("SCOOTER")
 private val PEDESTRIAN = RoutingMode("PEDESTRIAN")
 private val SUBWAY = RoutingMode("SUBWAY")
 
-private val ROAD_SPEC = RoutingOptionsSpec.RoadSingleMode(
+private val ROUTING_SPEC = RoutingOptionsSpec.RoutingSingleMode(
     modes = listOf(CAR, SCOOTER, PEDESTRIAN),
     maxAlternatives = 6,
     modesSupportingShortest = setOf(CAR),
@@ -55,13 +55,13 @@ class RouteOptionsPresenterTest :
         }
 
         given("a road profile the traveller has not configured yet") {
-            val screen = RoadRouteOptionsScreen.of(TRAVEL_ID, ROAD_PROFILE, ROAD_SPEC)
+            val screen = RoutingRouteOptionsScreen.of(TRAVEL_ID, ROUTING_PROFILE, ROUTING_SPEC)
 
             `when`("the options block is composed") {
                 then("it seeds the draft with the first vehicle, so Calculate lights up untouched") {
                     val draft = RouteOptionsDraft()
 
-                    presenterTestOf({ RoadRouteOptionsPresenter(screen, storeFor(draft)) }) {
+                    presenterTestOf({ RoutingRouteOptionsPresenter(screen, storeFor(draft)) }) {
                         val state = awaitItem()
 
                         state.selectedMode shouldBe CAR
@@ -69,8 +69,8 @@ class RouteOptionsPresenterTest :
                         state.maxAlternatives shouldBe 6
 
                         eventually(2.seconds) {
-                            val seeded = draft.selection.value.shouldBeInstanceOf<RouteSelection.Road>()
-                            seeded.profileId shouldBe ROAD_PROFILE
+                            val seeded = draft.selection.value.shouldBeInstanceOf<RouteSelection.Routing>()
+                            seeded.profileId shouldBe ROUTING_PROFILE
                             seeded.mode shouldBe CAR
                         }
 
@@ -81,7 +81,7 @@ class RouteOptionsPresenterTest :
                 then("the chosen vehicle brings its own extras block") {
                     val draft = RouteOptionsDraft()
 
-                    presenterTestOf({ RoadRouteOptionsPresenter(screen, storeFor(draft)) }) {
+                    presenterTestOf({ RoutingRouteOptionsPresenter(screen, storeFor(draft)) }) {
                         awaitItem().modeExtrasScreen.shouldNotBeNull()
 
                         cancelAndIgnoreRemainingEvents()
@@ -93,11 +93,11 @@ class RouteOptionsPresenterTest :
                 then("the extras block disappears instead of showing controls that do not apply") {
                     val draft = RouteOptionsDraft()
 
-                    presenterTestOf({ RoadRouteOptionsPresenter(screen, storeFor(draft)) }) {
-                        awaitItem().eventSink(RoadRouteOptionsEvent.SelectMode(PEDESTRIAN))
+                    presenterTestOf({ RoutingRouteOptionsPresenter(screen, storeFor(draft)) }) {
+                        awaitItem().eventSink(RoutingRouteOptionsEvent.SelectMode(PEDESTRIAN))
 
                         eventually(2.seconds) {
-                            draft.selection.value.shouldBeInstanceOf<RouteSelection.Road>().mode shouldBe PEDESTRIAN
+                            draft.selection.value.shouldBeInstanceOf<RouteSelection.Routing>().mode shouldBe PEDESTRIAN
                         }
 
                         var state = awaitItem()
@@ -111,9 +111,9 @@ class RouteOptionsPresenterTest :
         }
 
         given("a road profile configured on a vehicle that has extras") {
-            val extrasScreen = RoadModeExtrasScreen.of(
+            val extrasScreen = RoutingModeExtrasScreen.of(
                 travelId = TRAVEL_ID,
-                profileId = ROAD_PROFILE,
+                profileId = ROUTING_PROFILE,
                 mode = CAR,
                 avoidable = setOf(RouteFeature.TOLL_ROAD, RouteFeature.FERRY),
                 tollsUnsupported = false,
@@ -122,14 +122,14 @@ class RouteOptionsPresenterTest :
 
             `when`("a feature is ticked in the extras block") {
                 then("it reaches the request the screen will send") {
-                    val draft = RouteOptionsDraft().apply { update(RouteSelection.Road(ROAD_PROFILE, CAR)) }
+                    val draft = RouteOptionsDraft().apply { update(RouteSelection.Routing(ROUTING_PROFILE, CAR)) }
 
-                    presenterTestOf({ RoadModeExtrasPresenter(extrasScreen, storeFor(draft)) }) {
-                        awaitItem().eventSink(RoadModeExtrasEvent.ToggleAvoid(RouteFeature.FERRY))
+                    presenterTestOf({ RoutingModeExtrasPresenter(extrasScreen, storeFor(draft)) }) {
+                        awaitItem().eventSink(RoutingModeExtrasEvent.ToggleAvoid(RouteFeature.FERRY))
 
                         eventually(2.seconds) {
                             draft.selection.value
-                                .shouldBeInstanceOf<RouteSelection.Road>()
+                                .shouldBeInstanceOf<RouteSelection.Routing>()
                                 .avoid shouldBe setOf(RouteFeature.FERRY)
                         }
 
@@ -142,11 +142,11 @@ class RouteOptionsPresenterTest :
                 then("nothing is written, so a stale block cannot corrupt the current one") {
                     val draft = RouteOptionsDraft().apply { update(RouteSelection.Transit(TRANSIT_PROFILE)) }
 
-                    presenterTestOf({ RoadModeExtrasPresenter(extrasScreen, storeFor(draft)) }) {
+                    presenterTestOf({ RoutingModeExtrasPresenter(extrasScreen, storeFor(draft)) }) {
                         val state = awaitItem()
                         state.avoided shouldBe emptySet()
 
-                        state.eventSink(RoadModeExtrasEvent.ToggleAvoid(RouteFeature.FERRY))
+                        state.eventSink(RoutingModeExtrasEvent.ToggleAvoid(RouteFeature.FERRY))
 
                         draft.selection.value.shouldBeInstanceOf<RouteSelection.Transit>()
 

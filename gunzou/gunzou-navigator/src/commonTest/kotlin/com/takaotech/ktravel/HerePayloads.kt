@@ -151,7 +151,13 @@ object HerePayloads {
         }
     """.trimIndent()
 
-    /** A journey that walks to a station, takes a regional train, and walks off. */
+    /**
+     * A journey that walks to a station and takes a regional train.
+     *
+     * Shaped after a recorded answer rather than after the DTOs, which is the only way it can catch
+     * a field that stopped being read: `ignoreUnknownKeys` means a payload trimmed to what the
+     * models already parse would keep passing after the models lost something.
+     */
     val TRANSIT_ROUTE = """
         {
           "routes": [
@@ -186,7 +192,9 @@ object HerePayloads {
                       "name": "Bologna Centrale",
                       "type": "station",
                       "location": { "lat": 44.5058, "lng": 11.3428 },
-                      "id": "place:8300001"
+                      "id": "place:8300001",
+                      "url": "https://example.test/stations/bologna-centrale",
+                      "wheelchairAccessible": "yes"
                     }
                   },
                   "arrival": {
@@ -206,7 +214,14 @@ object HerePayloads {
                     "headsign": "Porretta Terme",
                     "shortName": "R",
                     "color": "#008C45",
-                    "textColor": "#FFFFFF"
+                    "textColor": "#FFFFFF",
+                    "url": "https://example.test/lines/r-2841",
+                    "wheelchairAccessible": "limited"
+                  },
+                  "agency": {
+                    "id": "agency:trenitalia",
+                    "name": "Trenitalia",
+                    "website": "https://example.test/trenitalia"
                   },
                   "intermediateStops": [
                     {
@@ -217,7 +232,9 @@ object HerePayloads {
                           "type": "station",
                           "location": { "lat": 44.4795, "lng": 11.2764 }
                         }
-                      }
+                      },
+                      "duration": 60,
+                      "offset": 23
                     }
                   ]
                 }

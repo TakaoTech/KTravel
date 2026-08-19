@@ -22,7 +22,7 @@ class CatalogAndErrorSerializationTest {
                 profile = ProviderProfile.ROUTING,
                 path = NavigatorApi.HERE_ROUTING_TEMPLATE,
                 displayName = "HERE road routing",
-                supportedModes = SupportedModes.HereRoad(
+                supportedModes = SupportedModes.HereRouting(
                     listOf(
                         HereTransportMode.CAR,
                         HereTransportMode.TRUCK,

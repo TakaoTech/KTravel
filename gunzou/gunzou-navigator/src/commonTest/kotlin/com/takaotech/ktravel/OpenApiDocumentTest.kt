@@ -164,8 +164,17 @@ class OpenApiDocumentTest {
 
             val schemas = doc.components?.schemas.orEmpty()
             assertTrue(
-                schemas.containsKey("RouteResponse") && schemas.containsKey("ErrorResponse"),
+                schemas.keys.containsAll(
+                    listOf("RoutingRouteResponse", "TransitJourneyResponse", "ErrorResponse"),
+                ),
                 "the inferred schemas are missing: ${schemas.keys}",
+            )
+            // Both answers are described, and separately. A document that published one of them for
+            // both paths would generate a client that reads a journey as a route and finds no legs.
+            assertTrue(
+                schemas["RoutingRouteResponse"]?.properties.orEmpty().containsKey("routes") &&
+                    schemas["TransitJourneyResponse"]?.properties.orEmpty().containsKey("journeys"),
+                "the two profiles are not described apart: ${schemas.keys}",
             )
             // The field the hand written YAML had drifted away from. Inference cannot lose it,
             // because it reads the same descriptor the endpoint encodes through.

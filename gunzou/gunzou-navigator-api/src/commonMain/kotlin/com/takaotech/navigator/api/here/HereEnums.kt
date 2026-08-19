@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.here
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // The HERE vocabulary, copied rather than re-exported from :gunzou-here-client.
@@ -21,27 +22,35 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class HereTransportMode {
     /** A private car. */
+    @SerialName("CAR")
     CAR,
 
     /** A goods vehicle, routed under its own weight and dimension restrictions. */
+    @SerialName("TRUCK")
     TRUCK,
 
     /** On foot. */
+    @SerialName("PEDESTRIAN")
     PEDESTRIAN,
 
     /** By bicycle. */
+    @SerialName("BICYCLE")
     BICYCLE,
 
     /** A moped or motor scooter. */
+    @SerialName("SCOOTER")
     SCOOTER,
 
     /** A car with the access rights of a taxi, such as reserved lanes. */
+    @SerialName("TAXI")
     TAXI,
 
     /** A coach driven by the traveller's own party, not a scheduled service. */
+    @SerialName("BUS")
     BUS,
 
     /** A coach run by a private operator, which HERE routes under its own access rules. */
+    @SerialName("PRIVATE_BUS")
     PRIVATE_BUS,
     ;
 
@@ -80,9 +89,11 @@ enum class HereTransportMode {
 @Serializable
 enum class HereRoutingMode {
     /** Shortest travel time. */
+    @SerialName("FAST")
     FAST,
 
     /** Shortest distance, regardless of how long it takes. */
+    @SerialName("SHORT")
     SHORT,
 }
 
@@ -98,36 +109,47 @@ enum class HereRoutingMode {
 @Serializable
 enum class HereReturnAttribute {
     /** The geometry of each section. */
+    @SerialName("POLYLINE")
     POLYLINE,
 
     /** The manoeuvres. Requires [POLYLINE]. */
+    @SerialName("ACTIONS")
     ACTIONS,
 
     /** Localized text for each manoeuvre. Requires [ACTIONS]. */
+    @SerialName("INSTRUCTIONS")
     INSTRUCTIONS,
 
     /** Duration and distance per section. */
+    @SerialName("SUMMARY")
     SUMMARY,
 
     /** Duration and distance of the travelling part of a section, excluding waits. */
+    @SerialName("TRAVEL_SUMMARY")
     TRAVEL_SUMMARY,
 
     /** Everything needed to drive turn by turn guidance. Requires [POLYLINE]. */
+    @SerialName("TURN_BY_TURN_ACTIONS")
     TURN_BY_TURN_ACTIONS,
 
     /** Duration under typical rather than current traffic. */
+    @SerialName("TYPICAL_DURATION")
     TYPICAL_DURATION,
 
     /** Elevation as a third dimension in the geometry. */
+    @SerialName("ELEVATION")
     ELEVATION,
 
     /** What has to be paid along the way. */
+    @SerialName("TOLLS")
     TOLLS,
 
     /** The incidents affecting each section. */
+    @SerialName("INCIDENTS")
     INCIDENTS,
 
     /** The names and road numbers that tell this alternative apart from the others. */
+    @SerialName("ROUTE_LABELS")
     ROUTE_LABELS,
     ;
 
@@ -155,35 +177,44 @@ enum class HereReturnAttribute {
  *   still route through one when there is no alternative, and says so with a notice.
  */
 @Serializable
-data class HereAvoidOptions(val features: List<HereAvoidFeature> = emptyList())
+data class HereAvoidOptions(@SerialName("features") val features: List<HereAvoidFeature> = emptyList())
 
 /** A kind of road or crossing a route can be asked to avoid. */
 @Serializable
 enum class HereAvoidFeature {
     /** Any road that charges a toll. */
+    @SerialName("TOLL_ROAD")
     TOLL_ROAD,
 
     /** Motorways and other roads reachable only through a junction. */
+    @SerialName("CONTROLLED_ACCESS_HIGHWAY")
     CONTROLLED_ACCESS_HIGHWAY,
 
     /** Crossings by boat. */
+    @SerialName("FERRY")
     FERRY,
 
     /** Trains that carry the vehicle through a tunnel or over a pass. */
+    @SerialName("CAR_SHUTTLE_TRAIN")
     CAR_SHUTTLE_TRAIN,
 
     /** Tunnels, which some vehicles and cargoes may not enter. */
+    @SerialName("TUNNEL")
     TUNNEL,
 
     /** Unpaved roads. */
+    @SerialName("DIRT_ROAD")
     DIRT_ROAD,
 
     /** Turns that are hard to take, such as an unprotected left across traffic. */
+    @SerialName("DIFFICULT_TURNS")
     DIFFICULT_TURNS,
 
     /** Manoeuvres that reverse the direction of travel. */
+    @SerialName("U_TURNS")
     U_TURNS,
 
     /** Roads that close for part of the year, such as an Alpine pass in winter. */
+    @SerialName("SEASONAL_CLOSURE")
     SEASONAL_CLOSURE,
 }

@@ -13,24 +13,24 @@ import kotlinx.collections.immutable.toPersistentSet
 /**
  * The options of one road vehicle.
  *
- * Writes to the same draft as [RoadRouteOptionsPresenter] and never seeds it: by the time this block
+ * Writes to the same draft as [RoutingRouteOptionsPresenter] and never seeds it: by the time this block
  * is composed the family above has already put a request there. Nor does it ever touch the vehicle —
  * so a click landing in the frame where the vehicle is changing still applies to the current request
  * rather than reviving the previous one.
  */
-@CircuitInject(RoadModeExtrasScreen::class, AppScope::class)
+@CircuitInject(RoutingModeExtrasScreen::class, AppScope::class)
 @Composable
-fun RoadModeExtrasPresenter(
-    screen: RoadModeExtrasScreen,
+fun RoutingModeExtrasPresenter(
+    screen: RoutingModeExtrasScreen,
     planningGraphStore: PlanningGraphStore,
-): RoadModeExtrasUiState {
+): RoutingModeExtrasUiState {
     val draft = remember(screen.travelId) {
         planningGraphStore.getOrCreate(screen.travelId).routeOptionsDraft
     }
     val stored by draft.selection.collectAsState()
-    val selection = stored.asRoadFor(screen.profileId)
+    val selection = stored.asRoutingFor(screen.profileId)
 
-    return RoadModeExtrasUiState(
+    return RoutingModeExtrasUiState(
         avoidable = screen.avoidable,
         avoided = selection?.avoid?.toPersistentSet() ?: persistentSetOf(),
         tollsUnsupported = screen.tollsUnsupported,

@@ -149,7 +149,7 @@ internal class ModeChipPreviewParams : PreviewParameterProvider<ModeChipPreviewS
 private val HERE_ROUTING = RoutingProfileInfo(
     id = RoutingProfileId(provider = "here", profile = "routing"),
     displayName = "HERE Routing",
-    options = RoutingOptionsSpec.RoadSingleMode(
+    options = RoutingOptionsSpec.RoutingSingleMode(
         modes = listOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("TAXI")),
         maxAlternatives = 3,
         modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
@@ -176,7 +176,7 @@ private val HERE_TRANSIT = RoutingProfileInfo(
 private val UNKNOWN_PROFILE = RoutingProfileInfo(
     id = RoutingProfileId(provider = "gunzou", profile = "hiking"),
     displayName = "Gunzou Hiking",
-    options = RoutingOptionsSpec.RoadSingleMode(
+    options = RoutingOptionsSpec.RoutingSingleMode(
         modes = listOf(RoutingMode("HIKING")),
         maxAlternatives = 1,
     ),

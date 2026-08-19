@@ -1,5 +1,6 @@
 package com.takaotech.navigator.api.common
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,27 +14,35 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class TravelMode {
     /** A private car. */
+    @SerialName("CAR")
     CAR,
 
     /** A goods vehicle, which is routed under its own weight and dimension restrictions. */
+    @SerialName("TRUCK")
     TRUCK,
 
     /** A car with the access rights of a taxi, such as reserved lanes. */
+    @SerialName("TAXI")
     TAXI,
 
     /** A coach or bus driven by the traveller's own party, not a scheduled service. */
+    @SerialName("BUS")
     BUS,
 
     /** On foot. */
+    @SerialName("PEDESTRIAN")
     PEDESTRIAN,
 
     /** By bicycle. */
+    @SerialName("BICYCLE")
     BICYCLE,
 
     /** A moped or motor scooter. */
+    @SerialName("SCOOTER")
     SCOOTER,
 
     /** Aboard a scheduled public transport service, described by [TransitMode]. */
+    @SerialName("TRANSIT")
     TRANSIT,
 
     /**
@@ -42,6 +51,7 @@ enum class TravelMode {
      * Exists so a provider that reports something new degrades to a drawable section instead of
      * failing to decode on a client built before it.
      */
+    @SerialName("OTHER")
     OTHER,
 }
 
@@ -54,48 +64,63 @@ enum class TravelMode {
 @Serializable
 enum class TransitMode {
     /** Long distance high speed rail, such as a Frecciarossa or a TGV. */
+    @SerialName("HIGH_SPEED_TRAIN")
     HIGH_SPEED_TRAIN,
 
     /** Long distance rail between major cities. */
+    @SerialName("INTERCITY_TRAIN")
     INTERCITY_TRAIN,
 
     /** Rail between regions, stopping more often than an [INTERCITY_TRAIN]. */
+    @SerialName("INTER_REGIONAL_TRAIN")
     INTER_REGIONAL_TRAIN,
 
     /** Rail within a region. */
+    @SerialName("REGIONAL_TRAIN")
     REGIONAL_TRAIN,
 
     /** Commuter rail within a city and its suburbs, such as an S-Bahn or an RER. */
+    @SerialName("CITY_TRAIN")
     CITY_TRAIN,
 
     /** A scheduled bus. */
+    @SerialName("BUS")
     BUS,
 
     /** A bus run by a private operator outside the public network. */
+    @SerialName("PRIVATE_BUS")
     PRIVATE_BUS,
 
     /** A bus on a dedicated right of way, running like a light rail line. */
+    @SerialName("BUS_RAPID")
     BUS_RAPID,
 
     /** A passenger boat. */
+    @SerialName("FERRY")
     FERRY,
 
     /** An underground metro. */
+    @SerialName("SUBWAY")
     SUBWAY,
 
     /** A tram or street level light rail. */
+    @SerialName("LIGHT_RAIL")
     LIGHT_RAIL,
 
     /** A monorail. */
+    @SerialName("MONORAIL")
     MONORAIL,
 
     /** A funicular or rack railway climbing a slope. */
+    @SerialName("INCLINED")
     INCLINED,
 
     /** A cable car or gondola. */
+    @SerialName("AERIAL")
     AERIAL,
 
     /** A scheduled flight. */
+    @SerialName("FLIGHT")
     FLIGHT,
 
     /**
@@ -104,5 +129,6 @@ enum class TransitMode {
      * Present for the same forward compatibility reason as [TravelMode.OTHER]; it carries no meaning
      * in a request filter and the server ignores it there.
      */
+    @SerialName("OTHER")
     OTHER,
 }

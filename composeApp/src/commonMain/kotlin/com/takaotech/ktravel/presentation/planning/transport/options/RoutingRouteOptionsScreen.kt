@@ -21,7 +21,7 @@ import kotlinx.collections.immutable.ImmutableList
  * @property travelId Resolves the plan's graph, and with it the draft the presenter writes to.
  */
 @Parcelize
-data class RoadRouteOptionsScreen(
+data class RoutingRouteOptionsScreen(
     val travelId: String,
     val provider: String,
     val profile: String,
@@ -35,7 +35,7 @@ data class RoadRouteOptionsScreen(
     val profileId: RoutingProfileId = RoutingProfileId(provider = provider, profile = profile)
 
     @IgnoreOnParcel
-    val spec: RoutingOptionsSpec.RoadSingleMode = RoutingOptionsSpec.RoadSingleMode(
+    val spec: RoutingOptionsSpec.RoutingSingleMode = RoutingOptionsSpec.RoutingSingleMode(
         modes = modeIds.map(::RoutingMode),
         maxAlternatives = maxAlternatives,
         modesSupportingShortest = shortestModeIds.map(::RoutingMode).toSet(),
@@ -48,8 +48,8 @@ data class RoadRouteOptionsScreen(
         fun of(
             travelId: String,
             profileId: RoutingProfileId,
-            spec: RoutingOptionsSpec.RoadSingleMode,
-        ): RoadRouteOptionsScreen = RoadRouteOptionsScreen(
+            spec: RoutingOptionsSpec.RoutingSingleMode,
+        ): RoutingRouteOptionsScreen = RoutingRouteOptionsScreen(
             travelId = travelId,
             provider = profileId.provider,
             profile = profileId.profile,
@@ -66,19 +66,19 @@ data class RoadRouteOptionsScreen(
  *   that vehicle has none. Rendered by the UI as a nested `CircuitContent`, so a vehicle that grows
  *   its own options does not change this block.
  */
-data class RoadRouteOptionsUiState(
+data class RoutingRouteOptionsUiState(
     val modes: ImmutableList<RoutingMode>,
     val selectedMode: RoutingMode,
     val alternatives: Int,
     val maxAlternatives: Int,
     val modeExtrasScreen: Screen?,
-    val eventSink: (RoadRouteOptionsEvent) -> Unit,
+    val eventSink: (RoutingRouteOptionsEvent) -> Unit,
 ) : CircuitUiState
 
-sealed interface RoadRouteOptionsEvent : CircuitUiEvent {
+sealed interface RoutingRouteOptionsEvent : CircuitUiEvent {
     /** Picks the single vehicle the route is computed for. */
-    data class SelectMode(val mode: RoutingMode) : RoadRouteOptionsEvent
+    data class SelectMode(val mode: RoutingMode) : RoutingRouteOptionsEvent
 
     /** Sets how many routes to ask for. */
-    data class SetAlternatives(val count: Int) : RoadRouteOptionsEvent
+    data class SetAlternatives(val count: Int) : RoutingRouteOptionsEvent
 }

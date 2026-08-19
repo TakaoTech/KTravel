@@ -9,7 +9,8 @@ import com.takaotech.navigator.api.error.ErrorResponse
 import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.RouteResponse
+import com.takaotech.navigator.api.response.RoutingRouteResponse
+import com.takaotech.navigator.api.response.TransitJourneyResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -67,15 +68,21 @@ class NavigatorClient private constructor(
         request: HereRoutingRequest,
         apiKey: String? = null,
         target: NavigatorTarget? = null,
-    ): NavigatorResult<RouteResponse> =
+    ): NavigatorResult<RoutingRouteResponse> =
         post(NavigatorApi.hereRouting(mode), HereRoutingRequest.serializer(), request, apiKey, target)
 
-    /** Routes on public transport. */
+    /**
+     * Plans a journey on public transport.
+     *
+     * A different answer from [hereRouting] and not by accident: a road route is a shape with
+     * manoeuvres along it, a journey is a sequence of departures to be at on time. One method per
+     * path, one answer per family of API, and no `when` anywhere in this class.
+     */
     suspend fun hereTransit(
         request: HereTransitRouteRequest,
         apiKey: String? = null,
         target: NavigatorTarget? = null,
-    ): NavigatorResult<RouteResponse> =
+    ): NavigatorResult<TransitJourneyResponse> =
         post(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request, apiKey, target)
 
     /**

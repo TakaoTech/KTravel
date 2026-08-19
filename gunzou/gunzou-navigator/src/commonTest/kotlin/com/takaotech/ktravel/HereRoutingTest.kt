@@ -314,17 +314,6 @@ class HereRoutingTest {
             assertEquals("Route uses a toll road", notice.title)
         }
 
-    @Test
-    fun `Given a road section When it is translated Then it carries no transit details`() = testApplication {
-        val here = HereMockServer(HerePayloads.CAR_ROUTE)
-        application { module(here.asKoinModule()) }
-
-        val sections = client.postJson(carPath, HereRoutingRequest.serializer(), request)
-            .decodeRoutes().routes.single().sections
-
-        assertTrue(sections.all { it.transit == null })
-    }
-
     // ---- what happens when it goes wrong -------------------------------------------------------
 
     @Test

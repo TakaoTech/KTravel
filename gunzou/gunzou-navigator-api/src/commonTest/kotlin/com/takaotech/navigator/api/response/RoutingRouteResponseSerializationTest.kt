@@ -4,37 +4,37 @@ import com.takaotech.navigator.api.NavigatorJson
 import com.takaotech.navigator.api.common.GeoPoint
 import com.takaotech.navigator.api.common.ProviderId
 import com.takaotech.navigator.api.common.ProviderProfile
-import com.takaotech.navigator.api.common.TransitMode
 import com.takaotech.navigator.api.common.TravelMode
 import com.takaotech.navigator.api.common.ZonedTime
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.time.Instant
 
 /**
- * [RouteResponse] is the symmetric half of the contract, the one shape every provider has to answer
- * in. The two tests that matter here are the two profiles: a road answer and a public transport one
- * must both fit, because if they do not, the server has no reason to exist.
+ * [RoutingRouteResponse] is what every road engine answers in, whatever the vehicle.
+ *
+ * The fixture is deliberately the richest a road answer gets — manoeuvres, geometry, tolls with the
+ * systems they refer to — because the encoding has to survive the whole of it, not the part a
+ * screen happens to draw today.
  */
-class RouteResponseSerializationTest {
+class RoutingRouteResponseSerializationTest {
 
     private val departure = Instant.parse("2026-08-12T07:30:00Z")
 
-    private val roadResponse = RouteResponse(
+    private val response = RoutingRouteResponse(
         provider = ProviderId.HERE,
         profile = ProviderProfile.ROUTING,
         routes = listOf(
-            RouteDto(
+            RoutingRouteDto(
                 summary = RouteSummaryDto(
                     durationSeconds = 4_200,
                     distanceMeters = 105_000,
                     baseDurationSeconds = 3_900,
                 ),
                 sections = listOf(
-                    RouteSectionDto(
+                    RoutingSectionDto(
                         summary = RouteSummaryDto(durationSeconds = 4_200, distanceMeters = 105_000),
                         mode = TravelMode.CAR,
                         actions = listOf(
@@ -89,86 +89,16 @@ class RouteResponseSerializationTest {
         notices = listOf(NoticeDto(code = "violatedAvoidTollRoad", severity = NoticeSeverity.CRITICAL)),
     )
 
-    private val transitResponse = RouteResponse(
-        provider = ProviderId.HERE,
-        profile = ProviderProfile.TRANSIT,
-        routes = listOf(
-            RouteDto(
-                summary = RouteSummaryDto(durationSeconds = 1_500, distanceMeters = 6_400),
-                sections = listOf(
-                    RouteSectionDto(
-                        summary = RouteSummaryDto(durationSeconds = 300, distanceMeters = 380),
-                        mode = TravelMode.PEDESTRIAN,
-                        geometry = RouteGeometry(PolylineEncoding.HERE_FLEXIBLE, "BFoz5xJ67i1B1B7P"),
-                    ),
-                    RouteSectionDto(
-                        summary = RouteSummaryDto(durationSeconds = 1_200, distanceMeters = 6_020),
-                        mode = TravelMode.TRANSIT,
-                        departure = RouteWaypointDto(
-                            place = GeoPoint(lat = 44.4949, lng = 11.3426),
-                            time = ZonedTime(departure, 7_200),
-                            name = "Bologna Centrale",
-                        ),
-                        transit = TransitDetailsDto(
-                            mode = TransitMode.REGIONAL_TRAIN,
-                            name = "R 2841",
-                            category = "Regionale",
-                            headsign = "Porretta Terme",
-                            agency = TransitAgencyDto(name = "Trenitalia", id = "tper", website = "https://tper.it"),
-                            color = "#008C45",
-                            textColor = "#FFFFFF",
-                            intermediateStops = listOf(
-                                TransitStopDto(
-                                    place = GeoPoint(lat = 44.48, lng = 11.32),
-                                    name = "Borgo Panigale",
-                                    arrival = ZonedTime(departure, 7_200),
-                                    departure = ZonedTime(departure, 7_200),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-    )
-
     @Test
     fun `Given a road route with tolls and actions When encoding and decoding Then the response is unchanged`() {
-        val encoded = NavigatorJson.encodeToString(RouteResponse.serializer(), roadResponse)
+        val encoded = NavigatorJson.encodeToString(RoutingRouteResponse.serializer(), response)
 
-        assertEquals(roadResponse, NavigatorJson.decodeFromString(RouteResponse.serializer(), encoded))
-    }
-
-    @Test
-    fun `Given a transit journey When encoding and decoding Then the response is unchanged`() {
-        val encoded = NavigatorJson.encodeToString(RouteResponse.serializer(), transitResponse)
-
-        assertEquals(transitResponse, NavigatorJson.decodeFromString(RouteResponse.serializer(), encoded))
-    }
-
-    @Test
-    fun `Given a road section When encoding Then it carries no transit details`() {
-        val encoded = NavigatorJson.encodeToString(RouteResponse.serializer(), roadResponse)
-        val decoded = NavigatorJson.decodeFromString(RouteResponse.serializer(), encoded)
-
-        assertNull(decoded.routes.single().sections.single().transit)
-    }
-
-    @Test
-    fun `Given a transit journey When decoding Then the walking leg and the vehicle leg share one section type`() {
-        val encoded = NavigatorJson.encodeToString(RouteResponse.serializer(), transitResponse)
-
-        val sections = NavigatorJson.decodeFromString(RouteResponse.serializer(), encoded)
-            .routes.single().sections
-
-        assertEquals(listOf(TravelMode.PEDESTRIAN, TravelMode.TRANSIT), sections.map { it.mode })
-        assertNull(sections.first().transit)
-        assertEquals(TransitMode.REGIONAL_TRAIN, sections.last().transit?.mode)
+        assertEquals(response, NavigatorJson.decodeFromString(RoutingRouteResponse.serializer(), encoded))
     }
 
     @Test
     fun `Given a provider and a profile When encoding Then they travel as plain strings`() {
-        val encoded = NavigatorJson.encodeToJsonElement(RouteResponse.serializer(), roadResponse).jsonObject
+        val encoded = NavigatorJson.encodeToJsonElement(RoutingRouteResponse.serializer(), response).jsonObject
 
         assertEquals("here", encoded["provider"]?.jsonPrimitive?.content)
         assertEquals("routing", encoded["profile"]?.jsonPrimitive?.content)
@@ -184,9 +114,36 @@ class RouteResponseSerializationTest {
             }
         """.trimIndent()
 
-        val decoded = NavigatorJson.decodeFromString(RouteResponse.serializer(), json)
+        val decoded = NavigatorJson.decodeFromString(RoutingRouteResponse.serializer(), json)
 
         assertEquals(ProviderId("an-engine-added-after-this-client-shipped"), decoded.provider)
         assertEquals(ProviderProfile("auto"), decoded.profile)
+    }
+
+    @Test
+    fun `Given an answer from a newer server When decoding Then the fields this build knows still arrive`() {
+        val json = """
+            {
+              "provider": "here",
+              "profile": "routing",
+              "routes": [
+                {
+                  "summary": { "durationSeconds": 60, "distanceMeters": 900, "elevationGain": 12 },
+                  "sections": [
+                    {
+                      "summary": { "durationSeconds": 60, "distanceMeters": 900 },
+                      "mode": "CAR",
+                      "surfaceQuality": "smooth"
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val decoded = NavigatorJson.decodeFromString(RoutingRouteResponse.serializer(), json)
+
+        assertEquals(900, decoded.routes.single().sections.single().summary.distanceMeters)
+        assertEquals(TravelMode.CAR, decoded.routes.single().sections.single().mode)
     }
 }
