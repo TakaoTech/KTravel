@@ -9,6 +9,8 @@ import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
+import io.nacular.measured.units.Length
+import io.nacular.measured.units.times
 import kotlinx.datetime.LocalTime
 import kotlin.time.Duration.Companion.minutes
 
@@ -36,7 +38,7 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
                 RouteSection(
                     summary = RouteSummary(
                         durationSeconds = (30 * index).minutes,
-                        distanceMeters = 1000 * index,
+                        distance = 1000 * index * Length.meters,
                     ),
                     departure = RouteDeparture(
                         location = RouteLocation(

@@ -25,9 +25,9 @@ data class Route(val sections: List<RouteSection>)
  * Summary information for a route.
  *
  * @property durationSeconds Total estimated duration in seconds
- * @property distanceMeters Total distance in meters
+ * @property distance Total distance in meters
  */
-data class RouteSummary(val durationSeconds: Duration, val distanceMeters: Int)
+data class RouteSummary(val durationSeconds: Duration, val distance: Measure<Length>)
 
 /**
  * Basic information about a toll system authority.

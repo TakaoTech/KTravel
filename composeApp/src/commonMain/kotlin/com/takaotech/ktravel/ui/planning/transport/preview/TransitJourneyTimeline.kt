@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,10 +33,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -51,6 +55,8 @@ import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
+import io.nacular.measured.units.Length
+import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.toInstant
@@ -68,6 +74,22 @@ import ktravel.composeapp.generated.resources.transit_preview_walk
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.minutes
 
+@Composable
+internal fun TransitJourneyTimelineSection(
+    selected: TransitJourney?,
+    onStopClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
+) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        selected?.let { journey ->
+            // TODO Evaluate this is correct decision make it sticky header
+            stickyHeader { TransitJourneySummaryCard(journey = journey) }
+            journey.steps.forEach { step ->
+                item { TransitStepRow(step = step, onStopClick = onStopClick) }
+            }
+        }
+    }
+}
+
 /**
  * One step on the timeline.
  *
@@ -81,7 +103,10 @@ internal fun TransitStepRow(
     modifier: Modifier = Modifier,
 ) {
     when (step) {
-        is TransitStep.Walk -> TransitWalkRow(step = step, modifier = modifier)
+        is TransitStep.Walk -> TransitWalkRow(
+            step = step,
+            modifier = modifier,
+        )
 
         is TransitStep.Ride -> TransitRideRow(
             step = step,
@@ -93,6 +118,8 @@ internal fun TransitStepRow(
 
 @Composable
 private fun TransitWalkRow(step: TransitStep.Walk, modifier: Modifier = Modifier) {
+    // TODO Add support
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -103,14 +130,14 @@ private fun TransitWalkRow(step: TransitStep.Walk, modifier: Modifier = Modifier
         Text(
             text = stringResource(
                 Res.string.transit_preview_walk,
-                step.summary.durationSeconds.formatDuration(),
+                step.summary.durationSeconds.toString(),
             ),
             modifier = Modifier.padding(start = 12.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = " · ${step.summary.distanceMeters.formatDistance()}",
+            text = " · ${step.summary.distance.formatDistance()}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -382,6 +409,7 @@ internal fun TransitTime.clock(): String {
 
 internal fun TransitStep.lineColor(): Color? = (this as? TransitStep.Ride)?.line?.color?.toColorOrNull()
 
+// FIXME Check background color luminance for accessibility
 internal fun TransitStep.textColor(): Color? = (this as? TransitStep.Ride)?.line?.textColor?.toColorOrNull()
 
 /**
@@ -398,25 +426,10 @@ private fun String.toColorOrNull(): Color? = takeIf { it.length == HEX_COLOUR_LE
 private const val HEX_COLOUR_LENGTH = 7
 private const val OPAQUE_ALPHA = 0xFF000000L
 
-@Composable
-internal fun TransitJourneyTimelineSection(
-    selected: TransitJourney?,
-    onStopClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
-) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        selected?.let { journey ->
-            item { TransitJourneySummaryCard(journey = journey) }
-            journey.steps.forEach { step ->
-                item { TransitStepRow(step = step, onStopClick = onStopClick) }
-            }
-        }
-    }
-}
-
 /**
  * The journey at a glance: when it leaves, when it lands, how long that is, and how many changes.
  *
- * The duration shown is arrival minus departure and not the sum of the legs. The two differ by every
+ * The duration shown is arrival minus departure and not the sum of the steps. The two differ by every
  * minute spent waiting on a platform, and a traveller deciding whether they have time for this is
  * asking about the first number.
  */
@@ -439,7 +452,7 @@ private fun TransitJourneySummaryCard(journey: TransitJourney, modifier: Modifie
                     fontWeight = FontWeight.Bold,
                 )
                 journey.totalDuration?.let {
-                    Text(text = it.formatDuration(), style = MaterialTheme.typography.titleMedium)
+                    Text(text = it.toString(), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -453,7 +466,10 @@ private fun TransitJourneySummaryCard(journey: TransitJourney, modifier: Modifie
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 journey.steps.forEach { step -> TransitStepBadge(step) }
             }
         }
@@ -463,11 +479,30 @@ private fun TransitJourneySummaryCard(journey: TransitJourney, modifier: Modifie
 /** One step of the journey reduced to what fits on a badge: the line, or how long the walk is. */
 @Composable
 private fun TransitStepBadge(step: TransitStep, modifier: Modifier = Modifier) {
-    val label = when (step) {
-        is TransitStep.Walk -> step.summary.durationSeconds.formatDuration()
-        is TransitStep.Ride -> step.line.shortName ?: step.line.name ?: step.line.category.orEmpty()
+    val label by remember(step) {
+        derivedStateOf {
+            when (step) {
+                is TransitStep.Walk -> AnnotatedString(step.summary.durationSeconds.toString())
+
+                is TransitStep.Ride -> buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(
+                            step.line.shortName ?: step.line.name ?: step.line.category.orEmpty(),
+                        )
+                    }
+
+                    append(" ")
+                    append(step.summary.durationSeconds.toString())
+                }
+            }
+        }
     }
     val background = step.lineColor() ?: MaterialTheme.colorScheme.surfaceVariant
+
+    // TODO Add support for show step icon, TransitModeType is a candidate
+//    if(step is TransitStep.Ride){
+//        step.line.mode.iconOrNull()
+//    }
 
     Text(
         text = label,
@@ -551,17 +586,17 @@ private val PREVIEW_AGENCY = TransitAgency(name = "ATM", id = "atm", website = "
 
 /** Assago to Brera, changing from the underground onto a tram. */
 private val PREVIEW_WITH_CHANGE = TransitJourney(
-    summary = RouteSummary(durationSeconds = 43.minutes, distanceMeters = 12_190),
+    summary = RouteSummary(durationSeconds = 43.minutes, distance = 12_190 * Length.meters),
     steps = listOf(
         TransitStep.Walk(
-            summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 320),
+            summary = RouteSummary(durationSeconds = 4.minutes, distance = 320 * Length.meters),
             departure = previewTime(9, 27),
             arrival = previewTime(9, 31),
             from = RouteLocation(lat = 45.40887, lng = 9.12565),
             to = RouteLocation(lat = 45.41043, lng = 9.12718),
         ),
         TransitStep.Ride(
-            summary = RouteSummary(durationSeconds = 21.minutes, distanceMeters = 9_200),
+            summary = RouteSummary(durationSeconds = 21.minutes, distance = 9_200 * Length.meters),
             line = TransitLine(
                 mode = "SUBWAY",
                 name = "M2",
@@ -588,12 +623,12 @@ private val PREVIEW_WITH_CHANGE = TransitJourney(
             ),
         ),
         TransitStep.Walk(
-            summary = RouteSummary(durationSeconds = 3.minutes, distanceMeters = 210),
+            summary = RouteSummary(durationSeconds = 3.minutes, distance = 210 * Length.meters),
             departure = previewTime(9, 52),
             arrival = previewTime(9, 55),
         ),
         TransitStep.Ride(
-            summary = RouteSummary(durationSeconds = 11.minutes, distanceMeters = 2_200),
+            summary = RouteSummary(durationSeconds = 11.minutes, distance = 2_200 * Length.meters),
             line = TransitLine(
                 mode = "LIGHT_RAIL",
                 name = "1",
@@ -612,7 +647,7 @@ private val PREVIEW_WITH_CHANGE = TransitJourney(
             ),
         ),
         TransitStep.Walk(
-            summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 260),
+            summary = RouteSummary(durationSeconds = 4.minutes, distance = 260 * Length.meters),
             departure = previewTime(10, 8),
             arrival = previewTime(10, 12),
         ),
@@ -621,15 +656,15 @@ private val PREVIEW_WITH_CHANGE = TransitJourney(
 
 /** The same trip on one coach: longer, but nothing to catch in the middle. */
 private val PREVIEW_DIRECT = TransitJourney(
-    summary = RouteSummary(durationSeconds = 52.minutes, distanceMeters = 13_400),
+    summary = RouteSummary(durationSeconds = 52.minutes, distance = 13_400 * Length.meters),
     steps = listOf(
         TransitStep.Walk(
-            summary = RouteSummary(durationSeconds = 6.minutes, distanceMeters = 480),
+            summary = RouteSummary(durationSeconds = 6.minutes, distance = 480 * Length.meters),
             departure = previewTime(9, 24),
             arrival = previewTime(9, 30),
         ),
         TransitStep.Ride(
-            summary = RouteSummary(durationSeconds = 41.minutes, distanceMeters = 12_520),
+            summary = RouteSummary(durationSeconds = 41.minutes, distance = 12_520 * Length.meters),
             line = TransitLine(
                 mode = "BUS",
                 name = "321",
@@ -652,7 +687,7 @@ private val PREVIEW_DIRECT = TransitJourney(
             ),
         ),
         TransitStep.Walk(
-            summary = RouteSummary(durationSeconds = 5.minutes, distanceMeters = 400),
+            summary = RouteSummary(durationSeconds = 5.minutes, distance = 400 * Length.meters),
             departure = previewTime(10, 11),
             arrival = previewTime(10, 16),
         ),

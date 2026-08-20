@@ -14,8 +14,8 @@ import kotlinx.serialization.Serializable
  * Separate from [RoutingRouteResponse], and for the same reason the requests were separate from the
  * start: the two describe different things. A road route is a shape with manoeuvres along it and
  * possibly a toll; a journey is a sequence of departures the traveller has to be at on time, run by
- * operators, calling at stops. Carrying both in one type meant every road leg dragging an empty set
- * of stops and every journey leg dragging an empty set of tolls, and a reader unable to tell a field
+ * operators, calling at stops. Carrying both in one type meant every road section dragging an empty set
+ * of stops and every journey step dragging an empty set of tolls, and a reader unable to tell a field
  * that is off from one that does not apply.
  *
  * @property provider The engine that computed these journeys.
@@ -36,49 +36,49 @@ data class TransitJourneyResponse(
 /**
  * One way of getting there on scheduled services.
  *
- * @property summary Totals for the whole journey, aggregated by the server over [legs]. It is the
- *   time and distance actually travelled: the wait on a platform between two legs is not in it, so
+ * @property summary Totals for the whole journey, aggregated by the server over [steps]. It is the
+ *   time and distance actually travelled: the wait on a platform between two steps is not in it, so
  *   a screen showing how long the traveller will be out should use the departure and arrival times
  *   instead.
- * @property legs Walking and riding, alternating, in travel order.
+ * @property steps Walking and riding, alternating, in travel order.
  * @property notices Advisories about this alternative in particular, such as a connection that is
  *   tighter than the operator guarantees.
  */
 @Serializable
 data class TransitJourneyDto(
     @SerialName("summary") val summary: RouteSummaryDto,
-    @SerialName("legs") val legs: List<TransitJourneyLeg> = emptyList(),
+    @SerialName("steps") val steps: List<TransitJourneyStep> = emptyList(),
     @SerialName("notices") val notices: List<NoticeDto> = emptyList(),
 )
 
 /**
- * One leg of a journey: either the traveller walks it, or a scheduled vehicle carries them.
+ * One step of a journey: either the traveller walks it, or a scheduled vehicle carries them.
  *
  * A sealed type and not one record with optional fields, which is what the upstream API itself does
  * — HERE discriminates its sections on `type` and gives the two branches different members. The
- * gain is that a client's `when` is exhaustive: a third kind of leg, the day a provider has one,
+ * gain is that a client's `when` is exhaustive: a third kind of step, the day a provider has one,
  * does not compile until every screen has been told what to draw for it.
  *
  * [departureTime] and [arrivalTime] are declared here and computed by each variant so a caller can
  * read the shape of a journey without branching; they are not part of the encoded form.
  */
 @Serializable
-sealed interface TransitJourneyLeg {
+sealed interface TransitJourneyStep {
 
-    /** Totals for this leg. */
+    /** Totals for this step. */
     val summary: RouteSummaryDto
 
-    /** The drawable shape of this leg. */
+    /** The drawable shape of this step. */
     val geometry: RouteGeometry?
 
-    /** When the traveller sets off on this leg. */
+    /** When the traveller sets off on this step. */
     val departureTime: ZonedTime?
 
     /** When the traveller gets to the end of it. */
     val arrivalTime: ZonedTime?
 
     /**
-     * A leg covered on foot: to the first stop, between two of them, or off the last one.
+     * A step covered on foot: to the first stop, between two of them, or off the last one.
      *
      * @property departure Where and when the walk starts.
      * @property arrival Where and when it ends.
@@ -93,13 +93,13 @@ sealed interface TransitJourneyLeg {
         @SerialName("departure") val departure: RouteWaypointDto? = null,
         @SerialName("arrival") val arrival: RouteWaypointDto? = null,
         @SerialName("actions") val actions: List<RouteActionDto> = emptyList(),
-    ) : TransitJourneyLeg {
+    ) : TransitJourneyStep {
         override val departureTime: ZonedTime? get() = departure?.time
         override val arrivalTime: ZonedTime? get() = arrival?.time
     }
 
     /**
-     * A leg aboard a scheduled service.
+     * A step aboard a scheduled service.
      *
      * @property line The service as the traveller sees it on the vehicle.
      * @property agency Who runs it, which is who to ask about a disruption.
@@ -118,14 +118,14 @@ sealed interface TransitJourneyLeg {
         @SerialName("boarding") val boarding: TransitStopDto? = null,
         @SerialName("alighting") val alighting: TransitStopDto? = null,
         @SerialName("intermediateStops") val intermediateStops: List<TransitStopDto> = emptyList(),
-    ) : TransitJourneyLeg {
+    ) : TransitJourneyStep {
         override val departureTime: ZonedTime? get() = boarding?.departure ?: boarding?.arrival
         override val arrivalTime: ZonedTime? get() = alighting?.arrival ?: alighting?.departure
     }
 }
 
 /**
- * The service operating a [TransitJourneyLeg.Ride].
+ * The service operating a [TransitJourneyStep.Ride].
  *
  * @property mode The kind of vehicle.
  * @property name The line as it is written on the vehicle, such as `M1` or `62`.

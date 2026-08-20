@@ -74,7 +74,7 @@ internal fun OpenApiDocDsl.navigatorApiDocument(version: String) {
             for a route on roads, `TransitJourneyResponse` for a journey on scheduled services.
 
             The two were one shape for a while, and what that bought was every road section carrying
-            an empty list of stops and every journey leg an empty list of tolls, with no way for a
+            an empty list of stops and every journey step an empty list of tolls, with no way for a
             reader to tell a field that is off from one that does not apply. What is genuinely shared
             — a duration, a manoeuvre, an advisory — is shared, and nothing else is.
 
@@ -188,7 +188,7 @@ internal val HereTransitOperation: RouteOperationFunction = {
         `routingMode` on a timetable.
 
         The answer is separate too. A journey is a sequence of departures the traveller has to be at
-        on time, run by operators, calling at stops; each of its legs is either a `walk` or a `ride`,
+        on time, run by operators, calling at stops; each of its steps is either a `walk` or a `ride`,
         discriminated on `type`, which is the same shape the upstream API uses and the reason a
         client's handling of the two cannot silently fall through.
     """.trimIndent()

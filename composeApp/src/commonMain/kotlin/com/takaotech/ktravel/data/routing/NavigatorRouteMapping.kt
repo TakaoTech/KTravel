@@ -44,11 +44,12 @@ import com.takaotech.navigator.api.response.RouteSummaryDto
 import com.takaotech.navigator.api.response.RoutingRouteResponse
 import com.takaotech.navigator.api.response.RoutingSectionDto
 import com.takaotech.navigator.api.response.TollCostDto
-import com.takaotech.navigator.api.response.TransitJourneyLeg
 import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.TransitJourneyStep
 import com.takaotech.navigator.api.response.TransitLineDto
 import com.takaotech.navigator.api.response.TransitStopDto
 import io.nacular.measured.units.Length
+import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -223,7 +224,7 @@ fun RoutingRouteResponse.toDomain(): RoutingRoutes = RoutingRoutes(
 /**
  * Translates a journey answer into the model the app draws from.
  *
- * The `when` is exhaustive on purpose and there is no `else`: a kind of leg added to the contract
+ * The `when` is exhaustive on purpose and there is no `else`: a kind of step added to the contract
  * has to be given a domain shape here before anything compiles, which is the whole reason the two
  * answers stopped being one type.
  */
@@ -231,25 +232,25 @@ fun TransitJourneyResponse.toDomain(): TransitJourneys = TransitJourneys(
     journeys = journeys.map { journey ->
         TransitJourney(
             summary = journey.summary.toDomain(),
-            steps = journey.legs.map { leg ->
-                when (leg) {
-                    is TransitJourneyLeg.Walk -> TransitStep.Walk(
-                        summary = leg.summary.toDomain(),
-                        polyline = leg.geometry.drawableOrNull(),
-                        departure = leg.departure?.time?.toTransitTime(),
-                        arrival = leg.arrival?.time?.toTransitTime(),
-                        from = leg.departure?.place?.toLocation(),
-                        to = leg.arrival?.place?.toLocation(),
+            steps = journey.steps.map { step ->
+                when (step) {
+                    is TransitJourneyStep.Walk -> TransitStep.Walk(
+                        summary = step.summary.toDomain(),
+                        polyline = step.geometry.drawableOrNull(),
+                        departure = step.departure?.time?.toTransitTime(),
+                        arrival = step.arrival?.time?.toTransitTime(),
+                        from = step.departure?.place?.toLocation(),
+                        to = step.arrival?.place?.toLocation(),
                     )
 
-                    is TransitJourneyLeg.Ride -> TransitStep.Ride(
-                        summary = leg.summary.toDomain(),
-                        line = leg.line.toDomain(),
-                        polyline = leg.geometry.drawableOrNull(),
-                        agency = leg.agency?.let { TransitAgency(it.name, it.id, it.website) },
-                        boarding = leg.boarding?.toDomain(),
-                        alighting = leg.alighting?.toDomain(),
-                        intermediateStops = leg.intermediateStops.map { it.toDomain() },
+                    is TransitJourneyStep.Ride -> TransitStep.Ride(
+                        summary = step.summary.toDomain(),
+                        line = step.line.toDomain(),
+                        polyline = step.geometry.drawableOrNull(),
+                        agency = step.agency?.let { TransitAgency(it.name, it.id, it.website) },
+                        boarding = step.boarding?.toDomain(),
+                        alighting = step.alighting?.toDomain(),
+                        intermediateStops = step.intermediateStops.map { it.toDomain() },
                     )
                 }
             },
@@ -259,7 +260,7 @@ fun TransitJourneyResponse.toDomain(): TransitJourneys = TransitJourneys(
 
 private fun RouteSummaryDto.toDomain(): RouteSummary = RouteSummary(
     durationSeconds = durationSeconds.seconds,
-    distanceMeters = distanceMeters,
+    distance = Measure(distanceMeters.toDouble(), Length.meters),
 )
 
 private fun RoutingSectionDto.toDomain(): RoutingSection = RoutingSection(

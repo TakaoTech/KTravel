@@ -98,7 +98,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = RoutingRoute(
-                    summary = RouteSummary(durationSeconds = 0.minutes, distanceMeters = 0),
+                    summary = RouteSummary(durationSeconds = 0.minutes, distance = 0),
                     sections = emptyList(),
                 )
 
@@ -115,7 +115,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = RoutingRoute(
-                    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
+                    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
                     sections = emptyList(),
                 )
 
@@ -128,7 +128,7 @@ class SaveTransportStepUseCaseTest :
                 }
             }
 
-            `when`("invoked with a journey whose first leg is the walk to the station") {
+            `when`("invoked with a journey whose first step is the walk to the station") {
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
 
@@ -170,22 +170,22 @@ class SaveTransportStepUseCaseTest :
     })
 
 private fun routeWithMode(mode: String) = RoutingRoute(
-    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
+    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
     sections = listOf(
-        RoutingSection(summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000), mode = mode),
+        RoutingSection(summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000), mode = mode),
     ),
 )
 
 /** A journey that walks to a stop, rides [mode], and walks off — which is every journey. */
 private fun journeyRiding(mode: String) = TransitJourney(
-    summary = RouteSummary(durationSeconds = 30.minutes, distanceMeters = 1000),
+    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
     steps = listOf(
-        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 200)),
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 200)),
         TransitStep.Ride(
-            summary = RouteSummary(durationSeconds = 22.minutes, distanceMeters = 700),
+            summary = RouteSummary(durationSeconds = 22.minutes, distance = 700),
             line = TransitLine(mode = mode, name = "M2"),
         ),
-        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distanceMeters = 100)),
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 100)),
     ),
 )
 

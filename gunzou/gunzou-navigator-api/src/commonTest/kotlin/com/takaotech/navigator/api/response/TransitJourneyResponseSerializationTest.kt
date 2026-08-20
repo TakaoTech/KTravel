@@ -17,7 +17,7 @@ import kotlin.time.Instant
 /**
  * [TransitJourneyResponse] is what a timetable answers in.
  *
- * The point of these tests is the discriminator: a leg travels as `walk` or as `ride`, and that word
+ * The point of these tests is the discriminator: a step travels as `walk` or as `ride`, and that word
  * is the contract. Rename it and every client silently stops decoding journeys, which is exactly the
  * failure a round trip on its own cannot see — it would encode and decode the new word happily.
  */
@@ -32,8 +32,8 @@ class TransitJourneyResponseSerializationTest {
         journeys = listOf(
             TransitJourneyDto(
                 summary = RouteSummaryDto(durationSeconds = 1_500, distanceMeters = 6_400),
-                legs = listOf(
-                    TransitJourneyLeg.Walk(
+                steps = listOf(
+                    TransitJourneyStep.Walk(
                         summary = RouteSummaryDto(durationSeconds = 300, distanceMeters = 380),
                         geometry = RouteGeometry(PolylineEncoding.HERE_FLEXIBLE, "BFoz5xJ67i1B1B7P"),
                         departure = RouteWaypointDto(
@@ -49,7 +49,7 @@ class TransitJourneyResponseSerializationTest {
                             RouteActionDto(action = "depart", durationSeconds = 0, instruction = "Head north"),
                         ),
                     ),
-                    TransitJourneyLeg.Ride(
+                    TransitJourneyStep.Ride(
                         summary = RouteSummaryDto(durationSeconds = 1_200, distanceMeters = 6_020),
                         line = TransitLineDto(
                             mode = TransitMode.REGIONAL_TRAIN,
@@ -99,23 +99,23 @@ class TransitJourneyResponseSerializationTest {
     }
 
     @Test
-    fun `Given the two kinds of leg When encoding Then each carries the discriminator clients branch on`() {
-        val legs = NavigatorJson.encodeToJsonElement(TransitJourneyResponse.serializer(), response)
+    fun `Given the two kinds of step When encoding Then each carries the discriminator clients branch on`() {
+        val steps = NavigatorJson.encodeToJsonElement(TransitJourneyResponse.serializer(), response)
             .jsonObject["journeys"]!!.jsonArray.single()
-            .jsonObject["legs"]!!.jsonArray
+            .jsonObject["steps"]!!.jsonArray
 
-        assertEquals(listOf("walk", "ride"), legs.map { it.jsonObject["type"]?.jsonPrimitive?.content })
+        assertEquals(listOf("walk", "ride"), steps.map { it.jsonObject["type"]?.jsonPrimitive?.content })
     }
 
     @Test
-    fun `Given a decoded journey When branching on its legs Then the two kinds are separate types`() {
+    fun `Given a decoded journey When branching on its steps Then the two kinds are separate types`() {
         val encoded = NavigatorJson.encodeToString(TransitJourneyResponse.serializer(), response)
 
-        val legs = NavigatorJson.decodeFromString(TransitJourneyResponse.serializer(), encoded)
-            .journeys.single().legs
+        val steps = NavigatorJson.decodeFromString(TransitJourneyResponse.serializer(), encoded)
+            .journeys.single().steps
 
-        val walk = assertIs<TransitJourneyLeg.Walk>(legs.first())
-        val ride = assertIs<TransitJourneyLeg.Ride>(legs.last())
+        val walk = assertIs<TransitJourneyStep.Walk>(steps.first())
+        val ride = assertIs<TransitJourneyStep.Ride>(steps.last())
         assertEquals("Head north", walk.actions.single().instruction)
         assertEquals(TransitMode.REGIONAL_TRAIN, ride.line.mode)
         assertEquals("Trenitalia", ride.agency?.name)
@@ -123,11 +123,11 @@ class TransitJourneyResponseSerializationTest {
     }
 
     @Test
-    fun `Given a journey When reading its ends Then every leg answers without the caller branching`() {
-        val legs = response.journeys.single().legs
+    fun `Given a journey When reading its ends Then every step answers without the caller branching`() {
+        val steps = response.journeys.single().steps
 
-        assertEquals(ZonedTime(boardsAt, 7_200), legs.first().departureTime)
-        assertEquals(ZonedTime(alightsAt, 7_200), legs.last().arrivalTime)
+        assertEquals(ZonedTime(boardsAt, 7_200), steps.first().departureTime)
+        assertEquals(ZonedTime(alightsAt, 7_200), steps.last().arrivalTime)
     }
 
     @Test
@@ -139,7 +139,7 @@ class TransitJourneyResponseSerializationTest {
               "journeys": [
                 {
                   "summary": { "durationSeconds": 600, "distanceMeters": 4000 },
-                  "legs": [
+                  "steps": [
                     {
                       "type": "ride",
                       "summary": { "durationSeconds": 600, "distanceMeters": 4000 },
@@ -152,9 +152,9 @@ class TransitJourneyResponseSerializationTest {
             }
         """.trimIndent()
 
-        val ride = assertIs<TransitJourneyLeg.Ride>(
+        val ride = assertIs<TransitJourneyStep.Ride>(
             NavigatorJson.decodeFromString(TransitJourneyResponse.serializer(), json)
-                .journeys.single().legs.single(),
+                .journeys.single().steps.single(),
         )
 
         assertEquals(WheelchairAccess.UNKNOWN, ride.line.wheelchairAccessible)

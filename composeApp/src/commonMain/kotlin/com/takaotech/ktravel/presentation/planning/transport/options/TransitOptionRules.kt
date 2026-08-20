@@ -14,7 +14,7 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileId
 /** The transfer counts the API accepts, from the HERE Public Transit v8 `changes` parameter. */
 internal const val MAX_CHANGES_LIMIT: Int = 6
 
-/** How far the traveller will walk in one leg, in metres, from the same source. */
+/** How far the traveller will walk in one step, in metres, from the same source. */
 internal const val WALK_DISTANCE_MIN: Int = 500
 internal const val WALK_DISTANCE_MAX: Int = 6000
 internal const val WALK_DISTANCE_STEP: Int = 500

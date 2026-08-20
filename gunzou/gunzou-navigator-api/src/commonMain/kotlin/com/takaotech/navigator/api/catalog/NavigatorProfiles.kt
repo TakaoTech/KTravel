@@ -20,7 +20,7 @@ import com.takaotech.navigator.api.here.HereTransportMode
  * [SupportedModes] variant so the two can never be merged into a single set. `bus`, `privateBus` and
  * `pedestrian` appear in both with the same spelling and do not mean the same thing: HERE's road
  * `bus` is a coach the traveller drives, its transit `bus` is a scheduled service; road `pedestrian`
- * is a route you ask for, transit walking is how the answer describes the legs between stops. A
+ * is a route you ask for, transit walking is how the answer describes the steps between stops. A
  * common enum would spell them once and lose exactly the distinction that makes them two endpoints.
  *
  * A profile is added here in the same change that adds its request model, so a UI driven by this list

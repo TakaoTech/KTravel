@@ -170,7 +170,7 @@ class OpenApiDocumentTest {
                 "the inferred schemas are missing: ${schemas.keys}",
             )
             // Both answers are described, and separately. A document that published one of them for
-            // both paths would generate a client that reads a journey as a route and finds no legs.
+            // both paths would generate a client that reads a journey as a route and finds no steps.
             assertTrue(
                 schemas["RoutingRouteResponse"]?.properties.orEmpty().containsKey("routes") &&
                     schemas["TransitJourneyResponse"]?.properties.orEmpty().containsKey("journeys"),

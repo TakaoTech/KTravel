@@ -31,17 +31,17 @@ fun RoutingRoute.toStoredRoute(): Route = Route(
 /**
  * The journey the traveller picked, as the plan stores it.
  *
- * A leg becomes a section carrying the mode it was travelled in, so a saved journey still reads as
+ * A step becomes a section carrying the mode it was travelled in, so a saved journey still reads as
  * "walk, train, walk" rather than as an undifferentiated list.
  */
 fun TransitJourney.toStoredRoute(): Route = Route(
-    sections = steps.map { leg ->
+    sections = steps.map { step ->
         RouteSection(
-            summary = leg.summary,
-            departure = leg.storedDeparture(),
-            arrival = leg.storedArrival(),
-            transport = RouteTransport(mode = leg.storedMode()),
-            polyline = leg.polyline,
+            summary = step.summary,
+            departure = step.storedDeparture(),
+            arrival = step.storedArrival(),
+            transport = RouteTransport(mode = step.storedMode()),
+            polyline = step.polyline,
         )
     },
 )
@@ -49,8 +49,8 @@ fun TransitJourney.toStoredRoute(): Route = Route(
 /**
  * What the step is filed under.
  *
- * The first vehicle and not the first leg: a journey almost always starts on foot, and taking the
- * mode of the first leg filed every train ride in the plan as a walk.
+ * The first vehicle and not the first step of the journey: a journey almost always starts on foot,
+ * and taking the mode of that first step filed every train ride in the plan as a walk.
  */
 fun TransitJourney.storedTransportMode(): String? = rides.firstOrNull()?.line?.mode
 
@@ -79,5 +79,5 @@ private fun TransitStep.storedArrival(): RouteDeparture? = when (this) {
 private fun TransitTime.toDateTimeComponents(): DateTimeComponents = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET
     .parse(instant.format(DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET, offset))
 
-/** How a leg on foot is filed, in the same vocabulary the road profile uses for one. */
+/** How a step on foot is filed, in the same vocabulary the road profile uses for one. */
 private const val PEDESTRIAN_MODE = "PEDESTRIAN"

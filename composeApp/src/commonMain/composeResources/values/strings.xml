@@ -290,8 +290,6 @@
     <string name="route_preview_cd_confirm">Use this option</string>
     <string name="route_preview_distance_km">%1$s km</string>
     <string name="route_preview_distance_m">%1$d m</string>
-    <string name="route_preview_duration_minutes">%1$d min</string>
-    <string name="route_preview_duration_hours_minutes">%1$dh %2$02d</string>
     <string name="transit_preview_walk">Walk %1$s</string>
     <string name="transit_preview_changes">%1$d changes</string>
     <string name="transit_preview_no_change">No change</string>

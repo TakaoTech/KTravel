@@ -14,7 +14,7 @@ data class RoutingProfileId(val provider: String, val profile: String)
  * A plain identifier and not an enum, because the set is not knowable here: it comes from the
  * catalog. More to the point, it must not be shared between profiles. HERE's road API and its public
  * transport API both have a `BUS` and a `PEDESTRIAN`, and they are different things — a coach the
- * traveller drives against a scheduled service, a walking route you ask for against the walking legs
+ * traveller drives against a scheduled service, a walking route you ask for against the walking steps
  * of a journey you are told about. A common enum would spell each of them once and lose the
  * distinction; a mode that only ever travels attached to its profile cannot.
  */

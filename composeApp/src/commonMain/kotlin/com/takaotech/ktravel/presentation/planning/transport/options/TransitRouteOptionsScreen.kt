@@ -84,6 +84,6 @@ sealed interface TransitRouteOptionsEvent : CircuitUiEvent {
     /** Sets how fast the traveller walks between stops. */
     data class SetWalkingPace(val pace: WalkingPace) : TransitRouteOptionsEvent
 
-    /** Limits how far the traveller will walk in one leg, or lifts the limit with null. */
+    /** Limits how far the traveller will walk in one step, or lifts the limit with null. */
     data class SetMaxWalkingDistance(val meters: Int?) : TransitRouteOptionsEvent
 }
