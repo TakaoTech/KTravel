@@ -84,7 +84,7 @@ sealed interface RouteSelection {
      * @property maxChanges Most transfers the traveller will accept. Null leaves it to the provider.
      * @property pedestrianSpeedMetersPerSecond How fast the traveller walks between stops, which
      *   shifts every connection the journey depends on. Null leaves it to the provider.
-     * @property pedestrianMaxDistanceMeters How far the traveller will walk in one leg. Null leaves
+     * @property pedestrianMaxDistanceMeters How far the traveller will walk in one step. Null leaves
      *   it to the provider.
      */
     data class Transit(

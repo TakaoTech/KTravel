@@ -9,7 +9,7 @@ import com.takaotech.navigator.api.here.HereRoutingRequest
 import com.takaotech.navigator.api.here.HereTransitRouteRequest
 import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.PolylineEncoding
-import com.takaotech.navigator.api.response.TransitJourneyLeg
+import com.takaotech.navigator.api.response.TransitJourneyStep
 import com.takaotech.navigator.client.NavigatorClient
 import com.takaotech.navigator.client.NavigatorClientConfig
 import com.takaotech.navigator.client.NavigatorResult
@@ -96,20 +96,20 @@ class NavigatorRoundTripTest {
         }
 
     @Test
-    fun `Given a journey is asked for over HTTP When it comes back Then the kind of each leg survives`() =
+    fun `Given a journey is asked for over HTTP When it comes back Then the kind of each step survives`() =
         roundTrip(HereMockServer(HerePayloads.TRANSIT_ROUTE)) { client ->
             val transit = HereTransitRouteRequest(
                 origin = GeoPoint(lat = 44.4949, lng = 11.3426),
                 destination = GeoPoint(lat = 44.1601, lng = 10.9739),
             )
 
-            val legs = client.hereTransit(transit, apiKey = "round-trip-key")
-                .getOrThrow().journeys.single().legs
+            val steps = client.hereTransit(transit, apiKey = "round-trip-key")
+                .getOrThrow().journeys.single().steps
 
-            // The discriminator is what the trip is really testing: a leg that arrived as the wrong
+            // The discriminator is what the trip is really testing: a step that arrived as the wrong
             // branch of the sealed type would still decode, and every screen would draw it wrong.
-            assertIs<TransitJourneyLeg.Walk>(legs.first())
-            val ride = assertIs<TransitJourneyLeg.Ride>(legs.last())
+            assertIs<TransitJourneyStep.Walk>(steps.first())
+            val ride = assertIs<TransitJourneyStep.Ride>(steps.last())
             assertEquals("R 2841", ride.line.name)
             assertEquals("Trenitalia", ride.agency?.name)
             assertEquals(2 * 60 * 60, ride.departureTime?.offsetSeconds)

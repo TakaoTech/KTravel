@@ -16,7 +16,7 @@ import dev.zacsweers.metro.SingleIn
  *
  * One overload per kind of answer rather than one method taking a common type. The two are stored in
  * the same shape, but they are not filed the same way, and the difference is not a detail: a journey
- * almost always starts on foot, so reading the mode off its first leg filed every train ride in
+ * almost always starts on foot, so reading the mode off its first step filed every train ride in
  * every plan as a walk — and, since a walk is not a [TransportType], as a car.
  */
 @SingleIn(PlanningGraphScope::class)

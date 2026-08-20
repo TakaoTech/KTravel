@@ -27,7 +27,9 @@ import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.RouteTransport
+import io.nacular.measured.units.Distance
 import io.nacular.measured.units.Length
+import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -107,7 +109,7 @@ object TravelPlanEntityMapper {
 
     fun RouteSection.toEntity(): RouteSectionEntity = RouteSectionEntity(
         durationSeconds = summary.durationSeconds.inWholeSeconds,
-        distanceMeters = summary.distanceMeters.toDouble(),
+        distanceMeters = summary.distance `in` Distance.meters,
         polyline = polyline,
         transportMode = transport?.mode,
         departureLat = departure?.location?.lat,
@@ -214,7 +216,7 @@ object TravelPlanEntityMapper {
     fun RouteSectionEntity.toDomain(): RouteSection = RouteSection(
         summary = RouteSummary(
             durationSeconds = durationSeconds.seconds,
-            distanceMeters = distanceMeters.toInt(),
+            distance = Measure(distanceMeters, Length.meters),
         ),
         polyline = polyline,
         transport = transportMode?.let { RouteTransport(mode = it) },

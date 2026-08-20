@@ -14,8 +14,8 @@ import com.takaotech.navigator.api.here.HereTransportMode
 import com.takaotech.navigator.api.response.RouteSummaryDto
 import com.takaotech.navigator.api.response.RoutingRouteResponse
 import com.takaotech.navigator.api.response.TransitJourneyDto
-import com.takaotech.navigator.api.response.TransitJourneyLeg
 import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.TransitJourneyStep
 import com.takaotech.navigator.api.response.TransitLineDto
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -194,8 +194,8 @@ class NavigatorClientTest {
                 journeys = listOf(
                     TransitJourneyDto(
                         summary = RouteSummaryDto(durationSeconds = 600, distanceMeters = 4_000),
-                        legs = listOf(
-                            TransitJourneyLeg.Ride(
+                        steps = listOf(
+                            TransitJourneyStep.Ride(
                                 summary = RouteSummaryDto(durationSeconds = 600, distanceMeters = 4_000),
                                 line = TransitLineDto(mode = TransitMode.SUBWAY, name = "M2"),
                             ),
@@ -214,7 +214,7 @@ class NavigatorClientTest {
         // The point of the assertion is the static type: this method and hereRouting no longer
         // answer in one shape, so a caller cannot read a journey through the road model by accident.
         val journeys = assertIs<NavigatorResult.Success<TransitJourneyResponse>>(result).value
-        assertEquals("M2", assertIs<TransitJourneyLeg.Ride>(journeys.journeys.single().legs.single()).line.name)
+        assertEquals("M2", assertIs<TransitJourneyStep.Ride>(journeys.journeys.single().steps.single()).line.name)
     }
 
     @Test

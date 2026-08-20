@@ -17,8 +17,8 @@ import com.takaotech.navigator.api.response.RouteSummaryDto
 import com.takaotech.navigator.api.response.RouteWaypointDto
 import com.takaotech.navigator.api.response.TransitAgencyDto
 import com.takaotech.navigator.api.response.TransitJourneyDto
-import com.takaotech.navigator.api.response.TransitJourneyLeg
 import com.takaotech.navigator.api.response.TransitJourneyResponse
+import com.takaotech.navigator.api.response.TransitJourneyStep
 import com.takaotech.navigator.api.response.TransitLineDto
 import com.takaotech.navigator.api.response.TransitStopDto
 import com.takaotech.navigator.api.response.WheelchairAccess
@@ -30,13 +30,13 @@ fun TransitRouteResponse.toJourneyResponse(): TransitJourneyResponse = TransitJo
     provider = ProviderId.HERE,
     profile = ProviderProfile.TRANSIT,
     journeys = routes.map { route ->
-        val legs = route.sections.map { it.toLeg() }
+        val steps = route.sections.map { it.toStep() }
         TransitJourneyDto(
             summary = RouteSummaryDto(
-                durationSeconds = legs.sumOf { it.summary.durationSeconds },
-                distanceMeters = legs.sumOf { it.summary.distanceMeters },
+                durationSeconds = steps.sumOf { it.summary.durationSeconds },
+                distanceMeters = steps.sumOf { it.summary.distanceMeters },
             ),
-            legs = legs,
+            steps = steps,
             notices = route.notices.orEmpty().map { it.toNoticeDto() },
         )
     },
@@ -44,14 +44,14 @@ fun TransitRouteResponse.toJourneyResponse(): TransitJourneyResponse = TransitJo
 )
 
 /**
- * One leg of a journey, as one of the two things a leg can be.
+ * One step of a journey, as one of the two things a step can be.
  *
  * Upstream discriminates on `type` and so does the contract; this is the one place where that string
  * turns into a branch of the sealed type. A section with no transport on it walks, which is also
- * what an unrecognised one does: a kind of leg HERE invents later is still a stretch the traveller
+ * what an unrecognised one does: a kind of step HERE invents later is still a stretch the traveller
  * covers, and drawing it as a walk is wrong in the icon rather than wrong in the itinerary.
  */
-private fun TransitRouteSection.toLeg(): TransitJourneyLeg {
+private fun TransitRouteSection.toStep(): TransitJourneyStep {
     val summary = RouteSummaryDto(
         durationSeconds = (travelSummary?.duration ?: 0).toLong(),
         distanceMeters = travelSummary?.length ?: 0,
@@ -62,14 +62,14 @@ private fun TransitRouteSection.toLeg(): TransitJourneyLeg {
     val line = transport?.takeUnless { type.equals(PEDESTRIAN_SECTION_TYPE, ignoreCase = true) }
 
     return if (line == null) {
-        TransitJourneyLeg.Walk(
+        TransitJourneyStep.Walk(
             summary = summary,
             geometry = geometry,
             departure = departure?.toWaypointDtoOrNull(),
             arrival = arrival?.toWaypointDtoOrNull(),
         )
     } else {
-        TransitJourneyLeg.Ride(
+        TransitJourneyStep.Ride(
             summary = summary,
             line = line.toLineDto(),
             geometry = geometry,
@@ -119,7 +119,7 @@ private fun TransitDeparture.toWaypointDtoOrNull(): RouteWaypointDto? = place?.l
  *
  * An end of a section carries one time, and which of the two it stands for follows from the end it
  * is. It is written to `departure` in both cases because a reader takes it through
- * [TransitJourneyLeg.Ride.departureTime] and [TransitJourneyLeg.Ride.arrivalTime], each of which
+ * [TransitJourneyStep.Ride.departureTime] and [TransitJourneyStep.Ride.arrivalTime], each of which
  * falls back to the other field; filling both here would state the same instant twice and claim a
  * dwell time of zero that the feed never reported.
  */

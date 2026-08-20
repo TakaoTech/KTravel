@@ -147,7 +147,7 @@ class NavigatorRoutingServiceTest :
                         val transit = catalog.options.first { it.profile.id == HERE_TRANSIT }.profile
 
                         // Walking is something you ask the road profile for; on the transit side it
-                        // is only ever how the answer describes the legs between stops.
+                        // is only ever how the answer describes the steps between stops.
                         routing.options.modes.map { it.id } shouldContain "PEDESTRIAN"
                         transit.options.modes.map { it.id }.joinToString() shouldNotContain "PEDESTRIAN"
                         transit.options.modes.map { it.id } shouldContain "SUBWAY"

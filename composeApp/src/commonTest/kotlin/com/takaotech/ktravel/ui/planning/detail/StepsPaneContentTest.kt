@@ -38,7 +38,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                 RouteSection(
                     summary = RouteSummary(
                         durationSeconds = 30.minutes,
-                        distanceMeters = 1000,
+                        distance = 1000,
                     ),
                 ),
             ),

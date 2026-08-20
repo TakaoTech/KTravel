@@ -45,7 +45,7 @@ private val ROUTE_FIT_PADDING = 48.dp
  *
  * A colour per stretch and not one line for the whole thing, because a journey is read by its
  * colours: the operator publishes them, the traveller matches them against the signage, and a
- * timeline that colours its legs next to a map that does not is two drawings of one journey.
+ * timeline that colours its steps next to a map that does not is two drawings of one journey.
  *
  * @property polyline HERE flexible encoding, which is the only one the decoder reads.
  * @property color Null falls back to the theme, which is what a road route wants.

@@ -24,7 +24,7 @@ data class TransitJourneys(val journeys: List<TransitJourney>)
  * One way of getting there on scheduled services.
  *
  * @property summary Time and distance actually travelled, aggregated by the navigator. It is *not*
- *   how long the traveller will be out: a wait on a platform belongs to neither leg. Use
+ *   how long the traveller will be out: a wait on a platform belongs to neither step. Use
  *   [totalDuration] for that.
  * @property steps Walking and riding, alternating, in travel order.
  */
@@ -36,10 +36,10 @@ data class TransitJourney(val summary: RouteSummary, val steps: List<TransitStep
     /** How many times the traveller has to get off one vehicle and onto another. */
     val changes: Int get() = (rides.size - 1).coerceAtLeast(0)
 
-    /** When the traveller sets off, which is the start of the first leg that has a time. */
+    /** When the traveller sets off, which is the start of the first step that has a time. */
     val departure: TransitTime? get() = steps.firstNotNullOfOrNull { it.departure }
 
-    /** When they arrive, which is the end of the last leg that has one. */
+    /** When they arrive, which is the end of the last step that has one. */
     val arrival: TransitTime? get() = steps.lastOrNull { it.arrival != null }?.arrival
 
     /**
@@ -57,20 +57,21 @@ data class TransitJourney(val summary: RouteSummary, val steps: List<TransitStep
 }
 
 /**
- * One leg of a journey: either the traveller walks it, or a scheduled vehicle carries them.
+ * One step of a journey: either the traveller walks it, or a scheduled vehicle carries them.
  *
- * Sealed, so a screen's `when` is exhaustive and a third kind of leg cannot be added without every
+ * Sealed, so a screen's `when` is exhaustive and a third kind of step cannot be added without every
  * screen being told what to draw for it.
  */
 sealed interface TransitStep {
 
-    /** Totals for this leg. */
+    /** Totals for this step. */
     val summary: RouteSummary
 
     /** The drawable shape, in HERE flexible encoding. */
+    // FIXME Need pass polyline algorithm
     val polyline: String?
 
-    /** When the traveller sets off on this leg. */
+    /** When the traveller sets off on this step. */
     val departure: TransitTime?
 
     /** When they get to the end of it. */

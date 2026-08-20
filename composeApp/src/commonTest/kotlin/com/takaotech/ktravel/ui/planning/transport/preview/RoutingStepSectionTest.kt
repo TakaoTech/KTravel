@@ -53,7 +53,7 @@ class RoutingStepSectionTest : BehaviorSpec() {
     )
 
     private fun section(polyline: String?, offset: Int?) = RoutingSection(
-        summary = RouteSummary(durationSeconds = 600.seconds, distanceMeters = 5000),
+        summary = RouteSummary(durationSeconds = 600.seconds, distance = 5000),
         mode = "CAR",
         actions = listOf(action(offset)),
         polyline = polyline,

@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * A single list of modes cannot carry this. The vocabularies of the two HERE endpoints collide by
  * name and not by meaning — road `bus` is a coach the traveller drives, transit `bus` is a scheduled
  * service; road `pedestrian` is a route you ask for, transit walking is only how an answer describes
- * the legs between stops — so a profile declares its modes as one of these variants and a reader
+ * the steps between stops — so a profile declares its modes as one of these variants and a reader
  * that does not recognize the variant knows it cannot interpret the names either.
  *
  * The coarse [com.takaotech.navigator.api.common.TravelMode] is deliberately absent: it describes

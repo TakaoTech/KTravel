@@ -171,7 +171,7 @@ fun RoutingStep(action: RouteAction, onActionClick: (() -> Unit)? = null, modifi
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = action.durationSeconds.formatDuration(),
+                    text = action.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

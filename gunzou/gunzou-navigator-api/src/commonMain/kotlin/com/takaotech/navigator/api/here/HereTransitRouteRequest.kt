@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
  * @property changes Most transfers the traveller will accept. Null leaves it to the provider.
  * @property pedestrianSpeedMetersPerSecond How fast the traveller walks between stops, which shifts
  *   every connection the journey depends on.
- * @property pedestrianMaxDistanceMeters How far the traveller is willing to walk in one leg.
+ * @property pedestrianMaxDistanceMeters How far the traveller is willing to walk in one step.
  * @property language IETF BCP 47 tag for the response text, such as `it-IT`.
  * @property units Units for the text the provider localizes.
  */
