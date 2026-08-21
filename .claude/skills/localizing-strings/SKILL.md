@@ -41,21 +41,21 @@ Naming: `<feature>_<element>` for visible labels, `<feature>_cd_<element>` for c
 
 ## Verifying alignment
 
-After touching any resource file, check that all languages carry the same keys in the same order:
-
 ```bash
-cd composeApp/src/commonMain/composeResources
-for f in values/strings.xml values-it/strings.xml; do
-  python3 -c "
-import xml.etree.ElementTree as ET
-r = ET.parse('$f').getroot()
-print('\n'.join(f'{e.tag} {e.get(\"name\")}' for e in r))
-" > "/tmp/keys_$(echo "$f" | tr / _)"
-done
-diff /tmp/keys_values_strings.xml /tmp/keys_values-it_strings.xml && echo "keys aligned"
+./gradlew :composeApp:checkStringResourceParity
 ```
 
-This also fails loudly if either file is malformed XML.
+The task is registered in `composeApp/build.gradle.kts` and `check` depends on it. It takes
+`values/strings.xml` as the reference and fails when a translation is missing one of its keys,
+declares a key the default file does not have, declares the same key twice, or uses different
+positional placeholders; a key order that diverges from the reference is reported as a warning. The
+report is written to `composeApp/build/reports/string-resource-parity.txt`.
+
+Nothing else in the toolchain catches this. Compose Resources merges every qualifier into one
+accessor set, so a key that exists only in `values-it` still generates `Res.string.<key>` and the
+build succeeds — the failure is a runtime `Resource with ID='...' not found` on the first device
+whose locale has no match. Android Lint's `MissingTranslation` only reads `res/` folders, and
+`composeResources` is converted to CVR and copied into the assets.
 
 ## Adding a new language
 

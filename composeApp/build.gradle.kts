@@ -9,8 +9,10 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
+import org.w3c.dom.Element
 import java.net.URI
 import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -619,3 +621,104 @@ tasks.withType<Detekt>().configureEach {
 
 }
 
+
+
+val checkStringResourceParity by tasks.registering {
+    description = "Verifies that every key in values/strings.xml is declared in all translations"
+    group = "verification"
+
+    val stringResourceFiles = fileTree(layout.projectDirectory.dir("src/commonMain/composeResources")) {
+        include("values*/strings.xml")
+    }
+    val report = layout.buildDirectory.file("reports/string-resource-parity.txt")
+    inputs.files(stringResourceFiles).withPropertyName("stringResources")
+    outputs.file(report)
+
+    doLast {
+        // Matches %s, %d and their positional forms %1$s, %2$d: a translation that drops or
+        // renumbers one formats the wrong argument, or throws, only for the locale that carries it.
+        val placeholderPattern = Regex("""%(\d+\$)?[a-zA-Z]""")
+
+        val parse: (File) -> List<Pair<String, Set<String>>> = { file ->
+            val children = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder()
+                .parse(file)
+                .documentElement
+                .childNodes
+            (0 until children.length)
+                .map(children::item)
+                .filterIsInstance<Element>()
+                .filter { it.tagName in setOf("string", "plurals", "string-array") }
+                .map { element ->
+                    val placeholders = placeholderPattern.findAll(element.textContent)
+                        .map(MatchResult::value)
+                        .toSet()
+                    element.getAttribute("name") to placeholders
+                }
+        }
+
+        val duplicatesIn: (List<Pair<String, Set<String>>>) -> Set<String> = { entries ->
+            entries.groupingBy { it.first }.eachCount().filterValues { it > 1 }.keys
+        }
+
+        val files = stringResourceFiles.files.sortedBy { it.parentFile.name }
+        val defaultFile = files.singleOrNull { it.parentFile.name == "values" }
+            ?: error("src/commonMain/composeResources/values/strings.xml is missing")
+
+        val problems = mutableListOf<String>()
+        val summary = mutableListOf<String>()
+
+        val defaultEntries = parse(defaultFile)
+        val defaultKeys = defaultEntries.map { it.first }
+        val defaultPlaceholders = defaultEntries.toMap()
+        duplicatesIn(defaultEntries).forEach { problems += "values: '$it' is declared twice" }
+        summary += "values: ${defaultKeys.size} keys (reference)"
+
+        files.filter { it != defaultFile }.forEach { file ->
+            val language = file.parentFile.name
+            val entries = parse(file)
+            val keys = entries.map { it.first }
+            val placeholders = entries.toMap()
+
+            duplicatesIn(entries).forEach { problems += "$language: '$it' is declared twice" }
+            defaultKeys.minus(keys.toSet()).forEach { problems += "$language: '$it' is missing" }
+            keys.minus(defaultKeys.toSet()).forEach {
+                problems += "$language: '$it' is not declared in values/strings.xml"
+            }
+            keys.filter { it in defaultPlaceholders }.forEach { key ->
+                val expected = defaultPlaceholders.getValue(key).sorted()
+                val actual = placeholders.getValue(key).sorted()
+                if (expected != actual) {
+                    problems += "$language: '$key' uses $actual where values/strings.xml uses $expected"
+                }
+            }
+            if (keys.toSet() == defaultKeys.toSet() && keys != defaultKeys) {
+                logger.warn(
+                    "$language/strings.xml declares the same keys as values/strings.xml but in a " +
+                        "different order, so the two files do not diff cleanly.",
+                )
+            }
+            summary += "$language: ${keys.size} keys"
+        }
+
+        val reportFile = report.get().asFile
+        reportFile.parentFile.mkdirs()
+        reportFile.writeText(
+            (summary + "" + (problems.ifEmpty { listOf("No problems found.") })).joinToString("\n", postfix = "\n"),
+        )
+
+        if (problems.isNotEmpty()) {
+            throw GradleException(
+                problems.joinToString(
+                    separator = "\n  - ",
+                    prefix = "String resources are out of sync across languages:\n  - ",
+                    postfix = "\nSee ${reportFile.absolutePath}",
+                ),
+            )
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(checkStringResourceParity)
+}
