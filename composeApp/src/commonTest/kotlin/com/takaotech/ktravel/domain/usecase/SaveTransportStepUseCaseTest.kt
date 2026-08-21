@@ -14,6 +14,8 @@ import com.takaotech.ktravel.domain.routing.model.TransitStep
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.nacular.measured.units.Length
+import io.nacular.measured.units.times
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,7 +100,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = RoutingRoute(
-                    summary = RouteSummary(durationSeconds = 0.minutes, distance = 0),
+                    summary = RouteSummary(durationSeconds = 0.minutes, distance = 0 * Length.meters),
                     sections = emptyList(),
                 )
 
@@ -115,7 +117,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = RoutingRoute(
-                    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
+                    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000 * Length.meters),
                     sections = emptyList(),
                 )
 
@@ -170,22 +172,25 @@ class SaveTransportStepUseCaseTest :
     })
 
 private fun routeWithMode(mode: String) = RoutingRoute(
-    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
+    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000 * Length.meters),
     sections = listOf(
-        RoutingSection(summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000), mode = mode),
+        RoutingSection(
+            summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000 * Length.meters),
+            mode = mode,
+        ),
     ),
 )
 
 /** A journey that walks to a stop, rides [mode], and walks off — which is every journey. */
 private fun journeyRiding(mode: String) = TransitJourney(
-    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000),
+    summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000 * Length.meters),
     steps = listOf(
-        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 200)),
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 200 * Length.meters)),
         TransitStep.Ride(
-            summary = RouteSummary(durationSeconds = 22.minutes, distance = 700),
+            summary = RouteSummary(durationSeconds = 22.minutes, distance = 700 * Length.meters),
             line = TransitLine(mode = mode, name = "M2"),
         ),
-        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 100)),
+        TransitStep.Walk(summary = RouteSummary(durationSeconds = 4.minutes, distance = 100 * Length.meters)),
     ),
 )
 

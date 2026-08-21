@@ -152,12 +152,10 @@ kotlin {
         }
     }
 
-    // macosX64 is deliberately absent: it is a deprecated target scheduled for removal.
     macosArm64()
-    watchosArm64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosSimulatorArm64()
+    //Currently not supported but this library just work for this target
+//    watchosArm64()
+//    watchosSimulatorArm64()
     linuxX64()
     linuxArm64()
     mingwX64()

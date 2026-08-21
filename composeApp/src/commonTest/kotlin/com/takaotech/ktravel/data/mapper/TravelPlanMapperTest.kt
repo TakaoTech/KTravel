@@ -205,7 +205,7 @@ class TravelPlanMapperTest :
                     RouteSection(
                         summary = RouteSummary(
                             durationSeconds = 30.minutes,
-                            distance = 5000,
+                            distance = 5000 * Length.meters,
                         ),
                         actions = listOf(
                             RouteAction(

@@ -62,8 +62,7 @@ upstream's defaults.
 
 ## Supported targets
 
-JVM, Android, iOS (arm64, simulator arm64, x64), macOS arm64, watchOS (arm64, simulator),
-tvOS (arm64, simulator), Linux (x64, arm64), Windows (mingw x64), JS and Wasm/JS.
+JVM, Android, iOS (arm64, simulator arm64, x64), macOS arm64, watchOS (arm64, simulator), Linux (x64, arm64), Windows (mingw x64), JS and Wasm/JS.
 
 macOS x64 is deliberately absent: it is a deprecated Kotlin target scheduled for removal.
 

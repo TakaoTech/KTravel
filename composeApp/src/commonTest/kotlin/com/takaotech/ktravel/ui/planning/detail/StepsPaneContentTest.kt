@@ -15,6 +15,8 @@ import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.detail.buildStepRows
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.nacular.measured.units.Length
+import io.nacular.measured.units.times
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.minutes
 
@@ -38,7 +40,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                 RouteSection(
                     summary = RouteSummary(
                         durationSeconds = 30.minutes,
-                        distance = 1000,
+                        distance = 1000 * Length.meters,
                     ),
                 ),
             ),
