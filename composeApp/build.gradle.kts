@@ -8,6 +8,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import java.net.URI
 import java.util.zip.ZipFile
 
@@ -86,6 +87,69 @@ val fetchCouchbaseIcuLibraries by tasks.registering {
         }
     }
 }
+
+// ── Couchbase Lite framework (Apple test binaries) ───────────────────────────────────────────────
+// kotbase's cinterop klib carries `linkerOpts = -framework CouchbaseLite`. The application resolves
+// that through the Swift package referenced by iosApp.xcodeproj, but the test executables are the
+// one Apple binary Gradle links itself, with no Xcode around it, so the link ends in
+// "ld: framework 'CouchbaseLite' not found". The Objective-C xcframework Couchbase publishes is
+// unpacked here and handed to the linker in the target configuration below.
+//
+// Only the two iOS slices are extracted: the macOS and Mac Catalyst ones are versioned bundles held
+// together by symlinks, which a plain zip reader materialises as text stubs holding the target path.
+val couchbaseLiteAppleFrameworks = layout.buildDirectory.dir("generated/couchbaseLiteApple")
+
+val fetchCouchbaseLiteAppleFramework by tasks.registering {
+    description = "Unpacks the CouchbaseLite framework that the Apple test binaries link against"
+    val version = couchbaseLiteVersion
+    val archive = layout.buildDirectory.file("tmp/couchbase-lite-objc-$version.zip")
+    val outputDir = couchbaseLiteAppleFrameworks
+    val slices = listOf("ios-arm64", "ios-arm64_x86_64-simulator")
+
+    inputs.property("couchbaseLiteVersion", version)
+    outputs.dir(outputDir)
+
+    doLast {
+        val zipFile = archive.get().asFile
+        if (!zipFile.exists()) {
+            zipFile.parentFile.mkdirs()
+            URI(
+                "https://packages.couchbase.com/releases/couchbase-lite-ios/$version/" +
+                    "couchbase-lite-objc_xc_community_$version.zip",
+            ).toURL().openStream().use { input -> zipFile.outputStream().use(input::copyTo) }
+        }
+
+        val target = outputDir.get().asFile
+        ZipFile(zipFile).use { zip ->
+            zip.entries()
+                .asSequence()
+                .filter { entry ->
+                    !entry.isDirectory &&
+                        slices.any { entry.name.startsWith("CouchbaseLite.xcframework/$it/") }
+                }
+                .forEach { entry ->
+                    val file = target.resolve(entry.name)
+                    file.parentFile.mkdirs()
+                    zip.getInputStream(entry).use { input ->
+                        file.outputStream().use(input::copyTo)
+                    }
+                }
+        }
+    }
+}
+
+// Directory holding CouchbaseLite.framework for a given Apple target, as `-F` expects it.
+fun couchbaseLiteFrameworkDir(targetName: String) = couchbaseLiteAppleFrameworks.get().asFile
+    .resolve("CouchbaseLite.xcframework")
+    .resolve(if (targetName == "iosSimulatorArm64") "ios-arm64_x86_64-simulator" else "ios-arm64")
+
+// Where the SwiftPM plugin leaves the products it builds for a given Apple target — MapLibre.framework
+// among them. The plugin always builds the release configuration, whatever the Kotlin binary asks for.
+fun swiftPackageProductDir(targetName: String) = layout.buildDirectory.dir(
+    "spmKmpPlugin/$targetName/scratch/" +
+        (if (targetName == "iosSimulatorArm64") "arm64-apple-ios-simulator" else "arm64-apple-ios") +
+        "/release",
+).get().asFile
 
 // ── MapLibre desktop runtime ─────────────────────────────────────────────────────────────────────
 // MapLibre Native FFI ships one runtime artifact per OS/architecture pair, and MapLibre's own
@@ -170,6 +234,21 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+        }
+
+        // The framework above is static, so its unresolved symbols are the consuming Xcode
+        // project's problem. The test executables are the one Apple binary linked and run for
+        // real, which is why the two dynamic frameworks behind it have to be spelled out here:
+        //   - CouchbaseLite, asked for by kotbase's cinterop, is not provided at all outside
+        //     Xcode: it needs the search path (-F) as well as the runtime one.
+        //   - MapLibre is built by the SwiftPM plugin, which passes the linker its search path but
+        //     no -rpath, so the executable links and then aborts on "Library not loaded".
+        // Both install names are @rpath relative, hence the absolute -rpath entries.
+        iosTarget.binaries.withType<TestExecutable>().configureEach {
+            val couchbaseDir = couchbaseLiteFrameworkDir(iosTarget.name).absolutePath
+            val swiftPackageDir = swiftPackageProductDir(iosTarget.name).absolutePath
+            linkerOpts("-F$couchbaseDir", "-rpath", couchbaseDir, "-rpath", swiftPackageDir)
+            linkTaskProvider.configure { dependsOn(fetchCouchbaseLiteAppleFramework) }
         }
     }
 
