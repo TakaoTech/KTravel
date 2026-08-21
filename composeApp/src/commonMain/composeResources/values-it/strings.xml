@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">KTravel</string>
 
     <string name="place_insert_latlng_label">Lat - Lng</string>
     <string name="place_insert_search_label">Cerca</string>
@@ -31,9 +30,7 @@
     <string name="planning_detail_cd_delete_step">Elimina attività</string>
     <string name="planning_detail_cd_move_step_up">Sposta l'attività in alto</string>
     <string name="planning_detail_cd_move_step_down">Sposta l'attività in basso</string>
-    <string name="planning_detail_cd_step_time">Orario pianificato</string>
     <string name="planning_detail_cd_move_place_to_steps">Aggiungi la tappa all'itinerario</string>
-    <string name="planning_detail_cd_open_step_detail">Apri il dettaglio dell'attività</string>
     <string name="planning_detail_step_note_title">Note</string>
     <string name="planning_detail_step_note_empty">Nessuna nota</string>
     <string name="planning_detail_step_note_label">Note (Markdown)</string>
@@ -179,10 +176,6 @@
     <string name="travel_creation_name_label">NOME DEL VIAGGIO</string>
     <string name="travel_creation_name_placeholder">es. Safari in Kenya o Weekend a Parigi</string>
     <string name="travel_creation_period_label">PERIODO DEL VIAGGIO</string>
-    <string name="travel_creation_period_start">Inizio</string>
-    <string name="travel_creation_period_end">Fine</string>
-    <string name="travel_creation_destinations_title">Aggiungi destinazioni</string>
-    <string name="travel_creation_destinations_subtitle">Puoi aggiungerle anche più tardi</string>
     <string name="travel_creation_button">Crea Viaggio</string>
     <string name="travel_creation_name_empty_error">Il nome del viaggio non può essere vuoto</string>
 
@@ -191,7 +184,6 @@
     <string name="travel_selection_cd_delete_selected">Elimina i viaggi selezionati</string>
     <string name="travel_selection_cd_swipe_delete">Elimina viaggio</string>
     <string name="travel_selection_cd_import">Importa viaggio</string>
-    <string name="travel_selection_import_reading">Lettura dell'archivio…</string>
     <string name="travel_selection_import_success">%1$s importato</string>
     <string name="travel_selection_import_duplicate_name">%1$s (copia)</string>
     <plurals name="travel_selection_selected_count">
@@ -199,34 +191,13 @@
         <item quantity="other">%1$d selezionati</item>
     </plurals>
 
+    <!-- region Import/Export strings -->
+
     <string name="travel_import_conflict_title">Viaggio già presente</string>
     <string name="travel_import_conflict_message">Un viaggio con lo stesso id è già salvato come “%1$s”. Vuoi sostituirlo o importarne una copia?</string>
     <string name="travel_import_conflict_duplicate">Duplica</string>
     <string name="travel_import_conflict_replace">Sostituisci</string>
     <string name="travel_import_conflict_cancel">Annulla</string>
-
-    <string name="settings_title">Impostazioni</string>
-    <string name="settings_here_section">Chiave API HERE</string>
-    <string name="settings_here_api_key">Chiave API</string>
-    <string name="settings_here_api_key_hint">Serve a calcolare i percorsi di questo viaggio. È salvata nel viaggio, non nell'app.</string>
-    <string name="settings_show_api_key">Mostra</string>
-    <string name="settings_hide_api_key">Nascondi</string>
-    <string name="settings_save">Salva</string>
-    <string name="settings_saved">Chiave API salvata.</string>
-
-    <string name="settings_navigator_section">Navigator</string>
-    <string name="settings_navigator_hint">Dove vengono calcolati i percorsi di questo viaggio.</string>
-    <string name="settings_navigator_base_url">Indirizzo del server</string>
-    <string name="settings_navigator_override_hint">Lascia vuoto per usare il server configurato per l app.</string>
-    <string name="settings_navigator_not_checked">Non verificato</string>
-    <string name="settings_navigator_not_configured">Non configurato</string>
-
-    <string name="app_settings_title">Impostazioni dell app</string>
-    <string name="app_settings_navigator_section">Navigator remoto</string>
-    <string name="app_settings_navigator_hint">Usato da tutti i viaggi che non ne indicano uno proprio.</string>
-    <string name="app_settings_test_connection">Verifica connessione</string>
-    <string name="app_settings_saved">Impostazioni salvate.</string>
-    <string name="app_settings_cd_open">Apri le impostazioni dell app</string>
 
     <string name="import_secrets_choice_title">Importare la chiave API?</string>
     <string name="import_secrets_choice_message">Questo archivio contiene una chiave API HERE protetta da password. Puoi importare il viaggio anche senza.</string>
@@ -293,11 +264,34 @@
     <string name="travel_archive_error_wrong_password">Password errata. Riprova.</string>
     <string name="travel_archive_error_unsupported_secrets_scheme">La chiave API di questo archivio è protetta con un metodo non supportato da questa versione. Aggiorna l'app per importarla.</string>
 
+    <!-- endregion Import/Export strings -->
+
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_here_section">Chiave API HERE</string>
+    <string name="settings_here_api_key">Chiave API</string>
+    <string name="settings_here_api_key_hint">Serve a calcolare i percorsi di questo viaggio. È salvata nel viaggio, non nell'app.</string>
+    <string name="settings_show_api_key">Mostra</string>
+    <string name="settings_hide_api_key">Nascondi</string>
+    <string name="settings_save">Salva</string>
+    <string name="settings_saved">Chiave API salvata.</string>
+
+    <string name="settings_navigator_section">Navigator</string>
+    <string name="settings_navigator_hint">Dove vengono calcolati i percorsi di questo viaggio.</string>
+    <string name="settings_navigator_base_url">Indirizzo del server</string>
+    <string name="settings_navigator_override_hint">Lascia vuoto per usare il server configurato per l app.</string>
+    <string name="settings_navigator_not_checked">Non verificato</string>
+    <string name="settings_navigator_not_configured">Non configurato</string>
+
+    <string name="app_settings_title">Impostazioni dell app</string>
+    <string name="app_settings_navigator_section">Navigator remoto</string>
+    <string name="app_settings_navigator_hint">Usato da tutti i viaggi che non ne indicano uno proprio.</string>
+    <string name="app_settings_test_connection">Verifica connessione</string>
+    <string name="app_settings_saved">Impostazioni salvate.</string>
+    <string name="app_settings_cd_open">Apri le impostazioni dell app</string>
+
     <string name="route_preview_title">Anteprima percorso</string>
     <string name="route_preview_alternative">Opzione %1$d</string>
     <string name="route_preview_cd_confirm">Usa questa opzione</string>
-    <string name="route_preview_distance_km">%1$s km</string>
-    <string name="route_preview_distance_m">%1$d m</string>
     <string name="transit_preview_walk">Cammina %1$s</string>
     <string name="transit_preview_changes">%1$d cambi</string>
     <string name="transit_preview_no_change">Nessun cambio</string>
@@ -306,7 +300,6 @@
     <string name="transit_preview_direct">Senza fermate</string>
     <string name="transit_preview_cd_expand_stops">Mostra le fermate intermedie</string>
     <string name="transit_preview_cd_collapse_stops">Nascondi le fermate intermedie</string>
-    <string name="transit_preview_wheelchair_yes">Accessibile</string>
-    <string name="transit_preview_wheelchair_limited">Accessibile con assistenza</string>
-    <string name="transit_preview_wheelchair_no">Non accessibile</string>
+    <string name="transit_preview_agency_label">Gestore</string>
+    <string name="transit_preview_line_website_label">Sito della linea</string>
 </resources>

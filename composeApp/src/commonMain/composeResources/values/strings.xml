@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">KTravel</string>
 
     <string name="place_insert_latlng_label">Lat - Lng</string>
     <string name="place_insert_search_label">Search</string>
@@ -31,9 +30,7 @@
     <string name="planning_detail_cd_delete_step">Delete step</string>
     <string name="planning_detail_cd_move_step_up">Move step up</string>
     <string name="planning_detail_cd_move_step_down">Move step down</string>
-    <string name="planning_detail_cd_step_time">Scheduled time</string>
     <string name="planning_detail_cd_move_place_to_steps">Add place to itinerary</string>
-    <string name="planning_detail_cd_open_step_detail">Open step detail</string>
     <string name="planning_detail_step_note_title">Notes</string>
     <string name="planning_detail_step_note_empty">No notes yet</string>
     <string name="planning_detail_step_note_label">Notes (Markdown)</string>
@@ -179,10 +176,6 @@
     <string name="travel_creation_name_label">TRIP NAME</string>
     <string name="travel_creation_name_placeholder">e.g. Safari in Kenya or Weekend in Paris</string>
     <string name="travel_creation_period_label">TRIP PERIOD</string>
-    <string name="travel_creation_period_start">Start</string>
-    <string name="travel_creation_period_end">End</string>
-    <string name="travel_creation_destinations_title">Add destinations</string>
-    <string name="travel_creation_destinations_subtitle">You can also add them later</string>
     <string name="travel_creation_button">Create Trip</string>
     <string name="travel_creation_name_empty_error">Trip name cannot be empty</string>
 
@@ -191,7 +184,6 @@
     <string name="travel_selection_cd_delete_selected">Delete selected trips</string>
     <string name="travel_selection_cd_swipe_delete">Delete trip</string>
     <string name="travel_selection_cd_import">Import trip</string>
-    <string name="travel_selection_import_reading">Reading archive…</string>
     <string name="travel_selection_import_success">%1$s imported</string>
     <string name="travel_selection_import_duplicate_name">%1$s (copy)</string>
     <plurals name="travel_selection_selected_count">
@@ -260,6 +252,18 @@
     <string name="password_strength_suggestion_use_fewer_words">Use a few words and avoid uncommon ones.</string>
     <string name="password_strength_suggestion_no_need_for_symbols">Symbols, digits and capitals are not required.</string>
 
+    <string name="travel_archive_error_corrupted">The archive is damaged or is not a KTravel file.</string>
+    <string name="travel_archive_error_invalid_manifest">The archive does not contain valid KTravel data.</string>
+    <string name="travel_archive_error_missing_entry">The archive is incomplete: %1$s is missing.</string>
+    <string name="travel_archive_error_too_old">This archive comes from a version of KTravel that is too old and can no longer be imported.</string>
+    <string name="travel_archive_error_too_new">This archive comes from a newer version of KTravel. Update the app to import it.</string>
+    <string name="travel_archive_error_migration_failed">The archive could not be converted to the current format.</string>
+    <string name="travel_archive_error_malformed_plan">The trip data in the archive is unreadable.</string>
+    <string name="travel_archive_error_missing_attachment">A file used by the trip is missing from the archive: %1$s.</string>
+    <string name="travel_archive_error_io">The file could not be read or written.</string>
+    <string name="travel_archive_error_wrong_password">Wrong password. Try again.</string>
+    <string name="travel_archive_error_unsupported_secrets_scheme">The API key in this archive is protected with a method this version does not support. Update the app to import it.</string>
+
     <!-- endregion Import/Export strings -->
 
     <string name="settings_title">Settings</string>
@@ -288,8 +292,6 @@
     <string name="route_preview_title">Route preview</string>
     <string name="route_preview_alternative">Option %1$d</string>
     <string name="route_preview_cd_confirm">Use this option</string>
-    <string name="route_preview_distance_km">%1$s km</string>
-    <string name="route_preview_distance_m">%1$d m</string>
     <string name="transit_preview_walk">Walk %1$s</string>
     <string name="transit_preview_changes">%1$d changes</string>
     <string name="transit_preview_no_change">No change</string>
@@ -298,9 +300,6 @@
     <string name="transit_preview_direct">Non stop</string>
     <string name="transit_preview_cd_expand_stops">Show the stops along the way</string>
     <string name="transit_preview_cd_collapse_stops">Hide the stops along the way</string>
-    <string name="transit_preview_wheelchair_yes">Step-free</string>
-    <string name="transit_preview_wheelchair_limited">Step-free with assistance</string>
-    <string name="transit_preview_wheelchair_no">Not step-free</string>
     <string name="transit_preview_agency_label">Agency</string>
     <string name="transit_preview_line_website_label">Line website</string>
 </resources>
