@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+#
+# Mirrors the checks CI runs, so a push does not fail on something a local run
+# would have caught:
+#   - the "format" job of .github/workflows/ci.main.kts:
+#       ./gradlew detektFormat -Pdetekt.autocorrect=true
+#     and stages the result, the way the job commits it back on CI.
+#   - the string resource parity check that :composeApp:check depends on:
+#       ./gradlew :composeApp:checkStringResourceParity
+#
+# Skip with `git commit --no-verify` or KTRAVEL_SKIP_HOOKS=1.
+
+set -euo pipefail
+
+if [ "${KTRAVEL_SKIP_HOOKS:-0}" = "1" ]; then
+    echo "pre-commit: skipped (KTRAVEL_SKIP_HOOKS=1)."
+    exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+# Nothing either task would look at, nothing to do. Kept cheap on purpose: a
+# Gradle invocation costs seconds even when every task is up to date.
+staged_kotlin="$(git diff --cached --name-only --diff-filter=ACMR -- '*.kt' '*.kts')"
+staged_strings="$(git diff --cached --name-only --diff-filter=ACMR \
+    -- 'composeApp/src/commonMain/composeResources/values*/strings.xml')"
+if [ -z "$staged_kotlin" ] && [ -z "$staged_strings" ]; then
+    exit 0
+fi
+
+format_staged_kotlin() {
+    # A file that is partially staged would get its unstaged hunks pulled into the
+    # commit by the re-staging below. Format anyway, then refuse to stage and let
+    # the author sort it out.
+    local partially_staged
+    partially_staged="$(git diff --name-only --diff-filter=ACMR -- $(echo "$staged_kotlin" | tr '\n' ' '))"
+
+    echo "pre-commit: applying detekt/ktlint formatting..."
+    ./gradlew --quiet detektFormat -Pdetekt.autocorrect=true
+
+    local reformatted
+    reformatted="$(git diff --name-only -- '*.kt' '*.kts')"
+    if [ -z "$reformatted" ]; then
+        return 0
+    fi
+
+    if [ -n "$partially_staged" ]; then
+        echo "pre-commit: formatting rewrote files that also carry unstaged changes:" >&2
+        echo "$partially_staged" | sed 's/^/  /' >&2
+        echo "Staging them would drag those changes into the commit. Review and stage manually." >&2
+        exit 1
+    fi
+
+    # Only files that were already part of this commit get staged; anything else the
+    # formatter touched stays in the working tree, unmentioned in the commit.
+    local staged_and_reformatted=""
+    local file
+    for file in $reformatted; do
+        if echo "$staged_kotlin" | grep -qxF "$file"; then
+            staged_and_reformatted="$staged_and_reformatted$file"$'\n'
+            git add -- "$file"
+        fi
+    done
+
+    if [ -n "$staged_and_reformatted" ]; then
+        echo "pre-commit: formatted and re-staged:"
+        printf '%s' "$staged_and_reformatted" | sed 's/^/  /'
+    fi
+
+    local untouched_by_commit
+    untouched_by_commit="$(comm -23 \
+        <(printf '%s\n' $reformatted | sort -u) \
+        <(printf '%s' "$staged_and_reformatted" | sort -u))"
+    if [ -n "$untouched_by_commit" ]; then
+        echo "pre-commit: also reformatted, left unstaged:"
+        printf '%s\n' "$untouched_by_commit" | sed 's/^/  /'
+    fi
+}
+
+if [ -n "$staged_kotlin" ]; then
+    format_staged_kotlin
+fi
+
+# Runs last, so a parity failure does not throw away the formatting applied above:
+# the reformatted files stay staged and the commit can be retried once the
+# translations are back in sync. The task only reads strings.xml, which is why a
+# Kotlin-only commit does not pay for it.
+if [ -n "$staged_strings" ]; then
+    echo "pre-commit: checking string resource parity..."
+    ./gradlew --quiet :composeApp:checkStringResourceParity
+fi

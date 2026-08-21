@@ -8,7 +8,12 @@ on:
     branches:
     - 'main'
     - 'dev'
-  pull_request: {}
+  pull_request:
+    types:
+    - 'opened'
+    - 'synchronize'
+    - 'reopened'
+    - 'ready_for_review'
 jobs:
   format:
     runs-on: 'ubuntu-latest'
@@ -55,6 +60,7 @@ jobs:
     - 'format'
     env:
       SONAR_TOKEN: '${{ secrets.SONAR_TOKEN }}'
+    if: 'github.event_name != ''pull_request'' || github.event.pull_request.draft == false'
     steps:
     - id: 'step-0'
       name: 'Checkout code'

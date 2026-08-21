@@ -34,16 +34,23 @@ val jdkVersion = "25"
 val checkoutRef = expr("github.event.pull_request.head.ref || github.ref")
 val checkoutRepo = expr("github.event.pull_request.head.repo.full_name || github.repository")
 
-// Pull requests opened from a fork get a read-only token: the push would fail. Those runs format
-// and report, they just cannot commit the result back.
 val isNotFork =
     "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository"
+
+val isNotDraft = "github.event_name != 'pull_request' || github.event.pull_request.draft == false"
 
 workflow(
     name = "CI",
     on = listOf(
         Push(branches = listOf("main", "dev")),
-        PullRequest(),
+        PullRequest(
+            types = listOf(
+                PullRequest.Type.Opened,
+                PullRequest.Type.Synchronize,
+                PullRequest.Type.Reopened,
+                PullRequest.Type.ReadyForReview,
+            ),
+        ),
     ),
     sourceFile = __FILE__,
     consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
@@ -101,6 +108,7 @@ workflow(
         id = "verify",
         runsOn = RunnerType.UbuntuLatest,
         needs = listOf(format),
+        condition = isNotDraft,
         // Declared at job level on purpose: a step's own `env` is not visible to that step's `if`,
         // and the Sonar step is gated on the token being present.
         env = mapOf("SONAR_TOKEN" to expr("secrets.SONAR_TOKEN")),
