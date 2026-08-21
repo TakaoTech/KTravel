@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,6 +43,12 @@ internal object PlanningTransportTestTags {
     const val REACHABILITY = "transport_reachability"
     const val RETRY_CATALOG = "transport_retry_catalog"
     const val CALCULATE = "transport_calculate"
+    const val TIME_NOW = "transport_time_now"
+    const val TIME_NOW_INFO = "transport_time_now_info"
+    const val TIME_NOW_TOOLTIP = "transport_time_now_tooltip"
+    const val TIME_DEPART_AT = "transport_time_depart_at"
+    const val TIME_ARRIVE_BY = "transport_time_arrive_by"
+    const val TIME_VALUE = "transport_time_value"
     const val SHORTEST = "transport_shortest"
     const val ALTERNATIVES = "transport_alternatives"
     const val CHANGES_LIMIT = "transport_changes_limit"
@@ -273,7 +280,7 @@ internal fun ModeChip(
 
 /** A card holding one block's detail, in the container colour the blocks share. */
 @Composable
-internal fun TransportCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun TransportCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -282,7 +289,7 @@ internal fun TransportCard(modifier: Modifier = Modifier, content: @Composable (
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
-        content = { Column(modifier = Modifier.padding(14.dp), content = { content() }) },
+        content = { Column(modifier = Modifier.padding(14.dp), content = content) },
     )
 }
 

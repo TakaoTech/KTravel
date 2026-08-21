@@ -6,6 +6,7 @@ import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
@@ -24,9 +25,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlin.time.Clock
 
 @AssistedInject
 class PlanningTransportViewModel(
@@ -71,22 +74,29 @@ class PlanningTransportViewModel(
     init {
         viewModelScope.launch {
             planningGraph.travelPlanRepository
-                .getTravelDayFlow(dayId).map {
-                    it.steps.first { step -> step.id == startPlaceId } to
-                        it.steps.first { step -> step.id == endPlaceId }
-                }.collect { (startStep, endStep) ->
+                .getTravelDayFlow(dayId).collect { day ->
+                    val startStep = day.steps.first { step -> step.id == startPlaceId }
+                    val endStep = day.steps.first { step -> step.id == endPlaceId }
+
                     val startUi = (startStep as? StepDomain.Place)?.let {
                         with(TravelPlanUiMapper) { it.toUiStepPlace() }
                     }
                     val endUi = (endStep as? StepDomain.Place)?.let {
                         with(TravelPlanUiMapper) { it.toUiStepPlace() }
                     }
-                    mUiState.update { it.copy(startPlace = startUi, endPlace = endUi) }
+
+                    mUiState.update {
+                        it.copy(
+                            startPlace = startUi,
+                            endPlace = endUi,
+                            dayDate = day.date,
+                            departureSuggestion = departureSuggestion(startUi),
+                            arrivalSuggestion = arrivalSuggestion(endUi),
+                        )
+                    }
                 }
         }
 
-        // Calculate follows the options block: it lights up once that block has published a request
-        // for the profile currently chosen, and goes out again the moment the profile changes.
         viewModelScope.launch {
             routeOptionsDraft.selection.collect { selection ->
                 mUiState.update { state ->
@@ -95,9 +105,6 @@ class PlanningTransportViewModel(
             }
         }
 
-        // The plan's preference decides where the screen opens, and a remote it cannot reach is not
-        // offered at all: switching to a navigator with no address configured would produce a
-        // failure the traveller cannot act on from here.
         val preferred = navigatorTargets.defaultKind()
         val remoteConfigured = navigatorTargets.isRemoteConfigured()
         val kind = if (preferred == NavigatorKind.REMOTE && !remoteConfigured) NavigatorKind.EMBEDDED else preferred
@@ -152,6 +159,41 @@ class PlanningTransportViewModel(
         selectProfile(fallback.profile.id)
     }
 
+    // ---- when to travel -------------------------------------------------------------------------
+
+    /**
+     * Switches between leaving now, leaving at an hour and arriving by one.
+     *
+     * The hour arrives *with* the switch rather than after it: the mode the traveller picked is
+     * seeded from the adjacent stop, and from the clock when that stop has no schedule. The screen
+     * therefore never holds a mode that is waiting for an hour, and Calculate has nothing extra to
+     * guard against.
+     */
+    fun setTimeMode(mode: RouteTimeMode) {
+        val fallback = Clock.System.nowRoundedUp(TimeZone.currentSystemDefault())
+
+        mUiState.update { state ->
+            val choice = when (mode) {
+                RouteTimeMode.NOW -> RouteTimeChoice.Now
+                RouteTimeMode.DEPART_AT -> RouteTimeChoice.DepartAt(state.departureSuggestion ?: fallback)
+                RouteTimeMode.ARRIVE_BY -> RouteTimeChoice.ArriveBy(state.arrivalSuggestion ?: fallback)
+            }
+
+            state.copy(timeChoice = choice)
+        }
+    }
+
+    /** Replaces the hour, leaving the traveller on the mode they are already on. */
+    fun setTime(time: LocalTime) = mUiState.update { state ->
+        val choice = when (state.timeChoice) {
+            RouteTimeChoice.Now -> return@update state
+            is RouteTimeChoice.DepartAt -> RouteTimeChoice.DepartAt(time)
+            is RouteTimeChoice.ArriveBy -> RouteTimeChoice.ArriveBy(time)
+        }
+
+        state.copy(timeChoice = choice)
+    }
+
     // ---- what to ask it for -------------------------------------------------------------------
 
     /**
@@ -163,8 +205,6 @@ class PlanningTransportViewModel(
      * block seeds its own defaults as soon as it composes.
      */
     fun selectProfile(profileId: RoutingProfileId) {
-        // Outside the update: it retries its lambda under contention, and a side effect in there
-        // would run more than once for one choice.
         routeOptionsDraft.clear()
 
         mUiState.update { state ->
@@ -173,6 +213,9 @@ class PlanningTransportViewModel(
             state.copy(
                 selectedProfileId = profileId,
                 routeOptionsScreen = profile?.routeOptionsScreen(travelId),
+                timeChoice = state.timeChoice.takeUnless {
+                    it is RouteTimeChoice.ArriveBy && profile?.supportsArriveBy != true
+                } ?: RouteTimeChoice.Now,
                 failure = null,
             )
         }
@@ -189,6 +232,7 @@ class PlanningTransportViewModel(
         val selection = routeOptionsDraft.selection.value?.takeIf { it.profileId == state.selectedProfileId } ?: return
         val start = state.startPlace ?: return
         val end = state.endPlace ?: return
+        val dayDate = state.dayDate ?: return
 
         calculateTransportJob = viewModelScope.launch(Dispatchers.Default) {
             mUiState.update { it.copy(isLoading = true, failure = null, result = null) }
@@ -199,6 +243,8 @@ class PlanningTransportViewModel(
                     origin = "${start.lat},${start.lng}",
                     destination = "${end.lat},${end.lng}",
                     selection = selection,
+                    time = state.timeChoice,
+                    dayDate = dayDate,
                 )
             } catch (failure: RoutingFailure) {
                 mUiState.update { it.copy(isLoading = false, failure = failure.toReason()) }

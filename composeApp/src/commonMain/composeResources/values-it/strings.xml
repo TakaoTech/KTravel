@@ -81,6 +81,16 @@
     <string name="planning_transport_arrival">Arrivo</string>
     <string name="planning_transport_calculate">Calcola</string>
 
+    <string name="planning_transport_time_section">Quando viaggiare</string>
+    <string name="planning_transport_time_now">Adesso</string>
+    <string name="planning_transport_time_depart_at">Parti alle</string>
+    <string name="planning_transport_time_arrive_by">Arriva entro</string>
+    <string name="planning_transport_time_arrive_by_unsupported">Questo profilo non può pianificare a ritroso da un orario di arrivo</string>
+    <string name="planning_transport_time_on_day">il %1$s</string>
+    <string name="planning_transport_cd_time">Modifica l'orario</string>
+    <string name="planning_transport_time_now_explanation">Adesso è solo l'orario di riferimento usato per calcolare il percorso. Non corrisponde necessariamente a quando percorrerai questa tratta e non viene riportato nella timeline.</string>
+    <string name="planning_transport_cd_time_now_info">Cosa significa Adesso</string>
+
     <string name="planning_transport_server_section">Server di calcolo</string>
     <string name="planning_transport_server_embedded">Integrato</string>
     <string name="planning_transport_server_remote">Remoto</string>

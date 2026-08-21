@@ -3,6 +3,7 @@ package com.takaotech.ktravel.domain.routing
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.model.RouteResult
+import kotlinx.datetime.LocalDate
 
 /**
  * Computing routes, without knowing who computes them.
@@ -27,6 +28,11 @@ interface RoutingService {
      * the same thing: which variant comes back follows from [selection] and is what decides the
      * screen that draws it.
      *
+     * [time] and [dayDate] travel beside [selection] rather than inside it: when the traveller wants
+     * to be moving does not depend on which profile computes the route, and a change of profile
+     * drops the selection while leaving the hour they picked alone.
+     *
+     * @param dayDate The day the leg belongs to, which is what turns [time] into an instant.
      * @throws RoutingFailure when nothing can be produced. Typed, because each case has its own
      *   remedy and the screen has to say which one applies.
      */
@@ -35,6 +41,8 @@ interface RoutingService {
         origin: String,
         destination: String,
         selection: RouteSelection,
+        time: RouteTimeChoice,
+        dayDate: LocalDate,
     ): RouteResult
 }
 

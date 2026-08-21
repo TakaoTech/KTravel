@@ -75,12 +75,16 @@ sealed interface RoutingOptionsSpec {
  * What a profile can do, as the app needs to know it.
  *
  * @property options Everything that depends on the family of API behind the profile.
+ * @property supportsArriveBy Whether it can plan backwards from an arrival time. Published rather
+ *   than assumed: a navigator refuses [RouteTimeChoice.ArriveBy] on a profile that cannot honour it,
+ *   so the choice is not offered rather than being sent and rejected.
  * @property requiresApiKey Whether a route needs the traveller's own provider key.
  */
 data class RoutingProfileInfo(
     val id: RoutingProfileId,
     val displayName: String,
     val options: RoutingOptionsSpec,
+    val supportsArriveBy: Boolean = false,
     val requiresApiKey: Boolean = false,
 )
 

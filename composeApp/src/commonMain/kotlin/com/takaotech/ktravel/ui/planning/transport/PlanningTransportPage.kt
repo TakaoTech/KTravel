@@ -46,6 +46,7 @@ import androidx.window.core.layout.WindowSizeClass
 import com.slack.circuit.foundation.CircuitContent
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
@@ -55,11 +56,15 @@ import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportUiState
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
+import com.takaotech.ktravel.presentation.planning.transport.RouteTimeMode
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.Month
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
@@ -112,6 +117,8 @@ fun PlanningTransportPage(
         onNavigatorChange = viewModel::selectNavigator,
         onRetryCatalog = viewModel::retryCatalog,
         onProfileChange = viewModel::selectProfile,
+        onTimeModeChange = viewModel::setTimeMode,
+        onTimeChange = viewModel::setTime,
         onCalculateClick = viewModel::calculateTransport,
         onFailureDismiss = viewModel::dismissFailure,
     )
@@ -126,6 +133,8 @@ private fun PlanningTransportPage(
     onNavigatorChange: (NavigatorKind) -> Unit,
     onRetryCatalog: () -> Unit,
     onProfileChange: (RoutingProfileId) -> Unit,
+    onTimeModeChange: (RouteTimeMode) -> Unit,
+    onTimeChange: (LocalTime) -> Unit,
     onCalculateClick: () -> Unit,
     onFailureDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -197,6 +206,14 @@ private fun PlanningTransportPage(
                 modifier = Modifier.fillMaxWidth(),
                 start = uiState.startPlace,
                 end = uiState.endPlace,
+            )
+
+            RouteTimeSection(
+                choice = uiState.timeChoice,
+                dayDate = uiState.dayDate,
+                supportsArriveBy = uiState.supportsArriveBy,
+                onModeChange = onTimeModeChange,
+                onTimeChange = onTimeChange,
             )
 
             NavigatorBlock(
@@ -476,11 +493,15 @@ private fun PlanningTransportPagePreview() = KTravelTheme {
             catalog = PREVIEW_CATALOG,
             selectedProfileId = PREVIEW_HERE_CAR.id,
             isRequestReady = true,
+            timeChoice = RouteTimeChoice.DepartAt(LocalTime(hour = 10, minute = 30)),
+            dayDate = LocalDate(year = 2026, month = Month.MAY, day = 18),
         ),
         onNavigationBackClick = {},
         onNavigatorChange = {},
         onRetryCatalog = {},
         onProfileChange = {},
+        onTimeModeChange = {},
+        onTimeChange = {},
         onCalculateClick = {},
         onFailureDismiss = {},
     )
@@ -495,6 +516,7 @@ private val PREVIEW_HERE_CAR = RoutingProfileInfo(
         modesSupportingShortest = setOf(RoutingMode("CAR"), RoutingMode("TRUCK")),
         supportsTolls = true,
     ),
+    supportsArriveBy = true,
     requiresApiKey = true,
 )
 

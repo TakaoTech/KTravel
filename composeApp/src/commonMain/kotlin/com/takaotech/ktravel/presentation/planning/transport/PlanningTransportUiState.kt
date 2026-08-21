@@ -3,12 +3,15 @@ package com.takaotech.ktravel.presentation.planning.transport
 import androidx.compose.runtime.Stable
 import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.domain.routing.model.RouteResult
 import com.takaotech.ktravel.presentation.planning.StepUi
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 sealed interface PlanningTransportNavigationEvent {
     data object NavigateToRoutePreview : PlanningTransportNavigationEvent
@@ -51,6 +54,21 @@ enum class TransportFailureReason {
 data class PlanningTransportUiState(
     val startPlace: StepUi.Place? = null,
     val endPlace: StepUi.Place? = null,
+
+    // ---- when to travel -------------------------------------------------------------------------
+    /**
+     * When the traveller wants to be moving, which every profile is asked the same question about.
+     *
+     * Kept here rather than in the options block: it does not depend on which profile computes the
+     * route, and changing profile drops the options while leaving the hour alone.
+     */
+    val timeChoice: RouteTimeChoice = RouteTimeChoice.Now,
+    /** The day this leg belongs to, which is what turns [timeChoice] into an instant. */
+    val dayDate: LocalDate? = null,
+    /** The hour the previous stop is left at, when it has one. */
+    val departureSuggestion: LocalTime? = null,
+    /** The hour the next stop is due to start at, when it has one. */
+    val arrivalSuggestion: LocalTime? = null,
 
     // ---- which navigator ------------------------------------------------------------------------
     /** The one being used right now. Seeded from the plan's preference and not written back. */
@@ -95,6 +113,17 @@ data class PlanningTransportUiState(
     val selectedProfile: RoutingProfileInfo? get() = selectedOption?.profile
 
     /**
+     * Whether the chosen profile can plan backwards from an arrival time.
+     *
+     * True while no profile is chosen yet, rather than false: the option is only ever *withdrawn* by
+     * a profile that says it cannot honour it, and a catalog that has not answered yet has said no
+     * such thing. Nothing can be computed in that state anyway — [canCalculate] sees to that — and a
+     * choice made before the profile arrives is dropped by [PlanningTransportViewModel.selectProfile]
+     * if that profile turns out to refuse it.
+     */
+    val supportsArriveBy: Boolean get() = selectedProfile?.supportsArriveBy != false
+
+    /**
      * Whether pressing Calculate can produce anything.
      *
      * The button was previously always enabled, and pressing it on a provider that did not exist
@@ -105,6 +134,7 @@ data class PlanningTransportUiState(
         get() = !isLoading &&
             startPlace != null &&
             endPlace != null &&
+            dayDate != null &&
             selectedOption?.isSelectable == true &&
             isRequestReady
 }

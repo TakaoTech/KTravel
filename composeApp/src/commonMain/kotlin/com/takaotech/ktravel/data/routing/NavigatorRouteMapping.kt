@@ -2,6 +2,7 @@ package com.takaotech.ktravel.data.routing
 
 import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
@@ -51,6 +52,7 @@ import com.takaotech.navigator.api.response.TransitStopDto
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
@@ -83,6 +85,7 @@ fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
             modesSupportingShortest = modesSupportingShortest.map { RoutingMode(it.name) }.toSet(),
             supportsTolls = descriptor.supportsTolls,
         ),
+        supportsArriveBy = descriptor.supportsArriveBy,
         requiresApiKey = descriptor.requiresApiKey,
     )
 
@@ -95,6 +98,7 @@ fun NavigatorProfile.toProfileInfo(): RoutingProfileInfo = when (this) {
             modes = modeFilter.map { RoutingMode(it.name) },
             maxAlternatives = descriptor.maxAlternatives,
         ),
+        supportsArriveBy = descriptor.supportsArriveBy,
         requiresApiKey = descriptor.requiresApiKey,
     )
 }
@@ -109,22 +113,25 @@ fun ProviderProfileDescriptor.toProfileId(): RoutingProfileId =
  * computing them would be a question with no answer — one the navigator refuses and the provider
  * would bill for anyway.
  */
-fun RouteSelection.Routing.toRoutingRequest(origin: GeoPoint, destination: GeoPoint): HereRoutingRequest =
-    HereRoutingRequest(
-        origin = origin,
-        destination = destination,
-        routingMode = if (shortestDistance) HereRoutingMode.SHORT else HereRoutingMode.FAST,
-        alternatives = alternatives,
-        time = departureRouteTime(),
-        avoid = avoid
-            .takeIf { it.isNotEmpty() }
-            ?.let { features -> HereAvoidOptions(features = features.map { it.toHereAvoidFeature() }) },
-        returnAttributes = if (mode.toHereTransportMode().hasTolls) {
-            HereReturnAttribute.NAVIGATION_WITH_TOLLS
-        } else {
-            HereReturnAttribute.NAVIGATION
-        },
-    )
+fun RouteSelection.Routing.toRoutingRequest(
+    origin: GeoPoint,
+    destination: GeoPoint,
+    time: RouteTime,
+): HereRoutingRequest = HereRoutingRequest(
+    origin = origin,
+    destination = destination,
+    routingMode = if (shortestDistance) HereRoutingMode.SHORT else HereRoutingMode.FAST,
+    alternatives = alternatives,
+    time = time,
+    avoid = avoid
+        .takeIf { it.isNotEmpty() }
+        ?.let { features -> HereAvoidOptions(features = features.map { it.toHereAvoidFeature() }) },
+    returnAttributes = if (mode.toHereTransportMode().hasTolls) {
+        HereReturnAttribute.NAVIGATION_WITH_TOLLS
+    } else {
+        HereReturnAttribute.NAVIGATION
+    },
+)
 
 /**
  * Builds the journey request.
@@ -132,19 +139,22 @@ fun RouteSelection.Routing.toRoutingRequest(origin: GeoPoint, destination: GeoPo
  * An empty filter is sent as no filter at all rather than as an empty include list: upstream reads
  * an empty inclusion as "nothing is acceptable", which would answer every journey with no route.
  */
-fun RouteSelection.Transit.toTransitRouteRequest(origin: GeoPoint, destination: GeoPoint): HereTransitRouteRequest =
-    HereTransitRouteRequest(
-        origin = origin,
-        destination = destination,
-        alternatives = alternatives,
-        time = departureRouteTime(),
-        modes = modeFilter
-            .takeIf { it.isNotEmpty() }
-            ?.let { HereTransitModeFilter(include = it.map { mode -> mode.toTransitMode() }) },
-        changes = maxChanges,
-        pedestrianSpeedMetersPerSecond = pedestrianSpeedMetersPerSecond,
-        pedestrianMaxDistanceMeters = pedestrianMaxDistanceMeters,
-    )
+fun RouteSelection.Transit.toTransitRouteRequest(
+    origin: GeoPoint,
+    destination: GeoPoint,
+    time: RouteTime,
+): HereTransitRouteRequest = HereTransitRouteRequest(
+    origin = origin,
+    destination = destination,
+    alternatives = alternatives,
+    time = time,
+    modes = modeFilter
+        .takeIf { it.isNotEmpty() }
+        ?.let { HereTransitModeFilter(include = it.map { mode -> mode.toTransitMode() }) },
+    changes = maxChanges,
+    pedestrianSpeedMetersPerSecond = pedestrianSpeedMetersPerSecond,
+    pedestrianMaxDistanceMeters = pedestrianMaxDistanceMeters,
+)
 
 /**
  * Translates a feature by name, which holds because the app's enum is a subset of the contract's.
@@ -178,21 +188,16 @@ private fun RoutingMode.toTransitMode(): TransitMode =
     }
 
 /**
- * When the traveller wants to leave.
+ * When the traveller wants to be moving, as an instant the provider can act on.
  *
- * A date and a time separately, either of which can be unset, so only both together mean anything.
- * The instant is resolved in the device's own timezone, which is the one the user was looking at
- * when they picked it.
+ * The hour is theirs and the date is the leg's day; [zone] is passed in rather than read here so the
+ * caller decides — in the app that is the device's own timezone, which is the one the traveller was
+ * looking at when they picked the hour, and in a test it is a fixed one.
  */
-private fun RouteSelection.departureRouteTime(): RouteTime {
-    val date = departureDate
-    val time = departureTime
-
-    return if (date == null || time == null) {
-        RouteTime.Now
-    } else {
-        RouteTime.DepartAt(LocalDateTime(date, time).toInstant(TimeZone.currentSystemDefault()))
-    }
+internal fun RouteTimeChoice.toRouteTime(date: LocalDate, zone: TimeZone): RouteTime = when (this) {
+    RouteTimeChoice.Now -> RouteTime.Now
+    is RouteTimeChoice.DepartAt -> RouteTime.DepartAt(LocalDateTime(date, time).toInstant(zone))
+    is RouteTimeChoice.ArriveBy -> RouteTime.ArriveBy(LocalDateTime(date, time).toInstant(zone))
 }
 
 /**

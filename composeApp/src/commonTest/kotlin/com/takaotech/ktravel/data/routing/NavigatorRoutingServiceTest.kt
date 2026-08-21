@@ -10,6 +10,7 @@ import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
 import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
@@ -39,9 +40,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Month
 
 private const val EMBEDDED_URL = "http://127.0.0.1:54213"
 private const val API_KEY = "here-key"
+
+/** The day these legs belong to. Irrelevant while every request leaves now, but required to make one. */
+private val DAY = LocalDate(year = 2026, month = Month.MAY, day = 18)
 
 private val HERE_ROUTING = RoutingProfileId("here", "routing")
 private val HERE_TRANSIT = RoutingProfileId("here", "transit")
@@ -225,6 +231,8 @@ class NavigatorRoutingServiceTest :
                                 alternatives = 3,
                                 avoid = setOf(RouteFeature.TOLL_ROAD),
                             ),
+                            time = RouteTimeChoice.Now,
+                            dayDate = DAY,
                         )
 
                         val sent = harness.requests.single()
@@ -253,6 +261,8 @@ class NavigatorRoutingServiceTest :
                                 profileId = HERE_ROUTING,
                                 mode = RoutingMode("PEDESTRIAN"),
                             ),
+                            time = RouteTimeChoice.Now,
+                            dayDate = DAY,
                         )
 
                         val sent = harness.requests.single()
@@ -277,6 +287,8 @@ class NavigatorRoutingServiceTest :
                                 profileId = HERE_ROUTING,
                                 mode = RoutingMode("BICYCLE"),
                             ),
+                            time = RouteTimeChoice.Now,
+                            dayDate = DAY,
                         )
 
                         val sent = harness.requests.single()
@@ -301,6 +313,8 @@ class NavigatorRoutingServiceTest :
                                 profileId = HERE_TRANSIT,
                                 modeFilter = setOf(RoutingMode("SUBWAY"), RoutingMode("REGIONAL_TRAIN")),
                             ),
+                            time = RouteTimeChoice.Now,
+                            dayDate = DAY,
                         )
 
                         val sent = harness.requests.single()
@@ -324,6 +338,8 @@ class NavigatorRoutingServiceTest :
                             origin = "44.4949,11.3426",
                             destination = "44.5058,11.3428",
                             selection = RouteSelection.Transit(profileId = HERE_TRANSIT),
+                            time = RouteTimeChoice.Now,
+                            dayDate = DAY,
                         )
 
                         harness.requests.single().bodyText() shouldNotContain "modes"
@@ -348,6 +364,8 @@ class NavigatorRoutingServiceTest :
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
                                 RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteTimeChoice.Now,
+                                DAY,
                             )
                         }
                     }
@@ -369,6 +387,8 @@ class NavigatorRoutingServiceTest :
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
                                 RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteTimeChoice.Now,
+                                DAY,
                             )
                         }
                     }
@@ -392,6 +412,8 @@ class NavigatorRoutingServiceTest :
                             "44.4949,11.3426",
                             "43.7696,11.2558",
                             RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
+                            RouteTimeChoice.Now,
+                            DAY,
                         )
 
                         result.shouldBeInstanceOf<RouteResult.Routing>().routes.routes shouldHaveSize 1
@@ -417,6 +439,8 @@ class NavigatorRoutingServiceTest :
                                 "44.4949,11.3426",
                                 "43.7696,11.2558",
                                 RouteSelection.Routing(HERE_ROUTING, RoutingMode("CAR")),
+                                RouteTimeChoice.Now,
+                                DAY,
                             )
                         }
 

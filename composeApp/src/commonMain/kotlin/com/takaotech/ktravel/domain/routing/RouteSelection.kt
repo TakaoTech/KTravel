@@ -1,8 +1,5 @@
 package com.takaotech.ktravel.domain.routing
 
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-
 /**
  * Something a road route can be asked to keep off.
  *
@@ -50,12 +47,6 @@ sealed interface RouteSelection {
     /** How many routes to ask for, bounded by [RoutingOptionsSpec.maxAlternatives]. */
     val alternatives: Int
 
-    /** The day of departure, meaningful only together with [departureTime]. */
-    val departureDate: LocalDate?
-
-    /** The time of departure, meaningful only together with [departureDate]. */
-    val departureTime: LocalTime?
-
     /**
      * A route on roads, travelled by one vehicle.
      *
@@ -72,8 +63,6 @@ sealed interface RouteSelection {
         override val alternatives: Int = 1,
         val avoid: Set<RouteFeature> = emptySet(),
         val shortestDistance: Boolean = false,
-        override val departureDate: LocalDate? = null,
-        override val departureTime: LocalTime? = null,
     ) : RouteSelection
 
     /**
@@ -94,7 +83,5 @@ sealed interface RouteSelection {
         val maxChanges: Int? = null,
         val pedestrianSpeedMetersPerSecond: Double? = null,
         val pedestrianMaxDistanceMeters: Int? = null,
-        override val departureDate: LocalDate? = null,
-        override val departureTime: LocalTime? = null,
     ) : RouteSelection
 }

@@ -81,6 +81,16 @@
     <string name="planning_transport_arrival">Arrival</string>
     <string name="planning_transport_calculate">Calculate</string>
 
+    <string name="planning_transport_time_section">When to travel</string>
+    <string name="planning_transport_time_now">Now</string>
+    <string name="planning_transport_time_depart_at">Leave at</string>
+    <string name="planning_transport_time_arrive_by">Arrive by</string>
+    <string name="planning_transport_time_arrive_by_unsupported">This profile cannot plan backwards from an arrival time</string>
+    <string name="planning_transport_time_on_day">on %1$s</string>
+    <string name="planning_transport_cd_time">Change the time</string>
+    <string name="planning_transport_time_now_explanation">Now is only the reference time used to compute the route. It is not necessarily the time you will travel this leg, and it is not reported on the timeline.</string>
+    <string name="planning_transport_cd_time_now_info">What Now means</string>
+
     <string name="planning_transport_server_section">Compute server</string>
     <string name="planning_transport_server_embedded">Embedded</string>
     <string name="planning_transport_server_remote">Remote</string>

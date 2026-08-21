@@ -6,6 +6,7 @@ import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
 import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
@@ -20,6 +21,8 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
 import kotlin.time.TimeSource
 
 /**
@@ -92,10 +95,14 @@ class NavigatorRoutingService(
         origin: String,
         destination: String,
         selection: RouteSelection,
+        time: RouteTimeChoice,
+        dayDate: LocalDate,
     ): RouteResult = withContext(Dispatchers.Default) {
         val from = origin.toGeoPoint()
         val to = destination.toGeoPoint()
         val apiKey = settingsRepository.settings.hereApiKey.takeIf { it.isNotBlank() }
+
+        val routeTime = time.toRouteTime(dayDate, TimeZone.currentSystemDefault())
 
         // The one place a profile is dispatched on, and now also the one place the kind of answer is
         // decided. The two halves cannot drift apart: each branch calls the method whose answer its
@@ -105,7 +112,7 @@ class NavigatorRoutingService(
                 callWithRecovery(kind) { target ->
                     client.hereRouting(
                         selection.mode.toHereTransportMode(),
-                        selection.toRoutingRequest(from, to),
+                        selection.toRoutingRequest(from, to, routeTime),
                         apiKey,
                         target,
                     )
@@ -114,7 +121,7 @@ class NavigatorRoutingService(
 
             is RouteSelection.Transit -> RouteResult.Transit(
                 callWithRecovery(kind) { target ->
-                    client.hereTransit(selection.toTransitRouteRequest(from, to), apiKey, target)
+                    client.hereTransit(selection.toTransitRouteRequest(from, to, routeTime), apiKey, target)
                 }.orThrow().toDomain(),
             )
         }
