@@ -121,9 +121,13 @@ interface TravelPlanRepository {
     suspend fun savePlace(place: PlaceDomain, dayId: String? = null)
 
     /**
-     * Inserts a step in the position right after another step
+     * Files a transport in the position right after another step, replacing the transport already
+     * there.
+     *
+     * Replace and not append: a second calculation between the same two places is the same
+     * transport computed again, not a second one to take as well.
      */
-    suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain)
+    suspend fun putTransportStep(dayId: String, afterStepId: String, step: StepDomain.Transport)
 
     /**
      * Deletes a Place from the travel plan

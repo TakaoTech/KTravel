@@ -6,6 +6,7 @@ import com.takaotech.ktravel.data.entity.RouteActionEntity
 import com.takaotech.ktravel.data.entity.RouteEntity
 import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TransportRequestEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.TravelSettingsEntity
@@ -20,6 +21,10 @@ import com.takaotech.ktravel.domain.model.TravelPlanSummary
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.model.VisitScheduleDomain
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteFeature
+import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
@@ -100,6 +105,28 @@ object TravelPlanEntityMapper {
             id = id,
             transportType = type.name,
             route = route.toEntity(),
+            request = request?.toEntity(),
+        )
+    }
+
+    fun RouteSelection.toEntity(): TransportRequestEntity = when (this) {
+        is RouteSelection.Routing -> TransportRequestEntity.Routing(
+            provider = profileId.provider,
+            profile = profileId.profile,
+            alternatives = alternatives,
+            mode = mode.id,
+            avoid = avoid.map { it.name },
+            shortestDistance = shortestDistance,
+        )
+
+        is RouteSelection.Transit -> TransportRequestEntity.Transit(
+            provider = profileId.provider,
+            profile = profileId.profile,
+            alternatives = alternatives,
+            modeFilter = modeFilter.map { it.id },
+            maxChanges = maxChanges,
+            pedestrianSpeedMetersPerSecond = pedestrianSpeedMetersPerSecond,
+            pedestrianMaxDistanceMeters = pedestrianMaxDistanceMeters,
         )
     }
 
@@ -206,8 +233,37 @@ object TravelPlanEntityMapper {
             id = id,
             type = TransportType.valueOf(transportType),
             route = route.toDomain(),
+            request = request?.toDomain(),
         )
     }
+
+    fun TransportRequestEntity.toDomain(): RouteSelection = when (this) {
+        is TransportRequestEntity.Routing -> RouteSelection.Routing(
+            profileId = RoutingProfileId(provider = provider, profile = profile),
+            mode = RoutingMode(mode),
+            alternatives = alternatives,
+            avoid = avoid.mapNotNull { it.toRouteFeatureOrNull() }.toSet(),
+            shortestDistance = shortestDistance,
+        )
+
+        is TransportRequestEntity.Transit -> RouteSelection.Transit(
+            profileId = RoutingProfileId(provider = provider, profile = profile),
+            modeFilter = modeFilter.map { RoutingMode(it) }.toSet(),
+            alternatives = alternatives,
+            maxChanges = maxChanges,
+            pedestrianSpeedMetersPerSecond = pedestrianSpeedMetersPerSecond,
+            pedestrianMaxDistanceMeters = pedestrianMaxDistanceMeters,
+        )
+    }
+
+    /**
+     * The feature this name stands for, or null when this build has never heard of it.
+     *
+     * Lenient rather than `valueOf`, because a document written by a newer build may name a feature
+     * that does not exist here yet, and one unknown option is not a reason to fail the whole plan:
+     * dropping it leaves a request that still computes, only without that option.
+     */
+    private fun String.toRouteFeatureOrNull(): RouteFeature? = RouteFeature.entries.firstOrNull { it.name == this }
 
     fun RouteEntity.toDomain(): Route = Route(
         sections = sections.map { it.toDomain() },

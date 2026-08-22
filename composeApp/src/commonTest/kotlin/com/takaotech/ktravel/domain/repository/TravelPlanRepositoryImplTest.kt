@@ -55,6 +55,9 @@ private data class Ctx(
 
 private fun mockAttachmentDataSource(): AttachmentDataSource = mock(MockMode.autoUnit)
 
+private fun transportStep(id: String, type: TransportType) =
+    StepDomain.Transport(id = id, type = type, route = Route(emptyList()))
+
 private fun freshCtx(): Ctx {
     val ds = mockDataSource()
     return Ctx(TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, mockAttachmentDataSource()), ds)
@@ -645,7 +648,7 @@ class TravelPlanRepositoryImplTest :
                     type = TransportType.TRAIN,
                     route = Route(emptyList()),
                 )
-                repo.addTransportStep(dayIds[1], "place1", transportStep)
+                repo.putTransportStep(dayIds[1], "place1", transportStep)
                 val stateBefore = repo.planningState.value
                 repo.moveStepToPlace("transport1", dayIds[1])
 
@@ -735,7 +738,7 @@ class TravelPlanRepositoryImplTest :
                     type = TransportType.TRAIN,
                     route = Route(emptyList()),
                 )
-                repo.addTransportStep(dayIds[1], "place1", transportStep)
+                repo.putTransportStep(dayIds[1], "place1", transportStep)
                 val stateBefore = repo.planningState.value
                 repo.updatePlaceNote(dayIds[1], "transport1", "note")
 
@@ -769,8 +772,8 @@ class TravelPlanRepositoryImplTest :
             }
         }
 
-        given("addTransportStep") {
-            `when`("addTransportStep inserts a step immediately after the specified reference step") {
+        given("putTransportStep") {
+            `when`("putTransportStep is given two places with nothing between them") {
                 val (repo, ds, dayIds) = ctxWith3Days()
                 val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
                 val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
@@ -778,8 +781,8 @@ class TravelPlanRepositoryImplTest :
                 repo.savePlace(p2, dayIds[1])
                 repo.movePlaceToStep("p1", dayIds[1])
                 repo.movePlaceToStep("p2", dayIds[1])
-                val newStep = StepDomain.Place(id = "new1", name = "New Stop", lat = 0.0, lng = 0.0)
-                repo.addTransportStep(dayIds[1], "p1", newStep)
+                val newStep = transportStep("new1", TransportType.TRAIN)
+                repo.putTransportStep(dayIds[1], "p1", newStep)
 
                 then("should insert the step at afterIndex + 1") {
                     val steps = repo.planningState.value.days[1].steps
@@ -799,26 +802,48 @@ class TravelPlanRepositoryImplTest :
                 }
             }
 
-            `when`("addTransportStep with an invalid dayId does not modify the state") {
+            `when`("putTransportStep is given two places that already have a transport between them") {
+                val (repo, _, dayIds) = ctxWith3Days()
+                val p1 = PlaceDomain(id = "p1", name = "P1", lat = 0.0, lng = 0.0)
+                val p2 = PlaceDomain(id = "p2", name = "P2", lat = 0.0, lng = 0.0)
+                repo.savePlace(p1, dayIds[1])
+                repo.savePlace(p2, dayIds[1])
+                repo.movePlaceToStep("p1", dayIds[1])
+                repo.movePlaceToStep("p2", dayIds[1])
+                repo.putTransportStep(dayIds[1], "p1", transportStep("first", TransportType.TRAIN))
+                repo.putTransportStep(dayIds[1], "p1", transportStep("second", TransportType.BUS))
+
+                then("should replace the transport instead of adding a second one") {
+                    val steps = repo.planningState.value.days[1].steps
+                    steps shouldHaveSize 3
+                    steps[0].id shouldBe "p1"
+                    steps[2].id shouldBe "p2"
+                    (steps[1] as StepDomain.Transport).type shouldBe TransportType.BUS
+                }
+
+                then("should keep the id of the transport it replaced") {
+                    repo.planningState.value.days[1].steps[1].id shouldBe "first"
+                }
+            }
+
+            `when`("putTransportStep with an invalid dayId does not modify the state") {
                 val (repo, _, dayIds) = ctxWith3Days()
                 repo.savePlace(COLOSSEO, dayIds[1])
                 repo.movePlaceToStep("place1", dayIds[1])
                 val stateBefore = repo.planningState.value
-                val newStep = StepDomain.Place(id = "new1", name = "New", lat = 0.0, lng = 0.0)
-                repo.addTransportStep("invalid-day-id", "place1", newStep)
+                repo.putTransportStep("invalid-day-id", "place1", transportStep("new1", TransportType.CAR))
 
                 then("should not modify the state") {
                     repo.planningState.value shouldBe stateBefore
                 }
             }
 
-            `when`("addTransportStep with an invalid afterStepId does not modify the state") {
+            `when`("putTransportStep with an invalid afterStepId does not modify the state") {
                 val (repo, _, dayIds) = ctxWith3Days()
                 repo.savePlace(COLOSSEO, dayIds[1])
                 repo.movePlaceToStep("place1", dayIds[1])
                 val stateBefore = repo.planningState.value
-                val newStep = StepDomain.Place(id = "new1", name = "New", lat = 0.0, lng = 0.0)
-                repo.addTransportStep(dayIds[1], "invalid-after-step-id", newStep)
+                repo.putTransportStep(dayIds[1], "invalid-after-step-id", transportStep("new1", TransportType.CAR))
 
                 then("should not modify the state") {
                     repo.planningState.value shouldBe stateBefore
@@ -903,7 +928,7 @@ class TravelPlanRepositoryImplTest :
                     type = TransportType.TRAIN,
                     route = Route(emptyList()),
                 )
-                repo.addTransportStep(dayIds[1], "place1", transportStep)
+                repo.putTransportStep(dayIds[1], "place1", transportStep)
                 repo.deleteStep("transport1", dayIds[1])
 
                 then("should remove the Transport step from the day's steps list") {

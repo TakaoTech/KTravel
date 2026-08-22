@@ -104,7 +104,55 @@ sealed class StepEntity {
         override val id: String,
         @SerialName("transport_type") val transportType: String,
         @SerialName("route") val route: RouteEntity,
+        // Absent from the documents written before the request was recorded, hence the default.
+        @SerialName("request") val request: TransportRequestEntity? = null,
     ) : StepEntity()
+}
+
+/**
+ * The request that produced the alternatives a transport was chosen from.
+ *
+ * Sealed for the same reason `RouteSelection` is upstream: the two families do not take the same
+ * parameters, and one flat record would carry "avoid tolls" into a train journey and "how many
+ * transfers" into a car route.
+ *
+ * Vehicles and profiles cross as plain strings because they are plain identifiers on the way in
+ * too: their vocabulary belongs to the profile that declares them and is not knowable here.
+ *
+ * @property provider Who computes the route.
+ * @property profile Which of that provider's APIs does.
+ * @property alternatives How many routes were asked for.
+ */
+@Serializable
+sealed class TransportRequestEntity {
+    abstract val provider: String
+    abstract val profile: String
+    abstract val alternatives: Int
+
+    /** A route on roads, travelled by one vehicle. */
+    @Serializable
+    @SerialName("routing")
+    data class Routing(
+        @SerialName("provider") override val provider: String,
+        @SerialName("profile") override val profile: String,
+        @SerialName("alternatives") override val alternatives: Int = 1,
+        @SerialName("mode") val mode: String,
+        @SerialName("avoid") val avoid: List<String> = emptyList(),
+        @SerialName("shortest_distance") val shortestDistance: Boolean = false,
+    ) : TransportRequestEntity()
+
+    /** A journey on scheduled services. */
+    @Serializable
+    @SerialName("transit")
+    data class Transit(
+        @SerialName("provider") override val provider: String,
+        @SerialName("profile") override val profile: String,
+        @SerialName("alternatives") override val alternatives: Int = 1,
+        @SerialName("mode_filter") val modeFilter: List<String> = emptyList(),
+        @SerialName("max_changes") val maxChanges: Int? = null,
+        @SerialName("pedestrian_speed_mps") val pedestrianSpeedMetersPerSecond: Double? = null,
+        @SerialName("pedestrian_max_distance_meters") val pedestrianMaxDistanceMeters: Int? = null,
+    ) : TransportRequestEntity()
 }
 
 @Serializable

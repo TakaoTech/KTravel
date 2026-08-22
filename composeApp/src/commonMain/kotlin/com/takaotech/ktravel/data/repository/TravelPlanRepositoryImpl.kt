@@ -13,7 +13,6 @@ import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addPlaceAttachment
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.addTransportStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.clearFinalDestinationSchedules
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deletePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
@@ -23,6 +22,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.movePlaceToStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepDown
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.putTransportStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
@@ -148,8 +148,8 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun moveTravelStepDown(stepId: String, dayId: String) = mutate { it.moveStepDown(stepId, dayId) }
 
-    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) =
-        mutate { it.addTransportStep(dayId, afterStepId, step) }
+    override suspend fun putTransportStep(dayId: String, afterStepId: String, step: StepDomain.Transport) =
+        mutate { it.putTransportStep(dayId, afterStepId, step) }
 
     override suspend fun deleteStep(stepId: String, dayId: String) = mutate { it.deleteStep(stepId, dayId) }
 

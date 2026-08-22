@@ -5,6 +5,10 @@ import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.domain.routing.RouteFeature
+import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.RoutingRoute
 import com.takaotech.ktravel.domain.routing.model.RoutingSection
@@ -31,7 +35,7 @@ class SaveTransportStepUseCaseTest :
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("TRAIN")
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type TRAIN") {
                     val saved = fakeRepository.savedStep
@@ -45,7 +49,7 @@ class SaveTransportStepUseCaseTest :
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("BUS")
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type BUS") {
                     val saved = fakeRepository.savedStep
@@ -59,7 +63,7 @@ class SaveTransportStepUseCaseTest :
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("FLIGHT")
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type FLIGHT") {
                     val saved = fakeRepository.savedStep
@@ -73,7 +77,7 @@ class SaveTransportStepUseCaseTest :
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("train")
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type TRAIN (case-insensitive)") {
                     val saved = fakeRepository.savedStep
@@ -87,7 +91,7 @@ class SaveTransportStepUseCaseTest :
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("FERRY")
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type CAR as default") {
                     val saved = fakeRepository.savedStep
@@ -104,7 +108,7 @@ class SaveTransportStepUseCaseTest :
                     sections = emptyList(),
                 )
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type CAR as default") {
                     val saved = fakeRepository.savedStep
@@ -121,7 +125,7 @@ class SaveTransportStepUseCaseTest :
                     sections = emptyList(),
                 )
 
-                useCase("day-1", "step-1", route)
+                useCase("day-1", "step-1", route, ROAD_REQUEST)
 
                 then("should save a Transport step with type CAR as default") {
                     val saved = fakeRepository.savedStep
@@ -134,7 +138,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
 
-                useCase("day-1", "step-1", journeyRiding("REGIONAL_TRAIN"))
+                useCase("day-1", "step-1", journeyRiding("REGIONAL_TRAIN"), TRANSIT_REQUEST)
 
                 then("should file it under the first vehicle and not under the walk") {
                     val saved = fakeRepository.savedStep
@@ -147,7 +151,7 @@ class SaveTransportStepUseCaseTest :
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
 
-                useCase("day-1", "step-1", journeyRiding("SUBWAY"))
+                useCase("day-1", "step-1", journeyRiding("SUBWAY"), TRANSIT_REQUEST)
 
                 then("should fall back to the default, which the plan's vocabulary has no word for") {
                     val saved = fakeRepository.savedStep
@@ -156,12 +160,38 @@ class SaveTransportStepUseCaseTest :
                 }
             }
 
+            `when`("invoked with a route and the request that produced it") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                useCase("day-1", "step-1", routeWithMode("CAR"), ROAD_REQUEST)
+
+                then("should save the request beside the route") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.request shouldBe ROAD_REQUEST
+                }
+            }
+
+            `when`("invoked with a journey and the request that produced it") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                useCase("day-1", "step-1", journeyRiding("REGIONAL_TRAIN"), TRANSIT_REQUEST)
+
+                then("should save the request beside the journey") {
+                    val saved = fakeRepository.savedStep
+                    saved.shouldBeInstanceOf<StepDomain.Transport>()
+                    saved.request shouldBe TRANSIT_REQUEST
+                }
+            }
+
             `when`("invoked with specific dayId and afterStepId") {
                 val fakeRepository = FakeTravelPlanRepositoryForTransport()
                 val useCase = SaveTransportStepUseCase(fakeRepository)
                 val route = routeWithMode("CAR")
 
-                useCase("my-day", "my-step", route)
+                useCase("my-day", "my-step", route, ROAD_REQUEST)
 
                 then("should pass the correct dayId and afterStepId to the repository") {
                     fakeRepository.savedDayId shouldBe "my-day"
@@ -170,6 +200,26 @@ class SaveTransportStepUseCaseTest :
             }
         }
     })
+
+private val ROAD_PROFILE = RoutingProfileId(provider = "here", profile = "routing")
+private val TRANSIT_PROFILE = RoutingProfileId(provider = "here", profile = "transit")
+
+private val ROAD_REQUEST = RouteSelection.Routing(
+    profileId = ROAD_PROFILE,
+    mode = RoutingMode("CAR"),
+    alternatives = 3,
+    avoid = setOf(RouteFeature.TOLL_ROAD),
+    shortestDistance = true,
+)
+
+private val TRANSIT_REQUEST = RouteSelection.Transit(
+    profileId = TRANSIT_PROFILE,
+    modeFilter = setOf(RoutingMode("REGIONAL_TRAIN")),
+    alternatives = 2,
+    maxChanges = 1,
+    pedestrianSpeedMetersPerSecond = 0.8,
+    pedestrianMaxDistanceMeters = 1500,
+)
 
 private fun routeWithMode(mode: String) = RoutingRoute(
     summary = RouteSummary(durationSeconds = 30.minutes, distance = 1000 * Length.meters),
@@ -225,7 +275,7 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override suspend fun moveStepToPlace(stepId: String, dayId: String) = Unit
     override suspend fun moveTravelStepUp(stepId: String, dayId: String) = Unit
     override suspend fun moveTravelStepDown(stepId: String, dayId: String) = Unit
-    override suspend fun addTransportStep(dayId: String, afterStepId: String, step: StepDomain) {
+    override suspend fun putTransportStep(dayId: String, afterStepId: String, step: StepDomain.Transport) {
         savedDayId = dayId
         savedAfterStepId = afterStepId
         savedStep = step

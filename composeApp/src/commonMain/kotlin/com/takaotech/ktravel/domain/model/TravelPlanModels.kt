@@ -3,6 +3,7 @@
 package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteSelection
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlin.uuid.ExperimentalUuidApi
@@ -109,10 +110,19 @@ sealed class StepDomain(open val id: String = newId()) {
         val attachments: List<AttachmentDomain> = emptyList(),
     ) : StepDomain(id)
 
+    /**
+     * Transport placed between two places of the itinerary.
+     *
+     * @property request The request that produced the alternatives this one was chosen from, when
+     * it is known. Null for a step filed by a build that did not record it. Kept so a second
+     * calculation between the same two places starts from what the traveller asked for last time
+     * rather than from the defaults.
+     */
     data class Transport(
         override val id: String = newId(),
         val type: TransportType,
         val route: com.takaotech.ktravel.domain.routing.model.Route,
+        val request: RouteSelection? = null,
     ) : StepDomain(id)
 }
 

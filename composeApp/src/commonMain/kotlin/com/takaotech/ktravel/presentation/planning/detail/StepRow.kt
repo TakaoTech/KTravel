@@ -40,3 +40,22 @@ fun buildStepRows(steps: List<StepUi>): ImmutableList<StepRow> = buildList {
         }
     }
 }.toPersistentList()
+
+/**
+ * The two places a transport sits between: the [StepUi.Place] before it and the one after.
+ *
+ * Null when either is missing, which is the same rule the transport screen is keyed on — without
+ * two places there is nothing to compute a route between. Reads the steps out of the rows rather
+ * than taking a separate list, because the rows are what the presenter already holds and the slots
+ * between them carry no step of their own.
+ */
+fun List<StepRow>.transportNeighbours(stepId: String): Pair<String, String>? {
+    val steps = filterIsInstance<StepRow.Step>().map(StepRow.Step::step)
+    val index = steps.indexOfFirst { it.id == stepId }
+    if (index == -1) return null
+
+    val before = steps.take(index).lastOrNull { it is StepUi.Place } ?: return null
+    val after = steps.drop(index + 1).firstOrNull { it is StepUi.Place } ?: return null
+
+    return before.id to after.id
+}

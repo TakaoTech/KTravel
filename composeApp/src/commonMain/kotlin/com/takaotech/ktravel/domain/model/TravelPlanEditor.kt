@@ -202,15 +202,50 @@ object TravelPlanEditor {
         }
     }
 
-    fun TravelPlanDomain.addTransportStep(dayId: String, afterStepId: String, step: StepDomain): TravelPlanDomain =
-        updateDay(dayId) { day ->
-            val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
-            if (afterIndex == -1) {
-                day
-            } else {
-                day.copy(steps = day.steps.toMutableList().also { it.add(afterIndex + 1, step) })
-            }
+    /**
+     * The transport filed immediately after [afterStepId], when there is one.
+     *
+     * The position *is* the identity of a transport: it is the one that takes the traveller from
+     * the place it follows to the place after it, so there is nothing else to key it on.
+     */
+    fun List<StepDomain>.transportAfter(afterStepId: String): StepDomain.Transport? {
+        val afterIndex = indexOfFirst { it.id == afterStepId }
+        if (afterIndex == -1) return null
+        return getOrNull(afterIndex + 1) as? StepDomain.Transport
+    }
+
+    /**
+     * Files [step] immediately after [afterStepId], replacing the transport already there.
+     *
+     * Replace and not append, because a second calculation between the same two places is the same
+     * transport computed again rather than a second one: appending would leave the plan claiming
+     * the traveller takes both. The id of the transport being replaced is kept, so the timeline row
+     * is updated rather than recreated under a new key.
+     *
+     * A [dayId] or an [afterStepId] that is not there is a no-op, as with every other editor
+     * operation.
+     */
+    fun TravelPlanDomain.putTransportStep(
+        dayId: String,
+        afterStepId: String,
+        step: StepDomain.Transport,
+    ): TravelPlanDomain = updateDay(dayId) { day ->
+        val afterIndex = day.steps.indexOfFirst { it.id == afterStepId }
+        if (afterIndex == -1) {
+            day
+        } else {
+            val existing = day.steps.transportAfter(afterStepId)
+            day.copy(
+                steps = day.steps.toMutableList().also {
+                    if (existing == null) {
+                        it.add(afterIndex + 1, step)
+                    } else {
+                        it[afterIndex + 1] = step.copy(id = existing.id)
+                    }
+                },
+            )
         }
+    }
 
     fun TravelPlanDomain.deleteStep(stepId: String, dayId: String): TravelPlanDomain =
         updateDay(dayId) { it.copy(steps = it.steps.filter { s -> s.id != stepId }) }

@@ -3,6 +3,7 @@ package com.takaotech.ktravel.presentation.planning.transport
 import androidx.compose.runtime.Stable
 import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
@@ -103,6 +104,14 @@ data class PlanningTransportUiState(
      * journey as a timeline of departures, and neither view can render the other's model.
      */
     val result: RouteResult? = null,
+    /**
+     * The request [result] came out of, kept so the confirmed alternative can be filed with it.
+     *
+     * Not read back from the options draft at confirmation time: the traveller can change a vehicle
+     * after computing and before confirming, and what has to be recorded is the question that
+     * produced these alternatives rather than the one the screen is holding now.
+     */
+    val requestUsed: RouteSelection? = null,
     val selectedRouteIndex: Int = 0,
 ) {
 

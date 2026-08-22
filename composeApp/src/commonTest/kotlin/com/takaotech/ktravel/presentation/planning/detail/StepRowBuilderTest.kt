@@ -113,6 +113,42 @@ class StepRowBuilderTest : BehaviorSpec() {
             }
         }
 
+        given("a transport between two places") {
+            val rows = buildStepRows(listOf(place("a"), transport("t"), place("b")))
+
+            `when`("looking for the places around it") {
+                then("the place before and the place after are returned") {
+                    rows.transportNeighbours("t") shouldBe ("a" to "b")
+                }
+            }
+
+            `when`("looking for a step id that is not there") {
+                then("nothing is returned") {
+                    rows.transportNeighbours("missing") shouldBe null
+                }
+            }
+        }
+
+        given("a transport with no place after it") {
+            val rows = buildStepRows(listOf(place("a"), transport("t")))
+
+            `when`("looking for the places around it") {
+                then("nothing is returned, because there is nowhere to travel to") {
+                    rows.transportNeighbours("t") shouldBe null
+                }
+            }
+        }
+
+        given("a transport with no place before it") {
+            val rows = buildStepRows(listOf(transport("t"), place("b")))
+
+            `when`("looking for the places around it") {
+                then("nothing is returned, because there is nowhere to travel from") {
+                    rows.transportNeighbours("t") shouldBe null
+                }
+            }
+        }
+
         given("rows built from the same steps") {
             `when`("comparing keys") {
                 val rows1 = buildStepRows(listOf(place("a"), place("b")))

@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.model.StepDomain
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.transportAfter
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingCatalog
 import com.takaotech.ktravel.domain.routing.RoutingFailure
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalTime
@@ -71,6 +74,17 @@ class PlanningTransportViewModel(
     private val _navigationEvent = MutableSharedFlow<PlanningTransportNavigationEvent>()
     val navigationEvent = _navigationEvent.asSharedFlow()
 
+    /**
+     * The request the transport already on this pair of places was computed with, waiting for a
+     * catalog to say whether its profile can still be used.
+     *
+     * A field and not part of the state: it is consumed once, by the first catalog that arrives, and
+     * nothing draws it. Read before the catalog is asked for rather than beside it, so the order of
+     * the two answers is not a race — and declared before [init] rather than beside its only other
+     * use, because a property initializer runs *after* the init block and would put the null back.
+     */
+    private var pendingRequest: RouteSelection? = null
+
     init {
         viewModelScope.launch {
             planningGraph.travelPlanRepository
@@ -110,7 +124,13 @@ class PlanningTransportViewModel(
         val kind = if (preferred == NavigatorKind.REMOTE && !remoteConfigured) NavigatorKind.EMBEDDED else preferred
 
         mUiState.update { it.copy(navigatorKind = kind, isRemoteConfigured = remoteConfigured) }
-        loadCatalog(kind)
+
+        viewModelScope.launch {
+            pendingRequest = planningGraph.travelPlanRepository
+                .getTravelDayFlow(dayId).first().steps.transportAfter(startPlaceId)?.request
+
+            loadCatalog(kind)
+        }
     }
 
     // ---- which navigator ----------------------------------------------------------------------
@@ -146,6 +166,12 @@ class PlanningTransportViewModel(
      * usable one is what the traveller would do anyway.
      */
     private fun keepProfileValid(catalog: RoutingCatalog) {
+        restore(catalog)?.let { request ->
+            selectProfile(request.profileId)
+            routeOptionsDraft.update(request)
+            return
+        }
+
         val selectedId = mUiState.value.selectedProfileId
         if (catalog.options.any { it.profile.id == selectedId && it.isSelectable }) return
 
@@ -157,6 +183,26 @@ class PlanningTransportViewModel(
         }
 
         selectProfile(fallback.profile.id)
+    }
+
+    /**
+     * What was asked for last time, when this catalog can still serve it.
+     *
+     * Consumed on the first answer whether or not it is used, so that switching navigator or
+     * retrying an unreachable one never restores over choices the traveller has since made. A
+     * profile this navigator does not serve simply falls through to the usual fallback.
+     *
+     * The draft it is written into is the plan's, not this pair of places': it may still hold what
+     * was configured for another transport, which is exactly why the restore overwrites it instead
+     * of deferring to it.
+     */
+    private fun restore(catalog: RoutingCatalog): RouteSelection? {
+        val request = pendingRequest ?: return null
+        pendingRequest = null
+
+        return request.takeIf {
+            catalog.options.any { option -> option.profile.id == it.profileId && option.isSelectable }
+        }
     }
 
     // ---- when to travel -------------------------------------------------------------------------
@@ -235,7 +281,7 @@ class PlanningTransportViewModel(
         val dayDate = state.dayDate ?: return
 
         calculateTransportJob = viewModelScope.launch(Dispatchers.Default) {
-            mUiState.update { it.copy(isLoading = true, failure = null, result = null) }
+            mUiState.update { it.copy(isLoading = true, failure = null, result = null, requestUsed = null) }
 
             val result = try {
                 routingService.routes(
@@ -251,7 +297,9 @@ class PlanningTransportViewModel(
                 return@launch
             }
 
-            mUiState.update { it.copy(isLoading = false, result = result, selectedRouteIndex = 0) }
+            mUiState.update {
+                it.copy(isLoading = false, result = result, requestUsed = selection, selectedRouteIndex = 0)
+            }
             _navigationEvent.emit(PlanningTransportNavigationEvent.NavigateToRoutePreview)
         }
     }
@@ -271,16 +319,17 @@ class PlanningTransportViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             val state = mUiState.value
             val index = state.selectedRouteIndex
+            val request = state.requestUsed ?: return@launch
 
             when (val result = state.result) {
                 null -> return@launch
 
                 is RouteResult.Routing -> result.routes.routes.getOrNull(index)?.let {
-                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it)
+                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it, request)
                 }
 
                 is RouteResult.Transit -> result.journeys.journeys.getOrNull(index)?.let {
-                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it)
+                    planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it, request)
                 }
             }
         }

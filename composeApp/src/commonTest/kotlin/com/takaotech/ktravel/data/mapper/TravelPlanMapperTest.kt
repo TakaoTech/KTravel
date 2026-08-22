@@ -5,6 +5,7 @@ import com.takaotech.ktravel.data.entity.RouteActionEntity
 import com.takaotech.ktravel.data.entity.RouteEntity
 import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TransportRequestEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
@@ -14,6 +15,10 @@ import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
 import com.takaotech.ktravel.domain.model.VisitScheduleDomain
+import com.takaotech.ktravel.domain.routing.RouteFeature
+import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.RoutingMode
+import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RouteSection
@@ -253,6 +258,87 @@ class TravelPlanMapperTest :
                 }
                 then("round-tripped route section duration should match original") {
                     roundTripped!!.route.sections[0].summary.durationSeconds shouldBe 30.minutes
+                }
+            }
+        }
+
+        given("a StepDomain.Transport carrying the request it was computed with") {
+            val route = Route(sections = emptyList())
+
+            `when`("the request is a road one and it is round-tripped") {
+                val request = RouteSelection.Routing(
+                    profileId = RoutingProfileId(provider = "here", profile = "routing"),
+                    mode = RoutingMode("CAR"),
+                    alternatives = 3,
+                    avoid = setOf(RouteFeature.TOLL_ROAD, RouteFeature.FERRY),
+                    shortestDistance = true,
+                )
+                val step = StepDomain.Transport(
+                    id = "step-3",
+                    type = TransportType.CAR,
+                    route = route,
+                    request = request,
+                )
+                val roundTripped = with(TravelPlanEntityMapper) {
+                    step.toEntity().toDomain()
+                } as? StepDomain.Transport
+
+                then("the request should come back unchanged") {
+                    roundTripped!!.request shouldBe request
+                }
+            }
+
+            `when`("the request is a transit one and it is round-tripped") {
+                val request = RouteSelection.Transit(
+                    profileId = RoutingProfileId(provider = "here", profile = "transit"),
+                    modeFilter = setOf(RoutingMode("REGIONAL_TRAIN"), RoutingMode("BUS")),
+                    alternatives = 2,
+                    maxChanges = 1,
+                    pedestrianSpeedMetersPerSecond = 0.8,
+                    pedestrianMaxDistanceMeters = 1500,
+                )
+                val step = StepDomain.Transport(
+                    id = "step-4",
+                    type = TransportType.TRAIN,
+                    route = route,
+                    request = request,
+                )
+                val roundTripped = with(TravelPlanEntityMapper) {
+                    step.toEntity().toDomain()
+                } as? StepDomain.Transport
+
+                then("the request should come back unchanged") {
+                    roundTripped!!.request shouldBe request
+                }
+            }
+
+            `when`("the step carries no request") {
+                val step = StepDomain.Transport(id = "step-5", type = TransportType.BUS, route = route)
+                val entity = with(TravelPlanEntityMapper) { step.toEntity() } as StepEntity.Transport
+
+                then("the entity should carry none either") {
+                    entity.request shouldBe null
+                }
+                then("the round-tripped step should carry none either") {
+                    val roundTripped = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
+                    roundTripped.request shouldBe null
+                }
+            }
+        }
+
+        given("a stored request naming a feature this build has never heard of") {
+            val entity = TransportRequestEntity.Routing(
+                provider = "here",
+                profile = "routing",
+                mode = "CAR",
+                avoid = listOf("TOLL_ROAD", "HOVERCRAFT_LANE"),
+            )
+
+            `when`("toDomain is called") {
+                val domain = with(TravelPlanEntityMapper) { entity.toDomain() } as RouteSelection.Routing
+
+                then("the unknown feature should be dropped rather than failing the plan") {
+                    domain.avoid shouldBe setOf(RouteFeature.TOLL_ROAD)
                 }
             }
         }

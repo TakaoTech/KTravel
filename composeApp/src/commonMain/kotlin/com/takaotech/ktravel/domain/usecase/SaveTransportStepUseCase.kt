@@ -4,6 +4,7 @@ import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.model.RoutingRoute
 import com.takaotech.ktravel.domain.routing.model.TransitJourney
 import com.takaotech.ktravel.domain.routing.model.storedTransportMode
@@ -13,6 +14,12 @@ import dev.zacsweers.metro.SingleIn
 
 /**
  * Files the alternative the traveller confirmed into the plan.
+ *
+ * The request that produced the alternatives is filed beside the answer, so a second calculation
+ * between the same two places starts from what the traveller asked for rather than from the
+ * defaults. It is passed in rather than read from the options draft: the draft is what the screen
+ * is holding *now*, and the traveller may have changed a vehicle after computing and before
+ * confirming.
  *
  * One overload per kind of answer rather than one method taking a common type. The two are stored in
  * the same shape, but they are not filed the same way, and the difference is not a detail: a journey
@@ -24,13 +31,13 @@ import dev.zacsweers.metro.SingleIn
 class SaveTransportStepUseCase(private val repository: TravelPlanRepository) {
 
     /** Files a route on roads, under the vehicle it is driven in. */
-    suspend operator fun invoke(dayId: String, afterStepId: String, route: RoutingRoute) {
-        store(dayId, afterStepId, route.sections.firstOrNull()?.mode, route.toStoredRoute())
+    suspend operator fun invoke(dayId: String, afterStepId: String, route: RoutingRoute, request: RouteSelection) {
+        store(dayId, afterStepId, route.sections.firstOrNull()?.mode, route.toStoredRoute(), request)
     }
 
     /** Files a journey, under the first vehicle it puts the traveller on. */
-    suspend operator fun invoke(dayId: String, afterStepId: String, journey: TransitJourney) {
-        store(dayId, afterStepId, journey.storedTransportMode(), journey.toStoredRoute())
+    suspend operator fun invoke(dayId: String, afterStepId: String, journey: TransitJourney, request: RouteSelection) {
+        store(dayId, afterStepId, journey.storedTransportMode(), journey.toStoredRoute(), request)
     }
 
     private suspend fun store(
@@ -38,11 +45,12 @@ class SaveTransportStepUseCase(private val repository: TravelPlanRepository) {
         afterStepId: String,
         mode: String?,
         route: com.takaotech.ktravel.domain.routing.model.Route,
+        request: RouteSelection,
     ) {
-        repository.addTransportStep(
+        repository.putTransportStep(
             dayId,
             afterStepId,
-            StepDomain.Transport(type = mode.toTransportType(), route = route),
+            StepDomain.Transport(type = mode.toTransportType(), route = route, request = request),
         )
     }
 
