@@ -16,6 +16,19 @@ import org.koin.core.module.Module
 const val EPHEMERAL_PORT: Int = 0
 
 /**
+ * The address an embedded server binds to, and the one its callers dial.
+ *
+ * An address rather than a hostname: `localhost` resolves through the platform resolver, which on a
+ * device with an unusual hosts file or an IPv6 first stack can answer with an address the server is
+ * not listening on.
+ *
+ * Binding here and not to every interface is what keeps the embedded server inside its process. On a
+ * phone `0.0.0.0` would publish it to everyone on the same Wi-Fi, which is a routing service nobody
+ * asked to host.
+ */
+const val LOOPBACK_HOST: String = "127.0.0.1"
+
+/**
  * A started server together with the port the operating system actually assigned to it.
  *
  * @property server the running engine, for callers that need more than [stop].
@@ -83,6 +96,9 @@ fun startServer(
  * Does not block: the caller keeps its run loop and stops the returned server itself. The port is
  * read once the socket is bound, so it is the real one rather than the [EPHEMERAL_PORT] placeholder.
  *
+ * Bound to [LOOPBACK_HOST], unlike [startServer]: this is the server a host application runs for
+ * itself, while [startServer] is the standalone process, which has to be reachable from outside.
+ *
  * @param logger The host's logger. Embedded there always is a host, and it is the one that decided
  *   where log lines go; a server that ignored it would write its own somewhere else, at a severity
  *   the application never asked for.
@@ -102,7 +118,7 @@ suspend fun startServerOnFreePort(logger: Logger? = null): RunningServer =
  * @param logger The host's logger, as in [startServerOnFreePort].
  */
 internal suspend fun startServerOnFreePort(koinOverrides: Module?, logger: Logger? = null): RunningServer {
-    val server = embeddedServer(CIO, port = EPHEMERAL_PORT) {
+    val server = embeddedServer(CIO, port = EPHEMERAL_PORT, host = LOOPBACK_HOST) {
         module(NavigatorServerConfig.EMBEDDED, koinOverrides, logger)
     }
     server.startSuspend(wait = false)

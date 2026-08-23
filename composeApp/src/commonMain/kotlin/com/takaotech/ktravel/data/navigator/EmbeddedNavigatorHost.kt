@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.data.navigator
 
 import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.LOOPBACK_HOST
 import com.takaotech.ktravel.RunningServer
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.di.AppScope
@@ -10,14 +11,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-/**
- * Bound explicitly to the loopback address rather than to a hostname.
- *
- * `localhost` resolves through the platform resolver, which on a device with an unusual hosts file
- * or an IPv6 first stack can answer with an address the server is not listening on.
- */
-private const val LOOPBACK_HOST = "127.0.0.1"
 
 /**
  * Runs gunzo-navigator inside this process, and says where it is.
