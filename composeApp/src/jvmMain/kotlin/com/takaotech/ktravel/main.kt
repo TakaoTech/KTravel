@@ -21,6 +21,7 @@ fun main() {
 
     application {
         System.setProperty("compose.interop.blending", "true")
+        System.setProperty("apple.awt.application.appearance", "system")
         FileKit.init(appId = "ktravel")
         Composer.setDiagnosticStackTraceMode(ComposeStackTraceMode.SourceInformation)
 

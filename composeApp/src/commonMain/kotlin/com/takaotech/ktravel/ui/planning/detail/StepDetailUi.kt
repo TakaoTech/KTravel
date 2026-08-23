@@ -2,18 +2,21 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,18 +25,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewFontScale
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -79,6 +90,8 @@ private const val MARKER_ZOOM = 14.0
 internal object StepDetailTestTags {
     const val MAP = "step_detail_map"
     const val BACK_BUTTON = "step_detail_back"
+    const val START_TIME_FIELD = "step_detail_start_time"
+    const val END_TIME_FIELD = "step_detail_end_time"
 
     val NOTES = StepNotesTestTags(
         noteView = "step_detail_note_view",
@@ -235,6 +248,12 @@ internal fun StepDetailPlaceContent(
  */
 @Composable
 private fun PlaceMap(lat: Double, lng: Double, modifier: Modifier = Modifier) {
+    // MapLibre needs a real graphics context, which previews and UI tests do not have.
+    if (LocalInspectionMode.current) {
+        Surface(modifier = modifier, color = MaterialTheme.colorScheme.surfaceVariant) {}
+        return
+    }
+
     val cameraState = rememberCameraState(
         firstPosition = CameraPosition(
             target = Position(longitude = lng, latitude = lat),
@@ -271,10 +290,31 @@ private fun PlaceMap(lat: Double, lng: Double, modifier: Modifier = Modifier) {
     }
 }
 
+/** Gap between the two schedule fields, both when they sit side by side and when they stack. */
+private val SCHEDULE_FIELD_SPACING = 16.dp
+
+/** Horizontal content padding of a field, on both sides. */
+private val SCHEDULE_FIELD_HORIZONTAL_PADDING = 16.dp
+
+/** Gap between the label and the clock value inside a field. */
+private val SCHEDULE_FIELD_INNER_SPACING = 8.dp
+
+/**
+ * Widths a schedule field needs: [inline] renders the label and the clock value on one line,
+ * [wrapped] puts the value underneath the label.
+ */
+@Immutable
+private data class ScheduleFieldWidths(val inline: Dp, val wrapped: Dp)
+
 /**
  * Section that lets the user set the place arrival/departure times. Reuses the shared
- * [ScheduleTimeEditor] (Material3 time pickers + `departure >= arrival` validation), rendering two
- * full-width fields; the unset value shows the `--:--` placeholder.
+ * [ScheduleTimeEditor] (Material3 time pickers + `departure >= arrival` validation); the unset
+ * value shows the `--:--` placeholder.
+ *
+ * Layout degrades in two steps as the width per field shrinks — which happens both with a larger
+ * font size and with a larger display size: the two fields first put their clock value under their
+ * label, and only then stop sharing the row and stack full width. Without it a squeezed field
+ * breaks its label and its clock value character by character.
  */
 @Composable
 private fun ScheduleSection(
@@ -290,49 +330,169 @@ private fun ScheduleSection(
     ) { scope ->
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
+            val widths = measureScheduleFieldWidths(scope)
 
             Text(
                 text = stringResource(Res.string.planning_detail_schedule_title),
                 style = MaterialTheme.typography.titleMedium,
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                val modifier = if (windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
-                        WIDTH_DP_MEDIUM_LOWER_BOUND,
-                    )
-                ) {
-                    Modifier
-                } else {
-                    Modifier.weight(1f)
-                }
 
-                ScheduleField(
-                    modifier = modifier,
-                    label = stringResource(Res.string.planning_detail_start_time_label),
-                    value = scope.startDisplay,
-                    onClick = scope.openStartPicker,
-                )
-                ScheduleField(
-                    modifier = modifier,
-                    label = stringResource(Res.string.planning_detail_end_time_label),
-                    value = scope.endDisplay,
-                    onClick = scope.openEndPicker,
+            BoxWithConstraints {
+                val widthPerField = (maxWidth - SCHEDULE_FIELD_SPACING) / 2
+
+                val stacked = widthPerField < widths.wrapped
+
+                ScheduleFields(
+                    scope = scope,
+                    stacked = stacked,
+                    fillWidth = !windowAdaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(
+                        WIDTH_DP_MEDIUM_LOWER_BOUND,
+                    ),
+                    // Both fields wrap together, so that they keep the same height.
+                    stackContent = if (stacked) {
+                        maxWidth < widths.inline
+                    } else {
+                        widthPerField < widths.inline
+                    },
                 )
             }
         }
     }
 }
 
+/**
+ * Widths the widest of the two fields needs, measured rather than guessed: they depend on the
+ * translation in use and on the current font scale.
+ */
 @Composable
-private fun ScheduleField(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun measureScheduleFieldWidths(scope: ScheduleTimeEditorScope): ScheduleFieldWidths {
+    val measurer = rememberTextMeasurer()
+    val labelStyle = MaterialTheme.typography.labelLarge
+    val valueStyle = MaterialTheme.typography.titleMedium
+    val startLabel = stringResource(Res.string.planning_detail_start_time_label)
+    val endLabel = stringResource(Res.string.planning_detail_end_time_label)
+
+    fun labelWidth(text: String): Int = measurer.measure(text, labelStyle).size.width
+    fun valueWidth(text: String): Int = measurer.measure(text, valueStyle).size.width
+
+    val inline = maxOf(
+        labelWidth(startLabel) + valueWidth(scope.startDisplay),
+        labelWidth(endLabel) + valueWidth(scope.endDisplay),
+    )
+    val wrapped = maxOf(
+        labelWidth(startLabel),
+        labelWidth(endLabel),
+        valueWidth(scope.startDisplay),
+        valueWidth(scope.endDisplay),
+    )
+
+    return with(LocalDensity.current) {
+        ScheduleFieldWidths(
+            inline = inline.toDp() +
+                SCHEDULE_FIELD_INNER_SPACING +
+                SCHEDULE_FIELD_HORIZONTAL_PADDING * 2,
+            wrapped = wrapped.toDp() + SCHEDULE_FIELD_HORIZONTAL_PADDING * 2,
+        )
+    }
+}
+
+/**
+ * The two schedule fields, side by side (each taking half of the row when [fillWidth] is set) or
+ * [stacked] full width.
+ */
+@Composable
+private fun ScheduleFields(
+    scope: ScheduleTimeEditorScope,
+    stacked: Boolean,
+    fillWidth: Boolean,
+    stackContent: Boolean,
+) {
+    val startField = @Composable { fieldModifier: Modifier ->
+        ScheduleField(
+            modifier = fieldModifier.testTag(StepDetailTestTags.START_TIME_FIELD),
+            label = stringResource(Res.string.planning_detail_start_time_label),
+            value = scope.startDisplay,
+            stackContent = stackContent,
+            onClick = scope.openStartPicker,
+        )
+    }
+    val endField = @Composable { fieldModifier: Modifier ->
+        ScheduleField(
+            modifier = fieldModifier.testTag(StepDetailTestTags.END_TIME_FIELD),
+            label = stringResource(Res.string.planning_detail_end_time_label),
+            value = scope.endDisplay,
+            stackContent = stackContent,
+            onClick = scope.openEndPicker,
+        )
+    }
+
+    if (stacked) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            startField(Modifier.fillMaxWidth())
+            endField(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(SCHEDULE_FIELD_SPACING)) {
+            // On wider windows the fields keep their natural width, as before.
+            val fieldModifier = if (fillWidth) Modifier.weight(1f) else Modifier
+            startField(fieldModifier)
+            endField(fieldModifier)
+        }
+    }
+}
+
+/**
+ * Single schedule field. The corner radius is fixed rather than the percentage shape Material3
+ * gives a button by default: that one degenerates into an ellipse as soon as the content wraps and
+ * the button grows taller.
+ */
+@Composable
+private fun ScheduleField(
+    label: String,
+    value: String,
+    stackContent: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val labelText = @Composable {
+        Text(text = label, maxLines = 2, textAlign = TextAlign.Center)
+    }
+    // The clock value is atomic: it must never break into "09:" / "30".
+    val valueText = @Composable {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
+
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.heightIn(min = ButtonDefaults.MinHeight),
+        shape = MaterialTheme.shapes.large,
+        contentPadding = PaddingValues(
+            horizontal = SCHEDULE_FIELD_HORIZONTAL_PADDING,
+            vertical = 8.dp,
+        ),
     ) {
-        Text(text = label)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = value, style = MaterialTheme.typography.titleMedium)
+        if (stackContent) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                labelText()
+                valueText()
+            }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(SCHEDULE_FIELD_INNER_SPACING),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                labelText()
+                valueText()
+            }
+        }
     }
 }
 
@@ -350,6 +510,7 @@ private fun BackButton(onClick: () -> Unit) {
 }
 
 @PreviewScreenSizes
+@PreviewFontScale
 @Composable
 private fun StepDetailPlaceContentPreview() = KTravelTheme {
     StepDetailPlaceContent(
@@ -372,6 +533,7 @@ private fun StepDetailPlaceContentPreview() = KTravelTheme {
 }
 
 @PreviewScreenSizes
+@PreviewFontScale
 @Composable
 private fun StepDetailPlaceContentEmptyNotePreview() = KTravelTheme {
     StepDetailPlaceContent(

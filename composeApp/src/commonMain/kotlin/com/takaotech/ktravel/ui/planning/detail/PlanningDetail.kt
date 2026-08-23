@@ -2,7 +2,7 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneExpansionState
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
@@ -40,7 +40,7 @@ data class PlanningDetailPageNavigation(val id: String)
 @Composable
 fun PlanningDetailPage(state: PlanningDetailUiState, modifier: Modifier = Modifier) {
     val coroutine = rememberCoroutineScope()
-    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+    val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
     val directive = calculatePaneScaffoldDirective(windowAdaptiveInfo)
 
     val scaffoldNavigator = rememberSupportingPaneScaffoldNavigator(scaffoldDirective = directive)

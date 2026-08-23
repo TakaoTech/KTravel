@@ -3,6 +3,7 @@ package com.takaotech.ktravel.ui.planning.detail
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
@@ -15,6 +16,7 @@ import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.datetime.LocalDate
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -305,6 +307,57 @@ class StepsPaneContentTest : BehaviorSpec() {
                         onNodeWithTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON).performClick()
                     }
                     openClicked shouldBe true
+                }
+            }
+        }
+
+        given("StepsPaneContent top bar title") {
+            `when`("a day date is provided") {
+                then("the title should show the formatted day") {
+                    runComposeUiTest {
+                        setContent {
+                            StepsPaneContent(
+                                rows = persistentListOf(),
+                                onNavigationBackClick = {},
+                                onOpenBacklogClick = {},
+                                onStepClick = {},
+                                onTransportClick = {},
+                                onDeleteStepClick = {},
+                                onMoveStepUpClick = {},
+                                onMoveStepDownClick = {},
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> },
+                                dayDate = LocalDate(2026, 5, 18),
+                            )
+                        }
+                        onNodeWithTag(StepsPaneTestTags.TITLE)
+                            .assertIsDisplayed()
+                            .assertTextEquals("Monday 18-05-2026")
+                    }
+                }
+            }
+
+            `when`("no day date is provided") {
+                then("the title should be absent") {
+                    runComposeUiTest {
+                        setContent {
+                            StepsPaneContent(
+                                rows = persistentListOf(),
+                                onNavigationBackClick = {},
+                                onOpenBacklogClick = {},
+                                onStepClick = {},
+                                onTransportClick = {},
+                                onDeleteStepClick = {},
+                                onMoveStepUpClick = {},
+                                onMoveStepDownClick = {},
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> },
+                            )
+                        }
+                        onNodeWithTag(StepsPaneTestTags.TITLE).assertDoesNotExist()
+                    }
                 }
             }
         }

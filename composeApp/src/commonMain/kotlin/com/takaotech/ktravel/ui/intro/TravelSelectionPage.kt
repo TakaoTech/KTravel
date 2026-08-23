@@ -55,6 +55,9 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.data.archive.TravelArchiveFormat
 import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
@@ -69,6 +72,7 @@ import com.takaotech.ktravel.ui.common.message
 import com.takaotech.ktravel.ui.common.rememberDisruptiveOperationDialog
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.collections.immutable.ImmutableSet
@@ -76,6 +80,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
@@ -148,7 +153,6 @@ fun TravelSelectionPage(
     val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Reloads the saved travel plans every time the page becomes visible again.
     LifecycleResumeEffect(viewModel) {
         viewModel.loadTravelPlans()
         onPauseOrDispose { }
@@ -162,6 +166,7 @@ fun TravelSelectionPage(
 
     val importLauncher = rememberFilePickerLauncher(
         type = FileKitType.File(TravelArchiveFormat.ACCEPTED_EXTENSIONS),
+        mode = FileKitMode.Single,
     ) { file ->
         file?.let(viewModel::stageImport)
     }
@@ -197,6 +202,14 @@ fun TravelSelectionPage(
             attemptFailed = importState.attemptFailed,
             onConfirm = viewModel::submitSecretsPassword,
             onCancel = viewModel::cancelImport,
+        )
+    }
+
+    if (uiState.isSelectionMode) {
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            isBackEnabled = true,
+            onBackCompleted = viewModel::exitSelectionMode,
         )
     }
 

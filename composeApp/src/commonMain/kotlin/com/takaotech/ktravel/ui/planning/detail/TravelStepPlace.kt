@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.ui.planning.detail
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,7 +55,10 @@ internal fun TravelStepPlace(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 12.dp)
+                        .basicMarquee(),
                     text = step.name,
                     style = MaterialTheme.typography.titleMedium,
                 )

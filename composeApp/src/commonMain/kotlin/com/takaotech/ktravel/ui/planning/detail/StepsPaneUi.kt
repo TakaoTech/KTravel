@@ -2,6 +2,7 @@ package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -35,7 +36,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewFontScale
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
@@ -46,8 +49,10 @@ import com.takaotech.ktravel.presentation.planning.detail.StepsPaneEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepsPaneScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepsPaneUiState
 import com.takaotech.ktravel.presentation.planning.detail.buildStepRows
+import com.takaotech.ktravel.ui.common.formatWeekdayDayMonthYear
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
@@ -64,6 +69,7 @@ internal object StepsPaneTestTags {
     const val LIST = "steps_pane_list"
     const val EMPTY = "steps_pane_empty"
     const val BACK_BUTTON = "steps_pane_back"
+    const val TITLE = "steps_pane_title"
     const val OPEN_BACKLOG_BUTTON = "steps_pane_open_backlog"
     const val TRANSPORT_DURATION = "steps_pane_transport_duration"
     fun addTransportTag(startPlaceId: String, endPlaceId: String) =
@@ -91,6 +97,7 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
     val sink = state.eventSink
     StepsPaneContent(
         rows = state.rows,
+        dayDate = state.date,
         modifier = modifier,
         onNavigationBackClick = { sink(StepsPaneEvent.NavigateBack) },
         onOpenBacklogClick = { sink(StepsPaneEvent.OpenBacklog) },
@@ -125,6 +132,7 @@ internal fun StepsPaneContent(
     onAddTransportClick: (startPlaceId: String, endPlaceId: String) -> Unit,
     onSetArrivalTime: (stepId: String, time: LocalTime) -> Unit,
     onSetDepartureTime: (stepId: String, time: LocalTime) -> Unit,
+    dayDate: LocalDate? = null,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -132,6 +140,17 @@ internal fun StepsPaneContent(
         topBar = {
             TopAppBar(
                 title = {
+                    if (dayDate != null) {
+                        Text(
+                            modifier = Modifier
+                                .testTag(StepsPaneTestTags.TITLE)
+                                .basicMarquee(),
+                            text = dayDate.formatWeekdayDayMonthYear(),
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(
@@ -430,8 +449,10 @@ private fun ScheduleTimeColumn(
                 modifier = Modifier
                     .clickable(onClick = scope.openStartPicker)
                     .minimumInteractiveComponentSize()
+                    .basicMarquee()
                     .semantics { contentDescription = scope.startContentDescription },
                 text = scope.startDisplay,
+                maxLines = 1,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -439,8 +460,10 @@ private fun ScheduleTimeColumn(
                 modifier = Modifier
                     .clickable(onClick = scope.openEndPicker)
                     .minimumInteractiveComponentSize()
+                    .basicMarquee()
                     .semantics { contentDescription = scope.endContentDescription },
                 text = scope.endDisplay,
+                maxLines = 1,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -448,7 +471,8 @@ private fun ScheduleTimeColumn(
     }
 }
 
-@Preview
+@PreviewScreenSizes
+@PreviewFontScale
 @Composable
 private fun StepsPaneContentPreview() = KTravelTheme {
     StepsPaneContent(
@@ -463,5 +487,6 @@ private fun StepsPaneContentPreview() = KTravelTheme {
         onAddTransportClick = { _, _ -> },
         onSetArrivalTime = { _, _ -> },
         onSetDepartureTime = { _, _ -> },
+        dayDate = LocalDate(2026, 5, 18),
     )
 }

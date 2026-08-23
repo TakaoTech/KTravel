@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.ui.settings
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -12,8 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.PreviewFontScale
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.settings.NavigatorReachability
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.planning_transport_status_checking
 import ktravel.composeapp.generated.resources.planning_transport_status_offline
@@ -49,7 +54,7 @@ fun ReachabilityBadge(reachability: NavigatorReachability, modifier: Modifier = 
         NavigatorReachability.Unreachable -> stringResource(Res.string.planning_transport_status_offline)
 
         is NavigatorReachability.Reachable ->
-            "${stringResource(Res.string.planning_transport_status_online)} · ${reachability.latencyMillis} ms"
+            "${stringResource(Res.string.planning_transport_status_online)} - ${reachability.latencyMillis} ms"
     }
 
     Surface(modifier = modifier, shape = CircleShape, color = container, contentColor = content) {
@@ -59,7 +64,11 @@ fun ReachabilityBadge(reachability: NavigatorReachability, modifier: Modifier = 
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             Dot(color = dot)
-            Text(text = text, style = MaterialTheme.typography.labelMedium)
+            Text(
+                modifier = Modifier.basicMarquee(),
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+            )
         }
     }
 }
@@ -67,4 +76,32 @@ fun ReachabilityBadge(reachability: NavigatorReachability, modifier: Modifier = 
 @Composable
 private fun Dot(color: Color, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.size(8.dp), shape = CircleShape, color = color) {}
+}
+
+@PreviewFontScale
+@Composable
+private fun ReachabilityBadgePreview(
+    @PreviewParameter(ReachabilityBadgePreviewParams::class) reachability: NavigatorReachability,
+) = KTravelTheme {
+    Surface {
+        ReachabilityBadge(reachability = reachability, modifier = Modifier.padding(12.dp))
+    }
+}
+
+/**
+ * Every state the badge draws, including the two that share the neutral colours.
+ *
+ * Unknown and NotConfigured look alike apart from their label, which is the whole point of keeping
+ * them apart: the preview is where that difference has to stay readable.
+ */
+internal class ReachabilityBadgePreviewParams : PreviewParameterProvider<NavigatorReachability> {
+    override val values = sequenceOf(
+        NavigatorReachability.Unknown,
+        NavigatorReachability.Checking,
+        NavigatorReachability.NotConfigured,
+        NavigatorReachability.Unreachable,
+        NavigatorReachability.Reachable(version = "1.4.0", latencyMillis = 42),
+        // A slow answer is still an answer: the latency is the only thing that grows the pill.
+        NavigatorReachability.Reachable(version = "1.4.0", latencyMillis = 2_431),
+    )
 }

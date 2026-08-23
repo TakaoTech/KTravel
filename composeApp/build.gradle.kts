@@ -185,6 +185,7 @@ kotlin {
     android {
         namespace = "com.takaotech.ktravel.compose"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
 
         // Kept one release behind the toolchain: D8 does not accept the class file version JDK 25

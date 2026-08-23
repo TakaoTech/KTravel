@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,6 +116,7 @@ import ktravel.composeapp.generated.resources.transport_detail_note_title
 import ktravel.composeapp.generated.resources.transport_detail_steps_title
 import ktravel.composeapp.generated.resources.transport_detail_time_unknown
 import ktravel.composeapp.generated.resources.transport_detail_title
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -325,6 +327,7 @@ internal fun TransportDetailContent(
                             notes = notes,
                             onPointClick = onPointClick,
                             onNotesEvent = onNotesEvent,
+                            map = null,
                         )
                     }
                 },
@@ -336,29 +339,26 @@ internal fun TransportDetailContent(
                 },
             )
         } else {
-            Column(
+            TransportDetailPanel(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = padding.calculateTopPadding()),
-            ) {
-                map(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(COMPACT_MAP_HEIGHT)
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                )
-                TransportDetailPanel(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = padding,
-                    transport = transport,
-                    host = host,
-                    notes = notes,
-                    onPointClick = onPointClick,
-                    onNotesEvent = onNotesEvent,
-                )
-            }
+                contentPadding = padding,
+                transport = transport,
+                host = host,
+                notes = notes,
+                onPointClick = onPointClick,
+                onNotesEvent = onNotesEvent,
+                map = {
+                    map(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(COMPACT_MAP_HEIGHT)
+                            .padding(horizontal = 16.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                    )
+                },
+            )
         }
     }
 }
@@ -370,6 +370,7 @@ private fun TransportDetailPanel(
     transport: TransportDetailUiModel,
     host: StepNotesHost,
     notes: StepNotesUiState,
+    map: (@Composable LazyItemScope.() -> Unit)?,
     onPointClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
     onNotesEvent: (StepNotesEvent) -> Unit,
 ) {
@@ -379,6 +380,10 @@ private fun TransportDetailPanel(
         modifier = modifier,
         contentPadding = contentPadding,
     ) {
+        if (map != null) {
+            item(content = map)
+        }
+
         item {
             SegmentHead(
                 transport = transport,
@@ -459,13 +464,7 @@ private fun SegmentHead(transport: TransportDetailUiModel, modifier: Modifier = 
 }
 
 @Composable
-private fun Endpoint(
-    icon: org.jetbrains.compose.resources.DrawableResource,
-    tint: Color,
-    label: String,
-    name: String,
-    time: LocalDateTime?,
-) {
+private fun Endpoint(icon: DrawableResource, tint: Color, label: String, name: String, time: LocalDateTime?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -571,12 +570,7 @@ private fun Metrics(transport: TransportDetailUiModel, modifier: Modifier = Modi
 }
 
 @Composable
-private fun Metric(
-    icon: org.jetbrains.compose.resources.DrawableResource,
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-) {
+private fun Metric(icon: DrawableResource, value: String, label: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,

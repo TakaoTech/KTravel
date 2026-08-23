@@ -80,6 +80,17 @@ class StepsPanePresenterTest : BehaviorSpec() {
                         state.rows[2].shouldBeInstanceOf<StepRow.Step>()
                     }
                 }
+
+                then("the state exposes the date of the day") {
+                    val repository = createRepository(dayWithTwoPlaces())
+                    val navigator = FakeNavigator(screen)
+
+                    presenterTestOf({
+                        StepsPanePresenter(screen, navigator, createStore(repository))
+                    }) {
+                        awaitLoadedState().date shouldBe LocalDate(2024, 3, 1)
+                    }
+                }
             }
 
             `when`("a DeleteStep event is sent") {

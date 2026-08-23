@@ -9,6 +9,7 @@ import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.presentation.planning.TravelDayUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -39,13 +40,19 @@ fun StepsPanePresenter(
     }
     val scope = rememberCoroutineScope()
 
-    val rowsFlow = remember(repository, screen.dayId) {
+    val dayFlow = remember(repository, screen.dayId) {
         repository.getTravelDayFlow(screen.dayId)
-            .map { day -> buildStepRows(with(TravelPlanUiMapper) { day.toUiDay() }.steps) }
+            .map { day -> with(TravelPlanUiMapper) { day.toUiDay() } }
     }
-    val rows: ImmutableList<StepRow> by rowsFlow.collectAsState(initial = persistentListOf())
+    val day: TravelDayUi? by dayFlow.collectAsState(initial = null)
+    val rows: ImmutableList<StepRow> = remember(day) {
+        day?.let { buildStepRows(it.steps) } ?: persistentListOf()
+    }
+    // `getTravelDayFlow` emits `TravelDayDomain.EMPTY` — id blank, epoch date — while the day is
+    // missing from the plan, a placeholder date that must not reach the toolbar.
+    val date = day?.takeIf { it.id.isNotEmpty() }?.date
 
-    return StepsPaneUiState(rows = rows) { event ->
+    return StepsPaneUiState(rows = rows, date = date) { event ->
         when (event) {
             StepsPaneEvent.NavigateBack -> navigator.pop()
 

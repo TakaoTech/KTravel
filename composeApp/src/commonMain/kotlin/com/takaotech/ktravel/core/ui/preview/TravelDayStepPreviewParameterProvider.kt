@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.core.ui.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
 import com.takaotech.ktravel.domain.routing.model.RouteLocation
@@ -17,13 +18,15 @@ import kotlin.time.Duration.Companion.minutes
 
 class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterProvider<StepUi> {
 
+    private val loremIpsum = LoremIpsum(3).values.first()
+
     override val values: Sequence<StepUi>
         get() = (1..items).map {
             if (it % 2 == 0) generateTransportStep(it) else generatePlaceStep(it)
         }.asSequence()
 
     private fun generatePlaceStep(index: Int): StepUi.Place = StepUi.Place(
-        name = "Place $index",
+        name = "$loremIpsum $index",
         lat = 45.0 + index * 0.1,
         lng = 9.0 + index * 0.1,
         schedule = VisitScheduleUi(

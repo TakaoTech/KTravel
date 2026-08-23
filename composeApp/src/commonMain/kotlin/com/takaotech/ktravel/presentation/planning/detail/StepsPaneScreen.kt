@@ -6,6 +6,7 @@ import com.slack.circuit.runtime.screen.Screen
 import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.presentation.planning.StepUi
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 /**
@@ -18,7 +19,15 @@ import kotlinx.datetime.LocalTime
 @Parcelize
 data class StepsPaneScreen(val travelId: String, val dayId: String) : Screen
 
-data class StepsPaneUiState(val rows: ImmutableList<StepRow>, val eventSink: (StepsPaneEvent) -> Unit) : CircuitUiState
+/**
+ * State of the itinerary pane: the rows and the [date] of the day being shown, `null` until the day
+ * has been loaded (the toolbar stays without a title in that case).
+ */
+data class StepsPaneUiState(
+    val rows: ImmutableList<StepRow>,
+    val date: LocalDate? = null,
+    val eventSink: (StepsPaneEvent) -> Unit,
+) : CircuitUiState
 
 sealed interface StepsPaneEvent : CircuitUiEvent {
     /** Torna alla pagina di pianificazione del viaggio. */
