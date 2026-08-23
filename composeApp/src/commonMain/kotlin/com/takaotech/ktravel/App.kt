@@ -362,8 +362,6 @@ fun App() {
                                                     stepId = event.stepId,
                                                 ),
                                             ) {
-                                                // The whole computation flow leaves the stack: back
-                                                // from the leg is the day, not the preview again.
                                                 popUpTo(PlanningDetailPageNavigation(previewArgs.dayId)) {
                                                     inclusive = false
                                                 }
@@ -383,6 +381,11 @@ fun App() {
                                             selectedRouteIndex = uiState.selectedRouteIndex,
                                             onRouteChange = { viewModel.selectRoute(it) },
                                             onRouteConfirm = confirm,
+                                            onNavigationBackClick = {
+                                                if (backStackEntry.lifecycleIsResumed()) {
+                                                    navController.navigateUp()
+                                                }
+                                            },
                                         )
 
                                         is RouteResult.Transit -> TransitJourneyPreviewPage(
@@ -390,6 +393,11 @@ fun App() {
                                             selectedJourneyIndex = uiState.selectedRouteIndex,
                                             onJourneyChange = { viewModel.selectRoute(it) },
                                             onJourneyConfirm = confirm,
+                                            onNavigationBackClick = {
+                                                if (backStackEntry.lifecycleIsResumed()) {
+                                                    navController.navigateUp()
+                                                }
+                                            },
                                         )
                                     }
                                 }

@@ -31,6 +31,7 @@ fun TransitJourneyPreviewPage(
     journeys: TransitJourneys,
     selectedJourneyIndex: Int,
     onJourneyChange: (Int) -> Unit,
+    onNavigationBackClick: () -> Unit,
     onJourneyConfirm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -62,6 +63,7 @@ fun TransitJourneyPreviewPage(
         list = {
             TransitJourneyTimelineSection(selected, onStopClick)
         },
+        onNavigationBackClick = onNavigationBackClick,
         map = { enabled ->
             RoutePreviewMap(
                 modifier = Modifier.fillMaxSize(),

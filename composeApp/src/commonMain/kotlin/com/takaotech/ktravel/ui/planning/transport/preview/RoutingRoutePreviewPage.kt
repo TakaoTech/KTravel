@@ -46,6 +46,7 @@ fun RoutingRoutePreviewPage(
     routes: RoutingRoutes,
     selectedRouteIndex: Int,
     onRouteChange: (Int) -> Unit,
+    onNavigationBackClick: () -> Unit,
     onRouteConfirm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,6 +87,7 @@ fun RoutingRoutePreviewPage(
                 }
             }
         },
+        onNavigationBackClick = onNavigationBackClick,
         map = { enabled ->
             RoutePreviewMap(
                 modifier = Modifier.fillMaxSize(),

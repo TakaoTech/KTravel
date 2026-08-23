@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.check
 import ktravel.composeapp.generated.resources.route_preview_alternative
 import ktravel.composeapp.generated.resources.route_preview_cd_confirm
@@ -56,6 +57,7 @@ fun RoutePreviewScaffold(
     alternatives: Int,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
+    onNavigationBackClick: () -> Unit,
     onConfirm: () -> Unit,
     list: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -67,14 +69,26 @@ fun RoutePreviewScaffold(
     val listWithTabs: @Composable () -> Unit = {
         androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
             if (alternatives > 1) {
-                AlternativeTabs(alternatives = alternatives, selectedIndex = selectedIndex, onSelect = onSelect)
+                AlternativeTabs(
+                    alternatives = alternatives,
+                    selectedIndex = selectedIndex,
+                    onSelect = onSelect,
+                )
             }
             list()
         }
     }
 
     if (wide) {
-        Scaffold(modifier = modifier, topBar = { RoutePreviewTopBar(onConfirm) }) { insets ->
+        Scaffold(
+            modifier = modifier,
+            topBar = {
+                RoutePreviewTopBar(
+                    onNavigationBackClick = onNavigationBackClick,
+                    onConfirm = onConfirm,
+                )
+            },
+        ) { insets ->
             Row(modifier = Modifier.padding(insets)) {
                 androidx.compose.foundation.layout.Box(modifier = Modifier.weight(1f)) { listWithTabs() }
                 androidx.compose.foundation.layout.Box(
@@ -91,7 +105,9 @@ fun RoutePreviewScaffold(
         var mapEnabled by remember { mutableStateOf(true) }
 
         LaunchedEffect(sheetState.bottomSheetState) {
-            snapshotFlow { sheetState.bottomSheetState.hasExpandedState }.collect { mapEnabled = it }
+            snapshotFlow { sheetState.bottomSheetState.hasExpandedState }.collect {
+                mapEnabled = it
+            }
         }
 
         BottomSheetScaffold(
@@ -99,7 +115,7 @@ fun RoutePreviewScaffold(
             scaffoldState = sheetState,
             sheetPeekHeight = SHEET_PEEK_HEIGHT,
             sheetContent = { listWithTabs() },
-            topBar = { RoutePreviewTopBar(onConfirm) },
+            topBar = { RoutePreviewTopBar(onNavigationBackClick, onConfirm) },
         ) {
             map(mapEnabled)
         }
@@ -121,9 +137,17 @@ private fun AlternativeTabs(alternatives: Int, selectedIndex: Int, onSelect: (In
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RoutePreviewTopBar(onConfirm: () -> Unit) {
+private fun RoutePreviewTopBar(onNavigationBackClick: () -> Unit, onConfirm: () -> Unit) {
     TopAppBar(
         title = { Text(stringResource(Res.string.route_preview_title)) },
+        navigationIcon = {
+            IconButton(onClick = onNavigationBackClick) {
+                Icon(
+                    painter = painterResource(Res.drawable.arrow_back),
+                    contentDescription = null,
+                )
+            }
+        },
         actions = {
             IconButton(onClick = onConfirm) {
                 Icon(
