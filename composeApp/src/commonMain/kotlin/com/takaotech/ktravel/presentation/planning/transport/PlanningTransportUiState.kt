@@ -16,6 +16,14 @@ import kotlinx.datetime.LocalTime
 
 sealed interface PlanningTransportNavigationEvent {
     data object NavigateToRoutePreview : PlanningTransportNavigationEvent
+
+    /**
+     * The alternative was filed: the leg it produced is what the traveller is taken to.
+     *
+     * The detail and not the day, because saving a route is when there is most to say about it —
+     * where to stop, which carriage — and that is the only screen where it can be written down.
+     */
+    data class NavigateToTransportDetail(val stepId: String) : PlanningTransportNavigationEvent
 }
 
 /**

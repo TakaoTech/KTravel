@@ -36,13 +36,12 @@ import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.core.ui.preview.TravelDayStepPreviewParameterProvider
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelDayUi
+import com.takaotech.ktravel.ui.common.formatWeekdayDayMonthYear
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format.DayOfWeekNames
-import kotlinx.datetime.format.char
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.keyboard_arrow_down
 import ktravel.composeapp.generated.resources.place
@@ -67,21 +66,7 @@ fun PlanDayItem(
 ) {
     val day by remember(day) {
         derivedStateOf {
-            LocalDate.Format {
-                // TODO Add support for other languages
-                // temporary candidate for fix https://github.com/adrcotfas/kotlinx-datetime-names
-                dayOfWeek(DayOfWeekNames.ENGLISH_FULL)
-                char(' ')
-                day()
-                char('-')
-                monthNumber()
-                char(
-                    '-',
-                )
-                year()
-            }.format(
-                day,
-            )
+            day.formatWeekdayDayMonthYear()
         }
     }
 

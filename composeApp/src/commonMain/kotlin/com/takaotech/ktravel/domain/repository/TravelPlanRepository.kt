@@ -50,9 +50,9 @@ interface TravelPlanRepository {
     suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain)
 
     /**
-     * Updates the (Markdown) notes of a Step.Place
+     * Updates the (Markdown) notes of a step, whichever kind it is
      */
-    suspend fun updatePlaceNote(dayId: String, stepId: String, note: String)
+    suspend fun updateStepNote(dayId: String, stepId: String, note: String)
 
     /**
      * Sets the start time of a Step.Place (creates the schedule when missing)
@@ -65,13 +65,13 @@ interface TravelPlanRepository {
     suspend fun updatePlaceEndTime(dayId: String, stepId: String, time: LocalTime)
 
     /**
-     * Adds a file to the inventory of a Step.Place: copies [source] to disk and records the
+     * Adds a file to the inventory of a step: copies [source] to disk and records the
      * metadata. It writes the file first, the metadata after (consistency).
      */
     suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile)
 
     /**
-     * Removes a file from the inventory of a Step.Place: deletes the metadata and then the file on disk.
+     * Removes a file from the inventory of a step: deletes the metadata and then the file on disk.
      */
     suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String)
 

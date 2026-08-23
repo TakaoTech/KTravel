@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.presentation.planning
 
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,7 +15,7 @@ class TravelDayUiTest : BehaviorSpec() {
     private fun transport(id: String) = StepUi.Transport(
         id = id,
         type = TransportType.TRAIN,
-        route = Route(sections = emptyList()),
+        answer = roadAnswer(),
     )
 
     private fun day(vararg steps: StepUi) = TravelDayUi(

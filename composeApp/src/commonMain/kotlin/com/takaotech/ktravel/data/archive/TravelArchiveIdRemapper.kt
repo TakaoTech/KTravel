@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.archive
 
+import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
@@ -69,22 +70,20 @@ internal object TravelArchiveIdRemapper {
         pathMapping: MutableMap<String, String>,
     ): StepEntity {
         val newStepId = newId()
-        return when (this) {
-            is StepEntity.Transport -> copy(id = newStepId)
+        fun List<AttachmentEntity>.moved(): List<AttachmentEntity> = map { attachment ->
+            val newPath = attachment.relativePath.movedTo(newTravelId, newStepId)
+            pathMapping[attachment.relativePath] = newPath
+            attachment.copy(id = newId(), relativePath = newPath)
+        }
 
-            is StepEntity.Place -> copy(
-                id = newStepId,
-                attachments = attachments.map { attachment ->
-                    val newPath = attachment.relativePath.movedTo(newTravelId, newStepId)
-                    pathMapping[attachment.relativePath] = newPath
-                    attachment.copy(id = newId(), relativePath = newPath)
-                },
-            )
+        return when (this) {
+            is StepEntity.Transport -> copy(id = newStepId, attachments = attachments.moved())
+            is StepEntity.Place -> copy(id = newStepId, attachments = attachments.moved())
         }
     }
 
     private fun StepEntity.rewriteNote(pathMapping: Map<String, String>): StepEntity = when (this) {
-        is StepEntity.Transport -> this
+        is StepEntity.Transport -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
         is StepEntity.Place -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
     }
 

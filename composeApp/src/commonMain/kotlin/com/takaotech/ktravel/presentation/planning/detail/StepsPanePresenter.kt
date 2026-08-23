@@ -57,6 +57,10 @@ fun StepsPanePresenter(
                 StepDetailScreen(screen.travelId, screen.dayId, event.stepId),
             )
 
+            is StepsPaneEvent.OpenTransportDetail -> navigator.goTo(
+                TransportDetailScreen(screen.travelId, screen.dayId, event.stepId),
+            )
+
             is StepsPaneEvent.DeleteStep -> scope.launch {
                 repository.removeStep(event.step.id, screen.dayId)
             }

@@ -2,11 +2,12 @@ package com.takaotech.ktravel.core.ui.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteDeparture
 import com.takaotech.ktravel.domain.routing.model.RouteLocation
-import com.takaotech.ktravel.domain.routing.model.RouteSection
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.RoutingRoute
+import com.takaotech.ktravel.domain.routing.model.RoutingSection
+import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
 import io.nacular.measured.units.Length
@@ -33,31 +34,35 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
 
     private fun generateTransportStep(index: Int): StepUi.Transport {
         val type = TransportType.entries[index % TransportType.entries.size]
-        val route = Route(
-            sections = listOf(
-                RouteSection(
-                    summary = RouteSummary(
-                        durationSeconds = (30 * index).minutes,
-                        distance = 1000 * index * Length.meters,
-                    ),
-                    departure = RouteDeparture(
-                        location = RouteLocation(
-                            lat = 45.0 + index * 0.1,
-                            lng = 9.0 + index * 0.1,
-                        ),
-                    ),
-                    arrival = RouteDeparture(
-                        location = RouteLocation(
-                            lat = 45.0 + (index + 1) * 0.1,
-                            lng = 9.0 + (index + 1) * 0.1,
+        val summary = RouteSummary(
+            durationSeconds = (30 * index).minutes,
+            distance = (1000.0 * index) * Length.meters,
+        )
+        return StepUi.Transport(
+            type = type,
+            answer = TransportAnswer.Routing(
+                RoutingRoute(
+                    summary = summary,
+                    sections = listOf(
+                        RoutingSection(
+                            summary = summary,
+                            mode = type.name,
+                            departure = RouteDeparture(
+                                location = RouteLocation(
+                                    lat = 45.0 + index * 0.1,
+                                    lng = 9.0 + index * 0.1,
+                                ),
+                            ),
+                            arrival = RouteDeparture(
+                                location = RouteLocation(
+                                    lat = 45.0 + (index + 1) * 0.1,
+                                    lng = 9.0 + (index + 1) * 0.1,
+                                ),
+                            ),
                         ),
                     ),
                 ),
             ),
-        )
-        return StepUi.Transport(
-            type = type,
-            route = route,
         )
     }
 }

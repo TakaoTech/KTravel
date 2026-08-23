@@ -70,7 +70,10 @@ object TravelPlanUiMapper {
         is StepDomain.Transport -> StepUi.Transport(
             id = id,
             type = type,
-            route = route,
+            answer = answer,
+            note = note,
+            attachments = attachments.map { it.toUi() }.toPersistentList(),
+            calculatedAt = calculatedAt,
         )
     }
 
@@ -79,12 +82,6 @@ object TravelPlanUiMapper {
         name = name,
         lat = lat,
         lng = lng,
-    )
-
-    fun StepUi.Transport.toDomainStep(): StepDomain.Transport = StepDomain.Transport(
-        id = id,
-        type = type,
-        route = route,
     )
 
     fun StepDomain.Place.toUiStepPlace(): StepUi.Place = StepUi.Place(

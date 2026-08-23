@@ -42,17 +42,14 @@ object TravelPlanEditor {
         }
 
     /**
-     * Aggiorna le note (Markdown) di uno [StepDomain.Place]. Operazione totale: se il giorno o lo
-     * step non esistono, o lo step non è un Place, restituisce il piano invariato.
+     * Aggiorna le note (Markdown) di uno step, di qualunque tipo sia.
+     *
+     * Anche una tratta si annota — dove fermarsi, in quale carrozza è il posto — e la nota non
+     * appartiene a nessuno dei due luoghi che collega. Operazione totale: se il giorno o lo step
+     * non esistono, restituisce il piano invariato.
      */
-    fun TravelPlanDomain.updatePlaceNote(dayId: String, stepId: String, note: String): TravelPlanDomain =
-        updateDay(dayId) { day ->
-            val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-            val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
-            day.copy(
-                steps = day.steps.toMutableList().also { it[stepIndex] = step.copy(note = note) },
-            )
-        }
+    fun TravelPlanDomain.updateStepNote(dayId: String, stepId: String, note: String): TravelPlanDomain =
+        updateAnyStep(dayId, stepId) { it.withNote(note) }
 
     /**
      * Imposta l'orario di inizio di uno [StepDomain.Place], creando lo [VisitScheduleDomain] se
@@ -111,33 +108,55 @@ object TravelPlanEditor {
     }
 
     /**
-     * Aggiunge un file all'inventario di uno [StepDomain.Place]. Operazione totale: se il giorno o lo
-     * step non esistono, o lo step non è un Place, restituisce il piano invariato.
+     * Aggiunge un file all'inventario di uno step. Operazione totale: se il giorno o lo step non
+     * esistono, restituisce il piano invariato.
      */
-    fun TravelPlanDomain.addPlaceAttachment(
+    fun TravelPlanDomain.addStepAttachment(
         dayId: String,
         stepId: String,
         attachment: AttachmentDomain,
-    ): TravelPlanDomain = updatePlaceStep(dayId, stepId) { it.copy(attachments = it.attachments + attachment) }
+    ): TravelPlanDomain = updateAnyStep(dayId, stepId) { it.withAttachments(it.attachments + attachment) }
 
     /**
-     * Rimuove un file dall'inventario di uno [StepDomain.Place] per id. Operazione totale: se non
-     * trova giorno/step/allegato, restituisce il piano invariato.
+     * Rimuove un file dall'inventario di uno step per id. Operazione totale: se non trova
+     * giorno/step/allegato, restituisce il piano invariato.
      */
-    fun TravelPlanDomain.removePlaceAttachment(dayId: String, stepId: String, attachmentId: String): TravelPlanDomain =
-        updatePlaceStep(dayId, stepId) {
-            it.copy(attachments = it.attachments.filter { a -> a.id != attachmentId })
+    fun TravelPlanDomain.removeStepAttachment(dayId: String, stepId: String, attachmentId: String): TravelPlanDomain =
+        updateAnyStep(dayId, stepId) { step ->
+            step.withAttachments(step.attachments.filter { it.id != attachmentId })
         }
 
-    /** Applica [transform] allo [StepDomain.Place] indicato, se esiste; altrimenti no-op. */
-    private fun TravelPlanDomain.updatePlaceStep(
+    /** Applica [transform] allo step indicato, di qualunque tipo sia; altrimenti no-op. */
+    private fun TravelPlanDomain.updateAnyStep(
         dayId: String,
         stepId: String,
-        transform: (StepDomain.Place) -> StepDomain.Place,
+        transform: (StepDomain) -> StepDomain,
     ): TravelPlanDomain = updateDay(dayId) { day ->
         val stepIndex = day.steps.indexOfFirst { it.id == stepId }
-        val step = day.steps.getOrNull(stepIndex) as? StepDomain.Place ?: return@updateDay day
+        val step = day.steps.getOrNull(stepIndex) ?: return@updateDay day
         day.copy(steps = day.steps.toMutableList().also { it[stepIndex] = transform(step) })
+    }
+
+    /**
+     * Note e allegati di uno step, letti e riscritti senza sapere di che tipo sia.
+     *
+     * Il `when` non si evita dichiarandoli su [StepDomain]: `copy` di una data class non è
+     * polimorfo, quindi una proprietà astratta darebbe la lettura ma non la scrittura.
+     */
+    private val StepDomain.attachments: List<AttachmentDomain>
+        get() = when (this) {
+            is StepDomain.Place -> attachments
+            is StepDomain.Transport -> attachments
+        }
+
+    private fun StepDomain.withNote(note: String): StepDomain = when (this) {
+        is StepDomain.Place -> copy(note = note)
+        is StepDomain.Transport -> copy(note = note)
+    }
+
+    private fun StepDomain.withAttachments(attachments: List<AttachmentDomain>): StepDomain = when (this) {
+        is StepDomain.Place -> copy(attachments = attachments)
+        is StepDomain.Transport -> copy(attachments = attachments)
     }
 
     fun TravelPlanDomain.movePlaceToDay(placeId: String, dayId: String): TravelPlanDomain {

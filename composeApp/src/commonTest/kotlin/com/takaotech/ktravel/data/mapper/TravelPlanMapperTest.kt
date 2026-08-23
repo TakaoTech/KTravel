@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.takaotech.ktravel.data.mapper
 
 import com.takaotech.ktravel.data.entity.PlaceEntity
@@ -5,6 +7,7 @@ import com.takaotech.ktravel.data.entity.RouteActionEntity
 import com.takaotech.ktravel.data.entity.RouteEntity
 import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TransportAnswerEntity
 import com.takaotech.ktravel.data.entity.TransportRequestEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
@@ -19,18 +22,31 @@ import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
-import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.domain.routing.model.RouteAction
-import com.takaotech.ktravel.domain.routing.model.RouteSection
+import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
+import com.takaotech.ktravel.domain.routing.model.TransitAgency
+import com.takaotech.ktravel.domain.routing.model.TransitJourney
+import com.takaotech.ktravel.domain.routing.model.TransitLine
+import com.takaotech.ktravel.domain.routing.model.TransitStep
+import com.takaotech.ktravel.domain.routing.model.TransitStop
+import com.takaotech.ktravel.domain.routing.model.TransitTime
+import com.takaotech.ktravel.domain.routing.model.TransportAnswer
+import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.UtcOffset
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class TravelPlanMapperTest :
     BehaviorSpec({
@@ -204,30 +220,21 @@ class TravelPlanMapperTest :
             }
         }
 
-        given("a StepDomain.Transport") {
-            val route = Route(
-                sections = listOf(
-                    RouteSection(
-                        summary = RouteSummary(
-                            durationSeconds = 30.minutes,
-                            distance = 5000 * Length.meters,
-                        ),
-                        actions = listOf(
-                            RouteAction(
-                                action = "depart",
-                                durationSeconds = 5.minutes,
-                                distanceMeters = 1000.0 * Length.meters,
-                                instruction = "Head north",
-                            ),
-                        ),
+        given("a StepDomain.Transport carrying a road route") {
+            val answer = roadAnswer(
+                duration = 30.minutes,
+                metres = 5000.0,
+                actions = listOf(
+                    RouteAction(
+                        action = "depart",
+                        durationSeconds = 5.minutes,
+                        distanceMeters = 1000.0 * Length.meters,
+                        instruction = "Head north",
+                        offset = 3,
                     ),
                 ),
             )
-            val step = StepDomain.Transport(
-                id = "step-2",
-                type = TransportType.TRAIN,
-                route = route,
-            )
+            val step = StepDomain.Transport(id = "step-2", type = TransportType.TRAIN, answer = answer)
 
             `when`("toEntity is called") {
                 val entity =
@@ -239,8 +246,12 @@ class TravelPlanMapperTest :
                 then("entity transportType should be TRAIN") {
                     entity!!.transportType shouldBe "TRAIN"
                 }
-                then("entity route sections size should match") {
-                    entity!!.route.sections.size shouldBe 1
+                then("the answer should be filed as a road route") {
+                    entity!!.answer.shouldBeInstanceOf<TransportAnswerEntity.Routing>()
+                        .route.sections.size shouldBe 1
+                }
+                then("the flat legacy route should no longer be written") {
+                    entity!!.route shouldBe null
                 }
             }
 
@@ -253,17 +264,72 @@ class TravelPlanMapperTest :
                 then("round-tripped step type should be TRAIN") {
                     roundTripped!!.type shouldBe TransportType.TRAIN
                 }
-                then("round-tripped route sections size should match original") {
-                    roundTripped!!.route.sections.size shouldBe 1
+                then("the answer should come back as the same road route") {
+                    roundTripped!!.answer shouldBe answer
                 }
-                then("round-tripped route section duration should match original") {
-                    roundTripped!!.route.sections[0].summary.durationSeconds shouldBe 30.minutes
+                then("the manoeuvre offset should survive, so the map can still be pointed at it") {
+                    val routing = roundTripped!!.answer.shouldBeInstanceOf<TransportAnswer.Routing>()
+                    routing.route.sections[0].actions[0].offset shouldBe 3
+                }
+            }
+        }
+
+        given("a StepDomain.Transport carrying a journey on scheduled services") {
+            val journey = TransitJourney(
+                summary = RouteSummary(durationSeconds = 30.minutes, distance = 9000.0 * Length.meters),
+                steps = listOf(
+                    TransitStep.Walk(
+                        summary = RouteSummary(8.minutes, 600.0 * Length.meters),
+                        departure = TransitTime(Instant.parse("2026-05-30T09:12:00+02:00"), UtcOffset(hours = 2)),
+                    ),
+                    TransitStep.Ride(
+                        summary = RouteSummary(22.minutes, 8400.0 * Length.meters),
+                        line = TransitLine(
+                            mode = "SUBWAY",
+                            name = "M1",
+                            shortName = "M1",
+                            headsign = "Sesto",
+                            color = "#D52B1E",
+                            textColor = "#FFFFFF",
+                            wheelchairAccessible = WheelchairAccess.YES,
+                        ),
+                        agency = TransitAgency(name = "ATM", id = "atm", website = "https://atm.it"),
+                        boarding = TransitStop(
+                            location = RouteLocation(45.46, 9.19),
+                            name = "Duomo",
+                            departure = TransitTime(
+                                Instant.parse("2026-05-30T09:24:00+02:00"),
+                                UtcOffset(hours = 2),
+                            ),
+                        ),
+                        alighting = TransitStop(location = RouteLocation(45.53, 9.24), name = "Sesto FS"),
+                        intermediateStops = listOf(
+                            TransitStop(location = RouteLocation(45.48, 9.21), name = "Cadorna", offset = 12),
+                        ),
+                    ),
+                ),
+            )
+            val step = StepDomain.Transport(
+                id = "step-3",
+                type = TransportType.TRAIN,
+                answer = TransportAnswer.Transit(journey),
+            )
+
+            `when`("toEntity and then toDomain is called") {
+                val roundTripped = with(TravelPlanEntityMapper) {
+                    step.toEntity().toDomain()
+                } as StepDomain.Transport
+
+                then("the journey should come back whole") {
+                    // Lines, operators, stop names and colours are the whole reason the two shapes
+                    // are told apart: flattened, this assertion could never pass.
+                    roundTripped.answer shouldBe TransportAnswer.Transit(journey)
                 }
             }
         }
 
         given("a StepDomain.Transport carrying the request it was computed with") {
-            val route = Route(sections = emptyList())
+            val answer = roadAnswer()
 
             `when`("the request is a road one and it is round-tripped") {
                 val request = RouteSelection.Routing(
@@ -276,7 +342,7 @@ class TravelPlanMapperTest :
                 val step = StepDomain.Transport(
                     id = "step-3",
                     type = TransportType.CAR,
-                    route = route,
+                    answer = answer,
                     request = request,
                 )
                 val roundTripped = with(TravelPlanEntityMapper) {
@@ -300,7 +366,7 @@ class TravelPlanMapperTest :
                 val step = StepDomain.Transport(
                     id = "step-4",
                     type = TransportType.TRAIN,
-                    route = route,
+                    answer = answer,
                     request = request,
                 )
                 val roundTripped = with(TravelPlanEntityMapper) {
@@ -313,7 +379,7 @@ class TravelPlanMapperTest :
             }
 
             `when`("the step carries no request") {
-                val step = StepDomain.Transport(id = "step-5", type = TransportType.BUS, route = route)
+                val step = StepDomain.Transport(id = "step-5", type = TransportType.BUS, answer = answer)
                 val entity = with(TravelPlanEntityMapper) { step.toEntity() } as StepEntity.Transport
 
                 then("the entity should carry none either") {
@@ -343,9 +409,15 @@ class TravelPlanMapperTest :
             }
         }
 
-        given("a RouteEntity") {
-            val routeEntity = RouteEntity(
-                sections = listOf(
+        given("a transport saved by a build that flattened every answer into one shape") {
+            fun legacy(vararg sections: RouteSectionEntity) = StepEntity.Transport(
+                id = "step-legacy",
+                transportType = "CAR",
+                route = RouteEntity(sections = sections.toList()),
+            )
+
+            `when`("the flat route carries manoeuvres") {
+                val entity = legacy(
                     RouteSectionEntity(
                         durationSeconds = 1800L,
                         distanceMeters = 5000.0,
@@ -359,23 +431,47 @@ class TravelPlanMapperTest :
                             ),
                         ),
                     ),
-                ),
-            )
+                )
 
-            `when`("toDomain is called") {
-                val domain = with(TravelPlanEntityMapper) { routeEntity.toDomain() }
+                then("it should read back as a road route rather than failing") {
+                    val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
+                    val routing = step.answer.shouldBeInstanceOf<TransportAnswer.Routing>()
 
-                then("domain sections size should match entity sections size") {
-                    domain.sections.size shouldBe 1
+                    routing.route.sections.size shouldBe 1
+                    routing.route.sections[0].mode shouldBe "car"
+                    routing.route.sections[0].actions.size shouldBe 1
+                    routing.route.summary.durationSeconds shouldBe 1800.seconds
                 }
-                then("domain section duration should match entity durationSeconds") {
-                    domain.sections[0].summary.durationSeconds shouldBe 1800.seconds
+            }
+
+            `when`("the flat route carries no manoeuvres") {
+                val entity = legacy(
+                    RouteSectionEntity(durationSeconds = 300L, distanceMeters = 200.0, transportMode = "PEDESTRIAN"),
+                    RouteSectionEntity(durationSeconds = 1500L, distanceMeters = 4800.0, transportMode = "SUBWAY"),
+                )
+
+                then("it should read back as the poor journey that shape kept") {
+                    val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
+                    val transit = step.answer.shouldBeInstanceOf<TransportAnswer.Transit>()
+
+                    transit.journey.steps[0].shouldBeInstanceOf<TransitStep.Walk>()
+                    val ride = transit.journey.steps[1].shouldBeInstanceOf<TransitStep.Ride>()
+                    ride.line.mode shouldBe "SUBWAY"
+                    // Never written by those builds, so there is nothing to read back.
+                    ride.line.name shouldBe null
+                    ride.agency shouldBe null
                 }
-                then("domain section transport mode should match entity transportMode") {
-                    domain.sections[0].transport?.mode shouldBe "car"
-                }
-                then("domain section actions size should match entity actions size") {
-                    domain.sections[0].actions.size shouldBe 1
+            }
+
+            `when`("it is saved again") {
+                val entity = legacy(RouteSectionEntity(durationSeconds = 300L, distanceMeters = 200.0))
+
+                then("it should be re-filed under the new shape and drop the flat one") {
+                    val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
+                    val resaved = with(TravelPlanEntityMapper) { step.toEntity() } as StepEntity.Transport
+
+                    resaved.answer shouldNotBe null
+                    resaved.route shouldBe null
                 }
             }
         }

@@ -1,16 +1,22 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.takaotech.ktravel.domain.usecase
 
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.transportAfter
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.model.RoutingRoute
 import com.takaotech.ktravel.domain.routing.model.TransitJourney
-import com.takaotech.ktravel.domain.routing.model.storedTransportMode
-import com.takaotech.ktravel.domain.routing.model.toStoredRoute
+import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.flow.first
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * Files the alternative the traveller confirmed into the plan.
@@ -21,37 +27,59 @@ import dev.zacsweers.metro.SingleIn
  * is holding *now*, and the traveller may have changed a vehicle after computing and before
  * confirming.
  *
- * One overload per kind of answer rather than one method taking a common type. The two are stored in
- * the same shape, but they are not filed the same way, and the difference is not a detail: a journey
- * almost always starts on foot, so reading the mode off its first step filed every train ride in
- * every plan as a walk — and, since a walk is not a [TransportType], as a car.
+ * One overload per kind of answer rather than one method taking a common type: they are not stored
+ * in the same shape, and they are not filed under the same vehicle. A journey almost always starts
+ * on foot, so reading the mode off its first step filed every train ride in every plan as a walk —
+ * and, since a walk is not a [TransportType], as a car. [TransportAnswer.principalMode] is where
+ * that rule now lives, next to the answer it applies to.
  */
 @SingleIn(PlanningGraphScope::class)
 @Inject
 class SaveTransportStepUseCase(private val repository: TravelPlanRepository) {
 
     /** Files a route on roads, under the vehicle it is driven in. */
-    suspend operator fun invoke(dayId: String, afterStepId: String, route: RoutingRoute, request: RouteSelection) {
-        store(dayId, afterStepId, route.sections.firstOrNull()?.mode, route.toStoredRoute(), request)
-    }
+    suspend operator fun invoke(
+        dayId: String,
+        afterStepId: String,
+        route: RoutingRoute,
+        request: RouteSelection,
+        now: Instant = Clock.System.now(),
+    ): String? = store(dayId, afterStepId, TransportAnswer.Routing(route), request, now)
 
     /** Files a journey, under the first vehicle it puts the traveller on. */
-    suspend operator fun invoke(dayId: String, afterStepId: String, journey: TransitJourney, request: RouteSelection) {
-        store(dayId, afterStepId, journey.storedTransportMode(), journey.toStoredRoute(), request)
-    }
+    suspend operator fun invoke(
+        dayId: String,
+        afterStepId: String,
+        journey: TransitJourney,
+        request: RouteSelection,
+        now: Instant = Clock.System.now(),
+    ): String? = store(dayId, afterStepId, TransportAnswer.Transit(journey), request, now)
 
+    /**
+     * Files the step and answers with its id, which is what the caller navigates to.
+     *
+     * The id is read back rather than taken from the step handed over: filing over an existing
+     * transport keeps the id already in the plan, so the one built here is not the one that ends up
+     * saved. Null when nothing was filed, which is what an unknown day or place amounts to.
+     */
     private suspend fun store(
         dayId: String,
         afterStepId: String,
-        mode: String?,
-        route: com.takaotech.ktravel.domain.routing.model.Route,
+        answer: TransportAnswer,
         request: RouteSelection,
-    ) {
+        now: Instant,
+    ): String? {
         repository.putTransportStep(
             dayId,
             afterStepId,
-            StepDomain.Transport(type = mode.toTransportType(), route = route, request = request),
+            StepDomain.Transport(
+                type = answer.principalMode.toTransportType(),
+                answer = answer,
+                request = request,
+                calculatedAt = now,
+            ),
         )
+        return repository.getTravelDayFlow(dayId).first().steps.transportAfter(afterStepId)?.id
     }
 
     /**

@@ -5,18 +5,15 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.domain.routing.model.Route
-import com.takaotech.ktravel.domain.routing.model.RouteSection
-import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.detail.buildStepRows
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.nacular.measured.units.Length
-import io.nacular.measured.units.times
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.minutes
 
@@ -35,16 +32,7 @@ class StepsPaneContentTest : BehaviorSpec() {
     private val transport = StepUi.Transport(
         id = "step-t",
         type = TransportType.TRAIN,
-        route = Route(
-            sections = listOf(
-                RouteSection(
-                    summary = RouteSummary(
-                        durationSeconds = 30.minutes,
-                        distance = 1000 * Length.meters,
-                    ),
-                ),
-            ),
-        ),
+        answer = roadAnswer(duration = 30.minutes),
     )
 
     init {
@@ -57,6 +45,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onNavigationBackClick = {},
                             onOpenBacklogClick = {},
                             onStepClick = {},
+                            onTransportClick = {},
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
@@ -81,6 +70,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onNavigationBackClick = {},
                             onOpenBacklogClick = {},
                             onStepClick = {},
+                            onTransportClick = {},
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
@@ -102,6 +92,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                             onNavigationBackClick = {},
                             onOpenBacklogClick = {},
                             onStepClick = {},
+                            onTransportClick = {},
                             onDeleteStepClick = {},
                             onMoveStepUpClick = {},
                             onMoveStepDownClick = {},
@@ -111,10 +102,41 @@ class StepsPaneContentTest : BehaviorSpec() {
                         )
                     }
                     // The route sections aggregate to "30m"; the surrounding wording comes from the
-                    // string resource and is intentionally not asserted.
-                    onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION)
+                    // string resource and is intentionally not asserted. The row itself is
+                    // clickable, so its children are merged into it and only the unmerged tree
+                    // still carries the tag.
+                    onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION, useUnmergedTree = true)
                         .assertIsDisplayed()
                         .assertTextContains("30m", substring = true)
+                }
+            }
+
+            `when`("the transport row is clicked") {
+                then("onTransportClick should be called with the transport step id") {
+                    var clicked: String? = null
+                    runComposeUiTest {
+                        setContent {
+                            StepsPaneContent(
+                                rows = rows,
+                                onNavigationBackClick = {},
+                                onOpenBacklogClick = {},
+                                onStepClick = {},
+                                onTransportClick = { clicked = it },
+                                onDeleteStepClick = {},
+                                onMoveStepUpClick = {},
+                                onMoveStepDownClick = {},
+                                onAddTransportClick = { _, _ -> },
+                                onSetArrivalTime = { _, _ -> },
+                                onSetDepartureTime = { _, _ -> },
+                            )
+                        }
+
+                        onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION, useUnmergedTree = true)
+                            .onParent()
+                            .performClick()
+
+                        clicked shouldBe transport.id
+                    }
                 }
             }
         }
@@ -132,6 +154,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = {},
                                 onOpenBacklogClick = {},
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
@@ -162,6 +185,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = {},
                                 onOpenBacklogClick = {},
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = { deleted = it },
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
@@ -188,6 +212,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = {},
                                 onOpenBacklogClick = {},
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = { movedUp = it },
                                 onMoveStepDownClick = {},
@@ -214,6 +239,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = {},
                                 onOpenBacklogClick = {},
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = { movedDown = it },
@@ -242,6 +268,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = { backClicked = true },
                                 onOpenBacklogClick = {},
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},
@@ -266,6 +293,7 @@ class StepsPaneContentTest : BehaviorSpec() {
                                 onNavigationBackClick = {},
                                 onOpenBacklogClick = { openClicked = true },
                                 onStepClick = {},
+                                onTransportClick = {},
                                 onDeleteStepClick = {},
                                 onMoveStepUpClick = {},
                                 onMoveStepDownClick = {},

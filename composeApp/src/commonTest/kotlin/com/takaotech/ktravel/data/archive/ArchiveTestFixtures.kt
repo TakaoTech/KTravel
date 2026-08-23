@@ -2,15 +2,20 @@ package com.takaotech.ktravel.data.archive
 
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
-import com.takaotech.ktravel.data.entity.RouteEntity
-import com.takaotech.ktravel.data.entity.RouteSectionEntity
+import com.takaotech.ktravel.data.entity.RouteLocationEntity
+import com.takaotech.ktravel.data.entity.RouteSummaryEntity
 import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TransitAgencyEntity
+import com.takaotech.ktravel.data.entity.TransitJourneyEntity
+import com.takaotech.ktravel.data.entity.TransitLineEntity
+import com.takaotech.ktravel.data.entity.TransitStepEntity
+import com.takaotech.ktravel.data.entity.TransitStopEntity
+import com.takaotech.ktravel.data.entity.TransportAnswerEntity
 import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
 import com.takaotech.ktravel.domain.model.AttachmentReference
 import kotlinx.datetime.LocalDate
-
 /**
  * Piano di riferimento per i test di archivio: due giorni, uno step con inventario e note che
  * referenziano i file, uno step di trasporto con rotta non vuota (per verificare che i rami della
@@ -106,16 +111,31 @@ internal object ArchiveTestFixtures {
             },
         )
 
+    /**
+     * A transport filed as a journey, with the line and the stops that only this shape can hold —
+     * so the round trip proves the archive carries them and not just the geometry.
+     */
     private fun transportStep() = StepEntity.Transport(
         id = "step-2",
         transportType = "TRAIN",
-        route = RouteEntity(
-            sections = listOf(
-                RouteSectionEntity(
-                    durationSeconds = 1800,
-                    distanceMeters = 12_500.0,
-                    polyline = "abc123",
-                    transportMode = "train",
+        answer = TransportAnswerEntity.Transit(
+            TransitJourneyEntity(
+                summary = RouteSummaryEntity(durationSeconds = 1800, distanceMeters = 12_500.0),
+                steps = listOf(
+                    TransitStepEntity.Ride(
+                        summary = RouteSummaryEntity(durationSeconds = 1800, distanceMeters = 12_500.0),
+                        line = TransitLineEntity(mode = "train", name = "R12", color = "#00A03E"),
+                        polyline = "abc123",
+                        agency = TransitAgencyEntity(name = "Trenord"),
+                        boarding = TransitStopEntity(
+                            location = RouteLocationEntity(lat = 45.48, lng = 9.20),
+                            name = "Milano Cadorna",
+                        ),
+                        alighting = TransitStopEntity(
+                            location = RouteLocationEntity(lat = 45.81, lng = 8.82),
+                            name = "Varese",
+                        ),
+                    ),
                 ),
             ),
         ),

@@ -4,6 +4,8 @@ import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
 import com.takaotech.ktravel.data.datasource.AttachmentDataSourceImpl
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSourceImpl
 import com.takaotech.ktravel.data.entity.StepEntity
+import com.takaotech.ktravel.data.entity.TransitStepEntity
+import com.takaotech.ktravel.data.entity.TransportAnswerEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
 import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
@@ -23,6 +25,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -140,10 +143,19 @@ class TravelArchiveRoundTripTest :
                     imported.places.map { it.name } shouldBe plan.places.map { it.name }
                 }
 
-                then("the transport step survives with its route") {
+                then("the transport step survives with its journey, line and stops") {
                     val transport =
                         imported.days.first().steps.filterIsInstance<StepEntity.Transport>()
-                    transport.first().route.sections.first().durationSeconds shouldBe 1800
+                    val journey = transport.first().answer
+                        .shouldBeInstanceOf<TransportAnswerEntity.Transit>().journey
+                    val ride = journey.steps.first().shouldBeInstanceOf<TransitStepEntity.Ride>()
+
+                    ride.summary.durationSeconds shouldBe 1800
+                    ride.line.name shouldBe "R12"
+                    ride.line.color shouldBe "#00A03E"
+                    ride.agency?.name shouldBe "Trenord"
+                    ride.boarding?.name shouldBe "Milano Cadorna"
+                    ride.alighting?.name shouldBe "Varese"
                 }
 
                 then("every attachment binary is restored byte for byte") {

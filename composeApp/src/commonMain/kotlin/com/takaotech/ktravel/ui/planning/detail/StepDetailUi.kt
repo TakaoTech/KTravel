@@ -27,52 +27,31 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
-import com.mikepenz.markdown.m3.Markdown
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.di.AppScope
-import com.takaotech.ktravel.domain.model.AttachmentReference
-import com.takaotech.ktravel.presentation.planning.AttachmentUi
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.VisitScheduleUi
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailEvent
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailUiState
+import com.takaotech.ktravel.presentation.planning.detail.StepNotesEvent
+import com.takaotech.ktravel.presentation.planning.detail.StepNotesUiState
 import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.dialogs.openFileWithDefaultApplication
-import io.github.vinceglb.filekit.exists
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.LocalTime
-import kotlinx.io.files.Path
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
-import ktravel.composeapp.generated.resources.check
-import ktravel.composeapp.generated.resources.edit
-import ktravel.composeapp.generated.resources.error
-import ktravel.composeapp.generated.resources.planning_detail_attachment_open_error
-import ktravel.composeapp.generated.resources.planning_detail_attachments_missing
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
-import ktravel.composeapp.generated.resources.planning_detail_cd_done_note
-import ktravel.composeapp.generated.resources.planning_detail_cd_edit_note
-import ktravel.composeapp.generated.resources.planning_detail_cd_note_invalid
 import ktravel.composeapp.generated.resources.planning_detail_end_time_label
 import ktravel.composeapp.generated.resources.planning_detail_schedule_title
 import ktravel.composeapp.generated.resources.planning_detail_start_time_label
@@ -99,12 +78,18 @@ private const val MARKER_ZOOM = 14.0
 
 internal object StepDetailTestTags {
     const val MAP = "step_detail_map"
-    const val NOTE_VIEW = "step_detail_note_view"
-    const val NOTE_EDITOR = "step_detail_note_editor"
-    const val EDIT_TOGGLE = "step_detail_edit_toggle"
-    const val NOTE_ALERT = "step_detail_note_alert"
-    const val MISSING_REFERENCES = "step_detail_missing_references"
     const val BACK_BUTTON = "step_detail_back"
+
+    val NOTES = StepNotesTestTags(
+        noteView = "step_detail_note_view",
+        noteEditor = "step_detail_note_editor",
+        editToggle = "step_detail_edit_toggle",
+        noteAlert = "step_detail_note_alert",
+        missingReferences = "step_detail_missing_references",
+        attachments = "step_detail_attachments",
+        attachmentAdd = "step_detail_attachment_add",
+        attachmentItem = "step_detail_attachment_item",
+    )
 }
 
 /**
@@ -122,16 +107,10 @@ fun StepDetailUi(state: StepDetailUiState, modifier: Modifier = Modifier) {
     } else {
         StepDetailPlaceContent(
             place = place,
-            isEditing = state.isEditing,
-            noteInvalid = state.noteInvalid,
-            missingReferences = state.missingReferences,
-            resolveFile = state.resolveFile,
+            notes = state.notes,
             modifier = modifier,
             onBack = { sink(StepDetailEvent.NavigateBack) },
-            onToggleEdit = { sink(StepDetailEvent.ToggleEdit(it)) },
-            onNoteChanged = { sink(StepDetailEvent.NoteChanged(it)) },
-            onAddAttachment = { sink(StepDetailEvent.AddAttachment(it)) },
-            onRemoveAttachment = { sink(StepDetailEvent.RemoveAttachment(it)) },
+            onNotesEvent = { sink(StepDetailEvent.Notes(it)) },
             onSetStartTime = { sink(StepDetailEvent.SetStartTime(it)) },
             onSetEndTime = { sink(StepDetailEvent.SetEndTime(it)) },
         )
@@ -158,74 +137,19 @@ private fun StepDetailLoading(onBack: () -> Unit, modifier: Modifier = Modifier)
 @Composable
 internal fun StepDetailPlaceContent(
     place: StepUi.Place,
-    isEditing: Boolean,
-    noteInvalid: Boolean,
-    missingReferences: List<String>,
-    resolveFile: (String) -> PlatformFile,
+    notes: StepNotesUiState,
     onBack: () -> Unit,
-    onToggleEdit: (Boolean) -> Unit,
-    onNoteChanged: (String) -> Unit,
-    onAddAttachment: (PlatformFile) -> Unit,
-    onRemoveAttachment: (String) -> Unit,
+    onNotesEvent: (StepNotesEvent) -> Unit,
     onSetStartTime: (LocalTime) -> Unit,
     onSetEndTime: (LocalTime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Controller condiviso: pilota l'editor e riceve gli inserimenti al cursore dall'inventario.
-    val controller = rememberMarkdownEditorController(place.note)
-    LaunchedEffect(controller) {
-        controller.markdownFlow.collect { onNoteChanged(it) }
-    }
-
-    val attachmentPicker = rememberFilePickerLauncher(type = FileKitType.File()) { file ->
-        file?.let(onAddAttachment)
-    }
-
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
-    val openErrorMessage = stringResource(Res.string.planning_detail_attachment_open_error)
-
-    // OS-delegated opening (OS chooses app). A missing file or a platform failure such as
-    // ActivityNotFoundException/FileNotFoundException surfaces as a timed snackbar.
-    val openAttachment: (String) -> Unit =
-        remember(resolveFile, scope, scaffoldState, openErrorMessage) {
-            { relativePath ->
-                try {
-                    val file = resolveFile(relativePath)
-                    if (file.exists()) {
-                        FileKit.openFileWithDefaultApplication(file)
-                    } else {
-                        scope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar(openErrorMessage)
-                        }
-                    }
-                } catch (e: Exception) {
-                    scope.launch {
-                        scaffoldState.snackbarHostState.showSnackbar(openErrorMessage)
-                    }
-                }
-            }
-        }
-
-    val errorPainter = painterResource(Res.drawable.error)
-    val imageTransformer = remember(resolveFile, errorPainter) {
-        AttachmentImageTransformer(resolveFile = resolveFile, errorPainter = errorPainter)
-    }
-
-    // Handler custom: i link agli allegati aprono nativamente, gli altri seguono il comportamento di default.
-    val defaultUriHandler = LocalUriHandler.current
-    val uriHandler = remember(defaultUriHandler, openAttachment) {
-        object : UriHandler {
-            override fun openUri(uri: String) {
-                val relativePath = AttachmentReference.relativePathOf(uri)
-                if (relativePath != null) {
-                    openAttachment(relativePath)
-                } else {
-                    defaultUriHandler.openUri(uri)
-                }
-            }
-        }
-    }
+    val host = rememberStepNotesHost(
+        state = notes,
+        snackbarHostState = scaffoldState.snackbarHostState,
+        onEvent = onNotesEvent,
+    )
 
     BottomSheetScaffold(
         modifier = modifier,
@@ -251,20 +175,19 @@ internal fun StepDetailPlaceContent(
                 },
             )
         },
+        sheetPeekHeight = ATTACHMENT_INVENTORY_PEEK_HEIGHT,
         sheetContent = {
             AttachmentInventorySection(
                 modifier = Modifier
                     .navigationBarsPadding(),
-                attachments = place.attachments,
-                resolveFile = resolveFile,
-                isEditing = isEditing,
-                onAdd = { attachmentPicker.launch() },
-                onInsert = { attachment ->
-                    controller.insertAtCursor(attachment.toMarkdownReference())
-                    onToggleEdit(true)
-                },
-                onOpen = { attachment -> openAttachment(attachment.relativePath) },
-                onRemove = { attachment -> onRemoveAttachment(attachment.id) },
+                attachments = notes.attachments,
+                resolveFile = notes.resolveFile,
+                isEditing = notes.isEditing,
+                testTags = StepDetailTestTags.NOTES,
+                onAdd = host.pickAttachment,
+                onInsert = host.insertReference,
+                onOpen = { attachment -> host.openAttachment(attachment.relativePath) },
+                onRemove = { attachment -> onNotesEvent(StepNotesEvent.RemoveAttachment(attachment.id)) },
             )
         },
     ) { padding ->
@@ -291,15 +214,14 @@ internal fun StepDetailPlaceContent(
                 onSetEndTime = onSetEndTime,
             )
 
-            NotesSection(
-                note = place.note,
-                isEditing = isEditing,
-                noteInvalid = noteInvalid,
-                missingReferences = missingReferences,
-                controller = controller,
-                imageTransformer = imageTransformer,
-                uriHandler = uriHandler,
-                onToggleEdit = onToggleEdit,
+            StepNotesSection(
+                host = host,
+                state = notes,
+                title = stringResource(Res.string.planning_detail_step_note_title),
+                editorLabel = stringResource(Res.string.planning_detail_step_note_label),
+                emptyText = stringResource(Res.string.planning_detail_step_note_empty),
+                testTags = StepDetailTestTags.NOTES,
+                onEvent = onNotesEvent,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -346,88 +268,6 @@ private fun PlaceMap(lat: Double, lng: Double, modifier: Modifier = Modifier) {
             strokeColor = const(Color.White),
             strokeWidth = const(2.dp),
         )
-    }
-}
-
-@Composable
-private fun NotesSection(
-    note: String,
-    isEditing: Boolean,
-    noteInvalid: Boolean,
-    missingReferences: List<String>,
-    controller: MarkdownEditorController,
-    imageTransformer: AttachmentImageTransformer,
-    uriHandler: UriHandler,
-    onToggleEdit: (Boolean) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(Res.string.planning_detail_step_note_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-            )
-            if (noteInvalid) {
-                Icon(
-                    modifier = Modifier.testTag(StepDetailTestTags.NOTE_ALERT),
-                    painter = painterResource(Res.drawable.error),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_note_invalid),
-                    tint = MaterialTheme.colorScheme.error,
-                )
-            }
-            IconButton(
-                modifier = Modifier.testTag(StepDetailTestTags.EDIT_TOGGLE),
-                onClick = { onToggleEdit(!isEditing) },
-            ) {
-                if (isEditing) {
-                    Icon(
-                        painter = painterResource(Res.drawable.check),
-                        contentDescription = stringResource(Res.string.planning_detail_cd_done_note),
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(Res.drawable.edit),
-                        contentDescription = stringResource(Res.string.planning_detail_cd_edit_note),
-                    )
-                }
-            }
-        }
-
-        if (missingReferences.isNotEmpty()) {
-            Text(
-                modifier = Modifier.testTag(StepDetailTestTags.MISSING_REFERENCES),
-                text = stringResource(Res.string.planning_detail_attachments_missing),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
-
-        if (isEditing) {
-            MarkdownNoteEditor(
-                controller = controller,
-                label = stringResource(Res.string.planning_detail_step_note_label),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(StepDetailTestTags.NOTE_EDITOR),
-            )
-        } else if (note.isBlank()) {
-            Text(
-                modifier = Modifier.testTag(StepDetailTestTags.NOTE_VIEW),
-                text = stringResource(Res.string.planning_detail_step_note_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            CompositionLocalProvider(LocalUriHandler provides uriHandler) {
-                Markdown(
-                    content = note,
-                    imageTransformer = imageTransformer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag(StepDetailTestTags.NOTE_VIEW),
-                )
-            }
-        }
     }
 }
 
@@ -496,13 +336,6 @@ private fun ScheduleField(label: String, value: String, modifier: Modifier = Mod
     }
 }
 
-/** Snippet Markdown per referenziare l'allegato: immagine inline o link a file. */
-private fun AttachmentUi.toMarkdownReference(): String = if (isImage) {
-    AttachmentReference.imageMarkdown(relativePath, altText = originalName)
-} else {
-    AttachmentReference.fileMarkdown(relativePath, label = originalName)
-}
-
 @Composable
 private fun BackButton(onClick: () -> Unit) {
     IconButton(
@@ -530,15 +363,9 @@ private fun StepDetailPlaceContentPreview() = KTravelTheme {
             ),
             note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto",
         ),
-        isEditing = false,
-        noteInvalid = false,
-        missingReferences = emptyList(),
-        resolveFile = { PlatformFile(Path(it)) },
+        notes = StepNotesUiState(note = "# Cose da vedere\n- Osservatorio principale\n- **Foto** al tramonto"),
         onBack = {},
-        onToggleEdit = {},
-        onNoteChanged = {},
-        onAddAttachment = {},
-        onRemoveAttachment = {},
+        onNotesEvent = {},
         onSetStartTime = {},
         onSetEndTime = {},
     )
@@ -549,15 +376,12 @@ private fun StepDetailPlaceContentPreview() = KTravelTheme {
 private fun StepDetailPlaceContentEmptyNotePreview() = KTravelTheme {
     StepDetailPlaceContent(
         place = StepUi.Place(name = "Shibuya Crossing", lat = 35.6595, lng = 139.7005),
-        isEditing = false,
-        noteInvalid = true,
-        missingReferences = listOf("t1/s1/missing.jpg"),
-        resolveFile = { PlatformFile(Path(it)) },
+        notes = StepNotesUiState(
+            noteInvalid = true,
+            missingReferences = persistentListOf("t1/s1/missing.jpg"),
+        ),
         onBack = {},
-        onToggleEdit = {},
-        onNoteChanged = {},
-        onAddAttachment = {},
-        onRemoveAttachment = {},
+        onNotesEvent = {},
         onSetStartTime = {},
         onSetEndTime = {},
     )

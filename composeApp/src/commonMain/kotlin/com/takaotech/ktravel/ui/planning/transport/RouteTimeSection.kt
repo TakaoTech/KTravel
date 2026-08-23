@@ -39,13 +39,13 @@ import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.presentation.planning.transport.RouteTimeMode
 import com.takaotech.ktravel.presentation.planning.transport.mode
 import com.takaotech.ktravel.presentation.planning.transport.timeOrNull
+import com.takaotech.ktravel.ui.common.formatClock
+import com.takaotech.ktravel.ui.common.formatDayMonthYear
 import com.takaotech.ktravel.ui.planning.detail.ScheduleTimePickerDialog
-import com.takaotech.ktravel.ui.planning.detail.formatScheduleTime
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
-import kotlinx.datetime.format.char
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.info
 import ktravel.composeapp.generated.resources.planning_transport_cd_time
@@ -213,7 +213,7 @@ private fun SelectedTime(
                         modifier = Modifier.padding(top = 2.dp),
                         text = stringResource(
                             Res.string.planning_transport_time_on_day,
-                            DAY_FORMAT.format(dayDate),
+                            dayDate.formatDayMonthYear(),
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -234,7 +234,7 @@ private fun SelectedTime(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = formatScheduleTime(time),
+                    text = time.formatClock(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontFamily = FontFamily.Monospace,
@@ -259,15 +259,6 @@ private fun RouteTimeMode.testTag(): String = when (this) {
     RouteTimeMode.NOW -> PlanningTransportTestTags.TIME_NOW
     RouteTimeMode.DEPART_AT -> PlanningTransportTestTags.TIME_DEPART_AT
     RouteTimeMode.ARRIVE_BY -> PlanningTransportTestTags.TIME_ARRIVE_BY
-}
-
-/** Day, month and year, which is what the hour needs qualifying with and nothing more. */
-private val DAY_FORMAT = LocalDate.Format {
-    day()
-    char('/')
-    monthNumber()
-    char('/')
-    year()
 }
 
 @Preview

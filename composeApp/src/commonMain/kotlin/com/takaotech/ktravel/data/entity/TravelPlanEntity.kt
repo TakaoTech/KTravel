@@ -4,6 +4,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlin.time.Instant
 
 @Serializable
 data class TravelPlanEntity(
@@ -103,9 +104,25 @@ sealed class StepEntity {
     data class Transport(
         override val id: String,
         @SerialName("transport_type") val transportType: String,
-        @SerialName("route") val route: RouteEntity,
+        // What the calculation answered, in the shape it answered it. Absent from the documents
+        // written before the two shapes were told apart, hence the default and [route] below.
+        @SerialName("answer") val answer: TransportAnswerEntity? = null,
+        /**
+         * The flat route the earlier builds wrote, kept for reading those documents back.
+         *
+         * Never written any more: [answer] replaces it, and a step read through this field is
+         * re-filed under [answer] the next time the plan is saved. It is poorer than either shape —
+         * a journey stored here has lost its lines and its stops — but it is what those documents
+         * contain, and dropping it would empty every transport already on a device.
+         */
+        @SerialName("route") val route: RouteEntity? = null,
         // Absent from the documents written before the request was recorded, hence the default.
         @SerialName("request") val request: TransportRequestEntity? = null,
+        @SerialName("note") val note: String = "",
+        // File inventory of the step. Empty default = backward compatible with the saved documents.
+        @SerialName("attachments") val attachments: List<AttachmentEntity> = emptyList(),
+        // When the route was computed. Null for the transports filed before it was recorded.
+        @SerialName("calculated_at") val calculatedAt: Instant? = null,
     ) : StepEntity()
 }
 
@@ -155,9 +172,162 @@ sealed class TransportRequestEntity {
     ) : TransportRequestEntity()
 }
 
+/**
+ * What a calculation answered, told apart by kind on the way in and on the way out.
+ *
+ * Sealed for the same reason [TransportRequestEntity] is: the two profiles do not answer the same
+ * thing. A road route is a shape with manoeuvres along it; a journey is a sequence of departures to
+ * be at on time, run by operators, calling at stops. One record for both meant every journey was
+ * saved as the handful of fields the two have in common, and read back without the rest.
+ */
+@Serializable
+sealed class TransportAnswerEntity {
+
+    /** A route on roads. */
+    @Serializable
+    @SerialName("routing")
+    data class Routing(@SerialName("route") val route: RoutingRouteEntity) : TransportAnswerEntity()
+
+    /** A journey on scheduled services. */
+    @Serializable
+    @SerialName("transit")
+    data class Transit(@SerialName("journey") val journey: TransitJourneyEntity) : TransportAnswerEntity()
+}
+
+/** Totals of a leg or of one of its parts. */
+@Serializable
+data class RouteSummaryEntity(
+    @SerialName("duration_seconds") val durationSeconds: Long,
+    @SerialName("distance_meters") val distanceMeters: Double,
+)
+
+/** A point on the ground. */
+@Serializable
+data class RouteLocationEntity(@SerialName("lat") val lat: Double, @SerialName("lng") val lng: Double)
+
+/**
+ * A moment on a timetable.
+ *
+ * ISO 8601 **with the offset in force where it happens**, which is the offset at the stop and not
+ * the one the device is in: a journey is read off a departure board, so dropping it would move every
+ * time of a trip planned abroad.
+ */
+@Serializable
+data class RouteDepartureEntity(
+    @SerialName("location") val location: RouteLocationEntity,
+    @SerialName("time") val time: String? = null,
+)
+
+/** A road route: the totals, and the legs between waypoints. */
+@Serializable
+data class RoutingRouteEntity(
+    @SerialName("summary") val summary: RouteSummaryEntity,
+    @SerialName("sections") val sections: List<RoutingSectionEntity>,
+)
+
+/** One leg of a road route, with the manoeuvres to perform along it. */
+@Serializable
+data class RoutingSectionEntity(
+    @SerialName("summary") val summary: RouteSummaryEntity,
+    @SerialName("mode") val mode: String,
+    @SerialName("actions") val actions: List<RouteActionEntity> = emptyList(),
+    @SerialName("departure") val departure: RouteDepartureEntity? = null,
+    @SerialName("arrival") val arrival: RouteDepartureEntity? = null,
+    @SerialName("polyline") val polyline: String? = null,
+)
+
+/** A journey on scheduled services: the totals, and the walking and riding in travel order. */
+@Serializable
+data class TransitJourneyEntity(
+    @SerialName("summary") val summary: RouteSummaryEntity,
+    @SerialName("steps") val steps: List<TransitStepEntity>,
+)
+
+/** One step of a journey: either the traveller walks it, or a scheduled vehicle carries them. */
+@Serializable
+sealed class TransitStepEntity {
+    abstract val summary: RouteSummaryEntity
+    abstract val polyline: String?
+
+    /** A stretch covered on foot. */
+    @Serializable
+    @SerialName("walk")
+    data class Walk(
+        @SerialName("summary") override val summary: RouteSummaryEntity,
+        @SerialName("polyline") override val polyline: String? = null,
+        @SerialName("departure_time") val departureTime: String? = null,
+        @SerialName("arrival_time") val arrivalTime: String? = null,
+        @SerialName("from") val from: RouteLocationEntity? = null,
+        @SerialName("to") val to: RouteLocationEntity? = null,
+    ) : TransitStepEntity()
+
+    /** A stretch aboard a scheduled service. */
+    @Serializable
+    @SerialName("ride")
+    data class Ride(
+        @SerialName("summary") override val summary: RouteSummaryEntity,
+        @SerialName("line") val line: TransitLineEntity,
+        @SerialName("polyline") override val polyline: String? = null,
+        @SerialName("agency") val agency: TransitAgencyEntity? = null,
+        @SerialName("boarding") val boarding: TransitStopEntity? = null,
+        @SerialName("alighting") val alighting: TransitStopEntity? = null,
+        @SerialName("intermediate_stops") val intermediateStops: List<TransitStopEntity> = emptyList(),
+    ) : TransitStepEntity()
+}
+
+/** The service operating a ride, as it is written on the vehicle. */
+@Serializable
+data class TransitLineEntity(
+    @SerialName("mode") val mode: String,
+    @SerialName("name") val name: String? = null,
+    @SerialName("short_name") val shortName: String? = null,
+    @SerialName("long_name") val longName: String? = null,
+    @SerialName("category") val category: String? = null,
+    @SerialName("headsign") val headsign: String? = null,
+    @SerialName("color") val color: String? = null,
+    @SerialName("text_color") val textColor: String? = null,
+    @SerialName("url") val url: String? = null,
+    @SerialName("wheelchair") val wheelchairAccessible: String? = null,
+)
+
+/** Who runs a service, which is who to ask about a disruption. */
+@Serializable
+data class TransitAgencyEntity(
+    @SerialName("name") val name: String,
+    @SerialName("id") val id: String? = null,
+    @SerialName("website") val website: String? = null,
+)
+
+/**
+ * A stop on a journey: where the traveller boards, alights, or passes through.
+ *
+ * @property offset Index into the ride's polyline, which is what puts a marker on the map without
+ * looking the stop up again.
+ */
+@Serializable
+data class TransitStopEntity(
+    @SerialName("location") val location: RouteLocationEntity,
+    @SerialName("name") val name: String? = null,
+    @SerialName("arrival_time") val arrivalTime: String? = null,
+    @SerialName("departure_time") val departureTime: String? = null,
+    @SerialName("dwell_seconds") val dwellSeconds: Long? = null,
+    @SerialName("offset") val offset: Int? = null,
+    @SerialName("url") val url: String? = null,
+    @SerialName("wheelchair") val wheelchairAccessible: String? = null,
+)
+
+/** The flat shape the earlier builds saved. Read only — see `StepEntity.Transport.route`. */
 @Serializable
 data class RouteEntity(@SerialName("sections") val sections: List<RouteSectionEntity>)
 
+/**
+ * A leg of a saved route.
+ *
+ * The two times are ISO 8601 with the offset in force where they happen, which is the offset at the
+ * stop and not the one the device is in: a journey is read off a departure board, so dropping it
+ * would move every time of a trip planned abroad. They are strings because the domain holds a
+ * `DateTimeComponents`, a type that exists to be produced by a parser and has no other constructor.
+ */
 @Serializable
 data class RouteSectionEntity(
     @SerialName("duration_seconds") val durationSeconds: Long,
@@ -168,15 +338,25 @@ data class RouteSectionEntity(
     @SerialName("departure_lng") val departureLng: Double? = null,
     @SerialName("arrival_lat") val arrivalLat: Double? = null,
     @SerialName("arrival_lng") val arrivalLng: Double? = null,
+    // Absent from the documents written before the times were recorded, hence the defaults.
+    @SerialName("departure_time") val departureTime: String? = null,
+    @SerialName("arrival_time") val arrivalTime: String? = null,
     @SerialName("actions") val actions: List<RouteActionEntity> = emptyList(),
 )
 
+/**
+ * One manoeuvre.
+ *
+ * [offset] is the index into the section's polyline where it happens: without it, tapping the
+ * manoeuvre of a route read back from the plan has nowhere to move the camera to.
+ */
 @Serializable
 data class RouteActionEntity(
     @SerialName("action") val action: String,
     @SerialName("duration_seconds") val durationSeconds: Long,
     @SerialName("distance_meters") val distanceMeters: Double,
     @SerialName("instruction") val instruction: String? = null,
+    @SerialName("offset") val offset: Int? = null,
     @SerialName("direction") val direction: String? = null,
     @SerialName("severity") val severity: String? = null,
 )

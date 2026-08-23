@@ -5,7 +5,7 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.transportAfter
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
-import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -21,7 +21,7 @@ class TransportStepEditorTest :
         fun place(id: String) = StepDomain.Place(id = id, name = id, lat = 0.0, lng = 0.0)
 
         fun transport(id: String, type: TransportType = TransportType.CAR, request: RouteSelection? = null) =
-            StepDomain.Transport(id = id, type = type, route = Route(emptyList()), request = request)
+            StepDomain.Transport(id = id, type = type, answer = roadAnswer(), request = request)
 
         fun planWith(vararg steps: StepDomain) = TravelPlanDomain(
             days = listOf(TravelDayDomain(id = "day", date = LocalDate(2024, 1, 1), steps = steps.toList())),

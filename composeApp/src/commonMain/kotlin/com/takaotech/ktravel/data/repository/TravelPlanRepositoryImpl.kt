@@ -12,7 +12,7 @@ import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TravelDayDomain
 import com.takaotech.ktravel.domain.model.TravelPlanDomain
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.addPlaceAttachment
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.clearFinalDestinationSchedules
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deletePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.deleteStep
@@ -23,13 +23,13 @@ import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepDown
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepToPlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.moveStepUp
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.putTransportStep
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.savePlace
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceEndTime
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceStartTime
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStep
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStepNote
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -104,8 +104,8 @@ class TravelPlanRepositoryImpl(
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) =
         mutate { it.updateStep(dayId, stepId, updatedStep) }
 
-    override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) =
-        mutate { it.updatePlaceNote(dayId, stepId, note) }
+    override suspend fun updateStepNote(dayId: String, stepId: String, note: String) =
+        mutate { it.updateStepNote(dayId, stepId, note) }
 
     override suspend fun updatePlaceStartTime(dayId: String, stepId: String, time: LocalTime) =
         mutate { it.updatePlaceStartTime(dayId, stepId, time) }
@@ -116,16 +116,21 @@ class TravelPlanRepositoryImpl(
     override suspend fun addAttachment(dayId: String, stepId: String, source: PlatformFile) {
         // The file on disk first, the metadata after: this avoids references to missing files.
         val attachment = attachmentDataSource.saveAttachment(travelId, stepId, source).toDomain()
-        mutate { it.addPlaceAttachment(dayId, stepId, attachment) }
+        mutate { it.addStepAttachment(dayId, stepId, attachment) }
     }
 
     override suspend fun removeAttachment(dayId: String, stepId: String, attachmentId: String) {
         val relativePath = _planningState.value.days
             .firstOrNull { it.id == dayId }?.steps
-            ?.filterIsInstance<StepDomain.Place>()
-            ?.firstOrNull { it.id == stepId }?.attachments
+            ?.firstOrNull { it.id == stepId }
+            ?.let { step ->
+                when (step) {
+                    is StepDomain.Place -> step.attachments
+                    is StepDomain.Transport -> step.attachments
+                }
+            }
             ?.firstOrNull { it.id == attachmentId }?.relativePath
-        mutate { it.removePlaceAttachment(dayId, stepId, attachmentId) }
+        mutate { it.removeStepAttachment(dayId, stepId, attachmentId) }
         relativePath?.let { attachmentDataSource.deleteAttachment(it) }
     }
 

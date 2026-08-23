@@ -46,22 +46,38 @@ import ktravel.composeapp.generated.resources.planning_detail_cd_remove_attachme
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-internal object AttachmentInventoryTestTags {
-    const val SECTION = "step_detail_attachments"
-    const val ADD = "step_detail_attachment_add"
-    const val ITEM = "step_detail_attachment_item"
-}
+/**
+ * The sheet's drag handle: a 4.dp bar inside 22.dp of padding above and below it.
+ */
+private val DRAG_HANDLE_HEIGHT = 48.dp
+
+/** The header row is as tall as the minimum touch target of the add button it carries. */
+private val HEADER_ROW_HEIGHT = 48.dp
+
+/**
+ * How much of a sheet hosting [AttachmentInventorySection] has to stay visible when it is closed.
+ *
+ * `BottomSheetDefaults.SheetPeekHeight` is 56.dp, which the drag handle alone very nearly fills: the
+ * closed sheet showed a bare strip, with the "Files" title and the add button cut off below the
+ * fold, so nothing on screen said what pulling it up would reveal. This is the handle plus one
+ * header row.
+ */
+internal val ATTACHMENT_INVENTORY_PEEK_HEIGHT = DRAG_HANDLE_HEIGHT + HEADER_ROW_HEIGHT
 
 /**
  * Sezione "inventario file" dello step: caricamento, elenco (miniature per le immagini, riga con
  * icona per i file generici) e azioni per item — inserisci nella nota, apri con l'app di sistema,
  * elimina dall'inventario.
+ *
+ * Ospitata da ogni schermata di dettaglio che porta delle note: la meccanica è la stessa, i test
+ * tag li nomina l'host attraverso [testTags].
  */
 @Composable
 internal fun AttachmentInventorySection(
     attachments: List<AttachmentUi>,
     resolveFile: (String) -> PlatformFile,
     isEditing: Boolean,
+    testTags: StepNotesTestTags,
     onAdd: () -> Unit,
     onInsert: (AttachmentUi) -> Unit,
     onOpen: (AttachmentUi) -> Unit,
@@ -71,7 +87,8 @@ internal fun AttachmentInventorySection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .testTag(AttachmentInventoryTestTags.SECTION),
+            .testTag(testTags.attachments)
+            .padding(start = 8.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -81,7 +98,7 @@ internal fun AttachmentInventorySection(
                 modifier = Modifier.weight(1f),
             )
             IconButton(
-                modifier = Modifier.testTag(AttachmentInventoryTestTags.ADD),
+                modifier = Modifier.testTag(testTags.attachmentAdd),
                 onClick = onAdd,
             ) {
                 Icon(
@@ -106,6 +123,7 @@ internal fun AttachmentInventorySection(
                         attachment = attachment,
                         isEditing = isEditing,
                         resolveFile = resolveFile,
+                        itemTestTag = testTags.attachmentItem,
                         onInsert = { onInsert(attachment) },
                         onOpen = { onOpen(attachment) },
                         onRemove = { onRemove(attachment) },
@@ -121,12 +139,13 @@ private fun AttachmentRow(
     attachment: AttachmentUi,
     isEditing: Boolean,
     resolveFile: (String) -> PlatformFile,
+    itemTestTag: String,
     onInsert: () -> Unit,
     onOpen: () -> Unit,
     onRemove: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().testTag(AttachmentInventoryTestTags.ITEM),
+        modifier = Modifier.fillMaxWidth().testTag(itemTestTag),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -166,7 +185,6 @@ private fun AttachmentRow(
 
 @Composable
 private fun AttachmentThumbnail(attachment: AttachmentUi, resolveFile: (String) -> PlatformFile) {
-    // In preview i file reali non esistono: si evita la lettura da disco e si mostra un placeholder.
     val isPreview = LocalInspectionMode.current
     Surface(
         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
@@ -210,42 +228,48 @@ private fun AttachmentThumbnail(attachment: AttachmentUi, resolveFile: (String) 
 @Preview
 @Composable
 private fun AttachmentInventorySectionPreview() = KTravelTheme {
-    AttachmentInventorySection(
-        attachments = listOf(
-            AttachmentUi(
-                id = "a1",
-                relativePath = "t1/s1/tokyo.jpg",
-                originalName = "tokyo-tower.jpg",
-                mimeType = "image/jpeg",
-                isImage = true,
+    Surface {
+        AttachmentInventorySection(
+            attachments = listOf(
+                AttachmentUi(
+                    id = "a1",
+                    relativePath = "t1/s1/tokyo.jpg",
+                    originalName = "tokyo-tower.jpg",
+                    mimeType = "image/jpeg",
+                    isImage = true,
+                ),
+                AttachmentUi(
+                    id = "a2",
+                    relativePath = "t1/s1/ticket.pdf",
+                    originalName = "ticket.pdf",
+                    mimeType = "application/pdf",
+                    isImage = false,
+                ),
             ),
-            AttachmentUi(
-                id = "a2",
-                relativePath = "t1/s1/ticket.pdf",
-                originalName = "ticket.pdf",
-                mimeType = "application/pdf",
-                isImage = false,
-            ),
-        ),
-        resolveFile = { PlatformFile(Path(it)) },
-        onAdd = {},
-        onInsert = {},
-        onOpen = {},
-        onRemove = {},
-        isEditing = true,
-    )
+            resolveFile = { PlatformFile(Path(it)) },
+            testTags = StepDetailTestTags.NOTES,
+            onAdd = {},
+            onInsert = {},
+            onOpen = {},
+            onRemove = {},
+            isEditing = true,
+        )
+    }
 }
 
 @Preview
 @Composable
 private fun AttachmentInventorySectionEmptyPreview() = KTravelTheme {
-    AttachmentInventorySection(
-        attachments = emptyList(),
-        resolveFile = { PlatformFile(Path(it)) },
-        onAdd = {},
-        onInsert = {},
-        onOpen = {},
-        onRemove = {},
-        isEditing = true,
-    )
+    Surface {
+        AttachmentInventorySection(
+            attachments = emptyList(),
+            resolveFile = { PlatformFile(Path(it)) },
+            testTags = StepDetailTestTags.NOTES,
+            onAdd = {},
+            onInsert = {},
+            onOpen = {},
+            onRemove = {},
+            isEditing = true,
+        )
+    }
 }

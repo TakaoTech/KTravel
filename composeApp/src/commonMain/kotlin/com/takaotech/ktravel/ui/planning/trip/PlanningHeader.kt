@@ -28,8 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.core.toLocalDate
+import com.takaotech.ktravel.ui.common.formatIso
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import kotlinx.datetime.LocalDate
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.date_range
 import ktravel.composeapp.generated.resources.edit
@@ -125,7 +125,7 @@ fun TravelDateRangePicker(
                 val formatMillis = { millis: Long ->
                     Instant.fromEpochMilliseconds(millis)
                         .toLocalDate()
-                        .let { date -> LocalDate.Formats.ISO.format(date) }
+                        .formatIso()
                         .let { append(it) }
                 }
 

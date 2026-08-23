@@ -312,4 +312,22 @@
     <string name="transit_preview_cd_collapse_stops">Hide the stops along the way</string>
     <string name="transit_preview_agency_label">Agency</string>
     <string name="transit_preview_line_website_label">Line website</string>
+
+    <string name="transport_detail_title">Transport detail</string>
+    <string name="transport_detail_departure_label">Departure</string>
+    <string name="transport_detail_arrival_label">Arrival</string>
+    <string name="transport_detail_time_unknown">--:--</string>
+    <string name="transport_detail_duration_label">Duration</string>
+    <string name="transport_detail_distance_label">Distance</string>
+    <string name="transport_detail_calculated_at">Computed %1$s</string>
+    <string name="transport_detail_note_title">Notes on the leg</string>
+    <string name="transport_detail_note_empty">No notes on this leg yet</string>
+    <string name="transport_detail_note_label">Leg notes (Markdown)</string>
+    <string name="transport_detail_cd_recalculate">Recompute the route</string>
+    <string name="transport_detail_cd_collapse_steps">Hide the steps</string>
+    <string name="transport_detail_cd_expand_steps">Show the steps</string>
+    <plurals name="transport_detail_steps_title">
+        <item quantity="one">Steps · %1$d step</item>
+        <item quantity="other">Steps · %1$d steps</item>
+    </plurals>
 </resources>

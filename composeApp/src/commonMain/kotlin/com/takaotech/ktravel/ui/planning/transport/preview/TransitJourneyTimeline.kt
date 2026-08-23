@@ -53,6 +53,8 @@ import com.takaotech.ktravel.domain.routing.model.TransitStep
 import com.takaotech.ktravel.domain.routing.model.TransitStop
 import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
+import com.takaotech.ktravel.ui.common.formatClock
+import com.takaotech.ktravel.ui.common.toColorOrNull
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.nacular.measured.units.Length
@@ -402,29 +404,12 @@ private fun TransitTimelineRail(color: Color, width: Dp, modifier: Modifier = Mo
 }
 
 /** The wall clock at the stop, which is the number printed on the departure board. */
-internal fun TransitTime.clock(): String {
-    val local = atStop()
-    return "${local.hour.toString().padStart(2, '0')}:${local.minute.toString().padStart(2, '0')}"
-}
+internal fun TransitTime.clock(): String = atStop().formatClock()
 
 internal fun TransitStep.lineColor(): Color? = (this as? TransitStep.Ride)?.line?.color?.toColorOrNull()
 
 // FIXME Check background color luminance for accessibility
 internal fun TransitStep.textColor(): Color? = (this as? TransitStep.Ride)?.line?.textColor?.toColorOrNull()
-
-/**
- * An operator's colour, when it is one that can be read.
- *
- * Only `#RRGGBB` is accepted. A feed publishing anything else falls back to the theme rather than to
- * a colour guessed from half a string, which is how a line ends up drawn in black on black.
- */
-private fun String.toColorOrNull(): Color? = takeIf { it.length == HEX_COLOUR_LENGTH && it.startsWith('#') }
-    ?.substring(1)
-    ?.toLongOrNull(radix = 16)
-    ?.let { Color(it or OPAQUE_ALPHA) }
-
-private const val HEX_COLOUR_LENGTH = 7
-private const val OPAQUE_ALPHA = 0xFF000000L
 
 /**
  * The journey at a glance: when it leaves, when it lands, how long that is, and how many changes.

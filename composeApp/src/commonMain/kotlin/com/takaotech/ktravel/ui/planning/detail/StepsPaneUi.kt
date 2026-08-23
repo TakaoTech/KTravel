@@ -95,6 +95,7 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
         onNavigationBackClick = { sink(StepsPaneEvent.NavigateBack) },
         onOpenBacklogClick = { sink(StepsPaneEvent.OpenBacklog) },
         onStepClick = { sink(StepsPaneEvent.OpenStepDetail(it)) },
+        onTransportClick = { sink(StepsPaneEvent.OpenTransportDetail(it)) },
         onDeleteStepClick = { sink(StepsPaneEvent.DeleteStep(it)) },
         onMoveStepUpClick = { sink(StepsPaneEvent.MoveStepUp(it)) },
         onMoveStepDownClick = { sink(StepsPaneEvent.MoveStepDown(it)) },
@@ -117,6 +118,7 @@ internal fun StepsPaneContent(
     onNavigationBackClick: () -> Unit,
     onOpenBacklogClick: () -> Unit,
     onStepClick: (String) -> Unit,
+    onTransportClick: (String) -> Unit,
     onDeleteStepClick: (StepUi) -> Unit,
     onMoveStepUpClick: (String) -> Unit,
     onMoveStepDownClick: (String) -> Unit,
@@ -234,6 +236,7 @@ internal fun StepsPaneContent(
                                 TravelStepTransport(
                                     modifier = Modifier.fillMaxWidth(),
                                     step = step,
+                                    onStepClick = onTransportClick,
                                     onStepDeleteClicked = { onDeleteStepClick(step) },
                                 )
                             }
@@ -453,6 +456,7 @@ private fun StepsPaneContentPreview() = KTravelTheme {
         onNavigationBackClick = {},
         onOpenBacklogClick = {},
         onStepClick = {},
+        onTransportClick = {},
         onDeleteStepClick = {},
         onMoveStepUpClick = {},
         onMoveStepDownClick = {},

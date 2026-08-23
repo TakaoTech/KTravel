@@ -197,8 +197,12 @@ class TravelArchiveExporterImpl private constructor(
 
 /** Every attachment referenced by the plan, in order of appearance. */
 internal fun TravelPlanEntity.allAttachments(): List<AttachmentEntity> = days.flatMap { day -> day.steps }
-    .filterIsInstance<StepEntity.Place>()
-    .flatMap { step -> step.attachments }
+    .flatMap { step ->
+        when (step) {
+            is StepEntity.Place -> step.attachments
+            is StepEntity.Transport -> step.attachments
+        }
+    }
 
 /**
  * Copy of the plan whose inventory holds only [retained]. References inside the notes are left
@@ -211,7 +215,9 @@ private fun TravelPlanEntity.retainingOnly(retained: List<AttachmentEntity>): Tr
             day.copy(
                 steps = day.steps.map { step ->
                     when (step) {
-                        is StepEntity.Transport -> step
+                        is StepEntity.Transport -> step.copy(
+                            attachments = step.attachments.filter { it.relativePath in keep },
+                        )
 
                         is StepEntity.Place -> step.copy(
                             attachments = step.attachments.filter { it.relativePath in keep },

@@ -31,6 +31,7 @@ import com.takaotech.ktravel.presentation.planning.detail.AddPlaceScreen
 import com.takaotech.ktravel.presentation.planning.detail.AddTransportScreen
 import com.takaotech.ktravel.presentation.planning.detail.PlanningDetailScreen
 import com.takaotech.ktravel.presentation.planning.detail.StepDetailScreen
+import com.takaotech.ktravel.presentation.planning.detail.TransportDetailScreen
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportNavigationEvent
 import com.takaotech.ktravel.presentation.planning.transport.PlanningTransportViewModel
 import com.takaotech.ktravel.presentation.settings.SettingsViewModel
@@ -62,6 +63,9 @@ data class PlanningNavigation(val travelId: String)
 
 @Serializable
 data class StepDetailPageNavigation(val travelId: String, val dayId: String, val stepId: String)
+
+@Serializable
+data class TransportDetailPageNavigation(val travelId: String, val dayId: String, val stepId: String)
 
 @OptIn(
     ExperimentalMaterial3AdaptiveApi::class,
@@ -197,6 +201,14 @@ fun App() {
                                                     ),
                                                 )
 
+                                                is TransportDetailScreen -> navController.navigate(
+                                                    TransportDetailPageNavigation(
+                                                        screen.travelId,
+                                                        screen.dayId,
+                                                        screen.stepId,
+                                                    ),
+                                                )
+
                                                 else -> Unit
                                             }
 
@@ -221,6 +233,43 @@ fun App() {
                                                 if (backStackEntry.lifecycleIsResumed()) {
                                                     navController.navigateUp()
                                                 }
+                                            }
+
+                                            else -> Unit
+                                        }
+                                    },
+                                )
+                            }
+
+                            composable<TransportDetailPageNavigation> { backStackEntry ->
+                                val args = backStackEntry.toRoute<TransportDetailPageNavigation>()
+
+                                CircuitContent(
+                                    screen = TransportDetailScreen(
+                                        travelId = args.travelId,
+                                        dayId = args.dayId,
+                                        stepId = args.stepId,
+                                    ),
+                                    onNavEvent = { event ->
+                                        when (event) {
+                                            is NavEvent.Pop -> {
+                                                if (backStackEntry.lifecycleIsResumed()) {
+                                                    navController.navigateUp()
+                                                }
+                                            }
+
+                                            // The pencil: recompute the leg between the same two
+                                            // places, with the request it was filed with.
+                                            is NavEvent.GoTo -> when (val screen = event.screen) {
+                                                is AddTransportScreen -> navController.navigate(
+                                                    PlanningTransportPageNavigation(
+                                                        screen.dayId,
+                                                        screen.startPlaceId,
+                                                        screen.endPlaceId,
+                                                    ),
+                                                )
+
+                                                else -> Unit
                                             }
 
                                             else -> Unit
@@ -264,6 +313,12 @@ fun App() {
                                                         ),
                                                     )
                                                 }
+
+                                                // Handled by the preview destination, which is the
+                                                // one still composed when the route is confirmed.
+                                                is PlanningTransportNavigationEvent
+                                                    .NavigateToTransportDetail,
+                                                -> Unit
                                             }
                                         }
                                     }
@@ -279,6 +334,8 @@ fun App() {
                                 }
 
                                 composable<PlanningTransportRoutePreviewPageNavigation> { backStackEntry ->
+                                    val previewArgs =
+                                        backStackEntry.toRoute<PlanningTransportRoutePreviewPageNavigation>()
                                     val transportEntry = remember(backStackEntry) {
                                         navController.getBackStackEntry<PlanningTransportNavigation>()
                                     }
@@ -287,10 +344,35 @@ fun App() {
 
                                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+                                    val parentArgs =
+                                        navController.getBackStackEntry<PlanningNavigation>()
+                                            .toRoute<PlanningNavigation>()
+
+                                    // Saving is asynchronous and answers with the id of the leg it
+                                    // filed, so the navigation waits for it rather than guessing.
+                                    LaunchedEffect(viewModel) {
+                                        viewModel.navigationEvent.collect { event ->
+                                            if (event !is PlanningTransportNavigationEvent.NavigateToTransportDetail) {
+                                                return@collect
+                                            }
+                                            navController.navigate(
+                                                TransportDetailPageNavigation(
+                                                    travelId = parentArgs.travelId,
+                                                    dayId = previewArgs.dayId,
+                                                    stepId = event.stepId,
+                                                ),
+                                            ) {
+                                                // The whole computation flow leaves the stack: back
+                                                // from the leg is the day, not the preview again.
+                                                popUpTo(PlanningDetailPageNavigation(previewArgs.dayId)) {
+                                                    inclusive = false
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     val confirm = {
                                         viewModel.saveSelectedRoute()
-                                        navController.popBackStack<PlanningDetailPageNavigation>(inclusive = false)
-                                        Unit
                                     }
 
                                     when (val result = uiState.result) {

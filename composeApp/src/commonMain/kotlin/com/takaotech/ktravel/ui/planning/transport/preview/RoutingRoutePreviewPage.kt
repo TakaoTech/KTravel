@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RoutingRoutes
-import com.takaotech.ktravel.domain.routing.model.RoutingSection
 import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
@@ -78,7 +78,11 @@ fun RoutingRoutePreviewPage(
         list = {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(selected?.sections.orEmpty()) { section ->
-                    RoutingStepSection(section = section, onActionClick = onStepClick)
+                    RoutingStepSection(
+                        actions = section.actions,
+                        polyline = section.polyline,
+                        onActionClick = onStepClick,
+                    )
                 }
             }
         },
@@ -98,8 +102,15 @@ fun RoutingRoutePreviewPage(
 /** Zoom applied when framing a single manoeuvre, close enough to read the junction. */
 private const val STEP_FOCUS_ZOOM = 16.0
 
+/** Room for "12,3 km" over "1h 3m", which is the widest a manoeuvre's figures ever get. */
+private val HOW_FAR_COLUMN_WIDTH = 80.dp
+
 /**
  * The manoeuvres of one section.
+ *
+ * Takes the [actions] and the [polyline] rather than a section, because the two things that carry
+ * manoeuvres — the live answer and the route as the plan saved it — are different types holding the
+ * same two fields, and this list has no reason to know which one it is drawing.
  *
  * A manoeuvre is only clickable when both halves of the answer are there: the geometry to look the
  * point up in, and the offset saying where in it. Without either, tapping the row would move the
@@ -107,13 +118,13 @@ private const val STEP_FOCUS_ZOOM = 16.0
  */
 @Composable
 fun RoutingStepSection(
-    section: RoutingSection,
+    actions: List<RouteAction>,
+    polyline: String?,
     onActionClick: (PolylineEncoderDecoder.LatLngZ) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        for (action in section.actions) {
-            val polyline = section.polyline
+        for (action in actions) {
             val offset = action.offset
 
             RoutingStep(
@@ -164,14 +175,20 @@ fun RoutingStep(action: RouteAction, onActionClick: (() -> Unit)? = null, modifi
                     )
                 }
             }
-            Column(horizontalAlignment = Alignment.End) {
+            // Fixed width, not wrap-content: an instruction is a sentence and a distance is never
+            // more than a few characters, so letting this column grow is what used to squeeze the
+            // instruction beside it down to one letter per line.
+            Column(
+                modifier = Modifier.width(HOW_FAR_COLUMN_WIDTH),
+                horizontalAlignment = Alignment.End,
+            ) {
                 Text(
                     text = action.distanceMeters.formatDistance(),
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = action.toString(),
+                    text = action.durationSeconds.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

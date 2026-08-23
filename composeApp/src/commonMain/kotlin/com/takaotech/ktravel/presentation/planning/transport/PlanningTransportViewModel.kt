@@ -321,7 +321,7 @@ class PlanningTransportViewModel(
             val index = state.selectedRouteIndex
             val request = state.requestUsed ?: return@launch
 
-            when (val result = state.result) {
+            val stepId = when (val result = state.result) {
                 null -> return@launch
 
                 is RouteResult.Routing -> result.routes.routes.getOrNull(index)?.let {
@@ -331,7 +331,9 @@ class PlanningTransportViewModel(
                 is RouteResult.Transit -> result.journeys.journeys.getOrNull(index)?.let {
                     planningGraph.saveTransportStepUseCase(dayId, startPlaceId, it, request)
                 }
-            }
+            } ?: return@launch
+
+            _navigationEvent.emit(PlanningTransportNavigationEvent.NavigateToTransportDetail(stepId))
         }
     }
 }

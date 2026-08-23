@@ -2,8 +2,8 @@ package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.addPlaceAttachment
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.removePlaceAttachment
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStepAttachment
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import io.kotest.core.spec.style.BehaviorSpec
@@ -44,8 +44,8 @@ class StepAttachmentTest :
         given("a plan with a Step.Place") {
             val plan = planWithPlaceStep()
 
-            `when`("addPlaceAttachment is called with a valid step and day") {
-                val updated = plan.addPlaceAttachment("d1", "s1", attachment)
+            `when`("addStepAttachment is called with a valid step and day") {
+                val updated = plan.addStepAttachment("d1", "s1", attachment)
 
                 then("it should add the attachment to the step inventory") {
                     val step = updated.days[0].steps[0] as StepDomain.Place
@@ -54,8 +54,8 @@ class StepAttachmentTest :
                 }
             }
 
-            `when`("addPlaceAttachment targets an unknown step") {
-                val updated = plan.addPlaceAttachment("d1", "unknown", attachment)
+            `when`("addStepAttachment targets an unknown step") {
+                val updated = plan.addStepAttachment("d1", "unknown", attachment)
 
                 then("it should return the plan unchanged") {
                     updated shouldBe plan
@@ -66,8 +66,8 @@ class StepAttachmentTest :
         given("a plan whose step already has an attachment") {
             val plan = planWithPlaceStep(listOf(attachment))
 
-            `when`("removePlaceAttachment is called with the attachment id") {
-                val updated = plan.removePlaceAttachment("d1", "s1", "a1")
+            `when`("removeStepAttachment is called with the attachment id") {
+                val updated = plan.removeStepAttachment("d1", "s1", "a1")
 
                 then("it should remove it from the inventory") {
                     val step = updated.days[0].steps[0] as StepDomain.Place
@@ -75,8 +75,8 @@ class StepAttachmentTest :
                 }
             }
 
-            `when`("removePlaceAttachment is called with an unknown id") {
-                val updated = plan.removePlaceAttachment("d1", "s1", "unknown")
+            `when`("removeStepAttachment is called with an unknown id") {
+                val updated = plan.removeStepAttachment("d1", "s1", "unknown")
 
                 then("it should return the plan unchanged") {
                     updated shouldBe plan

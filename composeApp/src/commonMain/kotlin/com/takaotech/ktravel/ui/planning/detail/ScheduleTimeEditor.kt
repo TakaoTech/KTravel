@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.takaotech.ktravel.ui.common.formatClock
 import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.planning_detail_cd_end_time
@@ -24,10 +25,6 @@ import ktravel.composeapp.generated.resources.planning_detail_time_unset
 import ktravel.composeapp.generated.resources.time_picker_cancel
 import ktravel.composeapp.generated.resources.time_picker_confirm
 import org.jetbrains.compose.resources.stringResource
-
-/** Formats a [LocalTime] as `HH:mm`. */
-internal fun formatScheduleTime(time: LocalTime): String =
-    "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
 
 /**
  * Presentation-agnostic handle exposed by [ScheduleTimeEditor] to its trigger [content]: the
@@ -64,8 +61,8 @@ internal fun ScheduleTimeEditor(
 
     val placeholder = stringResource(Res.string.planning_detail_time_unset)
     val scope = ScheduleTimeEditorScope(
-        startDisplay = startTime?.let(::formatScheduleTime) ?: placeholder,
-        endDisplay = endTime?.let(::formatScheduleTime) ?: placeholder,
+        startDisplay = startTime?.formatClock() ?: placeholder,
+        endDisplay = endTime?.formatClock() ?: placeholder,
         startContentDescription = stringResource(Res.string.planning_detail_cd_start_time),
         endContentDescription = stringResource(Res.string.planning_detail_cd_end_time),
         openStartPicker = { showStartPicker = true },

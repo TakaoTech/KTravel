@@ -312,4 +312,22 @@
     <string name="transit_preview_cd_collapse_stops">Nascondi le fermate intermedie</string>
     <string name="transit_preview_agency_label">Gestore</string>
     <string name="transit_preview_line_website_label">Sito della linea</string>
+
+    <string name="transport_detail_title">Dettaglio tratta</string>
+    <string name="transport_detail_departure_label">Partenza</string>
+    <string name="transport_detail_arrival_label">Arrivo</string>
+    <string name="transport_detail_time_unknown">--:--</string>
+    <string name="transport_detail_duration_label">Durata</string>
+    <string name="transport_detail_distance_label">Distanza</string>
+    <string name="transport_detail_calculated_at">Calcolato %1$s</string>
+    <string name="transport_detail_note_title">Note sulla tratta</string>
+    <string name="transport_detail_note_empty">Nessuna nota su questa tratta</string>
+    <string name="transport_detail_note_label">Note sulla tratta (Markdown)</string>
+    <string name="transport_detail_cd_recalculate">Ricalcola il percorso</string>
+    <string name="transport_detail_cd_collapse_steps">Nascondi i passi</string>
+    <string name="transport_detail_cd_expand_steps">Mostra i passi</string>
+    <plurals name="transport_detail_steps_title">
+        <item quantity="one">Indicazioni · %1$d passo</item>
+        <item quantity="other">Indicazioni · %1$d passi</item>
+    </plurals>
 </resources>

@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.presentation.planning.detail
 
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.domain.routing.model.Route
 import com.takaotech.ktravel.presentation.planning.StepUi
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -15,7 +15,7 @@ class StepRowBuilderTest : BehaviorSpec() {
     private fun transport(id: String) = StepUi.Transport(
         id = id,
         type = TransportType.TRAIN,
-        route = Route(sections = emptyList()),
+        answer = roadAnswer(),
     )
 
     init {

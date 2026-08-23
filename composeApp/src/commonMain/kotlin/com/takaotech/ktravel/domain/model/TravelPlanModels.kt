@@ -1,11 +1,14 @@
-@file:OptIn(ExperimentalUuidApi::class)
+@file:OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
 
 package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.RouteSelection
+import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -113,16 +116,27 @@ sealed class StepDomain(open val id: String = newId()) {
     /**
      * Transport placed between two places of the itinerary.
      *
+     * @property answer What the calculation answered, kept in the shape it was answered in: a road
+     * route, or a journey on scheduled services. Sealed rather than flattened, so a saved journey
+     * still knows the line it is taken on and the stops it calls at.
      * @property request The request that produced the alternatives this one was chosen from, when
      * it is known. Null for a step filed by a build that did not record it. Kept so a second
      * calculation between the same two places starts from what the traveller asked for last time
      * rather than from the defaults.
+     * @property note Notes on the leg itself, which belong to neither of the places it joins: what
+     * to do at the wheel, where to stop, which carriage the seat is in.
      */
     data class Transport(
         override val id: String = newId(),
         val type: TransportType,
-        val route: com.takaotech.ktravel.domain.routing.model.Route,
+        val answer: TransportAnswer,
         val request: RouteSelection? = null,
+        /** Free-form Markdown notes attached to the step. */
+        val note: String = "",
+        /** File inventory of the step (photos and documents). */
+        val attachments: List<AttachmentDomain> = emptyList(),
+        /** When the route was computed, null for a step filed by a build that did not record it. */
+        val calculatedAt: Instant? = null,
     ) : StepDomain(id)
 }
 

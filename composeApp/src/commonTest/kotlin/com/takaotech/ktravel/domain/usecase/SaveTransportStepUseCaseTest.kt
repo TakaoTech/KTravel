@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.takaotech.ktravel.domain.usecase
 
 import com.takaotech.ktravel.domain.model.StepDomain
@@ -24,10 +26,44 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.LocalDate
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class SaveTransportStepUseCaseTest :
     BehaviorSpec({
+
+        given("a SaveTransportStepUseCase filing a leg") {
+            val computedAt = Instant.parse("2026-05-30T09:38:00Z")
+
+            `when`("a route is saved") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                val stepId = useCase("day-1", "step-1", routeWithMode("CAR"), ROAD_REQUEST, computedAt)
+
+                then("it should answer with the id of the step it filed") {
+                    stepId shouldBe (fakeRepository.savedStep as StepDomain.Transport).id
+                }
+
+                then("it should record when the route was computed") {
+                    (fakeRepository.savedStep as StepDomain.Transport).calculatedAt shouldBe computedAt
+                }
+            }
+
+            `when`("a second calculation replaces an existing leg") {
+                val fakeRepository = FakeTravelPlanRepositoryForTransport()
+                val useCase = SaveTransportStepUseCase(fakeRepository)
+
+                val firstId = useCase("day-1", "step-1", routeWithMode("CAR"), ROAD_REQUEST, computedAt)
+                val secondId = useCase("day-1", "step-1", routeWithMode("BUS"), ROAD_REQUEST, computedAt)
+
+                then("the id should be the one the plan already had") {
+                    secondId shouldBe firstId
+                }
+            }
+        }
 
         given("a SaveTransportStepUseCase") {
             `when`("invoked with a route whose first section mode is TRAIN") {
@@ -252,10 +288,24 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     private val _planningState = MutableStateFlow(TravelPlanDomain())
     override val planningState: StateFlow<TravelPlanDomain> = _planningState
 
-    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(TravelDayDomain.EMPTY)
+    /**
+     * The day as it stands after the last save, which is what the use case reads the filed id back
+     * from. Filing over an existing transport keeps that transport's id, so the id the use case
+     * answers with is not the one it built.
+     */
+    override fun getTravelDayFlow(dayId: String): Flow<TravelDayDomain> = flowOf(
+        TravelDayDomain(
+            id = dayId,
+            date = LocalDate.fromEpochDays(0),
+            steps = listOfNotNull(
+                StepDomain.Place(id = "step-1", name = "Binasco", lat = 0.0, lng = 0.0),
+                savedStep,
+            ),
+        ),
+    )
     override suspend fun updatePeriod(startMillis: Long, endMillis: Long) = Unit
     override suspend fun updateStep(dayId: String, stepId: String, updatedStep: StepDomain) = Unit
-    override suspend fun updatePlaceNote(dayId: String, stepId: String, note: String) = Unit
+    override suspend fun updateStepNote(dayId: String, stepId: String, note: String) = Unit
     override suspend fun updatePlaceStartTime(dayId: String, stepId: String, time: kotlinx.datetime.LocalTime) = Unit
 
     override suspend fun updatePlaceEndTime(dayId: String, stepId: String, time: kotlinx.datetime.LocalTime) = Unit
@@ -278,7 +328,10 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override suspend fun putTransportStep(dayId: String, afterStepId: String, step: StepDomain.Transport) {
         savedDayId = dayId
         savedAfterStepId = afterStepId
-        savedStep = step
+        // Keeping the id already in the plan is the repository's rule; the fake mirrors it so the
+        // use case is exercised against the behaviour it actually runs on.
+        val existing = savedStep as? StepDomain.Transport
+        savedStep = if (existing == null) step else step.copy(id = existing.id)
     }
 
     override suspend fun deletePlace(placeId: String, dayId: String?) = Unit

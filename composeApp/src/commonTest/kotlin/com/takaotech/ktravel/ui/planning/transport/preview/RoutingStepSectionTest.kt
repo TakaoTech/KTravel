@@ -1,14 +1,18 @@
 package com.takaotech.ktravel.ui.planning.transport.preview
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.routing.model.RouteAction
-import com.takaotech.ktravel.domain.routing.model.RouteSummary
-import com.takaotech.ktravel.domain.routing.model.RoutingSection
 import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.doubles.plusOrMinus
@@ -52,14 +56,45 @@ class RoutingStepSectionTest : BehaviorSpec() {
         severity = "normal",
     )
 
-    private fun section(polyline: String?, offset: Int?) = RoutingSection(
-        summary = RouteSummary(durationSeconds = 600.seconds, distance = 5000 * Length.meters),
-        mode = "CAR",
-        actions = listOf(action(offset)),
-        polyline = polyline,
-    )
-
     init {
+        given("a manoeuvre with a long instruction") {
+            `when`("the row is drawn") {
+                then("it should show how long the manoeuvre takes, not the object behind it") {
+                    runComposeUiTest {
+                        setContent {
+                            RoutingStepSection(
+                                actions = listOf(action(offset = null)),
+                                polyline = null,
+                                onActionClick = {},
+                            )
+                        }
+
+                        // The row used to print the whole RouteAction here.
+                        onNodeWithText("45s").assertIsDisplayed()
+                        onNodeWithText("RouteAction(", substring = true).assertDoesNotExist()
+                    }
+                }
+
+                then("the instruction should keep a readable width beside the figures") {
+                    runComposeUiTest {
+                        setContent {
+                            Box(modifier = Modifier.width(360.dp)) {
+                                RoutingStepSection(
+                                    actions = listOf(action(offset = null)),
+                                    polyline = null,
+                                    onActionClick = {},
+                                )
+                            }
+                        }
+
+                        // It used to collapse to one letter per line, which is what a width of a
+                        // few dp looks like on screen.
+                        onNodeWithText(turnInstruction).assertWidthIsAtLeast(150.dp)
+                    }
+                }
+            }
+        }
+
         given("a section with a polyline and an action pointing at a vertex") {
             `when`("the step is clicked") {
                 then("the coordinate at that offset should be reported") {
@@ -68,7 +103,8 @@ class RoutingStepSectionTest : BehaviorSpec() {
 
                         setContent {
                             RoutingStepSection(
-                                section = section(polyline = polyline, offset = 2),
+                                actions = listOf(action(2)),
+                                polyline = polyline,
                                 onActionClick = { clicked = it },
                             )
                         }
@@ -91,7 +127,8 @@ class RoutingStepSectionTest : BehaviorSpec() {
 
                     setContent {
                         RoutingStepSection(
-                            section = section(polyline = null, offset = 2),
+                            actions = listOf(action(2)),
+                            polyline = null,
                             onActionClick = { clicked = it },
                         )
                     }
@@ -107,7 +144,8 @@ class RoutingStepSectionTest : BehaviorSpec() {
                 runComposeUiTest {
                     setContent {
                         RoutingStepSection(
-                            section = section(polyline = polyline, offset = null),
+                            actions = listOf(action(null)),
+                            polyline = polyline,
                             onActionClick = {},
                         )
                     }
@@ -125,7 +163,8 @@ class RoutingStepSectionTest : BehaviorSpec() {
 
                         setContent {
                             RoutingStepSection(
-                                section = section(polyline = polyline, offset = 99),
+                                actions = listOf(action(99)),
+                                polyline = polyline,
                                 onActionClick = { clicked = it },
                             )
                         }

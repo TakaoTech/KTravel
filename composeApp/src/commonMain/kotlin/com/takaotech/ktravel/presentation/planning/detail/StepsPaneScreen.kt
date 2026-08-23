@@ -30,6 +30,9 @@ sealed interface StepsPaneEvent : CircuitUiEvent {
     /** Apre la schermata di dettaglio dello step indicato. */
     data class OpenStepDetail(val stepId: String) : StepsPaneEvent
 
+    /** Apre la schermata di dettaglio della tratta indicata. */
+    data class OpenTransportDetail(val stepId: String) : StepsPaneEvent
+
     /** Rimuove uno step (la decisione Place->backlog / Transport->delete è del dominio). */
     data class DeleteStep(val step: StepUi) : StepsPaneEvent
 

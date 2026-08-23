@@ -8,7 +8,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.model.TransportType
-import com.takaotech.ktravel.domain.routing.model.Route
+import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -111,11 +111,21 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
     data class Transport(
         override val id: String = Uuid.random().toString(),
         val type: TransportType,
-        val route: Route,
-        /** Total duration of the leg, aggregated from the sections of the [route]. */
-        val totalDuration: Duration = route.sections.fold(Duration.ZERO) { acc, section ->
-            acc + section.summary.durationSeconds
-        },
+        /** What the calculation answered: a road route, or a journey on scheduled services. */
+        val answer: TransportAnswer,
+        /**
+         * How long the leg takes.
+         *
+         * Read off the answer rather than summed here: for a journey the total that matters is door
+         * to door, waits on the platform included, and those belong to no step to be summed.
+         */
+        val totalDuration: Duration = answer.summary.durationSeconds,
+        /** Free-form Markdown notes attached to the leg. */
+        val note: String = "",
+        /** File inventory of the leg. */
+        val attachments: PersistentList<AttachmentUi> = persistentListOf(),
+        /** When the route was computed, null when the plan does not record it. */
+        val calculatedAt: Instant? = null,
     ) : StepUi(id)
 }
 

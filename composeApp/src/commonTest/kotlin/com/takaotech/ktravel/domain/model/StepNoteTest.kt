@@ -2,9 +2,10 @@ package com.takaotech.ktravel.domain.model
 
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
-import com.takaotech.ktravel.domain.model.TravelPlanEditor.updatePlaceNote
+import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStepNote
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
+import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.LocalDate
@@ -32,8 +33,8 @@ class StepNoteTest :
         given("a plan with a Step.Place") {
             val plan = planWithPlaceStep()
 
-            `when`("updatePlaceNote is called with a valid step and day") {
-                val updated = plan.updatePlaceNote("d1", "s1", "# Notes\n- visit")
+            `when`("updateStepNote is called with a valid step and day") {
+                val updated = plan.updateStepNote("d1", "s1", "# Notes\n- visit")
 
                 then("it should set the note on the target step") {
                     val step = updated.days[0].steps[0] as StepDomain.Place
@@ -41,16 +42,16 @@ class StepNoteTest :
                 }
             }
 
-            `when`("updatePlaceNote is called with an unknown step id") {
-                val updated = plan.updatePlaceNote("d1", "unknown", "note")
+            `when`("updateStepNote is called with an unknown step id") {
+                val updated = plan.updateStepNote("d1", "unknown", "note")
 
                 then("it should return the plan unchanged") {
                     updated shouldBe plan
                 }
             }
 
-            `when`("updatePlaceNote is called with an unknown day id") {
-                val updated = plan.updatePlaceNote("unknown", "s1", "note")
+            `when`("updateStepNote is called with an unknown day id") {
+                val updated = plan.updateStepNote("unknown", "s1", "note")
 
                 then("it should return the plan unchanged") {
                     updated shouldBe plan
@@ -62,7 +63,7 @@ class StepNoteTest :
             val transport = StepDomain.Transport(
                 id = "t1",
                 type = TransportType.TRAIN,
-                route = com.takaotech.ktravel.domain.routing.model.Route(emptyList()),
+                answer = roadAnswer(),
             )
             val day =
                 TravelDayDomain(
@@ -72,11 +73,12 @@ class StepNoteTest :
                 )
             val plan = TravelPlanDomain(days = listOf(day))
 
-            `when`("updatePlaceNote targets the transport step") {
-                val updated = plan.updatePlaceNote("d1", "t1", "note")
+            `when`("updateStepNote targets the transport step") {
+                val updated = plan.updateStepNote("d1", "t1", "note")
 
-                then("it should return the plan unchanged") {
-                    updated shouldBe plan
+                then("it should set the note on the transport") {
+                    val step = updated.days.first().steps.first() as StepDomain.Transport
+                    step.note shouldBe "note"
                 }
             }
         }
