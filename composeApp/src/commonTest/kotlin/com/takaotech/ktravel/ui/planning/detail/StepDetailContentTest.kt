@@ -81,10 +81,10 @@ class StepDetailContentTest : BehaviorSpec() {
             }
         }
 
-        given("the step detail at a large font scale on a phone-sized window") {
+        given("the step detail at a large font scale on a narrow window") {
             then("the two schedule fields should stack full width") {
                 runComposeUiTest {
-                    setStepDetail(fontScale = LARGE_FONT_SCALE, width = PHONE_WIDTH)
+                    setStepDetail(fontScale = LARGE_FONT_SCALE, width = NARROW_WIDTH)
 
                     val start = onNodeWithTag(StepDetailTestTags.START_TIME_FIELD)
                         .getUnclippedBoundsInRoot()
@@ -93,12 +93,14 @@ class StepDetailContentTest : BehaviorSpec() {
 
                     end.top shouldBeGreaterThanOrEqualTo start.bottom
                     onNodeWithTag(StepDetailTestTags.START_TIME_FIELD)
-                        .assertWidthIsAtLeast(PHONE_WIDTH - HORIZONTAL_INSET)
+                        .assertWidthIsAtLeast(NARROW_WIDTH - HORIZONTAL_INSET)
                     onNodeWithTag(StepDetailTestTags.END_TIME_FIELD)
-                        .assertWidthIsAtLeast(PHONE_WIDTH - HORIZONTAL_INSET)
+                        .assertWidthIsAtLeast(NARROW_WIDTH - HORIZONTAL_INSET)
                 }
             }
+        }
 
+        given("the step detail at a large font scale on a phone-sized window") {
             then("a schedule field should stay wider than it is tall") {
                 runComposeUiTest {
                     setStepDetail(fontScale = LARGE_FONT_SCALE, width = PHONE_WIDTH)
@@ -115,6 +117,13 @@ class StepDetailContentTest : BehaviorSpec() {
     private companion object {
         /** Width of a typical phone in dp. */
         val PHONE_WIDTH = 420.dp
+
+        /**
+         * Width of a resized desktop window, narrow enough that half of it cannot hold a clock
+         * value: the fields have to stack whatever the length of their label in the current
+         * translation.
+         */
+        val NARROW_WIDTH = 240.dp
 
         /** Screen padding of the detail content, on both sides. */
         val HORIZONTAL_INSET = 32.dp
