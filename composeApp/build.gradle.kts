@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMetroGradleApi::class, ExperimentalKotlinGradlePluginApi::class)
 
 import com.android.build.api.dsl.KotlinMultiplatformAndroidCompilation
+import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import dev.detekt.gradle.Detekt
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
 import io.github.frankois944.spmForKmp.swiftPackageConfig
@@ -29,6 +30,7 @@ plugins {
     alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
     alias(libs.plugins.spmForKmp)
+    alias(libs.plugins.aboutLibraries)
     id("kotlin-parcelize")
 }
 
@@ -388,6 +390,8 @@ kotlin {
                 api(libs.circuit.runtime.ui)
 
                 implementation(libs.kotlinx.serialization.json)
+
+                implementation(libs.bundles.aboutLibraries)
             }
         }
 
@@ -487,6 +491,39 @@ metro {
     enabled = true
     debug = false
     enableCircuitCodegen = true
+}
+
+val fetchRemoteLicenses = providers.gradleProperty("ktravel.licenses.fetchRemote")
+    .map(String::toBooleanStrict)
+    .orElse(false)
+
+aboutLibraries {
+    offlineMode = fetchRemoteLicenses.map { !it }
+    collect {
+        fetchRemoteLicense = fetchRemoteLicenses
+        gitHubApiToken = providers.environmentVariable("GITHUB_TOKEN")
+        includePlatform = true
+        includeTargets = true
+    }
+    library {
+        mergePlatformArtifacts = true
+    }
+}
+
+val aboutLibrariesResources = layout.buildDirectory.dir("generated/aboutLibrariesResources")
+
+val exportLibraryDefinitions = tasks.named<AboutLibrariesTask>("exportLibraryDefinitions") {
+    outputDirectory = aboutLibrariesResources
+    configureOutputFile(aboutLibrariesResources.map { it.file("files/aboutlibraries.json") })
+}
+
+compose.resources {
+    listOf("androidMain", "jvmMain", "iosArm64Main", "iosSimulatorArm64Main").forEach { sourceSetName ->
+        customDirectory(
+            sourceSetName = sourceSetName,
+            directoryProvider = exportLibraryDefinitions.map { aboutLibrariesResources.get() },
+        )
+    }
 }
 
 // TODO Check why JVM Toolchain is not applied to compose.desktop

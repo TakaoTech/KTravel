@@ -298,6 +298,10 @@
     <string name="app_settings_test_connection">Verifica connessione</string>
     <string name="app_settings_saved">Impostazioni salvate.</string>
     <string name="app_settings_cd_open">Apri le impostazioni dell app</string>
+    <string name="app_settings_about_section">Informazioni</string>
+    <string name="app_settings_licenses">Licenze open source</string>
+
+    <string name="licenses_title">Licenze open source</string>
 
     <string name="route_preview_title">Anteprima percorso</string>
     <string name="route_preview_alternative">Opzione %1$d</string>

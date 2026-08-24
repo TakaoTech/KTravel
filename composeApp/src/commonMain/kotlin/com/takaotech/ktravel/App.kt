@@ -50,6 +50,8 @@ import com.takaotech.ktravel.ui.planning.trip.PlanningTripPage
 import com.takaotech.ktravel.ui.planning.trip.PlanningTripPageNavigation
 import com.takaotech.ktravel.ui.settings.AppSettingsNavigation
 import com.takaotech.ktravel.ui.settings.AppSettingsPage
+import com.takaotech.ktravel.ui.settings.LicensesNavigation
+import com.takaotech.ktravel.ui.settings.LicensesPage
 import com.takaotech.ktravel.ui.settings.SettingsNavigation
 import com.takaotech.ktravel.ui.settings.SettingsPage
 import com.takaotech.ktravel.ui.theme.KTravelTheme
@@ -101,6 +103,17 @@ fun App() {
                         composable<AppSettingsNavigation> { backStackEntry ->
                             AppSettingsPage(
                                 viewModel = metroViewModel(),
+                                onNavigationBackClick = {
+                                    if (backStackEntry.lifecycleIsResumed()) {
+                                        navController.navigateUp()
+                                    }
+                                },
+                                onLicensesClick = { navController.navigate(LicensesNavigation) },
+                            )
+                        }
+
+                        composable<LicensesNavigation> { backStackEntry ->
+                            LicensesPage(
                                 onNavigationBackClick = {
                                     if (backStackEntry.lifecycleIsResumed()) {
                                         navController.navigateUp()

@@ -298,6 +298,10 @@
     <string name="app_settings_test_connection">Test connection</string>
     <string name="app_settings_saved">Settings saved.</string>
     <string name="app_settings_cd_open">Open the app settings</string>
+    <string name="app_settings_about_section">About</string>
+    <string name="app_settings_licenses">Open source licenses</string>
+
+    <string name="licenses_title">Open source licenses</string>
 
     <string name="route_preview_title">Route preview</string>
     <string name="route_preview_alternative">Option %1$d</string>

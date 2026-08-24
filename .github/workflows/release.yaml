@@ -34,6 +34,8 @@ jobs:
     runs-on: 'ubuntu-latest'
     needs:
     - 'test'
+    env:
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     steps:
     - id: 'step-0'
       name: 'Checkout code'
@@ -52,7 +54,7 @@ jobs:
       run: 'chmod +x gradlew'
     - id: 'step-4'
       name: 'Build release APK and AAB'
-      run: './gradlew :androidApp:assembleRelease :androidApp:bundleRelease'
+      run: './gradlew :androidApp:assembleRelease :androidApp:bundleRelease -Pktravel.licenses.fetchRemote=true'
     - id: 'step-5'
       name: 'Upload APK'
       uses: 'actions/upload-artifact@v7'
@@ -75,6 +77,8 @@ jobs:
     runs-on: '${{ matrix.os }}'
     needs:
     - 'test'
+    env:
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +106,7 @@ jobs:
     - id: 'step-4'
       name: 'Build native distribution'
       shell: 'bash'
-      run: './gradlew :composeApp:packageReleaseDistributionForCurrentOS'
+      run: './gradlew :composeApp:packageReleaseDistributionForCurrentOS -Pktravel.licenses.fetchRemote=true'
     - id: 'step-5'
       name: 'Upload distribution'
       uses: 'actions/upload-artifact@v7'
