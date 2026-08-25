@@ -1,35 +1,63 @@
 package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.graphics.decodeToImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImagePainter
+import coil3.compose.LocalPlatformContext
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.size.Precision
 import com.mikepenz.markdown.model.ImageData
 import com.mikepenz.markdown.model.ImageTransformer
 import com.takaotech.ktravel.domain.model.AttachmentReference
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.readBytes
-
-/** Stato di caricamento di un'immagine dell'inventario da disco. */
-sealed interface AttachmentImage {
-    data object Loading : AttachmentImage
-    data object Error : AttachmentImage
-    data class Loaded(val painter: Painter) : AttachmentImage
-}
+import io.github.vinceglb.filekit.path
+import okio.Path.Companion.toPath
 
 /**
- * Carica un'immagine locale ([PlatformFile]) leggendone i byte e decodificandoli con l'API nativa di
- * Compose (`decodeToImageBitmap`), senza dipendere da Coil né dalla sua configurazione globale.
- * Un file mancante o non decodificabile diventa [AttachmentImage.Error].
+ * Longest side an image embedded in a note is decoded at.
+ *
+ * A note is read on a screen, not printed: decoding a camera photo at its own resolution costs tens
+ * of megabytes and the time to produce them, for pixels no display shows.
+ */
+private const val NOTE_IMAGE_MAX_PX = 1280
+
+/**
+ * The Coil model of an inventory file: its path on disk, which Coil maps to a `file://` request on
+ * every platform.
+ *
+ * Loading through Coil rather than reading and decoding by hand is what keeps the decode off the UI
+ * thread, shares one memory cache between the inventory thumbnails and the images embedded in a
+ * note, and decodes at the size actually drawn instead of the size the file happens to have.
+ */
+internal fun PlatformFile.asCoilModel(): Any = path.toPath()
+
+/**
+ * Builds the request for an inventory image, bounded to [maxSizePx] on its longest side.
+ *
+ * The bound is explicit rather than resolved from the draw scope: a painter whose size is only known
+ * once it is drawn reports no intrinsic size until then, and both callers here lay out around that
+ * size.
+ *
+ * [contentScale] must be the one the caller draws with: Coil derives the decode scale from it, so a
+ * painter decoded to fit a box and then drawn cropped to fill it is upscaled from too few pixels.
  */
 @Composable
-fun rememberAttachmentImage(file: PlatformFile): AttachmentImage =
-    produceState<AttachmentImage>(AttachmentImage.Loading, file) {
-        value = runCatching {
-            AttachmentImage.Loaded(BitmapPainter(file.readBytes().decodeToImageBitmap()))
-        }.getOrElse { AttachmentImage.Error }
-    }.value
+internal fun rememberAttachmentImagePainter(
+    file: PlatformFile,
+    maxSizePx: Int,
+    contentScale: ContentScale = ContentScale.Fit,
+    errorPainter: Painter? = null,
+): AsyncImagePainter = rememberAsyncImagePainter(
+    model = ImageRequest.Builder(LocalPlatformContext.current)
+        .data(file.asCoilModel())
+        .size(maxSizePx)
+        .precision(Precision.INEXACT)
+        .build(),
+    error = errorPainter,
+    contentScale = contentScale,
+)
 
 /**
  * [ImageTransformer] per mikepenz che risolve gli URL `ktravel://attachment/<rel>` in immagini locali.
@@ -44,10 +72,12 @@ class AttachmentImageTransformer(
     @Composable
     override fun transform(link: String): ImageData? {
         val relativePath = AttachmentReference.relativePathOf(link) ?: return null
-        return when (val image = rememberAttachmentImage(resolveFile(relativePath))) {
-            AttachmentImage.Loading -> null
-            AttachmentImage.Error -> ImageData(painter = errorPainter)
-            is AttachmentImage.Loaded -> ImageData(painter = image.painter)
-        }
+        return ImageData(
+            painter = rememberAttachmentImagePainter(
+                file = resolveFile(relativePath),
+                maxSizePx = NOTE_IMAGE_MAX_PX,
+                errorPainter = errorPainter,
+            ),
+        )
     }
 }

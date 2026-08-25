@@ -17,18 +17,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImagePainter
 import com.takaotech.ktravel.presentation.planning.AttachmentUi
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.io.files.Path
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
@@ -74,7 +79,7 @@ internal val ATTACHMENT_INVENTORY_PEEK_HEIGHT = DRAG_HANDLE_HEIGHT + HEADER_ROW_
  */
 @Composable
 internal fun AttachmentInventorySection(
-    attachments: List<AttachmentUi>,
+    attachments: ImmutableList<AttachmentUi>,
     resolveFile: (String) -> PlatformFile,
     isEditing: Boolean,
     testTags: StepNotesTestTags,
@@ -118,7 +123,7 @@ internal fun AttachmentInventorySection(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(attachments) { attachment ->
+                items(attachments, key = { it.id }) { attachment ->
                     AttachmentRow(
                         attachment = attachment,
                         isEditing = isEditing,
@@ -183,35 +188,43 @@ private fun AttachmentRow(
     }
 }
 
+/** Side of an inventory thumbnail, and the size its image is decoded at. */
+private val THUMBNAIL_SIZE = 48.dp
+
 @Composable
 private fun AttachmentThumbnail(attachment: AttachmentUi, resolveFile: (String) -> PlatformFile) {
     val isPreview = LocalInspectionMode.current
     Surface(
-        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
+        modifier = Modifier.size(THUMBNAIL_SIZE).clip(RoundedCornerShape(8.dp)),
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Box(contentAlignment = Alignment.Center) {
             when {
                 attachment.isImage && !isPreview -> {
-                    when (
-                        val image =
-                            rememberAttachmentImage(resolveFile(attachment.relativePath))
-                    ) {
-                        is AttachmentImage.Loaded -> Image(
-                            painter = image.painter,
+                    val thumbnailPx = with(LocalDensity.current) { THUMBNAIL_SIZE.roundToPx() }
+                    val painter = rememberAttachmentImagePainter(
+                        file = resolveFile(attachment.relativePath),
+                        maxSizePx = thumbnailPx,
+                        // Same scale the Image below draws with, or the decode is too small for it.
+                        contentScale = ContentScale.Crop,
+                    )
+
+                    when (painter.state.collectAsState().value) {
+                        is AsyncImagePainter.State.Success -> Image(
+                            painter = painter,
                             contentDescription = attachment.originalName,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(THUMBNAIL_SIZE),
                         )
 
-                        AttachmentImage.Error -> Icon(
+                        is AsyncImagePainter.State.Error -> Icon(
                             painter = painterResource(Res.drawable.error),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(12.dp),
                         )
 
-                        AttachmentImage.Loading -> Unit
+                        else -> Unit
                     }
                 }
 
@@ -230,7 +243,7 @@ private fun AttachmentThumbnail(attachment: AttachmentUi, resolveFile: (String) 
 private fun AttachmentInventorySectionPreview() = KTravelTheme {
     Surface {
         AttachmentInventorySection(
-            attachments = listOf(
+            attachments = persistentListOf(
                 AttachmentUi(
                     id = "a1",
                     relativePath = "t1/s1/tokyo.jpg",
@@ -262,7 +275,7 @@ private fun AttachmentInventorySectionPreview() = KTravelTheme {
 private fun AttachmentInventorySectionEmptyPreview() = KTravelTheme {
     Surface {
         AttachmentInventorySection(
-            attachments = emptyList(),
+            attachments = persistentListOf(),
             resolveFile = { PlatformFile(Path(it)) },
             testTags = StepDetailTestTags.NOTES,
             onAdd = {},

@@ -17,6 +17,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.Dp
 import io.github.vinceglb.filekit.PlatformFile
 import io.kotest.core.spec.style.BehaviorSpec
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.io.files.Path
 
 /**
@@ -59,7 +60,7 @@ class AttachmentInventoryPeekTest : BehaviorSpec() {
         sheetPeekHeight = at,
         sheetContent = {
             AttachmentInventorySection(
-                attachments = emptyList(),
+                attachments = persistentListOf(),
                 resolveFile = { PlatformFile(Path(it)) },
                 isEditing = false,
                 testTags = StepDetailTestTags.NOTES,

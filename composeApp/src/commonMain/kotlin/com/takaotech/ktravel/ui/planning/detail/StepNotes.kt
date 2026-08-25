@@ -75,7 +75,8 @@ data class StepNotesTestTags(
  */
 @Stable
 class StepNotesHost internal constructor(
-    internal val controller: MarkdownEditorController,
+    /** The editor's handle, `null` while the notes are read-only — it exists only in editing. */
+    internal val controller: MarkdownEditorController?,
     internal val imageTransformer: AttachmentImageTransformer,
     internal val uriHandler: UriHandler,
     /** Opens an inventory file with the system application. */
@@ -106,9 +107,15 @@ fun rememberStepNotesHost(
     val currentOnEvent by rememberUpdatedState(onEvent)
 
     // Shared controller: drives the editor and takes caret insertions from the inventory.
-    val controller = rememberMarkdownEditorController(state.note)
-    LaunchedEffect(controller) {
-        controller.markdownFlow.collect { currentOnEvent(StepNotesEvent.NoteChanged(it)) }
+    //
+    // Built only in editing, because building it parses the whole note and observing it reserializes
+    // the whole Markdown on every snapshot — work a screen that only renders the note never needs.
+    // Entering the editor therefore always starts from the note as it is saved now.
+    val controller = if (state.isEditing) rememberMarkdownEditorController(state.note) else null
+    if (controller != null) {
+        LaunchedEffect(controller) {
+            controller.markdownFlow.collect { currentOnEvent(StepNotesEvent.NoteChanged(it)) }
+        }
     }
 
     val picker = rememberFilePickerLauncher(type = FileKitType.File()) { file ->
@@ -161,7 +168,7 @@ fun rememberStepNotesHost(
             openAttachment = openAttachment,
             pickAttachment = { picker.launch() },
             insertReference = { attachment ->
-                controller.insertAtCursor(attachment.toMarkdownReference())
+                controller?.insertAtCursor(attachment.toMarkdownReference())
                 currentOnEvent(StepNotesEvent.ToggleEdit(true))
             },
         )
@@ -227,7 +234,7 @@ fun StepNotesSection(
             )
         }
 
-        if (state.isEditing) {
+        if (state.isEditing && host.controller != null) {
             MarkdownNoteEditor(
                 controller = host.controller,
                 label = editorLabel,

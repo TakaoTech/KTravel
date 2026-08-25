@@ -55,6 +55,51 @@ The project follows **Clean Architecture** principles:
 - **Testing Frameworks:** Kotest, JUnit, Kotlin-Test
 - **Platforms:** Android, iOS, Desktop (JVM)
 
+## Skills
+
+Skills hold the detailed procedures this file only summarises. Load the relevant one **before**
+starting the work, not after the first failure.
+
+### Project skills
+
+| Skill                              | Use it when                                                                                                       |
+|------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `generating-dependency-licenses`   | Touching the licenses screen, the AboutLibraries setup, or the release workflow that fetches the license texts       |
+| `localizing-strings`               | Adding or changing anything in `composeResources/**/strings.xml`, a `stringResource`, a translation, or a language   |
+| `migrating-archive-schema`         | Changing an entity behind the `.ktravel` archive (schema version, `TravelPlanJsonMigration`)                        |
+| `text-to-lottie`                   | Creating or fixing the Lottie JSON animations played by Skottie                                                     |
+
+### Android / KMP skills (`android-skills` plugin)
+
+Source https://github.com/rcosteira79/android-skills
+
+`android-skills:android-dev` is the baseline: load it for any Android/KMP task in this repository,
+then add the specific skill for the area being touched.
+
+| Skill                                   | Use it when                                                                                                     |
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `android-skills:android-dev`            | Baseline for every task here (KMP + Compose Multiplatform)                                                          |
+| `android-skills:compose`                | Any `ui/` work: composables, state, navigation, recomposition, `commonMain` UI, `expect`/`actual` UI                 |
+| `android-skills:kotlin-flows`           | `Flow` / `StateFlow` in presenters and repositories, exposing UI state                                              |
+| `android-skills:kotlin-coroutines`      | Dispatchers, scopes, structured concurrency, cancellation                                                           |
+| `android-skills:kmp-boundaries`         | `expect`/`actual`, platform services (files, share, permissions), source set layout                                  |
+| `android-skills:kmp-ktor`               | `HttpClient` work in `gunzou-here-client` / `gunzou-navigator-client`: engines, serialization, `MockEngine` tests     |
+| `android-skills:coil-compose`           | Image loading (`AsyncImage`, attachment previews, `LocalPlatformContext`)                                            |
+| `android-skills:android-testing`        | Writing or fixing tests, above all Compose UI tests, test clock and animation determinism                            |
+| `android-skills:android-debugging`      | Crashes, ANRs, R8/ProGuard stack traces, Logcat, recomposition bugs, Gradle build failures                           |
+| `android-skills:android-ux`             | Material 3 review: touch targets, spacing, accessibility, adaptive layouts                                          |
+| `android-skills:modularization`         | Deciding where a declaration belongs across `composeApp` / `gunzou-*` / `password-strength`, and its visibility       |
+| `android-skills:android-gradle-logic`   | Build logic, version catalog, configuration shared between modules                                                  |
+| `android-skills:gradle-build-performance` | Slow builds, configuration cache, KSP, CI build times                                                             |
+| `android-skills:android-source-search`  | Reading AOSP or AndroidX source when the public documentation is not enough                                          |
+| `android-skills:koin`                   | Only `gunzou-navigator`, the Ktor server module and the single module wired with Koin                               |
+
+The remaining skills in the plugin do not apply to this project, because it does not use those
+libraries: `android-retrofit` (Ktor instead), the Room half of `android-data-layer` (Couchbase Lite
+through Kotbase instead), `paging`, `datastore`, `rxjava-migration`, `pdf-annotations`. Dependency
+injection in `composeApp` is Metro, not Hilt or Koin: ignore any Hilt specific guidance a skill
+offers.
+
 ## Testing Guidelines
 
 ### Running Tests
@@ -122,6 +167,7 @@ one, declare a `verify { rule { minBound(...) } }` inside `reports.total`.
 - Use the Features as the source of truth for expected behavior
 - Write test names in english
 - Use "Given When Then" pattern
+- Load `android-skills:android-testing` before writing or fixing a test suite
 
 ## Build Instructions
 
@@ -223,6 +269,8 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 - Place new label strings in `strings.xml` and use id for string references
 - Use Immutable package instead of standard List
 - For anything touching `strings.xml` or translations, use the `localizing-strings` skill
+- Load `android-skills:compose` before non trivial UI work, and `android-skills:android-ux` when
+  reviewing a screen against Material 3
 
 ## Development Workflow
 
