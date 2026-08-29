@@ -7,7 +7,6 @@ import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStepNote
-import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import com.takaotech.ktravel.testutil.roadAnswer
@@ -147,7 +146,13 @@ class TransportStepNotesTest : BehaviorSpec() {
                     "type": "transport",
                     "id": "t1",
                     "transport_type": "TRAIN",
-                    "route": { "sections": [] }
+                    "answer": {
+                        "type": "routing",
+                        "route": {
+                            "summary": { "duration_seconds": 0, "distance_meters": 0.0 },
+                            "sections": []
+                        }
+                    }
                 }
             """.trimIndent()
 
@@ -158,56 +163,6 @@ class TransportStepNotesTest : BehaviorSpec() {
                     entity.note shouldBe ""
                     entity.attachments shouldHaveSize 0
                     entity.calculatedAt.shouldBeNull()
-                }
-            }
-        }
-
-        given("a transport document written before the two kinds of answer were told apart") {
-            // Exactly what sits in Couchbase on a device that has not been updated: the flat route,
-            // no "answer" key at all. Nothing migrates those documents, so they are decoded by the
-            // same lenient Json the storage datasource uses.
-            val json = """
-                {
-                    "type": "transport",
-                    "id": "t1",
-                    "transport_type": "TRAIN",
-                    "route": {
-                        "sections": [
-                            {
-                                "duration_seconds": 300,
-                                "distance_meters": 200.0,
-                                "transport_mode": "PEDESTRIAN"
-                            },
-                            {
-                                "duration_seconds": 1500,
-                                "distance_meters": 4800.0,
-                                "transport_mode": "SUBWAY",
-                                "polyline": "abc"
-                            }
-                        ]
-                    }
-                }
-            """.trimIndent()
-            val lenient = Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true
-            }
-
-            `when`("decoded and mapped to the domain") {
-                val entity = lenient.decodeFromString<StepEntity>(json)
-                    .shouldBeInstanceOf<StepEntity.Transport>()
-                val step = with(TravelPlanEntityMapper) { entity.toDomain() }
-                    .shouldBeInstanceOf<StepDomain.Transport>()
-
-                then("the plan should open rather than throw") {
-                    entity.answer.shouldBeNull()
-                    step.id shouldBe "t1"
-                }
-
-                then("the leg should read back as the journey that shape could hold") {
-                    val transit = step.answer.shouldBeInstanceOf<TransportAnswer.Transit>()
-                    transit.journey.steps shouldHaveSize 2
-                    transit.principalMode shouldBe "SUBWAY"
                 }
             }
         }

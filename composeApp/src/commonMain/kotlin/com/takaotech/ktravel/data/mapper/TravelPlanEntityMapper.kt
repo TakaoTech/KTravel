@@ -4,9 +4,7 @@ import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.RouteActionEntity
 import com.takaotech.ktravel.data.entity.RouteDepartureEntity
-import com.takaotech.ktravel.data.entity.RouteEntity
 import com.takaotech.ktravel.data.entity.RouteLocationEntity
-import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.RouteSummaryEntity
 import com.takaotech.ktravel.data.entity.RoutingRouteEntity
 import com.takaotech.ktravel.data.entity.RoutingSectionEntity
@@ -58,10 +56,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeComponents
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-object TravelPlanEntityMapper {
+internal object TravelPlanEntityMapper {
 
     // ── Domain → Entity ───────────────────────────────────────────────────────
 
@@ -75,27 +72,27 @@ object TravelPlanEntityMapper {
         settings = settings.toEntity(),
     )
 
-    fun TravelSettingsDomain.toEntity(): TravelSettingsEntity = TravelSettingsEntity(
+    private fun TravelSettingsDomain.toEntity(): TravelSettingsEntity = TravelSettingsEntity(
         hereApiKey = hereApiKey,
         navigatorPreference = navigatorPreference.name,
         navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
-    fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
+    private fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
         id = id,
         date = date,
         steps = steps.map { it.toEntity() },
         places = places.map { it.toEntity() },
     )
 
-    fun PlaceDomain.toEntity(): PlaceEntity = PlaceEntity(
+    private fun PlaceDomain.toEntity(): PlaceEntity = PlaceEntity(
         id = id,
         name = name,
         lat = lat,
         lng = lng,
     )
 
-    fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
+    private fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
         dateEpochDays = date?.toEpochDays()?.toInt(),
         startTimeHour = startTime?.hour,
         startTimeMinute = startTime?.minute,
@@ -103,7 +100,7 @@ object TravelPlanEntityMapper {
         endTimeMinute = endTime?.minute,
     )
 
-    fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
+    private fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
         id = id,
         relativePath = relativePath,
         originalName = originalName,
@@ -133,7 +130,7 @@ object TravelPlanEntityMapper {
         )
     }
 
-    fun RouteSelection.toEntity(): TransportRequestEntity = when (this) {
+    private fun RouteSelection.toEntity(): TransportRequestEntity = when (this) {
         is RouteSelection.Routing -> TransportRequestEntity.Routing(
             provider = profileId.provider,
             profile = profileId.profile,
@@ -154,17 +151,17 @@ object TravelPlanEntityMapper {
         )
     }
 
-    fun TransportAnswer.toEntity(): TransportAnswerEntity = when (this) {
+    private fun TransportAnswer.toEntity(): TransportAnswerEntity = when (this) {
         is TransportAnswer.Routing -> TransportAnswerEntity.Routing(route.toEntity())
         is TransportAnswer.Transit -> TransportAnswerEntity.Transit(journey.toEntity())
     }
 
-    fun RoutingRoute.toEntity(): RoutingRouteEntity = RoutingRouteEntity(
+    private fun RoutingRoute.toEntity(): RoutingRouteEntity = RoutingRouteEntity(
         summary = summary.toEntity(),
         sections = sections.map { it.toEntity() },
     )
 
-    fun RoutingSection.toEntity(): RoutingSectionEntity = RoutingSectionEntity(
+    private fun RoutingSection.toEntity(): RoutingSectionEntity = RoutingSectionEntity(
         summary = summary.toEntity(),
         mode = mode,
         actions = actions.map { it.toEntity() },
@@ -173,12 +170,12 @@ object TravelPlanEntityMapper {
         polyline = polyline,
     )
 
-    fun TransitJourney.toEntity(): TransitJourneyEntity = TransitJourneyEntity(
+    private fun TransitJourney.toEntity(): TransitJourneyEntity = TransitJourneyEntity(
         summary = summary.toEntity(),
         steps = steps.map { it.toEntity() },
     )
 
-    fun TransitStep.toEntity(): TransitStepEntity = when (this) {
+    private fun TransitStep.toEntity(): TransitStepEntity = when (this) {
         is TransitStep.Walk -> TransitStepEntity.Walk(
             summary = summary.toEntity(),
             polyline = polyline,
@@ -199,7 +196,7 @@ object TravelPlanEntityMapper {
         )
     }
 
-    fun TransitLine.toEntity(): TransitLineEntity = TransitLineEntity(
+    private fun TransitLine.toEntity(): TransitLineEntity = TransitLineEntity(
         mode = mode,
         name = name,
         shortName = shortName,
@@ -212,13 +209,13 @@ object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.name,
     )
 
-    fun TransitAgency.toEntity(): TransitAgencyEntity = TransitAgencyEntity(
+    private fun TransitAgency.toEntity(): TransitAgencyEntity = TransitAgencyEntity(
         name = name,
         id = id,
         website = website,
     )
 
-    fun TransitStop.toEntity(): TransitStopEntity = TransitStopEntity(
+    private fun TransitStop.toEntity(): TransitStopEntity = TransitStopEntity(
         location = location.toEntity(),
         name = name,
         arrivalTime = arrival?.formatIso(),
@@ -229,22 +226,22 @@ object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.name,
     )
 
-    fun RouteSummary.toEntity(): RouteSummaryEntity = RouteSummaryEntity(
+    private fun RouteSummary.toEntity(): RouteSummaryEntity = RouteSummaryEntity(
         durationSeconds = durationSeconds.inWholeSeconds,
         distanceMeters = distance `in` Distance.meters,
     )
 
-    fun RouteLocation.toEntity(): RouteLocationEntity = RouteLocationEntity(lat = lat, lng = lng)
+    private fun RouteLocation.toEntity(): RouteLocationEntity = RouteLocationEntity(lat = lat, lng = lng)
 
-    fun RouteDeparture.toEntity(): RouteDepartureEntity = RouteDepartureEntity(
+    private fun RouteDeparture.toEntity(): RouteDepartureEntity = RouteDepartureEntity(
         location = location.toEntity(),
         time = time?.formatIso(),
     )
 
-    fun RouteAction.toEntity(): RouteActionEntity = RouteActionEntity(
+    private fun RouteAction.toEntity(): RouteActionEntity = RouteActionEntity(
         action = action,
         durationSeconds = durationSeconds.inWholeSeconds,
-        distanceMeters = distanceMeters.amount,
+        distanceMeters = distanceMeters `in` Distance.meters,
         instruction = instruction,
         offset = offset,
         direction = direction,
@@ -277,27 +274,27 @@ object TravelPlanEntityMapper {
      * embedded server, which is the choice that always works.
      * @return the travel settings domain
      */
-    fun TravelSettingsEntity.toDomain(): TravelSettingsDomain = TravelSettingsDomain(
+    private fun TravelSettingsEntity.toDomain(): TravelSettingsDomain = TravelSettingsDomain(
         hereApiKey = hereApiKey,
         navigatorPreference = NavigatorKind.ofOrEmbedded(navigatorPreference),
         navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
-    fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(
+    private fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(
         id = id,
         date = date,
         steps = steps.map { it.toDomain() },
         places = places.map { it.toDomain() },
     )
 
-    fun PlaceEntity.toDomain(): PlaceDomain = PlaceDomain(
+    private fun PlaceEntity.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,
         lat = lat,
         lng = lng,
     )
 
-    fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
+    private fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
         date = dateEpochDays?.let { LocalDate.fromEpochDays(it) },
         startTime = localTimeOrNull(startTimeHour, startTimeMinute),
         endTime = localTimeOrNull(endTimeHour, endTimeMinute),
@@ -328,7 +325,7 @@ object TravelPlanEntityMapper {
         is StepEntity.Transport -> StepDomain.Transport(
             id = id,
             type = TransportType.valueOf(transportType),
-            answer = savedAnswer(),
+            answer = answer.toDomain(),
             request = request?.toDomain(),
             note = note,
             attachments = attachments.map { it.toDomain() },
@@ -364,29 +361,17 @@ object TravelPlanEntityMapper {
      */
     private fun String.toRouteFeatureOrNull(): RouteFeature? = RouteFeature.entries.firstOrNull { it.name == this }
 
-/**
-     * The answer a saved transport carries, whichever build wrote it.
-     *
-     * `answer` when the document has one; otherwise the flat `route` of the earlier builds, read as
-     * best it can be. A step that has neither — which no real document is — comes back as an empty
-     * road route rather than failing the whole plan.
-     */
-    private fun StepEntity.Transport.savedAnswer(): TransportAnswer =
-        answer?.toDomain() ?: route?.toLegacyAnswer() ?: TransportAnswer.Routing(
-            RoutingRoute(summary = RouteSummary(Duration.ZERO, 0.0 * Length.meters), sections = emptyList()),
-        )
-
-    fun TransportAnswerEntity.toDomain(): TransportAnswer = when (this) {
+    private fun TransportAnswerEntity.toDomain(): TransportAnswer = when (this) {
         is TransportAnswerEntity.Routing -> TransportAnswer.Routing(route.toDomain())
         is TransportAnswerEntity.Transit -> TransportAnswer.Transit(journey.toDomain())
     }
 
-    fun RoutingRouteEntity.toDomain(): RoutingRoute = RoutingRoute(
+    private fun RoutingRouteEntity.toDomain(): RoutingRoute = RoutingRoute(
         summary = summary.toDomain(),
         sections = sections.map { it.toDomain() },
     )
 
-    fun RoutingSectionEntity.toDomain(): RoutingSection = RoutingSection(
+    private fun RoutingSectionEntity.toDomain(): RoutingSection = RoutingSection(
         summary = summary.toDomain(),
         mode = mode,
         actions = actions.map { it.toDomain() },
@@ -395,12 +380,12 @@ object TravelPlanEntityMapper {
         polyline = polyline,
     )
 
-    fun TransitJourneyEntity.toDomain(): TransitJourney = TransitJourney(
+    private fun TransitJourneyEntity.toDomain(): TransitJourney = TransitJourney(
         summary = summary.toDomain(),
         steps = steps.map { it.toDomain() },
     )
 
-    fun TransitStepEntity.toDomain(): TransitStep = when (this) {
+    private fun TransitStepEntity.toDomain(): TransitStep = when (this) {
         is TransitStepEntity.Walk -> TransitStep.Walk(
             summary = summary.toDomain(),
             polyline = polyline,
@@ -421,7 +406,7 @@ object TravelPlanEntityMapper {
         )
     }
 
-    fun TransitLineEntity.toDomain(): TransitLine = TransitLine(
+    private fun TransitLineEntity.toDomain(): TransitLine = TransitLine(
         mode = mode,
         name = name,
         shortName = shortName,
@@ -434,9 +419,9 @@ object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.toWheelchairAccess(),
     )
 
-    fun TransitAgencyEntity.toDomain(): TransitAgency = TransitAgency(name = name, id = id, website = website)
+    private fun TransitAgencyEntity.toDomain(): TransitAgency = TransitAgency(name = name, id = id, website = website)
 
-    fun TransitStopEntity.toDomain(): TransitStop = TransitStop(
+    private fun TransitStopEntity.toDomain(): TransitStop = TransitStop(
         location = location.toDomain(),
         name = name,
         arrival = arrivalTime?.toTransitTimeOrNull(),
@@ -447,19 +432,19 @@ object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.toWheelchairAccess(),
     )
 
-    fun RouteSummaryEntity.toDomain(): RouteSummary = RouteSummary(
+    private fun RouteSummaryEntity.toDomain(): RouteSummary = RouteSummary(
         durationSeconds = durationSeconds.seconds,
         distance = Measure(distanceMeters, Length.meters),
     )
 
-    fun RouteLocationEntity.toDomain(): RouteLocation = RouteLocation(lat = lat, lng = lng)
+    private fun RouteLocationEntity.toDomain(): RouteLocation = RouteLocation(lat = lat, lng = lng)
 
-    fun RouteDepartureEntity.toDomain(): RouteDeparture = RouteDeparture(
+    private fun RouteDepartureEntity.toDomain(): RouteDeparture = RouteDeparture(
         location = location.toDomain(),
         time = time?.parseIsoOrNull(),
     )
 
-    fun RouteActionEntity.toDomain(): RouteAction = RouteAction(
+    private fun RouteActionEntity.toDomain(): RouteAction = RouteAction(
         action = action,
         durationSeconds = durationSeconds.seconds,
         distanceMeters = distanceMeters * Length.meters,
@@ -484,91 +469,6 @@ object TravelPlanEntityMapper {
         runCatching { TransitTime(components.toInstantUsingOffset(), components.toUtcOffset()) }.getOrNull()
     }
 
-    /**
-     * The flat route of the earlier builds, read as the closest thing it can be.
-     *
-     * Sections carrying manoeuvres are a road route. Anything else was a journey, and comes back as
-     * the little that shape kept of one: modes, times and geometry, no lines and no stop names. They
-     * were never written, so there is nothing to recover — recomputing the leg is what fills them in.
-     */
-    private fun RouteEntity.toLegacyAnswer(): TransportAnswer = if (sections.any { it.actions.isNotEmpty() }) {
-        TransportAnswer.Routing(
-            RoutingRoute(
-                summary = sections.legacySummary(),
-                sections = sections.map { section ->
-                    RoutingSection(
-                        summary = section.legacySummary(),
-                        mode = section.transportMode.orEmpty(),
-                        actions = section.actions.map { it.toDomain() },
-                        departure = section.legacyDeparture(),
-                        arrival = section.legacyArrival(),
-                        polyline = section.polyline,
-                    )
-                },
-            ),
-        )
-    } else {
-        TransportAnswer.Transit(
-            TransitJourney(
-                summary = sections.legacySummary(),
-                steps = sections.map { section ->
-                    val mode = section.transportMode
-                    if (mode == null || mode.equals(LEGACY_PEDESTRIAN_MODE, ignoreCase = true)) {
-                        TransitStep.Walk(
-                            summary = section.legacySummary(),
-                            polyline = section.polyline,
-                            departure = section.departureTime?.toTransitTimeOrNull(),
-                            arrival = section.arrivalTime?.toTransitTimeOrNull(),
-                            from = section.legacyDeparture()?.location,
-                            to = section.legacyArrival()?.location,
-                        )
-                    } else {
-                        TransitStep.Ride(
-                            summary = section.legacySummary(),
-                            line = TransitLine(mode = mode),
-                            polyline = section.polyline,
-                            boarding = section.legacyDeparture()?.let {
-                                TransitStop(
-                                    location = it.location,
-                                    departure = section.departureTime?.toTransitTimeOrNull(),
-                                )
-                            },
-                            alighting = section.legacyArrival()?.let {
-                                TransitStop(
-                                    location = it.location,
-                                    arrival = section.arrivalTime?.toTransitTimeOrNull(),
-                                )
-                            },
-                        )
-                    }
-                },
-            ),
-        )
-    }
-
-    private fun RouteSectionEntity.legacySummary(): RouteSummary = RouteSummary(
-        durationSeconds = durationSeconds.seconds,
-        distance = Measure(distanceMeters, Length.meters),
-    )
-
-    private fun List<RouteSectionEntity>.legacySummary(): RouteSummary = RouteSummary(
-        durationSeconds = sumOf { it.durationSeconds }.seconds,
-        distance = Measure(sumOf { it.distanceMeters }, Length.meters),
-    )
-
-    private fun RouteSectionEntity.legacyDeparture(): RouteDeparture? =
-        if (departureLat != null && departureLng != null) {
-            RouteDeparture(RouteLocation(departureLat, departureLng), departureTime?.parseIsoOrNull())
-        } else {
-            null
-        }
-
-    private fun RouteSectionEntity.legacyArrival(): RouteDeparture? = if (arrivalLat != null && arrivalLng != null) {
-        RouteDeparture(RouteLocation(arrivalLat, arrivalLng), arrivalTime?.parseIsoOrNull())
-    } else {
-        null
-    }
-
     /** The stored form of a section time: ISO 8601 keeping the offset in force where it happens. */
     private fun DateTimeComponents.formatIso(): String = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET.format(this)
 
@@ -590,6 +490,3 @@ object TravelPlanEntityMapper {
     private fun String.parseIsoOrNull(): DateTimeComponents? =
         runCatching { DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET.parse(this) }.getOrNull()
 }
-
-/** How a step on foot was filed by the builds that flattened every answer into one shape. */
-private const val LEGACY_PEDESTRIAN_MODE = "PEDESTRIAN"

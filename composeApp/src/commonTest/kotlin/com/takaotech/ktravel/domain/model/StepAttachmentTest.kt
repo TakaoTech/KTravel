@@ -14,8 +14,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 
 /**
- * Verifica che l'inventario allegati di uno Step.Place attraversi editor, entity/UI mapper e che i
- * documenti legacy (senza `attachments`) restino decodificabili.
+ * Checks that the attachment inventory of a Step.Place survives the editor and the entity/UI
+ * mappers, and that a document written before `attachments` existed still decodes.
  */
 class StepAttachmentTest :
     BehaviorSpec({

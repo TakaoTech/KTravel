@@ -104,18 +104,9 @@ sealed class StepEntity {
     data class Transport(
         override val id: String,
         @SerialName("transport_type") val transportType: String,
-        // What the calculation answered, in the shape it answered it. Absent from the documents
-        // written before the two shapes were told apart, hence the default and [route] below.
-        @SerialName("answer") val answer: TransportAnswerEntity? = null,
-        /**
-         * The flat route the earlier builds wrote, kept for reading those documents back.
-         *
-         * Never written any more: [answer] replaces it, and a step read through this field is
-         * re-filed under [answer] the next time the plan is saved. It is poorer than either shape —
-         * a journey stored here has lost its lines and its stops — but it is what those documents
-         * contain, and dropping it would empty every transport already on a device.
-         */
-        @SerialName("route") val route: RouteEntity? = null,
+        // What the calculation answered, in the shape it answered it. Required: a transport that
+        // has not been computed is not written, so there is no such thing as one without an answer.
+        @SerialName("answer") val answer: TransportAnswerEntity,
         // Absent from the documents written before the request was recorded, hence the default.
         @SerialName("request") val request: TransportRequestEntity? = null,
         @SerialName("note") val note: String = "",
@@ -314,34 +305,6 @@ data class TransitStopEntity(
     @SerialName("offset") val offset: Int? = null,
     @SerialName("url") val url: String? = null,
     @SerialName("wheelchair") val wheelchairAccessible: String? = null,
-)
-
-/** The flat shape the earlier builds saved. Read only — see `StepEntity.Transport.route`. */
-@Serializable
-data class RouteEntity(@SerialName("sections") val sections: List<RouteSectionEntity>)
-
-/**
- * A leg of a saved route.
- *
- * The two times are ISO 8601 with the offset in force where they happen, which is the offset at the
- * stop and not the one the device is in: a journey is read off a departure board, so dropping it
- * would move every time of a trip planned abroad. They are strings because the domain holds a
- * `DateTimeComponents`, a type that exists to be produced by a parser and has no other constructor.
- */
-@Serializable
-data class RouteSectionEntity(
-    @SerialName("duration_seconds") val durationSeconds: Long,
-    @SerialName("distance_meters") val distanceMeters: Double,
-    @SerialName("polyline") val polyline: String? = null,
-    @SerialName("transport_mode") val transportMode: String? = null,
-    @SerialName("departure_lat") val departureLat: Double? = null,
-    @SerialName("departure_lng") val departureLng: Double? = null,
-    @SerialName("arrival_lat") val arrivalLat: Double? = null,
-    @SerialName("arrival_lng") val arrivalLng: Double? = null,
-    // Absent from the documents written before the times were recorded, hence the defaults.
-    @SerialName("departure_time") val departureTime: String? = null,
-    @SerialName("arrival_time") val arrivalTime: String? = null,
-    @SerialName("actions") val actions: List<RouteActionEntity> = emptyList(),
 )
 
 /**

@@ -3,9 +3,6 @@
 package com.takaotech.ktravel.data.mapper
 
 import com.takaotech.ktravel.data.entity.PlaceEntity
-import com.takaotech.ktravel.data.entity.RouteActionEntity
-import com.takaotech.ktravel.data.entity.RouteEntity
-import com.takaotech.ktravel.data.entity.RouteSectionEntity
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.entity.TransportAnswerEntity
 import com.takaotech.ktravel.data.entity.TransportRequestEntity
@@ -34,21 +31,22 @@ import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
 import com.takaotech.ktravel.testutil.roadAnswer
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.UtcOffset
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-class TravelPlanMapperTest :
+class TravelPlanEntityMapperTest :
     BehaviorSpec({
 
         given("a TravelPlanDomain domain model") {
@@ -250,9 +248,6 @@ class TravelPlanMapperTest :
                     entity!!.answer.shouldBeInstanceOf<TransportAnswerEntity.Routing>()
                         .route.sections.size shouldBe 1
                 }
-                then("the flat legacy route should no longer be written") {
-                    entity!!.route shouldBe null
-                }
             }
 
             `when`("toEntity and then toDomain is called") {
@@ -409,69 +404,54 @@ class TravelPlanMapperTest :
             }
         }
 
-        given("a transport saved by a build that flattened every answer into one shape") {
-            fun legacy(vararg sections: RouteSectionEntity) = StepEntity.Transport(
-                id = "step-legacy",
-                transportType = "CAR",
-                route = RouteEntity(sections = sections.toList()),
-            )
+        given("a stored transport, in the only shape this build writes") {
+            val json = Json { ignoreUnknownKeys = true }
 
-            `when`("the flat route carries manoeuvres") {
-                val entity = legacy(
-                    RouteSectionEntity(
-                        durationSeconds = 1800L,
-                        distanceMeters = 5000.0,
-                        transportMode = "car",
-                        actions = listOf(
-                            RouteActionEntity(
-                                action = "depart",
-                                durationSeconds = 300L,
-                                distanceMeters = 1000.0,
-                                instruction = "Head north",
-                            ),
-                        ),
-                    ),
-                )
+            `when`("the document carries its answer") {
+                val stored = """
+                    {
+                      "type": "transport",
+                      "id": "step-6",
+                      "transport_type": "CAR",
+                      "answer": {
+                        "type": "routing",
+                        "route": {
+                          "summary": { "duration_seconds": 1800, "distance_meters": 5000.0 },
+                          "sections": [
+                            {
+                              "summary": { "duration_seconds": 1800, "distance_meters": 5000.0 },
+                              "mode": "car"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                """.trimIndent()
 
-                then("it should read back as a road route rather than failing") {
+                then("it should read back as the road route it holds") {
+                    val entity = json.decodeFromString<StepEntity>(stored)
                     val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
                     val routing = step.answer.shouldBeInstanceOf<TransportAnswer.Routing>()
 
-                    routing.route.sections.size shouldBe 1
-                    routing.route.sections[0].mode shouldBe "car"
-                    routing.route.sections[0].actions.size shouldBe 1
-                    routing.route.summary.durationSeconds shouldBe 1800.seconds
+                    routing.route.sections.single().mode shouldBe "car"
                 }
             }
 
-            `when`("the flat route carries no manoeuvres") {
-                val entity = legacy(
-                    RouteSectionEntity(durationSeconds = 300L, distanceMeters = 200.0, transportMode = "PEDESTRIAN"),
-                    RouteSectionEntity(durationSeconds = 1500L, distanceMeters = 4800.0, transportMode = "SUBWAY"),
-                )
+            `when`("the document is one of the flat ones the earlier builds wrote") {
+                // Those builds filed every answer under a single "route", knowing no "answer" at all.
+                // Reading them is no longer a case this build has: the shape was never a published
+                // schema, and the plan is refused rather than opened with its legs silently emptied.
+                val stored = """
+                    {
+                      "type": "transport",
+                      "id": "step-old",
+                      "transport_type": "CAR",
+                      "route": { "sections": [{ "duration_seconds": 300, "distance_meters": 200.0 }] }
+                    }
+                """.trimIndent()
 
-                then("it should read back as the poor journey that shape kept") {
-                    val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
-                    val transit = step.answer.shouldBeInstanceOf<TransportAnswer.Transit>()
-
-                    transit.journey.steps[0].shouldBeInstanceOf<TransitStep.Walk>()
-                    val ride = transit.journey.steps[1].shouldBeInstanceOf<TransitStep.Ride>()
-                    ride.line.mode shouldBe "SUBWAY"
-                    // Never written by those builds, so there is nothing to read back.
-                    ride.line.name shouldBe null
-                    ride.agency shouldBe null
-                }
-            }
-
-            `when`("it is saved again") {
-                val entity = legacy(RouteSectionEntity(durationSeconds = 300L, distanceMeters = 200.0))
-
-                then("it should be re-filed under the new shape and drop the flat one") {
-                    val step = with(TravelPlanEntityMapper) { entity.toDomain() } as StepDomain.Transport
-                    val resaved = with(TravelPlanEntityMapper) { step.toEntity() } as StepEntity.Transport
-
-                    resaved.answer shouldNotBe null
-                    resaved.route shouldBe null
+                then("decoding it should fail rather than yield a transport with no leg") {
+                    shouldThrow<SerializationException> { json.decodeFromString<StepEntity>(stored) }
                 }
             }
         }

@@ -74,11 +74,11 @@ class TravelArchiveIdRemapperTest :
                     .filterIsInstance<StepEntity.Transport>()
                     .first()
 
-                then("its id changes but the route is untouched") {
+                then("its id changes but the answer is untouched") {
                     transport.id shouldNotBe "step-2"
-                    transport.route shouldBe (
+                    transport.answer shouldBe (
                         original.days.first().steps
-                            .filterIsInstance<StepEntity.Transport>().first().route
+                            .filterIsInstance<StepEntity.Transport>().first().answer
                         )
                 }
             }
