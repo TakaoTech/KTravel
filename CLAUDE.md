@@ -214,6 +214,10 @@ Keep rules live with the module that needs them:
 | `composeApp/proguard-desktop-rules.pro`              | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
 | `androidApp/proguard-rules.pro`                      | application-level (`-dontobfuscate`, Parcelize)                         |
 
+The list behind the licenses screen is generated at build time by AboutLibraries: for anything
+touching it, or the release workflow that fetches the license texts, use the
+`generating-dependency-licenses` skill.
+
 ### Running the Application
 
 **Desktop:**

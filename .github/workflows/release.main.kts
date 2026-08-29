@@ -59,7 +59,10 @@ workflow(
         )
     }
 
-    job(id = "android", runsOn = RunnerType.UbuntuLatest, needs = listOf(test)) {
+    val licenseEnv = mapOf("GITHUB_TOKEN" to expr("secrets.GITHUB_TOKEN"))
+    val fetchRemoteLicenses = "-Pktravel.licenses.fetchRemote=true"
+
+    job(id = "android", runsOn = RunnerType.UbuntuLatest, needs = listOf(test), env = licenseEnv) {
         uses(name = "Checkout code", action = Checkout())
         uses(
             name = "Set up JDK",
@@ -77,7 +80,7 @@ workflow(
 
         run(
             name = "Build release APK and AAB",
-            command = "./gradlew :androidApp:assembleRelease :androidApp:bundleRelease"
+            command = "./gradlew :androidApp:assembleRelease :androidApp:bundleRelease $fetchRemoteLicenses"
         )
 
         uses(
@@ -110,6 +113,7 @@ workflow(
         id = "desktop",
         runsOn = RunnerType.Custom(expr("matrix.os")),
         needs = listOf(test),
+        env = licenseEnv,
         _customArguments = mapOf(
             "strategy" to mapOf(
                 "fail-fast" to false,
@@ -139,7 +143,7 @@ workflow(
 
         run(
             name = "Build native distribution",
-            command = "./gradlew :composeApp:packageReleaseDistributionForCurrentOS",
+            command = "./gradlew :composeApp:packageReleaseDistributionForCurrentOS $fetchRemoteLicenses",
             shell = Shell.Bash
         )
 

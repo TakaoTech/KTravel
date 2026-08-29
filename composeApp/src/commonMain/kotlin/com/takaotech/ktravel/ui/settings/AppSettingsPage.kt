@@ -31,6 +31,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.takaotech.ktravel.presentation.settings.AppSettingsViewModel
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
+import ktravel.composeapp.generated.resources.app_settings_about_section
+import ktravel.composeapp.generated.resources.app_settings_licenses
 import ktravel.composeapp.generated.resources.app_settings_navigator_hint
 import ktravel.composeapp.generated.resources.app_settings_navigator_section
 import ktravel.composeapp.generated.resources.app_settings_saved
@@ -51,6 +53,7 @@ internal object AppSettingsTestTags {
     const val TEST_CONNECTION = "app_settings_test_connection"
     const val SAVE = "app_settings_save"
     const val REACHABILITY = "app_settings_reachability"
+    const val LICENSES = "app_settings_licenses"
 }
 
 /**
@@ -61,7 +64,12 @@ internal object AppSettingsTestTags {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppSettingsPage(viewModel: AppSettingsViewModel, onNavigationBackClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AppSettingsPage(
+    viewModel: AppSettingsViewModel,
+    onNavigationBackClick: () -> Unit,
+    onLicensesClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val savedMessage = stringResource(Res.string.app_settings_saved)
@@ -129,6 +137,18 @@ fun AppSettingsPage(viewModel: AppSettingsViewModel, onNavigationBackClick: () -
                     reachability = uiState.reachability,
                     modifier = Modifier.testTag(AppSettingsTestTags.REACHABILITY),
                 )
+            }
+
+            Text(
+                text = stringResource(Res.string.app_settings_about_section),
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            OutlinedButton(
+                onClick = onLicensesClick,
+                modifier = Modifier.fillMaxWidth().testTag(AppSettingsTestTags.LICENSES),
+            ) {
+                Text(stringResource(Res.string.app_settings_licenses))
             }
         }
     }

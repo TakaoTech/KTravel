@@ -50,6 +50,8 @@ compottie = "2.2.4"
 hyphen = "0.7.0-alpha01"
 markdown-renderer = "0.43.0"
 
+aboutLibraries = "15.1.1"
+
 # region Server deps
 koin = "4.2.2"
 kermit = "2.1.0"
@@ -170,6 +172,9 @@ signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signum-
 detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
 detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
 
+aboutLibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
+aboutLibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
+
 
 # region Server deps
 koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
@@ -198,6 +203,7 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
 allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 mokkery = { id = "dev.mokkery", version = "3.4.2" }
+aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries"}
 # Brings MapLibre's iOS native framework in through Swift Package Manager.
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.4" }
 
@@ -208,3 +214,4 @@ material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-
 kotest-multiplatform = ["kotest-core", "kotest-property", "kotest-engine"]
 mockk = ["mockk", "mockk-bdd"]
 mockk-android = ["mockk-android", "mockk-bdd", "mockk-android-agent"]
+aboutLibraries = [ "aboutLibraries-core", "aboutLibraries-compose-m3" ]

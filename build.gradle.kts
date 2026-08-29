@@ -22,6 +22,7 @@ plugins {
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.allopen) apply false
     alias(libs.plugins.spmForKmp) apply false
+    alias(libs.plugins.aboutLibraries) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.sonarqube)
