@@ -44,6 +44,25 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                     onNodeWithTag(PlacesBacklogTestTags.EMPTY).assertIsDisplayed()
                 }
             }
+
+            then("the empty state should explain what fills the backlog") {
+                runComposeUiTest {
+                    setContent {
+                        PlacesBacklogContent(
+                            places = persistentListOf(),
+                            pendingPermanentDelete = null,
+                            onCloseClick = {},
+                            onAddPlaceClick = {},
+                            onMovePlaceToStepsClick = {},
+                            onMovePlaceToBacklogClick = {},
+                            onPermanentDeleteRequest = {},
+                            onPermanentDeleteConfirm = {},
+                            onPermanentDeleteDismiss = {},
+                        )
+                    }
+                    onNodeWithTag(PlacesBacklogTestTags.EMPTY_HINT).assertIsDisplayed()
+                }
+            }
         }
 
         given("PlacesBacklogContent with places") {

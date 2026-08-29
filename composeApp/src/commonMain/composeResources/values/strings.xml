@@ -21,15 +21,19 @@
 
     <string name="planning_detail_places_title">Places Overview</string>
     <string name="planning_detail_places_empty">No places added yet</string>
+    <string name="planning_detail_places_empty_hint">Add a place and you will find it here</string>
+    <string name="planning_detail_add_place">Add place</string>
     <string name="planning_detail_steps_empty">No steps planned yet</string>
     <string name="planning_detail_add_transport">Add Transport</string>
     <string name="planning_detail_transport_duration">Duration %1$s</string>
+    <string name="planning_detail_transport_summary">%1$s · %2$s</string>
     <string name="planning_detail_cd_back">Navigate back</string>
     <string name="planning_detail_cd_open_backlog">Open places overview</string>
     <string name="planning_detail_cd_close_backlog">Close places overview</string>
     <string name="planning_detail_cd_delete_step">Delete step</string>
     <string name="planning_detail_cd_move_step_up">Move step up</string>
     <string name="planning_detail_cd_move_step_down">Move step down</string>
+    <string name="planning_detail_cd_reorder_step">Reorder step</string>
     <string name="planning_detail_cd_move_place_to_steps">Add place to itinerary</string>
     <string name="planning_detail_step_note_title">Notes</string>
     <string name="planning_detail_step_note_empty">No notes yet</string>

@@ -22,17 +22,21 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
 
     override val values: Sequence<StepUi>
         get() = (1..items).map {
-            if (it % 2 == 0) generateTransportStep(it) else generatePlaceStep(it)
+            if (it % 3 == 0) generateTransportStep(it) else generatePlaceStep(it)
         }.asSequence()
 
     private fun generatePlaceStep(index: Int): StepUi.Place = StepUi.Place(
         name = "$loremIpsum $index",
         lat = 45.0 + index * 0.1,
         lng = 9.0 + index * 0.1,
-        schedule = VisitScheduleUi(
+        schedule = if (index % 2 == 0) {
+            null
+        } else {
+            VisitScheduleUi(
             startTime = LocalTime(8 + index, 0),
             endTime = LocalTime(8 + index, 30),
-        ),
+        )
+        },
     )
 
     private fun generateTransportStep(index: Int): StepUi.Transport {

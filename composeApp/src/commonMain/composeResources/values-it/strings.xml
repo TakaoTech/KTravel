@@ -21,15 +21,19 @@
 
     <string name="planning_detail_places_title">Panoramica tappe</string>
     <string name="planning_detail_places_empty">Nessuna tappa aggiunta</string>
+    <string name="planning_detail_places_empty_hint">Aggiungi un posto e lo troverai qui</string>
+    <string name="planning_detail_add_place">Aggiungi luogo</string>
     <string name="planning_detail_steps_empty">Nessuna attività pianificata</string>
     <string name="planning_detail_add_transport">Aggiungi trasporto</string>
     <string name="planning_detail_transport_duration">Durata %1$s</string>
+    <string name="planning_detail_transport_summary">%1$s · %2$s</string>
     <string name="planning_detail_cd_back">Torna indietro</string>
     <string name="planning_detail_cd_open_backlog">Apri la panoramica delle tappe</string>
     <string name="planning_detail_cd_close_backlog">Chiudi la panoramica delle tappe</string>
     <string name="planning_detail_cd_delete_step">Elimina attività</string>
     <string name="planning_detail_cd_move_step_up">Sposta l'attività in alto</string>
     <string name="planning_detail_cd_move_step_down">Sposta l'attività in basso</string>
+    <string name="planning_detail_cd_reorder_step">Riordina la tappa</string>
     <string name="planning_detail_cd_move_place_to_steps">Aggiungi la tappa all'itinerario</string>
     <string name="planning_detail_step_note_title">Note</string>
     <string name="planning_detail_step_note_empty">Nessuna nota</string>

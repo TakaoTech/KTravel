@@ -3,12 +3,11 @@ package com.takaotech.ktravel.ui.planning.detail
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,13 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,8 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewFontScale
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
@@ -57,9 +55,10 @@ import kotlinx.datetime.LocalTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.flag
-import ktravel.composeapp.generated.resources.flight
+import ktravel.composeapp.generated.resources.inbox_customize
 import ktravel.composeapp.generated.resources.place
 import ktravel.composeapp.generated.resources.planning_detail_cd_back
+import ktravel.composeapp.generated.resources.planning_detail_cd_close_backlog
 import ktravel.composeapp.generated.resources.planning_detail_cd_open_backlog
 import ktravel.composeapp.generated.resources.planning_detail_steps_empty
 import org.jetbrains.compose.resources.painterResource
@@ -76,12 +75,13 @@ internal object StepsPaneTestTags {
         "steps_pane_add_transport_${startPlaceId}_$endPlaceId"
 
     fun deleteStepTag(stepId: String) = "steps_pane_delete_step_$stepId"
+    fun arrivalChipTag(stepId: String) = "steps_pane_arrival_chip_$stepId"
+    fun departureChipTag(stepId: String) = "steps_pane_departure_chip_$stepId"
     fun moveStepUpTag(stepId: String) = "steps_pane_move_step_up_$stepId"
     fun moveStepDownTag(stepId: String) = "steps_pane_move_step_down_$stepId"
 }
 
 // Timeline sizing (gutter with vertical line and nodes).
-private val TimeColumnWidth = 64.dp
 private val GutterWidth = 40.dp
 private val NodeSize = 32.dp
 private val NodeCenterY = 28.dp
@@ -98,6 +98,7 @@ fun StepsPaneUi(state: StepsPaneUiState, modifier: Modifier = Modifier) {
     StepsPaneContent(
         rows = state.rows,
         dayDate = state.date,
+        backlogOpen = LocalBacklogPaneOpen.current,
         modifier = modifier,
         onNavigationBackClick = { sink(StepsPaneEvent.NavigateBack) },
         onOpenBacklogClick = { sink(StepsPaneEvent.OpenBacklog) },
@@ -133,6 +134,7 @@ internal fun StepsPaneContent(
     onSetArrivalTime: (stepId: String, time: LocalTime) -> Unit,
     onSetDepartureTime: (stepId: String, time: LocalTime) -> Unit,
     dayDate: LocalDate? = null,
+    backlogOpen: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -164,15 +166,7 @@ internal fun StepsPaneContent(
                     }
                 },
                 actions = {
-                    IconButton(
-                        modifier = Modifier.testTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON),
-                        onClick = onOpenBacklogClick,
-                    ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.flight),
-                            contentDescription = stringResource(Res.string.planning_detail_cd_open_backlog),
-                        )
-                    }
+                    BacklogToggle(open = backlogOpen, onClick = onOpenBacklogClick)
                 },
             )
         },
@@ -215,34 +209,19 @@ internal fun StepsPaneContent(
                                 TimelineRow(
                                     isFirst = isFirst,
                                     isLast = isLast,
-                                    timeColumn = {
-                                        ScheduleTimeColumn(
-                                            arrivalTime = step.schedule?.startTime,
-                                            departureTime = step.schedule?.endTime,
-                                            onArrivalConfirm = {
-                                                onSetArrivalTime(
-                                                    step.id,
-                                                    it,
-                                                )
-                                            },
-                                            onDepartureConfirm = {
-                                                onSetDepartureTime(
-                                                    step.id,
-                                                    it,
-                                                )
-                                            },
-                                        )
-                                    },
                                     node = {
                                         if (isDestination) DestinationNode() else PlaceNode()
                                     },
                                 ) {
                                     TravelStepPlace(
                                         step = step,
+                                        isDestination = isDestination,
                                         onStepClick = onStepClick,
                                         onStepDeleteClicked = { onDeleteStepClick(step) },
                                         onStepMoveUp = onMoveStepUpClick,
                                         onStepMoveDown = onMoveStepDownClick,
+                                        onSetArrivalTime = { onSetArrivalTime(step.id, it) },
+                                        onSetDepartureTime = { onSetDepartureTime(step.id, it) },
                                     )
                                 }
                             }
@@ -253,7 +232,7 @@ internal fun StepsPaneContent(
                                 node = { TransportNode(step) },
                             ) {
                                 TravelStepTransport(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier,
                                     step = step,
                                     onStepClick = onTransportClick,
                                     onStepDeleteClicked = { onDeleteStepClick(step) },
@@ -284,37 +263,49 @@ internal fun StepsPaneContent(
 }
 
 /**
- * Timeline row: optional [timeColumn] slot on the left, gutter with a continuous vertical line and
- * the centered [node], and [content] on the right. The line is trimmed at the node when [isFirst] /
- * [isLast].
+ * Toolbar toggle of the backlog pane: filled while the pane is showing, tonal while it is not, so
+ * the button carries the state the way the design does. The description follows the state too,
+ * which is what announces it to a screen reader.
+ */
+@Composable
+private fun BacklogToggle(open: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val description = stringResource(
+        if (open) {
+            Res.string.planning_detail_cd_close_backlog
+        } else {
+            Res.string.planning_detail_cd_open_backlog
+        },
+    )
+    val content: @Composable () -> Unit = {
+        Icon(
+            painter = painterResource(Res.drawable.inbox_customize),
+            contentDescription = description,
+        )
+    }
+    val buttonModifier = modifier.testTag(StepsPaneTestTags.OPEN_BACKLOG_BUTTON)
+
+    if (open) {
+        FilledIconButton(modifier = buttonModifier, onClick = onClick, content = content)
+    } else {
+        FilledTonalIconButton(modifier = buttonModifier, onClick = onClick, content = content)
+    }
+}
+
+/**
+ * Timeline row: gutter with a continuous vertical line and the centered [node], and [content] on the
+ * right. The line is trimmed at the node when [isFirst] / [isLast].
  */
 @Composable
 private fun TimelineRow(
     isFirst: Boolean,
     isLast: Boolean,
     node: @Composable BoxScope.() -> Unit,
-    timeColumn: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     val lineColor = MaterialTheme.colorScheme.outlineVariant
     Row(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
     ) {
-        Box(modifier = Modifier.width(TimeColumnWidth).fillMaxHeight()) {
-            if (timeColumn != null) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(
-                            top = NodeCenterY - 16.dp,
-                            end = 4.dp,
-                        ),
-                ) {
-                    timeColumn()
-                }
-            }
-        }
-
         Box(modifier = Modifier.width(GutterWidth).fillMaxHeight()) {
             Canvas(
                 modifier = Modifier
@@ -343,14 +334,13 @@ private fun TimelineRow(
             )
         }
 
-        Box(
+        Row(
             modifier = Modifier
-                .weight(1f)
+//                .weight(1f)
                 .padding(vertical = 8.dp)
                 .padding(end = 16.dp),
-        ) {
-            content()
-        }
+            content = content,
+        )
     }
 }
 
@@ -420,55 +410,6 @@ private fun AddTransportNode() {
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.outlineVariant),
     )
-}
-
-/**
- * Editable time column of a place row: arrival above, departure below. Compact presentation of the
- * shared [ScheduleTimeEditor]: each time is a clickable label opening the Material3 time picker; an
- * unset time shows the `--:--` placeholder yet stays clickable.
- */
-@Composable
-private fun ScheduleTimeColumn(
-    arrivalTime: LocalTime?,
-    departureTime: LocalTime?,
-    onArrivalConfirm: (LocalTime) -> Unit,
-    onDepartureConfirm: (LocalTime) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    ScheduleTimeEditor(
-        startTime = arrivalTime,
-        endTime = departureTime,
-        onStartConfirm = onArrivalConfirm,
-        onEndConfirm = onDepartureConfirm,
-    ) { scope ->
-        Column(
-            modifier = modifier,
-            horizontalAlignment = Alignment.End,
-        ) {
-            Text(
-                modifier = Modifier
-                    .clickable(onClick = scope.openStartPicker)
-                    .minimumInteractiveComponentSize()
-                    .basicMarquee()
-                    .semantics { contentDescription = scope.startContentDescription },
-                text = scope.startDisplay,
-                maxLines = 1,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                modifier = Modifier
-                    .clickable(onClick = scope.openEndPicker)
-                    .minimumInteractiveComponentSize()
-                    .basicMarquee()
-                    .semantics { contentDescription = scope.endContentDescription },
-                text = scope.endDisplay,
-                maxLines = 1,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
 }
 
 @PreviewScreenSizes

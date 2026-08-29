@@ -1,19 +1,34 @@
 package com.takaotech.ktravel.ui.planning.detail
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -23,7 +38,6 @@ import com.takaotech.ktravel.presentation.planning.detail.PlacesBacklogEvent
 import com.takaotech.ktravel.presentation.planning.detail.PlacesBacklogScreen
 import com.takaotech.ktravel.presentation.planning.detail.PlacesBacklogUiState
 import com.takaotech.ktravel.ui.common.DisruptiveOperationDialog
-import com.takaotech.ktravel.ui.place.PlaceItem
 import com.takaotech.ktravel.ui.planning.common.AddPlaceButton
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
@@ -31,16 +45,23 @@ import kotlinx.collections.immutable.persistentListOf
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
 import ktravel.composeapp.generated.resources.close
+import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.place_delete
+import ktravel.composeapp.generated.resources.place_delete_permanent
 import ktravel.composeapp.generated.resources.planning_detail_cd_close_backlog
+import ktravel.composeapp.generated.resources.planning_detail_cd_delete_step
 import ktravel.composeapp.generated.resources.planning_detail_cd_move_place_to_steps
 import ktravel.composeapp.generated.resources.planning_detail_places_empty
+import ktravel.composeapp.generated.resources.planning_detail_places_empty_hint
 import ktravel.composeapp.generated.resources.planning_detail_places_title
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 internal object PlacesBacklogTestTags {
     const val LIST = "places_backlog_list"
     const val EMPTY = "places_backlog_empty"
+    const val EMPTY_HINT = "places_backlog_empty_hint"
     const val CLOSE_BUTTON = "places_backlog_close"
     const val ADD_PLACE_BUTTON = "places_backlog_add_place"
     fun placeTag(id: String) = "places_backlog_place_$id"
@@ -88,8 +109,7 @@ internal fun PlacesBacklogContent(
 ) {
     Surface(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         if (pendingPermanentDelete != null) {
             DisruptiveOperationDialog(
@@ -98,82 +118,232 @@ internal fun PlacesBacklogContent(
             )
         }
 
-        Column {
-            IconButton(
-                modifier = Modifier.testTag(PlacesBacklogTestTags.CLOSE_BUTTON),
-                onClick = onCloseClick,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.close),
-                    contentDescription = stringResource(Res.string.planning_detail_cd_close_backlog),
-                )
-            }
-
-            Text(
-                text = stringResource(Res.string.planning_detail_places_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-                    .padding(horizontal = 8.dp),
+        Column(
+            modifier = Modifier.safeDrawingPadding(),
+        ) {
+            BacklogHeader(
+                count = places.size,
+                onCloseClick = onCloseClick,
             )
 
-            AddPlaceButton(
-                modifier = Modifier.testTag(PlacesBacklogTestTags.ADD_PLACE_BUTTON),
-                onClick = onAddPlaceClick,
-            )
-
-            LazyColumn(
-                modifier = Modifier.testTag(PlacesBacklogTestTags.LIST),
-                contentPadding = PaddingValues(8.dp),
-            ) {
-                items(items = places, key = { it.id }) { place ->
-                    // TODO Add Hours
-                    // TODO Add image
-                    PlaceItem(
-                        modifier = Modifier
-                            .animateItem()
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
-                            .testTag(PlacesBacklogTestTags.placeTag(place.id)),
-                        name = place.name,
-                        onDeleteClick = {
-                            onMovePlaceToBacklogClick(place.id)
-                        },
-                        actions = {
-                            IconButton(
-                                modifier = Modifier.testTag(
-                                    PlacesBacklogTestTags.moveToStepsTag(place.id),
-                                ),
-                                onClick = {
-                                    onMovePlaceToStepsClick(place.id)
-                                },
-                            ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.add),
-                                    contentDescription = stringResource(
-                                        Res.string.planning_detail_cd_move_place_to_steps,
-                                    ),
-                                )
-                            }
-                        },
-                        onPermanentDeleteClick = {
-                            onPermanentDeleteRequest(place.id)
-                        },
-                    )
-                }
-
+            Box(modifier = Modifier.weight(1f)) {
                 if (places.isEmpty()) {
-                    item {
-                        Text(
-                            modifier = Modifier.testTag(PlacesBacklogTestTags.EMPTY),
-                            text = stringResource(Res.string.planning_detail_places_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    BacklogEmptyState(modifier = Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.testTag(PlacesBacklogTestTags.LIST),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(items = places, key = { it.id }) { place ->
+                            // TODO Add Hours
+                            // TODO Add image
+                            BacklogPlaceRow(
+                                modifier = Modifier
+                                    .animateItem()
+                                    .testTag(PlacesBacklogTestTags.placeTag(place.id)),
+                                place = place,
+                                onDeleteClick = { onMovePlaceToBacklogClick(place.id) },
+                                onPermanentDeleteClick = { onPermanentDeleteRequest(place.id) },
+                                onMoveToStepsClick = { onMovePlaceToStepsClick(place.id) },
+                            )
+                        }
                     }
                 }
             }
+
+            AddPlaceButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .testTag(PlacesBacklogTestTags.ADD_PLACE_BUTTON),
+                onClick = onAddPlaceClick,
+            )
         }
     }
+}
+
+/** Title, how many places are still waiting, and the way out of the pane. */
+@Composable
+private fun BacklogHeader(count: Int, onCloseClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = stringResource(Res.string.planning_detail_places_title),
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+
+        if (count > 0) {
+            CountBadge(count)
+        }
+
+        IconButton(
+            modifier = Modifier.testTag(PlacesBacklogTestTags.CLOSE_BUTTON),
+            onClick = onCloseClick,
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.close),
+                contentDescription = stringResource(Res.string.planning_detail_cd_close_backlog),
+            )
+        }
+    }
+}
+
+/** How many places the backlog holds, as the accent pill of the design. */
+@Composable
+private fun CountBadge(count: Int, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+    ) {
+        Text(
+            modifier = Modifier
+                .defaultMinSize(minWidth = 22.dp)
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+            text = count.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** Nothing waiting: say so, and say what puts something here. */
+@Composable
+private fun BacklogEmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            modifier = Modifier.testTag(PlacesBacklogTestTags.EMPTY),
+            text = stringResource(Res.string.planning_detail_places_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            modifier = Modifier.testTag(PlacesBacklogTestTags.EMPTY_HINT),
+            text = stringResource(Res.string.planning_detail_places_empty_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/**
+ * A place waiting to enter the itinerary: the drag affordance of the design, the name, and the two
+ * actions the backlog has always had — remove (with the permanent variant behind the menu) and
+ * promote to a step of the day.
+ */
+@Composable
+private fun BacklogPlaceRow(
+    place: PlaceUi,
+    onDeleteClick: () -> Unit,
+    onPermanentDeleteClick: () -> Unit,
+    onMoveToStepsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 10.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+//            //Add support D&D?
+//            Icon(
+//                modifier = Modifier.size(18.dp),
+//                painter = painterResource(Res.drawable.drag_indicator),
+//                contentDescription = stringResource(Res.string.planning_detail_cd_reorder_step),
+//                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+//            )
+
+            Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(
+//                        start = 10.dp,
+                        top = 10.dp,
+                        bottom = 10.dp,
+                    ),
+                text = place.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            var menuExpanded by remember { mutableStateOf(false) }
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(
+                    painter = painterResource(Res.drawable.delete),
+                    contentDescription = stringResource(Res.string.planning_detail_cd_delete_step),
+                )
+            }
+
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                DeleteMode.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(option.text),
+                                color = if (option == DeleteMode.PERMANENT) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    Color.Unspecified
+                                },
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            when (option) {
+                                DeleteMode.GENERAL -> onDeleteClick()
+                                DeleteMode.PERMANENT -> onPermanentDeleteClick()
+                            }
+                        },
+                    )
+                }
+            }
+
+            IconButton(
+                modifier = Modifier.testTag(PlacesBacklogTestTags.moveToStepsTag(place.id)),
+                onClick = onMoveToStepsClick,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.add),
+                    contentDescription = stringResource(
+                        Res.string.planning_detail_cd_move_place_to_steps,
+                    ),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * How a place leaves the backlog.
+ *
+ * @property text Label of the entry in the delete menu.
+ */
+enum class DeleteMode(val text: StringResource) {
+    /** Out of this trip: the place stays in the library and can be added back. */
+    GENERAL(Res.string.place_delete),
+
+    /** Out of the library for good, behind a confirmation. */
+    PERMANENT(Res.string.place_delete_permanent),
 }
 
 @Preview
