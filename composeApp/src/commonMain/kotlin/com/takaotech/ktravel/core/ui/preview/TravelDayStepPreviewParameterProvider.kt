@@ -33,9 +33,9 @@ class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterPr
             null
         } else {
             VisitScheduleUi(
-            startTime = LocalTime(8 + index, 0),
-            endTime = LocalTime(8 + index, 30),
-        )
+                startTime = LocalTime(8 + index, 0),
+                endTime = LocalTime(8 + index, 30),
+            )
         },
     )
 

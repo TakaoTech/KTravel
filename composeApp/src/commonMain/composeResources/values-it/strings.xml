@@ -27,6 +27,8 @@
     <string name="planning_detail_add_transport">Aggiungi trasporto</string>
     <string name="planning_detail_transport_duration">Durata %1$s</string>
     <string name="planning_detail_transport_summary">%1$s · %2$s</string>
+    <string name="planning_detail_transport_times">%1$s → %2$s</string>
+    <string name="planning_detail_cd_transport_times">Partenza %1$s, arrivo %2$s</string>
     <string name="planning_detail_cd_back">Torna indietro</string>
     <string name="planning_detail_cd_open_backlog">Apri la panoramica delle tappe</string>
     <string name="planning_detail_cd_close_backlog">Chiudi la panoramica delle tappe</string>

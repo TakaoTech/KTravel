@@ -1,4 +1,9 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.takaotech.ktravel.domain.routing.model
+
+import kotlinx.datetime.LocalDateTime
+import kotlin.time.ExperimentalTime
 
 /**
  * What a calculation answered, as the plan keeps it.
@@ -32,6 +37,17 @@ sealed interface TransportAnswer {
     val principalMode: String?
 
     /**
+     * When the traveller sets off, as the clock reads where the leg starts.
+     *
+     * Null when the calculation produced no times at all, which is what a route asked for "now"
+     * comes back as: an hour invented here would be worse than none.
+     */
+    val departureTime: LocalDateTime?
+
+    /** When they arrive, with the same rule as [departureTime]. */
+    val arrivalTime: LocalDateTime?
+
+    /**
      * A route on roads, travelled by one vehicle.
      *
      * @property route The alternative the traveller confirmed, exactly as the navigator answered it.
@@ -44,6 +60,13 @@ sealed interface TransportAnswer {
             get() = route.sections.mapNotNull { section -> section.polyline?.let { TransportPath(it) } }
 
         override val principalMode: String? get() = route.sections.firstOrNull()?.mode
+
+        /** The first section the navigator dated, which is where the road leg starts being timed. */
+        override val departureTime: LocalDateTime?
+            get() = route.sections.firstNotNullOfOrNull { it.departure?.localDateTime() }
+
+        override val arrivalTime: LocalDateTime?
+            get() = route.sections.asReversed().firstNotNullOfOrNull { it.arrival?.localDateTime() }
     }
 
     /**
@@ -75,6 +98,11 @@ sealed interface TransportAnswer {
          * taking the mode of that walk filed every train ride in the plan as a walk.
          */
         override val principalMode: String? get() = journey.rides.firstOrNull()?.line?.mode
+
+        /** A journey knows its own times: they are the timetable it was read off. */
+        override val departureTime: LocalDateTime? get() = journey.departure?.atStop()
+
+        override val arrivalTime: LocalDateTime? get() = journey.arrival?.atStop()
     }
 }
 

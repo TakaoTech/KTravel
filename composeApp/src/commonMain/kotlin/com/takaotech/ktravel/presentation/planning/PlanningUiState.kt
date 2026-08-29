@@ -13,6 +13,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -126,7 +127,20 @@ sealed class StepUi(open val id: String = Uuid.random().toString()) {
         val attachments: PersistentList<AttachmentUi> = persistentListOf(),
         /** When the route was computed, null when the plan does not record it. */
         val calculatedAt: Instant? = null,
-    ) : StepUi(id)
+    ) : StepUi(id) {
+
+        /**
+         * When the leg leaves, as the saved answer times it.
+         *
+         * Derived rather than stored, the way [totalDuration] is: the answer is what carries the
+         * timetable, and a copy of it here would be one more thing to keep in step with it. Null
+         * when the calculation produced no times at all, which is what a route asked for "now" does.
+         */
+        val departure: LocalDateTime? get() = answer.departureTime
+
+        /** When it lands, with the same rule as [departure]. */
+        val arrival: LocalDateTime? get() = answer.arrivalTime
+    }
 }
 
 @Stable

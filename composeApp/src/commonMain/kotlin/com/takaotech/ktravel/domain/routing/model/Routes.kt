@@ -2,7 +2,10 @@ package com.takaotech.ktravel.domain.routing.model
 
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.Measure
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.asTimeZone
 import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration
 
 /**
@@ -49,7 +52,19 @@ data class RouteAction(
 /**
  * Departure or arrival details for a route section.
  */
-data class RouteDeparture(val location: RouteLocation, val time: DateTimeComponents? = null)
+data class RouteDeparture(val location: RouteLocation, val time: DateTimeComponents? = null) {
+    /**
+     * The clock read at the stop, and not the one on the device.
+     *
+     * The saved offset is the one in force where the moment happens: using it instead of the local
+     * timezone is what keeps a trip planned abroad from moving by hours.
+     */
+    fun localDateTime(): LocalDateTime? = time?.let { components ->
+        runCatching {
+            components.toInstantUsingOffset().toLocalDateTime(components.toUtcOffset().asTimeZone())
+        }.getOrNull()
+    }
+}
 
 /**
  * Geographic coordinates.

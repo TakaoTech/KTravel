@@ -27,6 +27,8 @@
     <string name="planning_detail_add_transport">Add Transport</string>
     <string name="planning_detail_transport_duration">Duration %1$s</string>
     <string name="planning_detail_transport_summary">%1$s · %2$s</string>
+    <string name="planning_detail_transport_times">%1$s → %2$s</string>
+    <string name="planning_detail_cd_transport_times">Departure %1$s, arrival %2$s</string>
     <string name="planning_detail_cd_back">Navigate back</string>
     <string name="planning_detail_cd_open_backlog">Open places overview</string>
     <string name="planning_detail_cd_close_backlog">Close places overview</string>

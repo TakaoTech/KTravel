@@ -1,6 +1,8 @@
 package com.takaotech.ktravel.testutil
 
 import com.takaotech.ktravel.domain.routing.model.RouteAction
+import com.takaotech.ktravel.domain.routing.model.RouteDeparture
+import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.RoutingRoute
 import com.takaotech.ktravel.domain.routing.model.RoutingSection
@@ -10,6 +12,7 @@ import com.takaotech.ktravel.domain.routing.model.TransitStep
 import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
+import kotlinx.datetime.format.DateTimeComponents
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -22,13 +25,20 @@ import kotlin.time.Duration.Companion.minutes
 fun summaryOf(duration: Duration = 30.minutes, metres: Double = 1000.0): RouteSummary =
     RouteSummary(durationSeconds = duration, distance = metres * Length.meters)
 
-/** A road route, by default a single sectionless-of-detail leg with no manoeuvres. */
+/**
+ * A road route, by default a single sectionless-of-detail leg with no manoeuvres.
+ *
+ * [departure] and [arrival] are ISO 8601 with the offset in force where the moment happens, the way
+ * the navigator answers them, and default to absent: a route asked for "now" comes back untimed.
+ */
 fun roadAnswer(
     duration: Duration = 30.minutes,
     metres: Double = 1000.0,
     mode: String = "car",
     actions: List<RouteAction> = emptyList(),
     polyline: String? = null,
+    departure: String? = null,
+    arrival: String? = null,
 ): TransportAnswer.Routing = TransportAnswer.Routing(
     RoutingRoute(
         summary = summaryOf(duration, metres),
@@ -37,10 +47,18 @@ fun roadAnswer(
                 summary = summaryOf(duration, metres),
                 mode = mode,
                 actions = actions,
+                departure = departure?.let(::waypointAt),
+                arrival = arrival?.let(::waypointAt),
                 polyline = polyline,
             ),
         ),
     ),
+)
+
+/** A dated waypoint at the origin of the coordinate system: the tests only read the time off it. */
+private fun waypointAt(isoWithOffset: String): RouteDeparture = RouteDeparture(
+    location = RouteLocation(lat = 0.0, lng = 0.0),
+    time = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET.parse(isoWithOffset),
 )
 
 /** A journey that walks to a stop, rides [mode], and walks off — which is every journey. */

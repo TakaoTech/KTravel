@@ -1,10 +1,12 @@
 package com.takaotech.ktravel.ui.planning.detail
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -147,6 +149,69 @@ class StepsPaneContentTest : BehaviorSpec() {
 
                         clicked shouldBe transport.id
                     }
+                }
+            }
+        }
+
+        given("StepsPaneContent with a transport whose answer is timed at both ends") {
+            val timed = transport.copy(
+                answer = roadAnswer(
+                    duration = 30.minutes,
+                    departure = "2026-05-18T09:30:00+02:00",
+                    arrival = "2026-05-18T10:12:00+02:00",
+                ),
+            )
+            val rows = buildStepRows(listOf(placeA, timed, placeB))
+
+            then("the transport row should show departure and arrival") {
+                runComposeUiTest {
+                    setContent {
+                        StepsPaneContent(
+                            rows = rows,
+                            onNavigationBackClick = {},
+                            onOpenBacklogClick = {},
+                            onStepClick = {},
+                            onTransportClick = {},
+                            onDeleteStepClick = {},
+                            onMoveStepUpClick = {},
+                            onMoveStepDownClick = {},
+                            onAddTransportClick = { _, _ -> },
+                            onSetArrivalTime = { _, _ -> },
+                            onSetDepartureTime = { _, _ -> },
+                        )
+                    }
+                    // The clocks are read at the stop, so the +02:00 offset is what they are
+                    // written in, whichever timezone the host machine runs in.
+                    onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION, useUnmergedTree = true)
+                        .assertTextContains("09:30", substring = true)
+                        .assertTextContains("10:12", substring = true)
+                }
+            }
+        }
+
+        given("StepsPaneContent with a transport whose answer carries no times") {
+            val rows = buildStepRows(listOf(placeA, transport, placeB))
+
+            then("the transport row should show the metrics alone") {
+                runComposeUiTest {
+                    setContent {
+                        StepsPaneContent(
+                            rows = rows,
+                            onNavigationBackClick = {},
+                            onOpenBacklogClick = {},
+                            onStepClick = {},
+                            onTransportClick = {},
+                            onDeleteStepClick = {},
+                            onMoveStepUpClick = {},
+                            onMoveStepDownClick = {},
+                            onAddTransportClick = { _, _ -> },
+                            onSetArrivalTime = { _, _ -> },
+                            onSetDepartureTime = { _, _ -> },
+                        )
+                    }
+                    onNodeWithTag(StepsPaneTestTags.TRANSPORT_DURATION, useUnmergedTree = true)
+                        .assertTextContains("30m", substring = true)
+                        .assert(hasText("\u2192", substring = true).not())
                 }
             }
         }

@@ -11,15 +11,10 @@ import com.slack.circuit.runtime.Navigator
 import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
-import com.takaotech.ktravel.domain.routing.model.RouteDeparture
-import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import com.takaotech.ktravel.presentation.planning.StepUi
 import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.asTimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 
 /**
@@ -109,39 +104,8 @@ private fun List<StepRow>.toTransportDetail(
         answer = answer,
         totalDuration = step.totalDuration,
         totalDistance = answer.summary.distance,
-        departure = answer.departureTime(),
-        arrival = answer.arrivalTime(),
+        departure = answer.departureTime,
+        arrival = answer.arrivalTime,
         calculatedAt = step.calculatedAt,
     )
-}
-
-/**
- * Quando si parte, letto dove la risposta lo tiene.
- *
- * Un viaggio su mezzi pubblici lo sa di suo — è il primo orario di tabella che porta — mentre un
- * percorso stradale lo ha, quando lo ha, sulla prima sezione che il navigatore ha datato.
- */
-private fun TransportAnswer.departureTime(): LocalDateTime? = when (this) {
-    is TransportAnswer.Routing -> route.sections.firstNotNullOfOrNull { it.departure?.localDateTime() }
-    is TransportAnswer.Transit -> journey.departure?.atStop()
-}
-
-/** Quando si arriva, con la stessa regola di [departureTime]. */
-private fun TransportAnswer.arrivalTime(): LocalDateTime? = when (this) {
-    is TransportAnswer.Routing ->
-        route.sections.asReversed().firstNotNullOfOrNull { it.arrival?.localDateTime() }
-
-    is TransportAnswer.Transit -> journey.arrival?.atStop()
-}
-
-/**
- * L'ora che si legge alla fermata, e non quella del dispositivo.
- *
- * L'offset salvato è quello in vigore dove l'orario accade: usarlo invece del fuso locale è ciò che
- * evita di spostare di ore un viaggio pianificato all'estero.
- */
-private fun RouteDeparture.localDateTime(): LocalDateTime? = time?.let { components ->
-    runCatching {
-        components.toInstantUsingOffset().toLocalDateTime(components.toUtcOffset().asTimeZone())
-    }.getOrNull()
 }
