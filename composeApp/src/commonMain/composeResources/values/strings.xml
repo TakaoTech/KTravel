@@ -37,6 +37,11 @@
     <string name="planning_detail_cd_move_step_down">Move step down</string>
     <string name="planning_detail_cd_reorder_step">Reorder step</string>
     <string name="planning_detail_cd_move_place_to_steps">Add place to itinerary</string>
+    <string name="planning_detail_cd_place_has_note">This place has notes</string>
+    <plurals name="planning_detail_cd_place_attachments">
+        <item quantity="one">%1$d file attached to this place</item>
+        <item quantity="other">%1$d files attached to this place</item>
+    </plurals>
     <string name="planning_detail_step_note_title">Notes</string>
     <string name="planning_detail_step_note_empty">No notes yet</string>
     <string name="planning_detail_step_note_label">Notes (Markdown)</string>

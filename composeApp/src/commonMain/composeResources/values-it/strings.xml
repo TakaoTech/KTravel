@@ -37,6 +37,11 @@
     <string name="planning_detail_cd_move_step_down">Sposta l'attività in basso</string>
     <string name="planning_detail_cd_reorder_step">Riordina la tappa</string>
     <string name="planning_detail_cd_move_place_to_steps">Aggiungi la tappa all'itinerario</string>
+    <string name="planning_detail_cd_place_has_note">Questa tappa ha delle note</string>
+    <plurals name="planning_detail_cd_place_attachments">
+        <item quantity="one">%1$d file allegato a questa tappa</item>
+        <item quantity="other">%1$d file allegati a questa tappa</item>
+    </plurals>
     <string name="planning_detail_step_note_title">Note</string>
     <string name="planning_detail_step_note_empty">Nessuna nota</string>
     <string name="planning_detail_step_note_label">Note (Markdown)</string>

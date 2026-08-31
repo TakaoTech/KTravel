@@ -42,7 +42,7 @@ kotlinx-io = "0.9.1"
 signum-indispensable = "3.24.0"
 signum-supreme = "0.15.0"
 
-detekt = "2.0.0-alpha.6"
+detekt = "2.0.0-alpha.5"
 kover = "0.9.9"
 sonarqube = "7.4.0.8496"
 compottie = "2.2.4"
@@ -170,7 +170,7 @@ signum-indispensable = { module = "at.asitplus.signum:indispensable", version.re
 signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signum-supreme" }
 
 detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
-detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.4" }
+detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
 
 aboutLibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
 aboutLibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }

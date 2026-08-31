@@ -3,6 +3,7 @@ package com.takaotech.ktravel.data.archive
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.domain.model.AttachmentReference
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -83,6 +84,41 @@ class TravelArchiveIdRemapperTest :
                 }
             }
         }
+
+        given("a plan whose backlog place carries a note and a file") {
+            val original = with(ArchiveTestFixtures) { ArchiveTestFixtures.plan().withBacklogAttachment() }
+            val ids = generateSequence(1) { it + 1 }.map { "new-$it" }.iterator()
+            val remapped = TravelArchiveIdRemapper.remap(
+                plan = original,
+                newTravelId = "travel-copy",
+                newId = { ids.next() },
+            )
+
+            `when`("the place is remapped") {
+                val place = remapped.plan.places.single()
+
+                then("its id is regenerated") {
+                    place.id shouldNotBe ArchiveTestFixtures.BACKLOG_PLACE_ID
+                }
+
+                then("its file moves under the new travel and place folders, keeping the file name") {
+                    place.attachments.single().relativePath shouldBe "travel-copy/${place.id}/ticket.pdf"
+                }
+
+                then("the mapping covers the backlog path as well") {
+                    remapped.attachmentPathMapping.keys shouldContain ArchiveTestFixtures.BACKLOG_PATH
+                }
+
+                then("the note reference points to the new path") {
+                    AttachmentReference.extractRelativePaths(place.note) shouldBe
+                        place.attachments.map { it.relativePath }
+                }
+
+                then("the note keeps its non-attachment content") {
+                    place.note.contains("Ferry at 8am") shouldBe true
+                }
+            }
+        }
     })
 
 private fun com.takaotech.ktravel.data.entity.TravelPlanEntity.allIds(): List<String> = days.map { it.id } +
@@ -93,4 +129,6 @@ private fun com.takaotech.ktravel.data.entity.TravelPlanEntity.allIds(): List<St
         day.steps.filterIsInstance<StepEntity.Place>().flatMap { step ->
             step.attachments.map { it.id }
         }
-    }
+    } +
+    places.flatMap { place -> place.attachments.map { it.id } } +
+    days.flatMap { day -> day.places.flatMap { place -> place.attachments.map { it.id } } }

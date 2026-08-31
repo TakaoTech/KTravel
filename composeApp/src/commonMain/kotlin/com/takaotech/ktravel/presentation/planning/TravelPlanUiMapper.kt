@@ -40,6 +40,8 @@ object TravelPlanUiMapper {
         name = name,
         lat = lat,
         lng = lng,
+        hasNote = note.isNotBlank(),
+        attachmentCount = attachments.size,
     )
 
     private fun VisitScheduleDomain.toUiSchedule(): VisitScheduleUi = VisitScheduleUi(
@@ -77,6 +79,11 @@ object TravelPlanUiMapper {
         )
     }
 
+    /**
+     * Only for a place being built from what the user typed: [PlaceUi] carries note and attachments
+     * as derived flags, so this cannot rebuild them and returns a place with none. Never put it on a
+     * path that saves an existing place, or it would wipe what that place holds.
+     */
     fun PlaceUi.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,

@@ -17,6 +17,52 @@ data class TravelPlanEntity(
     @SerialName("places") val places: List<PlaceEntity>,
     @SerialName("settings") val settings: TravelSettingsEntity = TravelSettingsEntity(),
 ) {
+    /**
+     * Every attachment the plan references, in order of appearance.
+     *
+     * Lives here rather than with the archive that reads it: knowing where files hang off a plan is
+     * knowing the shape of a plan. The backlog counts as much as the itinerary — a place carries its
+     * files in and out of the days — so a new home for an attachment is added in this one place.
+     */
+    fun allAttachments(): List<AttachmentEntity> = days.flatMap { day -> day.steps }
+        .flatMap { step ->
+            when (step) {
+                is StepEntity.Place -> step.attachments
+                is StepEntity.Transport -> step.attachments
+            }
+        } + places.flatMap { it.attachments } + days.flatMap { day -> day.places }.flatMap { it.attachments }
+
+    /**
+     * Copy of the plan whose inventory holds only [retained], the counterpart of [allAttachments]:
+     * what that one finds, this one can drop. References inside the notes are left untouched — they
+     * stay dangling exactly as they already were.
+     */
+    fun retainingOnly(retained: List<AttachmentEntity>): TravelPlanEntity {
+        val keep = retained.map { it.relativePath }.toSet()
+        fun List<PlaceEntity>.retained(): List<PlaceEntity> = map { place ->
+            place.copy(attachments = place.attachments.filter { it.relativePath in keep })
+        }
+        return copy(
+            days = days.map { day ->
+                day.copy(
+                    steps = day.steps.map { step ->
+                        when (step) {
+                            is StepEntity.Transport -> step.copy(
+                                attachments = step.attachments.filter { it.relativePath in keep },
+                            )
+
+                            is StepEntity.Place -> step.copy(
+                                attachments = step.attachments.filter { it.relativePath in keep },
+                            )
+                        }
+                    },
+                    places = day.places.retained(),
+                )
+            },
+            places = places.retained(),
+        )
+    }
+
     companion object {
         const val DOCUMENT_TYPE = "travel_plan"
     }
@@ -50,12 +96,18 @@ data class TravelDayEntity(
     @SerialName("places") val places: List<PlaceEntity>,
 )
 
+/**
+ * Place waiting to enter the itinerary. Carries the same note and file inventory a place step does:
+ * moving one in or out of the itinerary must not cost the traveller what they wrote and attached.
+ */
 @Serializable
 data class PlaceEntity(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("lat") val lat: Double,
     @SerialName("lng") val lng: Double,
+    @SerialName("note") val note: String,
+    @SerialName("attachments") val attachments: List<AttachmentEntity>,
 )
 
 @Serializable

@@ -72,7 +72,23 @@ data class TravelDayDomain(
     }
 }
 
-data class PlaceDomain(val id: String = newId(), val name: String, val lat: Double, val lng: Double)
+/**
+ * Place waiting to enter the itinerary, in the plan's backlog or in a day's one.
+ *
+ * Unlike [StepDomain.Place] it carries no [VisitScheduleDomain]: the visit time belongs to the
+ * itinerary. Note and attachments, on the other hand, are the traveller's own material and travel
+ * with the place through every move (see `StepPlaceMapper`).
+ */
+data class PlaceDomain(
+    val id: String = newId(),
+    val name: String,
+    val lat: Double,
+    val lng: Double,
+    /** Free-form Markdown notes attached to the place. */
+    val note: String = "",
+    /** File inventory of the place (photos and documents). */
+    val attachments: List<AttachmentDomain> = emptyList(),
+)
 
 data class VisitScheduleDomain(
     val date: LocalDate? = null,

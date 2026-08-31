@@ -160,5 +160,18 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun removeStep(stepId: String, dayId: String) = mutate { it.removeStep(stepId, dayId) }
 
-    override suspend fun deletePlace(placeId: String, dayId: String?) = mutate { it.deletePlace(placeId, dayId) }
+    /**
+     * Deleting a place for good takes its files with it: this is the one exit from the backlog that
+     * is not a move, so nothing will reference those binaries again. Same order as
+     * [removeAttachment] — read the paths while the place is still in the state, then delete.
+     */
+    override suspend fun deletePlace(placeId: String, dayId: String?) {
+        val state = _planningState.value
+        val places = if (dayId == null) state.places else state.days.firstOrNull { it.id == dayId }?.places
+        val relativePaths = places?.firstOrNull { it.id == placeId }
+            ?.attachments.orEmpty()
+            .map { it.relativePath }
+        mutate { it.deletePlace(placeId, dayId) }
+        relativePaths.forEach { attachmentDataSource.deleteAttachment(it) }
+    }
 }

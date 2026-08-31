@@ -275,4 +275,62 @@ class TravelArchiveRoundTripTest :
                 }
             }
         }
+
+        given("a plan whose backlog place carries a note and a file") {
+            val source = Installation(tempDir / "backlog-source", "round-trip-backlog-source")
+            val target = Installation(tempDir / "backlog-target", "round-trip-backlog-target")
+            val plan = with(ArchiveTestFixtures) { ArchiveTestFixtures.plan().withBacklogAttachment() }
+            source.seedPlanWithFiles(plan)
+            (source.attachmentRoot / plan.id / ArchiveTestFixtures.BACKLOG_PLACE_ID).createDirectories()
+            source.attachments.resolveFile(ArchiveTestFixtures.BACKLOG_PATH)
+                .write(ArchiveTestFixtures.BACKLOG_BYTES)
+
+            val archiveFile = tempDir / "backlog.ktravel"
+            val exportResult = source.exporter.export(ArchiveTestFixtures.TRAVEL_ID, archiveFile).getOrThrow()
+
+            `when`("the plan is exported") {
+                then("the backlog file is counted and none is skipped") {
+                    // Two on the step, one on the place waiting in the backlog.
+                    exportResult.attachmentCount shouldBe 3
+                    exportResult.skippedAttachments shouldBe emptyList()
+                }
+
+                then("the archive holds an entry for the backlog file too") {
+                    zipFactory.reader(archiveFile.toKotlinxIoPath()).use { reader ->
+                        reader.entryPaths() shouldContainExactlyInAnyOrder listOf(
+                            TravelArchiveFormat.MANIFEST_ENTRY,
+                            TravelArchiveFormat.PLAN_ENTRY,
+                            TravelArchiveFormat.attachmentEntry(ArchiveTestFixtures.PHOTO_PATH),
+                            TravelArchiveFormat.attachmentEntry(ArchiveTestFixtures.DOC_PATH),
+                            TravelArchiveFormat.attachmentEntry(ArchiveTestFixtures.BACKLOG_PATH),
+                        )
+                    }
+                }
+            }
+
+            `when`("it is imported into another installation") {
+                val staged = target.importer.stage(archiveFile).getOrThrow()
+                val summary = target.importer.import(staged, ImportConflictStrategy.DUPLICATE).getOrThrow()
+                val imported = target.storage.getTravelPlan(summary.id)
+                val place = imported.places.single()
+
+                then("the place keeps its note and its inventory") {
+                    place.note shouldNotBe ""
+                    place.attachments.size shouldBe 1
+                    place.attachments.single().originalName shouldBe "ticket.pdf"
+                }
+
+                then("its binary is restored byte for byte under the new id") {
+                    target.attachments.resolveFile(place.attachments.single().relativePath)
+                        .readBytes() shouldBe ArchiveTestFixtures.BACKLOG_BYTES
+                }
+
+                then("the note reference was rewritten and is not dangling") {
+                    AttachmentReference.missingReferences(
+                        place.note,
+                        place.attachments.map { it.relativePath },
+                    ) shouldBe emptyList()
+                }
+            }
+        }
     })

@@ -7,13 +7,17 @@ import com.takaotech.ktravel.domain.model.StepPlaceMapper.stepToPlace
  * Conversione fra [PlaceDomain] (backlog, senza tempo) e [StepDomain.Place] (itinerario,
  * titolare dell'orario).
  *
- * La conversione è **volutamente asimmetrica**:
+ * La conversione è **asimmetrica in un punto solo**:
  * - [placeToStep] crea uno step *non ancora schedulato* ([StepDomain.Place.schedule] = null);
  *   l'orario si assegna in itinerario.
  * - [stepToPlace] riporta lo step nel backlog **scartando l'orario** (perdita voluta). Non lancia
  *   mai eccezioni.
  *
- * Entrambe mantengono lo stesso `id` per poter tracciare l'elemento dopo lo spostamento.
+ * Tutto il resto attraversa: nota e allegati sono materiale del viaggiatore e non hanno niente a
+ * che vedere con la posizione dell'elemento, quindi seguono il luogo in entrambi i versi. Anche
+ * l'`id` si mantiene, sia per tracciare l'elemento dopo lo spostamento sia perché il
+ * `relativePath` di un allegato lo contiene (`<travelId>/<id>/<uuid>.<ext>`): rigenerarlo
+ * staccherebbe i file dai loro metadati.
  */
 object StepPlaceMapper {
     /**
@@ -25,6 +29,8 @@ object StepPlaceMapper {
         lat = place.lat,
         lng = place.lng,
         schedule = null,
+        note = place.note,
+        attachments = place.attachments,
     )
 
     /**
@@ -35,5 +41,7 @@ object StepPlaceMapper {
         name = step.name,
         lat = step.lat,
         lng = step.lng,
+        note = step.note,
+        attachments = step.attachments,
     )
 }

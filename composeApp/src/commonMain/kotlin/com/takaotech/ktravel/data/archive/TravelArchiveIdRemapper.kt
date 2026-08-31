@@ -42,27 +42,51 @@ internal object TravelArchiveIdRemapper {
         val daysWithNewIds = plan.days.map { day ->
             val newDayId = newId()
             val steps = day.steps.map { step -> step.remapIds(newTravelId, newId, pathMapping) }
-            day.copy(id = newDayId, steps = steps, places = day.places.remapIds(newId))
+            day.copy(id = newDayId, steps = steps, places = day.places.remapIds(newTravelId, newId, pathMapping))
         }
+        val backlogWithNewIds = plan.places.remapIds(newTravelId, newId, pathMapping)
 
         // Secondo passaggio: riscrive le note solo ora, perché una nota può referenziare
-        // l'allegato di un altro step e la mappa deve essere completa.
+        // l'allegato di un altro step o di un posto del backlog, e la mappa deve essere completa.
         val days = daysWithNewIds.map { day ->
-            day.copy(steps = day.steps.map { step -> step.rewriteNote(pathMapping) })
+            day.copy(
+                steps = day.steps.map { step -> step.rewriteNote(pathMapping) },
+                places = day.places.rewriteNotes(pathMapping),
+            )
         }
 
         return Remapped(
             plan = plan.copy(
                 id = newTravelId,
                 days = days,
-                places = plan.places.remapIds(newId),
+                places = backlogWithNewIds.rewriteNotes(pathMapping),
             ),
             attachmentPathMapping = pathMapping,
         )
     }
 
-    private fun List<PlaceEntity>.remapIds(newId: () -> String): List<PlaceEntity> =
-        map { place -> place.copy(id = newId()) }
+    /**
+     * Un posto porta con sé nota e allegati come uno step, quindi va rimappato come uno step: nuovo
+     * id, e i file spostati sotto la coppia viaggio/posto nuova.
+     */
+    private fun List<PlaceEntity>.remapIds(
+        newTravelId: String,
+        newId: () -> String,
+        pathMapping: MutableMap<String, String>,
+    ): List<PlaceEntity> = map { place ->
+        val newPlaceId = newId()
+        place.copy(
+            id = newPlaceId,
+            attachments = place.attachments.map { attachment ->
+                val newPath = attachment.relativePath.movedTo(newTravelId, newPlaceId)
+                pathMapping[attachment.relativePath] = newPath
+                attachment.copy(id = newId(), relativePath = newPath)
+            },
+        )
+    }
+
+    private fun List<PlaceEntity>.rewriteNotes(pathMapping: Map<String, String>): List<PlaceEntity> =
+        map { place -> place.copy(note = AttachmentReference.rewriteReferences(place.note, pathMapping)) }
 
     private fun StepEntity.remapIds(
         newTravelId: String,

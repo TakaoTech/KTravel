@@ -102,6 +102,8 @@ class TravelPlanEntityMapperTest :
                 name = "Colosseo",
                 lat = 41.89,
                 lng = 12.49,
+                note = "",
+                attachments = emptyList(),
             )
             val dayEntity = TravelDayEntity(
                 id = "day-1",

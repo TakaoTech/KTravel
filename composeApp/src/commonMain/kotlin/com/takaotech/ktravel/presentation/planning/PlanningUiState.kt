@@ -160,4 +160,17 @@ data class AttachmentUi(
 )
 
 @Stable
-data class PlaceUi(val id: String = Uuid.random().toString(), val name: String, val lat: Double, val lng: Double)
+/**
+ * A place in a backlog row.
+ *
+ * [hasNote] and [attachmentCount] are derived, not the material itself: the backlog only has to say
+ * that something is attached to this place, and the whole inventory is read where it is edited.
+ */
+data class PlaceUi(
+    val id: String = Uuid.random().toString(),
+    val name: String,
+    val lat: Double,
+    val lng: Double,
+    val hasNote: Boolean = false,
+    val attachmentCount: Int = 0,
+)

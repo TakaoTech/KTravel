@@ -90,6 +90,8 @@ internal object TravelPlanEntityMapper {
         name = name,
         lat = lat,
         lng = lng,
+        note = note,
+        attachments = attachments.map { it.toEntity() },
     )
 
     private fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
@@ -292,6 +294,8 @@ internal object TravelPlanEntityMapper {
         name = name,
         lat = lat,
         lng = lng,
+        note = note,
+        attachments = attachments.map { it.toDomain() },
     )
 
     private fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(

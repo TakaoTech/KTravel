@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
@@ -44,18 +45,23 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
+import ktravel.composeapp.generated.resources.attach_file
 import ktravel.composeapp.generated.resources.close
 import ktravel.composeapp.generated.resources.delete
+import ktravel.composeapp.generated.resources.description
 import ktravel.composeapp.generated.resources.place_delete
 import ktravel.composeapp.generated.resources.place_delete_permanent
 import ktravel.composeapp.generated.resources.planning_detail_cd_close_backlog
 import ktravel.composeapp.generated.resources.planning_detail_cd_delete_step
 import ktravel.composeapp.generated.resources.planning_detail_cd_move_place_to_steps
+import ktravel.composeapp.generated.resources.planning_detail_cd_place_attachments
+import ktravel.composeapp.generated.resources.planning_detail_cd_place_has_note
 import ktravel.composeapp.generated.resources.planning_detail_places_empty
 import ktravel.composeapp.generated.resources.planning_detail_places_empty_hint
 import ktravel.composeapp.generated.resources.planning_detail_places_title
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 internal object PlacesBacklogTestTags {
@@ -66,6 +72,8 @@ internal object PlacesBacklogTestTags {
     const val ADD_PLACE_BUTTON = "places_backlog_add_place"
     fun placeTag(id: String) = "places_backlog_place_$id"
     fun moveToStepsTag(id: String) = "places_backlog_move_to_steps_$id"
+    fun noteBadgeTag(id: String) = "places_backlog_note_badge_$id"
+    fun attachmentBadgeTag(id: String) = "places_backlog_attachment_badge_$id"
 }
 
 /**
@@ -283,6 +291,8 @@ private fun BacklogPlaceRow(
                 overflow = TextOverflow.Ellipsis,
             )
 
+            PlaceMaterialBadges(place = place)
+
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
@@ -334,6 +344,58 @@ private fun BacklogPlaceRow(
 }
 
 /**
+ * What the traveller has already attached to a place waiting in the backlog.
+ *
+ * Notes and files follow the place out of the itinerary, so without a mark here they would look
+ * lost: the backlog row is the only place they are visible from while the place waits.
+ */
+@Composable
+private fun PlaceMaterialBadges(place: PlaceUi, modifier: Modifier = Modifier) {
+    if (!place.hasNote && place.attachmentCount == 0) return
+
+    Row(
+        modifier = modifier.padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (place.hasNote) {
+            Icon(
+                modifier = Modifier
+                    .size(16.dp)
+                    .testTag(PlacesBacklogTestTags.noteBadgeTag(place.id)),
+                painter = painterResource(Res.drawable.description),
+                contentDescription = stringResource(Res.string.planning_detail_cd_place_has_note),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        if (place.attachmentCount > 0) {
+            Row(
+                modifier = Modifier.testTag(PlacesBacklogTestTags.attachmentBadgeTag(place.id)),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    painter = painterResource(Res.drawable.attach_file),
+                    contentDescription = pluralStringResource(
+                        Res.plurals.planning_detail_cd_place_attachments,
+                        place.attachmentCount,
+                        place.attachmentCount,
+                    ),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = place.attachmentCount.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/**
  * How a place leaves the backlog.
  *
  * @property text Label of the entry in the delete menu.
@@ -351,7 +413,7 @@ enum class DeleteMode(val text: StringResource) {
 private fun PlacesBacklogContentPreview() = KTravelTheme {
     PlacesBacklogContent(
         places = persistentListOf(
-            PlaceUi(name = "Tokyo Tower", lat = 0.0, lng = 0.0),
+            PlaceUi(name = "Tokyo Tower", lat = 0.0, lng = 0.0, hasNote = true, attachmentCount = 3),
             PlaceUi(name = "Shibuya Crossing", lat = 0.0, lng = 0.0),
         ),
         pendingPermanentDelete = null,

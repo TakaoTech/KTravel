@@ -26,9 +26,12 @@ internal object ArchiveTestFixtures {
     const val TRAVEL_ID = "travel-1"
     const val PHOTO_PATH = "$TRAVEL_ID/step-1/photo.jpg"
     const val DOC_PATH = "$TRAVEL_ID/step-1/guide.pdf"
+    const val BACKLOG_PLACE_ID = "place-backlog"
+    const val BACKLOG_PATH = "$TRAVEL_ID/$BACKLOG_PLACE_ID/ticket.pdf"
 
     val PHOTO_BYTES = ByteArray(2048) { (it % 97).toByte() }
     val DOC_BYTES = "a travel guide".encodeToByteArray()
+    val BACKLOG_BYTES = "a ferry ticket".encodeToByteArray()
 
     fun plan(): TravelPlanEntity = TravelPlanEntity(
         id = TRAVEL_ID,
@@ -40,7 +43,7 @@ internal object ArchiveTestFixtures {
                 id = "day-1",
                 date = LocalDate(2026, 4, 1),
                 steps = listOf(placeStep(), transportStep()),
-                places = listOf(PlaceEntity("place-day-1", "Ueno", 35.71, 139.77)),
+                places = listOf(PlaceEntity("place-day-1", "Ueno", 35.71, 139.77, "", emptyList())),
             ),
             TravelDayEntity(
                 id = "day-2",
@@ -49,7 +52,7 @@ internal object ArchiveTestFixtures {
                 places = emptyList(),
             ),
         ),
-        places = listOf(PlaceEntity("place-backlog", "Odaiba", 35.62, 139.77)),
+        places = listOf(PlaceEntity("place-backlog", "Odaiba", 35.62, 139.77, "", emptyList())),
     )
 
     private fun placeStep() = StepEntity.Place(
@@ -86,6 +89,31 @@ internal object ArchiveTestFixtures {
                 sizeBytes = DOC_BYTES.size.toLong(),
             ),
         ),
+    )
+
+    /**
+     * Variante in cui il posto del backlog porta con sé una nota e un allegato, come dopo essere
+     * uscito dall'itinerario. Serve a provare che l'archivio non guarda solo gli step.
+     */
+    fun TravelPlanEntity.withBacklogAttachment(): TravelPlanEntity = copy(
+        places = places.map { place ->
+            if (place.id != BACKLOG_PLACE_ID) {
+                place
+            } else {
+                place.copy(
+                    note = "Ferry at 8am " + AttachmentReference.fileMarkdown(BACKLOG_PATH, label = "ticket.pdf"),
+                    attachments = listOf(
+                        AttachmentEntity(
+                            id = "att-backlog",
+                            relativePath = BACKLOG_PATH,
+                            originalName = "ticket.pdf",
+                            mimeType = "application/pdf",
+                            sizeBytes = BACKLOG_BYTES.size.toLong(),
+                        ),
+                    ),
+                )
+            }
+        },
     )
 
     /** Variante senza inventario, per i casi in cui gli allegati non sono il soggetto del test. */

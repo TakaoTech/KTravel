@@ -4,6 +4,7 @@ import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.repository.TravelPlanRepositoryImpl
+import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
 import com.takaotech.ktravel.domain.model.TransportType
@@ -62,6 +63,20 @@ private fun freshCtx(): Ctx {
     val ds = mockDataSource()
     return Ctx(TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, mockAttachmentDataSource()), ds)
 }
+
+private val TICKET = AttachmentDomain(
+    id = "att-1",
+    relativePath = "$TEST_PLAN_ID/place1/ticket.pdf",
+    originalName = "ticket.pdf",
+    mimeType = "application/pdf",
+    sizeBytes = 512,
+)
+
+/** [COLOSSEO] as it looks after a visit was annotated and a file attached to it. */
+private val COLOSSEO_WITH_MATERIAL = COLOSSEO.copy(
+    note = "Bring the ticket",
+    attachments = listOf(TICKET),
+)
 
 private suspend fun ctxWith3Days(): Ctx {
     val ds = mockDataSource()
@@ -1043,6 +1058,88 @@ class TravelPlanRepositoryImplTest :
 
                 then("should not modify the state") {
                     repo.planningState.value shouldBe stateBefore
+                }
+            }
+        }
+
+        given("a place carrying notes and attachments") {
+            `when`("it is moved into the itinerary and back to the backlog") {
+                val (repo, _, dayIds) = ctxWith3Days()
+                repo.savePlace(COLOSSEO_WITH_MATERIAL, dayIds[1])
+                repo.movePlaceToStep("place1", dayIds[1])
+                val step = repo.planningState.value.days[1].steps[0] as StepDomain.Place
+                repo.moveStepToPlace("place1", dayIds[1])
+                val place = repo.planningState.value.days[1].places[0]
+
+                then("the step held the note and the inventory while in the itinerary") {
+                    step.note shouldBe "Bring the ticket"
+                    step.attachments shouldBe listOf(TICKET)
+                }
+
+                then("the place is back with its note and its inventory") {
+                    place.note shouldBe "Bring the ticket"
+                    place.attachments shouldBe listOf(TICKET)
+                }
+            }
+
+            `when`("the step is removed from the itinerary with removeStep") {
+                val (repo, _, dayIds) = ctxWith3Days()
+                repo.savePlace(COLOSSEO_WITH_MATERIAL, dayIds[1])
+                repo.movePlaceToStep("place1", dayIds[1])
+                repo.removeStep("place1", dayIds[1])
+
+                then("the place returns to the backlog with everything attached to it") {
+                    val place = repo.planningState.value.days[1].places.single()
+                    place.note shouldBe "Bring the ticket"
+                    place.attachments shouldBe listOf(TICKET)
+                }
+            }
+        }
+
+        given("deletePlace") {
+            `when`("a day place holding files is deleted for good") {
+                val ds = mockDataSource()
+                val attachments = mockAttachmentDataSource()
+                val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, attachments)
+                repo.updatePeriod(START_MILLIS, END_MILLIS)
+                val dayId = repo.planningState.value.days[1].id
+                repo.savePlace(COLOSSEO_WITH_MATERIAL, dayId)
+                repo.deletePlace("place1", dayId)
+
+                then("the place is gone from the day") {
+                    repo.planningState.value.days[1].places.shouldBeEmpty()
+                }
+
+                then("its binaries are deleted from disk") {
+                    verifySuspend { attachments.deleteAttachment(TICKET.relativePath) }
+                }
+            }
+
+            `when`("a backlog place holding files is deleted for good") {
+                val ds = mockDataSource()
+                val attachments = mockAttachmentDataSource()
+                val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, attachments)
+                repo.savePlace(COLOSSEO_WITH_MATERIAL, null)
+                repo.deletePlace("place1", null)
+
+                then("the place is gone from the general backlog") {
+                    repo.planningState.value.places.shouldBeEmpty()
+                }
+
+                then("its binaries are deleted from disk") {
+                    verifySuspend { attachments.deleteAttachment(TICKET.relativePath) }
+                }
+            }
+
+            `when`("a place with no files is deleted") {
+                val ds = mockDataSource()
+                val attachments = mockAttachmentDataSource()
+                val repo = TravelPlanRepositoryImpl(TEST_PLAN_ID, ds, attachments)
+                repo.savePlace(COLOSSEO, null)
+                repo.deletePlace("place1", null)
+
+                then("nothing is asked of the attachment store") {
+                    verifySuspend(VerifyMode.not) { attachments.deleteAttachment(any()) }
                 }
             }
         }

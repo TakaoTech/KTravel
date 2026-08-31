@@ -23,6 +23,14 @@ class PlacesBacklogContentTest : BehaviorSpec() {
 
     private val place1 = PlaceUi(id = "place-1", name = "Tokyo Tower", lat = 0.0, lng = 0.0)
     private val place2 = PlaceUi(id = "place-2", name = "Shibuya Crossing", lat = 0.0, lng = 0.0)
+    private val annotatedPlace = PlaceUi(
+        id = "place-3",
+        name = "Meiji Shrine",
+        lat = 0.0,
+        lng = 0.0,
+        hasNote = true,
+        attachmentCount = 2,
+    )
 
     init {
         given("PlacesBacklogContent with an empty place list") {
@@ -242,6 +250,69 @@ class PlacesBacklogContentTest : BehaviorSpec() {
                         onNodeWithTag(DisruptiveOperationDialogTestTags.CANCEL).performClick()
                     }
                     dismissed shouldBe true
+                }
+            }
+        }
+
+        given("a place that left the itinerary carrying notes and files") {
+            then("both badges should be displayed on its row") {
+                runComposeUiTest {
+                    setContent {
+                        PlacesBacklogContent(
+                            places = persistentListOf(annotatedPlace),
+                            pendingPermanentDelete = null,
+                            onCloseClick = {},
+                            onAddPlaceClick = {},
+                            onMovePlaceToStepsClick = {},
+                            onMovePlaceToBacklogClick = {},
+                            onPermanentDeleteRequest = {},
+                            onPermanentDeleteConfirm = {},
+                            onPermanentDeleteDismiss = {},
+                        )
+                    }
+                    onNodeWithTag(PlacesBacklogTestTags.noteBadgeTag("place-3")).assertIsDisplayed()
+                    onNodeWithTag(PlacesBacklogTestTags.attachmentBadgeTag("place-3")).assertIsDisplayed()
+                }
+            }
+
+            then("the attachment badge should show how many files there are") {
+                runComposeUiTest {
+                    setContent {
+                        PlacesBacklogContent(
+                            places = persistentListOf(annotatedPlace),
+                            pendingPermanentDelete = null,
+                            onCloseClick = {},
+                            onAddPlaceClick = {},
+                            onMovePlaceToStepsClick = {},
+                            onMovePlaceToBacklogClick = {},
+                            onPermanentDeleteRequest = {},
+                            onPermanentDeleteConfirm = {},
+                            onPermanentDeleteDismiss = {},
+                        )
+                    }
+                    onNodeWithText("2").assertIsDisplayed()
+                }
+            }
+        }
+
+        given("a place with neither notes nor files") {
+            then("no badge should be displayed on its row") {
+                runComposeUiTest {
+                    setContent {
+                        PlacesBacklogContent(
+                            places = persistentListOf(place1),
+                            pendingPermanentDelete = null,
+                            onCloseClick = {},
+                            onAddPlaceClick = {},
+                            onMovePlaceToStepsClick = {},
+                            onMovePlaceToBacklogClick = {},
+                            onPermanentDeleteRequest = {},
+                            onPermanentDeleteConfirm = {},
+                            onPermanentDeleteDismiss = {},
+                        )
+                    }
+                    onNodeWithTag(PlacesBacklogTestTags.noteBadgeTag("place-1")).assertDoesNotExist()
+                    onNodeWithTag(PlacesBacklogTestTags.attachmentBadgeTag("place-1")).assertDoesNotExist()
                 }
             }
         }

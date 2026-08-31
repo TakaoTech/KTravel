@@ -11,7 +11,6 @@ import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.AttachmentEntity
-import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
@@ -193,38 +192,4 @@ class TravelArchiveExporterImpl private constructor(
     companion object {
         const val STAGING_DIR: String = "archive-staging"
     }
-}
-
-/** Every attachment referenced by the plan, in order of appearance. */
-internal fun TravelPlanEntity.allAttachments(): List<AttachmentEntity> = days.flatMap { day -> day.steps }
-    .flatMap { step ->
-        when (step) {
-            is StepEntity.Place -> step.attachments
-            is StepEntity.Transport -> step.attachments
-        }
-    }
-
-/**
- * Copy of the plan whose inventory holds only [retained]. References inside the notes are left
- * untouched: they stay dangling exactly as they already were before the export.
- */
-private fun TravelPlanEntity.retainingOnly(retained: List<AttachmentEntity>): TravelPlanEntity {
-    val keep = retained.map { it.relativePath }.toSet()
-    return copy(
-        days = days.map { day ->
-            day.copy(
-                steps = day.steps.map { step ->
-                    when (step) {
-                        is StepEntity.Transport -> step.copy(
-                            attachments = step.attachments.filter { it.relativePath in keep },
-                        )
-
-                        is StepEntity.Place -> step.copy(
-                            attachments = step.attachments.filter { it.relativePath in keep },
-                        )
-                    }
-                },
-            )
-        },
-    )
 }
