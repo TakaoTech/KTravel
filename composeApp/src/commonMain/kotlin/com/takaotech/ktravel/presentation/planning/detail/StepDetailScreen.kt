@@ -3,9 +3,9 @@ package com.takaotech.ktravel.presentation.planning.detail
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.presentation.planning.StepUi
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.Serializable
 
 /**
  * Schermata Circuit di dettaglio di un singolo step.
@@ -16,7 +16,7 @@ import kotlinx.datetime.LocalTime
  * Il [travelId] determina il [com.takaotech.ktravel.di.PlanningGraph] da cui risolvere il
  * repository (vincolo V3); [dayId] individua il giorno e [stepId] lo step mostrato.
  */
-@Parcelize
+@Serializable
 data class StepDetailScreen(val travelId: String, val dayId: String, val stepId: String) : Screen
 
 data class StepDetailUiState(

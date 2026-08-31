@@ -6,12 +6,12 @@ import androidx.compose.runtime.Immutable
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.domain.model.TransportType
 import com.takaotech.ktravel.domain.routing.model.TransportAnswer
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.Measure
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -22,7 +22,7 @@ import kotlin.time.Instant
  * Il [travelId] determina il [com.takaotech.ktravel.di.PlanningGraph] da cui risolvere il
  * repository (vincolo V3); [dayId] individua il giorno e [stepId] il trasporto mostrato.
  */
-@Parcelize
+@Serializable
 data class TransportDetailScreen(val travelId: String, val dayId: String, val stepId: String) : Screen
 
 /**

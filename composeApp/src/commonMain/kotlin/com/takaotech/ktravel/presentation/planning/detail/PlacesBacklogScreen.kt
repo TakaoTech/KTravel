@@ -3,9 +3,9 @@ package com.takaotech.ktravel.presentation.planning.detail
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.presentation.planning.PlaceUi
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.serialization.Serializable
 
 /**
  * Pannello backlog dei posti del dettaglio giorno: posti non ancora inseriti nell'itinerario, con
@@ -14,7 +14,7 @@ import kotlinx.collections.immutable.ImmutableList
  * Il [travelId] determina il [com.takaotech.ktravel.di.PlanningGraph] da cui risolvere il
  * repository (vincolo V3); il [dayId] individua il giorno mostrato.
  */
-@Parcelize
+@Serializable
 data class PlacesBacklogScreen(val travelId: String, val dayId: String) : Screen
 
 data class PlacesBacklogUiState(
