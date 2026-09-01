@@ -4,9 +4,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
-import com.takaotech.navigator.client.NavigatorClient
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metrox.viewmodel.ViewModelKey

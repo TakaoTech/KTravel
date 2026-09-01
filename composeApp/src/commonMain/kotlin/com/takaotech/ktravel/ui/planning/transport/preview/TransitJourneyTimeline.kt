@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.TransitAgency
@@ -56,7 +57,6 @@ import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
 import com.takaotech.ktravel.ui.common.formatClock
 import com.takaotech.ktravel.ui.common.toColorOrNull
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime

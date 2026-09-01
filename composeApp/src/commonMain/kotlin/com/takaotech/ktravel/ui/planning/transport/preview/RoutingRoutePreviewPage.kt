@@ -25,9 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.RouteAction
 import com.takaotech.ktravel.domain.routing.model.RoutingRoutes
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.maplibre.compose.camera.CameraPosition

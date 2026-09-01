@@ -3,13 +3,13 @@ package com.takaotech.ktravel.presentation.planning.transport.options
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import com.takaotech.ktravel.core.annotation.IgnoreOnParcel
-import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * The options of a transit profile: which vehicles are acceptable, and how the journey may be shaped.
@@ -20,7 +20,7 @@ import kotlinx.collections.immutable.ImmutableSet
  *
  * Flattened for the same reason as [RoutingRouteOptionsScreen].
  */
-@Parcelize
+@Serializable
 data class TransitRouteOptionsScreen(
     val travelId: String,
     val provider: String,
@@ -29,10 +29,10 @@ data class TransitRouteOptionsScreen(
     val maxAlternatives: Int,
 ) : Screen {
 
-    @IgnoreOnParcel
+    @Transient
     val profileId: RoutingProfileId = RoutingProfileId(provider = provider, profile = profile)
 
-    @IgnoreOnParcel
+    @Transient
     val spec: RoutingOptionsSpec.TransitFilter = RoutingOptionsSpec.TransitFilter(
         modes = modeIds.map(::RoutingMode),
         maxAlternatives = maxAlternatives,

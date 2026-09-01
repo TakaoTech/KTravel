@@ -61,6 +61,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.slack.circuit.codegen.annotations.CircuitInject
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.PanelHorizontalDivided
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.model.TransportType
@@ -87,7 +88,6 @@ import com.takaotech.ktravel.ui.planning.transport.preview.RoutingStepSection
 import com.takaotech.ktravel.ui.planning.transport.preview.TransitStepRow
 import com.takaotech.ktravel.ui.planning.transport.preview.formatDistance
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList

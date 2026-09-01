@@ -27,8 +27,8 @@ archive and imported back on another device.
   departure time).
 - **Schedule consistency** — the domain layer validates overlapping or impossible schedules while
   you edit a day.
-- **Maps** — one interactive map stack on every platform, MapLibre Compose, plus device location
-  through `:gunzou-here-client`.
+- **Maps** — one interactive map stack on every platform, MapLibre Compose, with route previews
+  drawn from the geometry the routing server returns.
 - **Notes and attachments** — Markdown notes per step and an attachment inventory (images and
   arbitrary files) stored next to the plan.
 - **Archive export/import** — a versioned ZIP archive with a manifest, schema migrations, ID
@@ -70,21 +70,41 @@ built today.
 
 ```
 KTravel/
-├── androidApp/          Android application (produces the APK/AAB)
-├── composeApp/          Shared KMP library: domain, presentation, UI, data
+├── androidApp/            Android application (produces the APK/AAB)
+├── composeApp/            Shared KMP library: domain, presentation, UI, data
 │   └── src/
-│       ├── commonMain/  Code shared by every target (+ composeResources)
-│       ├── commonTest/  Shared tests
+│       ├── commonMain/    Code shared by every target (+ composeResources)
+│       ├── commonTest/    Shared tests
 │       ├── androidMain/ jvmMain/ iosMain/  Platform-specific code
-│       └── kzipMain/    Shared `actual` zip implementation wired into leaf source sets
-├── iosApp/              SwiftUI entry point and Xcode project
-├── location-clients/    Device location abstraction
-├── config/detekt/       Detekt configuration
-└── .github/workflows/   CI defined as Kotlin scripts (github-workflows-kt)
+│       └── kzipMain/      Shared `actual` zip implementation wired into leaf source sets
+├── iosApp/                SwiftUI entry point and Xcode project
+├── gunzou/                The routing stack (see below)
+│   ├── gunzou-api/        Wire contract shared by the server and its client
+│   ├── gunzou-client/     HTTP client :composeApp talks to the server through
+│   ├── gunzou-here-client/ HERE vendor API client
+│   ├── gunzou-server/     Ktor server, built as a KMP library so the app can embed it
+│   └── gunzou-server-app/ Thin JVM module that packages the server for deployment
+├── password-strength/     Standalone password strength library
+├── config/detekt/         Detekt configuration
+└── .github/workflows/     CI defined as Kotlin scripts (github-workflows-kt)
 ```
 
 Inside `composeApp`, `commonMain` follows the package layout `core`, `data`, `domain`,
 `presentation`, `ui`, `di`.
+
+The `gunzou` modules live under `gunzou/` on disk but keep flat Gradle paths, so every task
+invocation and type-safe accessor names them directly:
+
+| Gradle path             | Root package                          |
+|-------------------------|---------------------------------------|
+| `:gunzou-api`           | `com.takaotech.gunzou.api`            |
+| `:gunzou-client`        | `com.takaotech.gunzou.client`         |
+| `:gunzou-here-client`   | `com.takaotech.gunzou.here`           |
+| `:gunzou-server`        | `com.takaotech.ktravel.gunzou.server` |
+| `:gunzou-server-app`    | `com.takaotech.ktravel.gunzou.server` |
+
+`:gunzou-here-client` is an `implementation` dependency of `:gunzou-server` and never reaches a
+downstream compile classpath: the vendor DTOs stay behind the contract in `:gunzou-api`.
 
 ## Prerequisites
 
@@ -187,12 +207,18 @@ it, uncomment the `signingConfigs` block and the `signingConfig` line in
 
 Keep shrinking rules next to the module that needs them:
 
-| File                                           | Scope                                                                   |
-|------------------------------------------------|-------------------------------------------------------------------------|
-| `location-clients/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-consumer-rules.pro`       | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`        | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
-| `androidApp/proguard-rules.pro`                | application-level (`-dontobfuscate`, Parcelize)                         |
+| File                                                    | Scope                                                                   |
+|---------------------------------------------------------|-------------------------------------------------------------------------|
+| `gunzou/gunzou-api/proguard-consumer-rules.pro`         | published as Android consumer rules, also included by the desktop build |
+| `gunzou/gunzou-client/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
+| `gunzou/gunzou-here-client/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
+| `gunzou/gunzou-server/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-consumer-rules.pro`                | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-desktop-rules.pro`                 | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
+| `androidApp/proguard-rules.pro`                         | application-level (`-dontobfuscate`, Parcelize)                         |
+
+The desktop build cannot read Android consumer rules, so the four `gunzou` files are also listed
+explicitly in the `compose.desktop` ProGuard block of `composeApp/build.gradle.kts`.
 
 ## Tests
 
@@ -218,7 +244,8 @@ build has to install them by hand — see the Couchbase Lite section of `CLAUDE.
 ## Coverage
 
 Coverage is measured with [Kover](https://github.com/Kotlin/kotlinx-kover). The root project
-aggregates `:composeApp`, `:location-clients` and `:password-strength` into a single report;
+aggregates `:composeApp`, `:password-strength` and every `gunzou` module (`:gunzou-api`,
+`:gunzou-client`, `:gunzou-here-client`, `:gunzou-server`) into a single report;
 `:androidApp` is left out on purpose, being a framework entry point with no test source set.
 
 ```bash

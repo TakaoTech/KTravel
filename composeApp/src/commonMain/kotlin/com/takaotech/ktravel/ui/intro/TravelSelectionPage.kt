@@ -80,7 +80,6 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
@@ -146,11 +145,11 @@ private fun ImportUiState.message(): String? = when (this) {
 
 @Composable
 fun TravelSelectionPage(
+    viewModel: TravelSelectionViewModel = metroViewModel(),
     onTravelClick: (id: String) -> Unit,
     onNewTravelClick: () -> Unit,
     onAppSettingsClick: () -> Unit,
 ) {
-    val viewModel: TravelSelectionViewModel = metroViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LifecycleResumeEffect(viewModel) {
@@ -431,11 +430,11 @@ internal fun TravelItem(
     startDate: String?,
     endDate: String?,
     modifier: Modifier = Modifier,
-    isSelectionMode: Boolean = false,
-    selected: Boolean = false,
+    isSelectionMode: Boolean,
+    selected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit = {},
-    onSwipeToDelete: () -> Unit = {},
+    onLongClick: () -> Unit,
+    onSwipeToDelete: () -> Unit,
 ) {
     val itemModifier = modifier.semantics { this.selected = selected }
 

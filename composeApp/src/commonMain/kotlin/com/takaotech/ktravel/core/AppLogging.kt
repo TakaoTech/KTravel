@@ -3,7 +3,7 @@ package com.takaotech.ktravel.core
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.loggerConfigInit
-import com.takaotech.ktravel.appLogWriter
+import com.takaotech.ktravel.gunzou.server.appLogWriter
 
 /** The tag the application's own lines carry. Its clients and the embedded server re-tag their own. */
 private const val APP_TAG = "KTravel"
@@ -25,7 +25,7 @@ private val DEFAULT_MIN_SEVERITY = Severity.Debug
  * happens to want a log line. That is what makes the decision reviewable: there is one call site,
  * and a component that logs had to be given a logger to do it.
  *
- * The writer comes from `:gunzou-navigator` because that is where the per target one already lives:
+ * The writer comes from `:gunzou-server` because that is where the per target one already lives:
  * Logcat on Android, NSLog on iOS, SLF4J and therefore `logback.xml` on the desktop.
  *
  * @param minSeverity The lowest severity kept.

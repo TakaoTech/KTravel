@@ -18,9 +18,37 @@ application targets multiple platforms including Android, iOS, and Desktop (JVM)
 
 ### Root Level
 
-- `/composeApp` - Main application module containing shared and platform-specific code
+- `/androidApp` - Android application module (produces the APK/AAB)
+- `/composeApp` - Main shared module containing shared and platform-specific code
 - `/iosApp` - iOS application entry point and SwiftUI code
+- `/gunzou` - The routing stack: wire contract, server, clients (see the table below)
+- `/password-strength` - Standalone password strength library
 - `/gradle` - Gradle wrapper and configuration files
+- `/config/detekt` - Detekt configuration
+
+### Gradle modules and their packages
+
+The Gradle paths are flat even though the `gunzou` modules live in the `gunzou/` directory on disk.
+
+| Gradle path              | Directory                      | Root package                          |
+|--------------------------|--------------------------------|---------------------------------------|
+| `:androidApp`            | `androidApp/`                  | `com.takaotech.ktravel`               |
+| `:composeApp`            | `composeApp/`                  | `com.takaotech.ktravel`               |
+| `:gunzou-api`            | `gunzou/gunzou-api/`           | `com.takaotech.gunzou.api`            |
+| `:gunzou-client`         | `gunzou/gunzou-client/`        | `com.takaotech.gunzou.client`         |
+| `:gunzou-here-client`    | `gunzou/gunzou-here-client/`   | `com.takaotech.gunzou.here`           |
+| `:gunzou-server`         | `gunzou/gunzou-server/`        | `com.takaotech.ktravel.gunzou.server` |
+| `:gunzou-server-app`     | `gunzou/gunzou-server-app/`    | `com.takaotech.ktravel.gunzou.server` |
+| `:password-strength`     | `password-strength/`           | `com.takaotech.password`              |
+
+- `:gunzou-api` is the wire contract shared by the server and its client; it depends on nothing else
+  in the repository.
+- `:gunzou-here-client` wraps the HERE vendor API. It is an `implementation` dependency of
+  `:gunzou-server` and is deliberately kept off every downstream compile classpath, so the vendor
+  DTOs never leak past the contract.
+- `:gunzou-server` is the Ktor server, built as a KMP library so `:composeApp` can embed it in
+  process. `:gunzou-server-app` is the thin JVM module that packages it for deployment.
+- `:gunzou-client` is the HTTP client `:composeApp` talks to the server through.
 
 ### ComposeApp Module Structure
 
@@ -83,7 +111,7 @@ then add the specific skill for the area being touched.
 | `android-skills:kotlin-flows`           | `Flow` / `StateFlow` in presenters and repositories, exposing UI state                                              |
 | `android-skills:kotlin-coroutines`      | Dispatchers, scopes, structured concurrency, cancellation                                                           |
 | `android-skills:kmp-boundaries`         | `expect`/`actual`, platform services (files, share, permissions), source set layout                                  |
-| `android-skills:kmp-ktor`               | `HttpClient` work in `gunzou-here-client` / `gunzou-navigator-client`: engines, serialization, `MockEngine` tests     |
+| `android-skills:kmp-ktor`               | `HttpClient` work in `gunzou-here-client` / `gunzou-client`: engines, serialization, `MockEngine` tests               |
 | `android-skills:coil-compose`           | Image loading (`AsyncImage`, attachment previews, `LocalPlatformContext`)                                            |
 | `android-skills:android-testing`        | Writing or fixing tests, above all Compose UI tests, test clock and animation determinism                            |
 | `android-skills:android-debugging`      | Crashes, ANRs, R8/ProGuard stack traces, Logcat, recomposition bugs, Gradle build failures                           |
@@ -92,7 +120,7 @@ then add the specific skill for the area being touched.
 | `android-skills:android-gradle-logic`   | Build logic, version catalog, configuration shared between modules                                                  |
 | `android-skills:gradle-build-performance` | Slow builds, configuration cache, KSP, CI build times                                                             |
 | `android-skills:android-source-search`  | Reading AOSP or AndroidX source when the public documentation is not enough                                          |
-| `android-skills:koin`                   | Only `gunzou-navigator`, the Ktor server module and the single module wired with Koin                               |
+| `android-skills:koin`                   | Only `gunzou-server`, the Ktor server module and the single module wired with Koin                                 |
 
 The remaining skills in the plugin do not apply to this project, because it does not use those
 libraries: `android-retrofit` (Ktor instead), the Room half of `android-data-layer` (Couchbase Lite
@@ -137,7 +165,8 @@ Nothing is produced on macOS or Windows hosts, where the loader is a no-op.
 
 ### Coverage (Kover)
 
-Kover is applied to `composeApp`, `gunzou-here-client` and `password-strength`; the root project
+Kover is applied to `composeApp`, `password-strength` and every `gunzou` module
+(`gunzou-api`, `gunzou-client`, `gunzou-here-client`, `gunzou-server`); the root project
 aggregates them into a single report. `androidApp` is excluded on purpose — it is a framework entry
 point with no test source set.
 
@@ -207,12 +236,19 @@ a JDK 25 jmod.
 
 Keep rules live with the module that needs them:
 
-| File                                                 | Scope                                                                   |
-|------------------------------------------------------|-------------------------------------------------------------------------|
+| File                                                    | Scope                                                                   |
+|---------------------------------------------------------|-------------------------------------------------------------------------|
+| `gunzou/gunzou-api/proguard-consumer-rules.pro`         | published as Android consumer rules, also included by the desktop build |
+| `gunzou/gunzou-client/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
 | `gunzou/gunzou-here-client/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-consumer-rules.pro`             | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`              | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
-| `androidApp/proguard-rules.pro`                      | application-level (`-dontobfuscate`, Parcelize)                         |
+| `gunzou/gunzou-server/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-consumer-rules.pro`                | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-desktop-rules.pro`                 | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
+| `androidApp/proguard-rules.pro`                         | application-level (`-dontobfuscate`, Parcelize)                         |
+
+The desktop build cannot read Android consumer rules, so the four `gunzou` files above are also
+listed explicitly in the `compose.desktop` ProGuard block of `composeApp/build.gradle.kts`. A module
+renamed on disk has to be renamed there too, or the shrinker silently loses those keep rules.
 
 The list behind the licenses screen is generated at build time by AboutLibraries: for anything
 touching it, or the release workflow that fetches the license texts, use the

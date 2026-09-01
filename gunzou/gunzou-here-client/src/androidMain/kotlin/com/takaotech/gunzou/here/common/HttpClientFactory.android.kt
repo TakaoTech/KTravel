@@ -1,0 +1,18 @@
+package com.takaotech.gunzou.here.common
+
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import java.util.concurrent.TimeUnit
+
+/**
+ * Android-specific HttpClient using OkHttp engine.
+ */
+actual fun createPlatformHttpClient(): HttpClient = HttpClient(OkHttp) {
+    engine {
+        config {
+            connectTimeout(30, TimeUnit.SECONDS)
+            readTimeout(30, TimeUnit.SECONDS)
+            writeTimeout(30, TimeUnit.SECONDS)
+        }
+    }
+}

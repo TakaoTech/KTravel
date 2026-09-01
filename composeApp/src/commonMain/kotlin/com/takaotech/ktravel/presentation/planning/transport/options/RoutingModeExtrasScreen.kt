@@ -3,13 +3,13 @@ package com.takaotech.ktravel.presentation.planning.transport.options
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import com.takaotech.ktravel.core.annotation.IgnoreOnParcel
-import com.takaotech.ktravel.core.annotation.Parcelize
 import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toPersistentSet
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * The options that belong to one vehicle rather than to the routing family as a whole.
@@ -26,7 +26,7 @@ import kotlinx.collections.immutable.toPersistentSet
  *   screen unless the first one is said out loud.
  * @property supportsShortest Whether upstream will optimize this vehicle for distance.
  */
-@Parcelize
+@Serializable
 data class RoutingModeExtrasScreen(
     val travelId: String,
     val provider: String,
@@ -37,13 +37,13 @@ data class RoutingModeExtrasScreen(
     val supportsShortest: Boolean,
 ) : Screen {
 
-    @IgnoreOnParcel
+    @Transient
     val profileId: RoutingProfileId = RoutingProfileId(provider = provider, profile = profile)
 
-    @IgnoreOnParcel
+    @Transient
     val mode: RoutingMode = RoutingMode(modeId)
 
-    @IgnoreOnParcel
+    @Transient
     val avoidable: ImmutableSet<RouteFeature> =
         avoidableNames.mapNotNull { name -> RouteFeature.entries.firstOrNull { it.name == name } }.toPersistentSet()
 

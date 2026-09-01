@@ -9,9 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.takaotech.gunzou.api.geometry.GeoJsonConverter
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.ui.common.MAP_STYLE_URI
-import com.takaotech.navigator.api.geometry.GeoJsonConverter
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray

@@ -90,6 +90,7 @@ complexity:
     active: false
   LargeClass:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     allowedLines: 600
   LongMethod:
     active: true
@@ -231,6 +232,7 @@ exceptions:
     ignoreLabeled: false
   SwallowedException:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     ignoredExceptionTypes:
       - 'InterruptedException'
       - 'MalformedURLException'
@@ -276,6 +278,7 @@ exceptions:
       - 'Exception'
       - 'RuntimeException'
       - 'Throwable'
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
 
 # =============================================================================
 # NAMING RULES
@@ -590,6 +593,7 @@ style:
     maxChainedCalls: 5
   MaxLineLength:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     maxLineLength: 120  # Questionnaire: 100 characters strict
     excludePackageStatements: true
     excludeImportStatements: true
@@ -944,6 +948,7 @@ ktlint:
     active: false
   ImportOrdering:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     autoCorrect: true
   Indentation:
     active: true

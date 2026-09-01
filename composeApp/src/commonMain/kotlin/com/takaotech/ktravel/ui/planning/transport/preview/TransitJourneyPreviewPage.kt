@@ -10,8 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.TransitJourneys
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.maplibre.compose.camera.CameraPosition

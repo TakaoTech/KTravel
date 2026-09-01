@@ -229,7 +229,7 @@ class TravelCreationViewModelTest : BehaviorSpec() {
                 viewModel.createTravelPlan()
 
                 then("should show combined error message for missing dates") {
-                    val errorMessage = viewModel.uiState.value.error ?: ""
+                    val errorMessage = viewModel.uiState.value.error
                     errorMessage shouldBe "Compila tutti i campi"
                 }
             }
@@ -241,7 +241,7 @@ class TravelCreationViewModelTest : BehaviorSpec() {
                 viewModel.createTravelPlan()
 
                 then("should show combined error message for missing dates") {
-                    val errorMessage = viewModel.uiState.value.error ?: ""
+                    val errorMessage = viewModel.uiState.value.error
                     errorMessage shouldBe "Compila tutti i campi"
                 }
             }

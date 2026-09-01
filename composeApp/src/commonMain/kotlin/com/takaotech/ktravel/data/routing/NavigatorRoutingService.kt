@@ -1,5 +1,10 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.gunzou.api.catalog.NavigatorProfile
+import com.takaotech.gunzou.api.error.ErrorCode
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorResult
+import com.takaotech.gunzou.client.NavigatorTarget
 import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
@@ -12,11 +17,6 @@ import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.domain.routing.RoutingService
 import com.takaotech.ktravel.domain.routing.model.RouteResult
-import com.takaotech.navigator.api.catalog.NavigatorProfile
-import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorResult
-import com.takaotech.navigator.client.NavigatorTarget
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.Dispatchers

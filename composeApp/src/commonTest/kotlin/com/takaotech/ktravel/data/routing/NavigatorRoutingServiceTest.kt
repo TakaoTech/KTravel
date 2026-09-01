@@ -15,10 +15,10 @@ import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.model.RouteResult
-import com.takaotech.navigator.api.NavigatorApi
-import com.takaotech.navigator.api.catalog.NavigatorProfile
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorClientConfig
+import com.takaotech.gunzou.api.NavigatorApi
+import com.takaotech.gunzou.api.catalog.NavigatorProfile
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorClientConfig
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.mock

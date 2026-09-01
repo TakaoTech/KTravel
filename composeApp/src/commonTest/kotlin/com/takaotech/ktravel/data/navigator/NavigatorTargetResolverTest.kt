@@ -53,7 +53,8 @@ class NavigatorTargetResolverTest :
 
             `when`("the remote is resolved") {
                 then("it is the installation's address") {
-                    val target = resolverOver(app, TravelSettingsDomain()).resolve(NavigatorKind.REMOTE)
+                    val target =
+                        resolverOver(app, TravelSettingsDomain()).resolve(NavigatorKind.REMOTE)
 
                     target.baseUrl shouldBe APP_URL
                 }
@@ -69,7 +70,8 @@ class NavigatorTargetResolverTest :
 
             `when`("the embedded one is resolved") {
                 then("it is the loopback server") {
-                    val target = resolverOver(app, TravelSettingsDomain()).resolve(NavigatorKind.EMBEDDED)
+                    val target =
+                        resolverOver(app, TravelSettingsDomain()).resolve(NavigatorKind.EMBEDDED)
 
                     target.baseUrl shouldBe EMBEDDED_URL
                     // AUTH DISABLED: target.accessToken.shouldBeNull()
@@ -93,7 +95,10 @@ class NavigatorTargetResolverTest :
         given("nothing configured anywhere") {
             `when`("the remote is asked about") {
                 then("it is not offered") {
-                    resolverOver(AppSettingsDomain(), TravelSettingsDomain()).isRemoteConfigured() shouldBe false
+                    resolverOver(
+                        AppSettingsDomain(),
+                        TravelSettingsDomain(),
+                    ).isRemoteConfigured() shouldBe false
                 }
             }
 
@@ -120,7 +125,10 @@ class NavigatorTargetResolverTest :
                 then("that is where the transport screen opens") {
                     val plan = TravelSettingsDomain(navigatorPreference = NavigatorKind.REMOTE)
 
-                    resolverOver(AppSettingsDomain(), plan).defaultKind() shouldBe NavigatorKind.REMOTE
+                    resolverOver(
+                        AppSettingsDomain(),
+                        plan,
+                    ).defaultKind() shouldBe NavigatorKind.REMOTE
                 }
             }
         }
@@ -143,7 +151,8 @@ class NavigatorTargetResolverTest :
                 then("nothing is restarted and the same address comes back") {
                     // There is nothing to restart on the other side of the network, which is why the
                     // routing service does not retry a remote call.
-                    val target = resolverOver(app, TravelSettingsDomain()).recover(NavigatorKind.REMOTE)
+                    val target =
+                        resolverOver(app, TravelSettingsDomain()).recover(NavigatorKind.REMOTE)
 
                     target.baseUrl shouldBe APP_URL
                 }

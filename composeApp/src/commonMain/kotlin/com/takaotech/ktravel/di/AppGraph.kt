@@ -4,13 +4,13 @@ import co.touchlab.kermit.Logger
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.runtime.ui.Ui
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorClientConfig
 import com.takaotech.ktravel.core.createAppLogger
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
 import com.takaotech.ktravel.data.storage.DatabaseProvider
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorClientConfig
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn

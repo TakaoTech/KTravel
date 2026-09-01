@@ -13,7 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.routing.model.RouteAction
-import com.takaotech.navigator.api.geometry.PolylineEncoderDecoder
+import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.nulls.shouldNotBeNull

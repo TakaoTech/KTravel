@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.presentation.settings
 
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorResult
-import com.takaotech.navigator.client.NavigatorTarget
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorResult
+import com.takaotech.gunzou.client.NavigatorTarget
 
 /**
  * Whether a remote navigator answers, as a settings screen shows it.
