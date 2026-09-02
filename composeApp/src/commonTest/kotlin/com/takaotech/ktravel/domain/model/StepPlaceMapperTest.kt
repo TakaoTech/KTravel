@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -69,7 +70,7 @@ class StepPlaceMapperTest :
                 id = "att-1",
                 relativePath = "travel-1/s3/photo.jpg",
                 originalName = "photo.jpg",
-                mimeType = "image/jpeg",
+                mimeType = MimeType("image/jpeg"),
                 sizeBytes = 2048,
             )
             val step = StepDomain.Place(
@@ -114,7 +115,7 @@ class StepPlaceMapperTest :
                 id = "att-2",
                 relativePath = "travel-1/p2/map.pdf",
                 originalName = "map.pdf",
-                mimeType = "application/pdf",
+                mimeType = MimeType("application/pdf"),
                 sizeBytes = 512,
             )
             val place = PlaceDomain(

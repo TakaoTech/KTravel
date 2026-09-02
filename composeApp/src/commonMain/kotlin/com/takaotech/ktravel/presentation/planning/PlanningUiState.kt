@@ -5,6 +5,7 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.model.TransportType
@@ -151,13 +152,10 @@ data class VisitScheduleUi(
 )
 
 @Stable
-data class AttachmentUi(
-    val id: String,
-    val relativePath: String,
-    val originalName: String,
-    val mimeType: String,
-    val isImage: Boolean,
-)
+data class AttachmentUi(val id: String, val relativePath: String, val originalName: String, val mimeType: MimeType) {
+    /** Whether the file can be previewed inline, derived from [mimeType]. */
+    val isImage: Boolean get() = mimeType.isImage
+}
 
 @Stable
 /**

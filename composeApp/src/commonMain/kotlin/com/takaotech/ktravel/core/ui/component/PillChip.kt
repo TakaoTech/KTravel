@@ -48,7 +48,10 @@ import org.jetbrains.compose.resources.painterResource
 /** How the pill is drawn: filled once it carries a value, dashed while it is still to be defined. */
 @Immutable
 enum class PillChipStyle {
+    /** Solid background: the chip carries a value. */
     Filled,
+
+    /** Dashed outline: the value is still to be defined, and the chip invites the user to do it. */
     Dashed,
 }
 
@@ -58,7 +61,10 @@ enum class PillChipStyle {
  */
 @Immutable
 enum class PillChipSize(internal val iconSize: Dp, internal val gap: Dp, internal val horizontalPadding: Dp) {
+    /** Reads as a value inside a dense card. */
     Small(iconSize = 14.dp, gap = 4.dp, horizontalPadding = 8.dp),
+
+    /** Reads as an action, next to body text. */
     Medium(iconSize = 16.dp, gap = 6.dp, horizontalPadding = 12.dp),
     ;
 
@@ -69,6 +75,7 @@ enum class PillChipSize(internal val iconSize: Dp, internal val gap: Dp, interna
         }
 }
 
+/** Metrics a caller has to agree with to line a [PillChip] up with something else. */
 object PillChipDefaults {
     /** Height of the pill itself, which is shorter than the 48dp touch target around it. */
     val Height = 32.dp
@@ -80,6 +87,16 @@ object PillChipDefaults {
  * The 48dp touch target lives on the outer box while the pill keeps its compact height; the ripple
  * is drawn on the pill rather than on the target, so the indication follows the shape the user
  * sees — the filled background or the dashed outline — instead of overflowing it.
+ *
+ * @param text The label, kept to one line.
+ * @param icon Drawn before the label, and described by [contentDescription] rather than on its own.
+ * @param onClick What tapping the chip does.
+ * @param style Whether the chip reads as filled or as still to be defined.
+ * @param size Which metrics it is drawn with.
+ * @param contentColor Colour of the icon and of the label.
+ * @param contentDescription What the whole chip announces, null to leave it to the label alone.
+ * @param contentAlignment Where the pill sits inside its touch target, which matters only when the
+ * target is the larger of the two.
  */
 @Composable
 fun PillChip(

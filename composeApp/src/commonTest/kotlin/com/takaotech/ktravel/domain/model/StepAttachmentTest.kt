@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
@@ -24,7 +25,7 @@ class StepAttachmentTest :
             id = "a1",
             relativePath = "t1/s1/abc.jpg",
             originalName = "photo.jpg",
-            mimeType = "image/jpeg",
+            mimeType = MimeType("image/jpeg"),
             sizeBytes = 1234,
         )
 

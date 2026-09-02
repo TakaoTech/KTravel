@@ -3,6 +3,7 @@ package com.takaotech.ktravel.presentation.planning.detail
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.test.CircuitReceiveTurbine
 import com.slack.circuit.test.presenterTestOf
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.presentation.planning.AttachmentUi
 import dev.mokkery.MockMode
@@ -59,8 +60,7 @@ class StepNotesEditingTest : BehaviorSpec() {
         id = "a1",
         relativePath = "t1/s1/ticket.pdf",
         originalName = "ticket.pdf",
-        mimeType = "application/pdf",
-        isImage = false,
+        mimeType = MimeType("application/pdf"),
     )
 
     init {

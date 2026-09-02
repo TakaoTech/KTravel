@@ -7,10 +7,12 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Represents the state of a text field along with its validation status.
+ * What a text field holds and what validation has to say about it, hoisted out of the field itself.
  *
- * @property value The current value of the text field, encapsulated within a `TextFieldValue` object.
- * @property validationState The current validation state of the text field, represented as an instance of `FieldValidationState`.
+ * @property value What is typed, with the selection and the composition the field needs to keep the
+ * caret where the user left it.
+ * @property validationState What validation made of [value], which is what decides whether the
+ * field is drawn as an error and what is written under it.
  */
 @Stable
 data class KFieldState(
@@ -18,37 +20,53 @@ data class KFieldState(
     val validationState: FieldValidationState = FieldValidationState.None,
 )
 
+/**
+ * A message to show, kept unresolved until it is drawn.
+ *
+ * Validation runs in a view model, where there is no composition to resolve a resource against, so
+ * what travels is the resource and the values to fill it with, not a finished string. It is also
+ * what makes the message follow a change of language without the state being computed again.
+ *
+ * @property text The string resource to show.
+ * @property args Values to fill its placeholders with, in the order the resource declares them.
+ */
 data class TextPayload(val text: StringResource, val args: List<Any> = emptyList())
 
+/** The message this resource makes on its own, with no placeholder to fill. */
 fun StringResource.toTextPayload(): TextPayload = TextPayload(this)
 
 /**
- * Represents the validation state of a field in the application.
- * This class encapsulates the validation state and provides methods to check if the field is valid or not.
+ * What validation made of a field: nothing yet, a pass, or a failure with the reason to show.
+ *
+ * Equality is by content and not by identity, which is what lets an unchanged state leave a
+ * `StateFlow` unchanged and the field unrecomposed.
+ *
+ * @property supportText Hint written under the field while it is not in error.
+ * @property errorText Why the field is in error, unresolved until it is drawn.
+ * @property isError Whether the state itself declares an error. [BaseNotValid] leaves it `false`
+ * and is recognised by its type instead, so a screen that reads this rather than testing for
+ * [BaseNotValid] never sees a failed field.
  */
 sealed class FieldValidationState(
     val supportText: String? = null,
     val errorText: TextPayload? = null,
     val isError: Boolean = false,
 ) {
-    /**
-     * Represents a validation state indicating that the associated field is not yet validated.
-     */
+    /** The field has not been validated yet, which is where every field starts. */
     object None : FieldValidationState()
 
-    /**
-     * Represents a validation state indicating that the associated field is valid.
-     * This state implies that no errors are present, and the field meets the validation criteria.
-     */
+    /** The field passed validation. */
     object Valid : FieldValidationState()
 
     /**
-     * Represents a validation state indicating that the associated field is not valid.
-     * This state implies that one or more errors are present,
-     * and the field does not meet the validation criteria.
+     * The field failed validation, with the reason to show under it.
+     *
+     * Open, though nothing subclasses it today: it is built as it is, with the message to show.
+     * The type is what a screen tests for, since [isError] stays `false` on it.
      */
     open class BaseNotValid(errorText: TextPayload? = null) : FieldValidationState(errorText = errorText)
 
+    /** The error resolved against the composition's language, or null when there is no error. */
     @Suppress("SpreadOperator")
     @Composable
     fun kErrorStringResource(): String? {

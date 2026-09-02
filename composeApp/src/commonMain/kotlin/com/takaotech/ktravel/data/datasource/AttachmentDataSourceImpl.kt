@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.datasource
 
+import com.takaotech.ktravel.core.data.mime.MimeTypes
 import com.takaotech.ktravel.core.io.deleteRecursively
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.di.AppScope
@@ -53,7 +54,7 @@ class AttachmentDataSourceImpl private constructor(
             id = Uuid.random().toString(),
             relativePath = "$travelId/$stepId/$fileName",
             originalName = source.name,
-            mimeType = mimeTypeFromExtension(extension),
+            mimeType = MimeTypes.fromExtension(extension),
             sizeBytes = destination.size(),
         )
     }

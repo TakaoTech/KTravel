@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.data.datasource
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.testutil.tempdir
 import io.github.vinceglb.filekit.div
 import io.github.vinceglb.filekit.exists
@@ -37,7 +38,7 @@ class AttachmentDataSourceImplTest :
 
                 then("it keeps the original name and derived mime type") {
                     entity.originalName shouldBe "photo.jpg"
-                    entity.mimeType shouldBe "image/jpeg"
+                    entity.mimeType shouldBe MimeType("image/jpeg")
                 }
 
                 then("the file is copied on disk following the folder scheme") {

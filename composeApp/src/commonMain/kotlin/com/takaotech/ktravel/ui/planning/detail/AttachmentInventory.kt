@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.presentation.planning.AttachmentUi
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import io.github.vinceglb.filekit.PlatformFile
@@ -248,15 +249,13 @@ private fun AttachmentInventorySectionPreview() = KTravelTheme {
                     id = "a1",
                     relativePath = "t1/s1/tokyo.jpg",
                     originalName = "tokyo-tower.jpg",
-                    mimeType = "image/jpeg",
-                    isImage = true,
+                    mimeType = MimeType("image/jpeg"),
                 ),
                 AttachmentUi(
                     id = "a2",
                     relativePath = "t1/s1/ticket.pdf",
                     originalName = "ticket.pdf",
-                    mimeType = "application/pdf",
-                    isImage = false,
+                    mimeType = MimeType("application/pdf"),
                 ),
             ),
             resolveFile = { PlatformFile(Path(it)) },

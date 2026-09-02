@@ -92,6 +92,7 @@ starting the work, not after the first failure.
 
 | Skill                              | Use it when                                                                                                       |
 |------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `documenting-with-kdoc`            | Writing or changing any public Kotlin declaration, or adding KDoc to existing code                                  |
 | `generating-dependency-licenses`   | Touching the licenses screen, the AboutLibraries setup, or the release workflow that fetches the license texts       |
 | `localizing-strings`               | Adding or changing anything in `composeResources/**/strings.xml`, a `stringResource`, a translation, or a language   |
 | `migrating-archive-schema`         | Changing an entity behind the `.ktravel` archive (schema version, `TravelPlanJsonMigration`)                        |
@@ -285,6 +286,9 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
 - Keep functions small and focused on a single responsibility
+- Document every public class, function and property with KDoc in the same edit as the code —
+  detekt fails the build otherwise; load `documenting-with-kdoc` for the JetBrains and AndroidX
+  KDoc conventions this project follows
 
 ### Architecture Guidelines
 

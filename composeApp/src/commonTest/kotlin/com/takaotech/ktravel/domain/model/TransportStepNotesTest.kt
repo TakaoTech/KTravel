@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
@@ -31,7 +32,7 @@ class TransportStepNotesTest : BehaviorSpec() {
         id = "a1",
         relativePath = "t1/t-step/ticket.pdf",
         originalName = "ticket.pdf",
-        mimeType = "application/pdf",
+        mimeType = MimeType("application/pdf"),
         sizeBytes = 512,
     )
 

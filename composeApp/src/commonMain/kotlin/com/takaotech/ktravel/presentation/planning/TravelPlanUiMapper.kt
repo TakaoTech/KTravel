@@ -55,7 +55,6 @@ object TravelPlanUiMapper {
         relativePath = relativePath,
         originalName = originalName,
         mimeType = mimeType,
-        isImage = isImage,
     )
 
     fun StepDomain.toUiStep(): StepUi = when (this) {

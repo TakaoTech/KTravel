@@ -16,6 +16,15 @@ import io.nacular.measured.units.times
 import kotlinx.datetime.LocalTime
 import kotlin.time.Duration.Companion.minutes
 
+/**
+ * Itinerary steps for the previews of the planning screens.
+ *
+ * Generates [items] steps, every third one a transport, so a preview shows places and the
+ * transports between them without a database behind it. The values are made up but well formed:
+ * coordinates in northern Italy, increasing times, and a computed route on every transport.
+ *
+ * @property items How many steps to generate.
+ */
 class TravelDayStepPreviewParameterProvider(val items: Int) : PreviewParameterProvider<StepUi> {
 
     private val loremIpsum = LoremIpsum(3).values.first()
