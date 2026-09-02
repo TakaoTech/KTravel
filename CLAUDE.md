@@ -93,6 +93,7 @@ starting the work, not after the first failure.
 | Skill                              | Use it when                                                                                                       |
 |------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | `documenting-with-kdoc`            | Writing or changing any public Kotlin declaration, or adding KDoc to existing code                                  |
+| `generating-api-documentation`     | Generating or configuring the Dokka API documentation, or the jobs that publish it to GitHub Pages                   |
 | `generating-dependency-licenses`   | Touching the licenses screen, the AboutLibraries setup, or the release workflow that fetches the license texts       |
 | `localizing-strings`               | Adding or changing anything in `composeResources/**/strings.xml`, a `stringResource`, a translation, or a language   |
 | `migrating-archive-schema`         | Changing an entity behind the `.ktravel` archive (schema version, `TravelPlanJsonMigration`)                        |

@@ -45,6 +45,7 @@ signum-supreme = "0.15.0"
 detekt = "2.0.0-alpha.6"
 kover = "0.9.9"
 sonarqube = "7.4.0.8496"
+dokka = "2.2.0"
 compottie = "2.3.0"
 
 hyphen = "0.7.0-alpha01"
@@ -208,6 +209,7 @@ aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "abo
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.5" }
 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [bundles]
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]

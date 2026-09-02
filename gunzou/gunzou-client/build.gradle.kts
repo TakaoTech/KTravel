@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 // The other side of the contract: what talks to gunzo-navigator, whether it is running in this

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 // The Ktor Gradle plugin lives in :gunzou-server-app instead: it disables buildFatJar and

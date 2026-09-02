@@ -102,6 +102,7 @@ plugins {
     alias(libs.plugins.kotest)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 java {

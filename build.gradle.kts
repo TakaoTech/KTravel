@@ -4,6 +4,8 @@ import dev.detekt.gradle.report.ReportMergeTask
 import kotlinx.kover.gradle.plugin.dsl.AggregationType
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import kotlinx.kover.gradle.plugin.dsl.GroupingEntityType
+import org.jetbrains.dokka.gradle.DokkaExtension
+import org.jetbrains.dokka.gradle.DokkaPlugin
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -26,6 +28,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.sonarqube)
+    alias(libs.plugins.dokka)
 }
 
 // SonarCloud analysis. The three reports it consumes are produced by tasks that already exist:
@@ -78,6 +81,47 @@ dependencies {
     kover(projects.gunzouServer)
     kover(projects.gunzouApi)
     kover(projects.gunzouClient)
+
+    // API documentation aggregation, on the same module list as the coverage one above and for
+    // the same reason: :androidApp and :gunzou-server-app are shells (the APK entry point and the
+    // JVM packaging module) with no public API of their own to document.
+    dokka(projects.composeApp)
+    dokka(projects.gunzouHereClient)
+    dokka(projects.passwordStrength)
+    dokka(projects.gunzouServer)
+    dokka(projects.gunzouApi)
+    dokka(projects.gunzouClient)
+}
+
+// Shared Dokka configuration. It lives here rather than in a convention plugin because a
+// convention plugin has to come from buildSrc, and the Dokka plugin loaded by the buildSrc
+// classloader cannot see the Kotlin plugin loaded by the build scripts: its KotlinAdapter then
+// fails with "could not load KotlinBasePlugin" and documents nothing at all.
+subprojects {
+    plugins.withType<DokkaPlugin> {
+        // The remote source root is pinned to the default branch rather than to a tag: the
+        // documentation is regenerated on every push to it, so the links stay in step with the
+        // sources they point at.
+        val sourceRootUrl = "https://github.com/TakaoTech/KTravel/tree/dev"
+        val moduleRelativePath = projectDir.relativeTo(rootDir).invariantSeparatorsPath
+
+        extensions.configure<DokkaExtension> {
+            dokkaSourceSets.configureEach {
+                // Compose Resources accessors, one generated declaration per drawable and per
+                // string. The Kover filters above exclude the very same package.
+                perPackageOption {
+                    matchingRegex.set("""ktravel\.composeapp\.generated\.resources.*""")
+                    suppress.set(true)
+                }
+
+                sourceLink {
+                    localDirectory.set(projectDir)
+                    remoteUrl("$sourceRootUrl/$moduleRelativePath")
+                    remoteLineSuffix.set("#L")
+                }
+            }
+        }
+    }
 }
 
 kover {
@@ -178,6 +222,19 @@ subprojects {
             }
         }
     }
+}
+
+// Single entry point for the API documentation, mirroring :detektAll below.
+//
+// The aggregating task is the root project's own dokkaGenerate: it builds the module output of
+// each of the six documented modules and merges them into build/dokka/html. Reaching it means
+// writing `:dokkaGenerate` with the leading colon, because the unqualified `dokkaGenerate` runs
+// the task in every project and so additionally builds a standalone publication per module, which
+// nothing consumes. This alias removes that trap.
+tasks.register("dokkaAll") {
+    group = "documentation"
+    description = "Generates the aggregated API documentation of every documented module"
+    dependsOn(tasks.named("dokkaGenerate"))
 }
 
 tasks.register("detektAll") {

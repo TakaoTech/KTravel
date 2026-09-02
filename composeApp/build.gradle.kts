@@ -31,6 +31,7 @@ plugins {
     alias(libs.plugins.allopen)
     alias(libs.plugins.spmForKmp)
     alias(libs.plugins.aboutLibraries)
+    alias(libs.plugins.dokka)
     id("kotlin-parcelize")
 }
 
@@ -759,4 +760,17 @@ val checkStringResourceParity by tasks.registering {
 
 tasks.named("check") {
     dependsOn(checkStringResourceParity)
+}
+
+// src/kzipMain/kotlin is deliberately shared by androidMain, jvmMain and iosMain (see the source
+// set wiring above), and Dokka refuses a file that belongs to more than one source set
+// (Kotlin/dokka#3701). The jvm copy is the one that gets documented; the others are dropped from
+// Dokka's source roots, which leaves the actual declaration documented exactly once.
+dokka {
+    val kzipSources = layout.projectDirectory.dir("src/kzipMain/kotlin").asFile
+    dokkaSourceSets.configureEach {
+        if (name != "jvmMain") {
+            sourceRoots.setFrom(sourceRoots.files.filterNot { it.startsWith(kzipSources) })
+        }
+    }
 }
