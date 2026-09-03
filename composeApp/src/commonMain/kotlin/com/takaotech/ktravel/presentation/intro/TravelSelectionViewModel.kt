@@ -248,9 +248,8 @@ class TravelSelectionViewModel(
                     )
                 }.toPersistentList()
 
-                // Drops the ids that no longer exist so the selection cannot outlive its items.
                 val selectedIds =
-                    state.selectedIds.retainAll(travelList.mapTo(mutableSetOf()) { it.id })
+                    state.selectedIds.retainingAll(travelList.mapTo(mutableSetOf()) { it.id })
 
                 state.copy(
                     isLoading = false,

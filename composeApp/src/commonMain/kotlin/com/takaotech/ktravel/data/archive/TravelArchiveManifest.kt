@@ -9,6 +9,23 @@ import kotlinx.serialization.Serializable
  *
  * Every field but [schemaVersion] and [travelId] has a default, so a manifest written by a future
  * version stays readable enough to produce a sensible error.
+ *
+ * @property schemaVersion Version the plan entry is written in, which is what decides whether the
+ * archive is migrated, refused as too old, or refused as written by a newer build.
+ * @property travelId Identity the plan had where it was exported. The import compares it with the
+ * plans already stored to find out whether it is about to overwrite one.
+ * @property travelName Name of the plan, repeated here so the import can name it before the plan
+ * entry is read.
+ * @property appVersion Build that wrote the archive. Diagnostic only: nothing is ever accepted or
+ * refused on it.
+ * @property exportedAtEpochMillis When the archive was written, in epoch milliseconds. A plain
+ * `Long` rather than an `Instant`: no dependency on the time serializers, and consistent with the
+ * style the entities already use (`date_epoch_days`).
+ * @property planEntry Where the plan sits inside the archive. Explicit, so a future version can
+ * move it without breaking old readers, which read this field instead of the constant.
+ * @property attachments Entry paths of the files carried, `attachments/` prefix included.
+ * @property hasSecrets Whether `secrets.json` is there. Defaults to false, so an archive written
+ * before the feature existed stays readable without a migration, as the manifest rule requires.
  */
 @Serializable
 data class TravelArchiveManifest(
@@ -16,14 +33,8 @@ data class TravelArchiveManifest(
     @SerialName("travel_id") val travelId: String,
     @SerialName("travel_name") val travelName: String = "",
     @SerialName("app_version") val appVersion: String = "",
-    // Long epoch millis instead of an Instant: no dependency on the time serializers, and
-    // consistent with the style the entities already use (`date_epoch_days`).
     @SerialName("exported_at_epoch_millis") val exportedAtEpochMillis: Long = 0L,
-    // Explicit, so a future version can move the plan file without breaking old readers, which
-    // read this field instead of the constant.
     @SerialName("plan_entry") val planEntry: String = TravelArchiveFormat.PLAN_ENTRY,
     @SerialName("attachments") val attachments: List<String> = emptyList(),
-    // Signals the presence of `secrets.json`. Defaults to false: an archive written before this
-    // feature existed stays readable without a migration, as the manifest rule requires.
     @SerialName("has_secrets") val hasSecrets: Boolean = false,
 )

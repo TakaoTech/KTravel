@@ -3,6 +3,7 @@ package com.takaotech.ktravel.presentation.intro
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.core.ui.FieldValidationState
 import com.takaotech.ktravel.core.ui.toTextPayload
@@ -33,6 +34,8 @@ class TravelCreationViewModel(
     private val _uiState = MutableStateFlow(TravelCreationUiState())
     val uiState: StateFlow<TravelCreationUiState> = _uiState.asStateFlow()
 
+    private val logger = Logger.withTag("TravelCreationViewModel")
+
     fun onNameChange(name: TextFieldValue) {
         _uiState.update {
             it.copy(
@@ -45,6 +48,7 @@ class TravelCreationViewModel(
     }
 
     fun onDateRangeChange(start: Long, end: Long) {
+        logger.d { "Date range picked: $start - $end" }
         _uiState.update { it.copy(startDateMillis = start, endDateMillis = end) }
     }
 
@@ -55,6 +59,7 @@ class TravelCreationViewModel(
         val end = currentState.endDateMillis
 
         if (name.isBlank()) {
+            logger.w { "Creation rejected: the travel name is blank" }
             _uiState.update {
                 it.copy(
                     travelName = it.travelName.copy(
@@ -68,11 +73,14 @@ class TravelCreationViewModel(
         }
 
         if (start == 0L || end == 0L) {
+            logger.w { "Creation rejected: incomplete date range ($start - $end)" }
+            // TODO Move to strings
             _uiState.update { it.copy(error = "Compila tutti i campi") }
             return
         }
 
         viewModelScope.launch(Dispatchers.Default) {
+            logger.d { "Creating travel plan '$name' over $start - $end" }
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
                 val id = repository.createTravelPlan(
@@ -83,8 +91,10 @@ class TravelCreationViewModel(
                 planningGraphStore.getOrCreate(id).travelPlanRepository.updatePeriod(start, end)
                 id
             }.onSuccess { id ->
+                logger.i { "Travel plan $id created" }
                 _uiState.update { it.copy(isLoading = false, createdTravelId = id) }
             }.onFailure { error ->
+                logger.e(error) { "Failed to create the travel plan" }
                 _uiState.update { it.copy(isLoading = false, error = error.message) }
             }
         }

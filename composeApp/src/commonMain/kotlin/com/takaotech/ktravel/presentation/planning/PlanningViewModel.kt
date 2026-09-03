@@ -3,6 +3,7 @@ package com.takaotech.ktravel.presentation.planning
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.archive.TravelArchiveExporter
@@ -43,7 +44,10 @@ class PlanningViewModel(
     private val _uiState = MutableStateFlow(PlanningUiState())
     val uiState: StateFlow<PlanningUiState> = _uiState.asStateFlow()
 
+    private val logger = Logger.withTag("PlanningViewModel")
+
     init {
+        logger.d { "Opened for travel $travelId" }
         repository.planningState
             .onEach { domainState ->
                 val domainName = domainState.name
@@ -67,7 +71,6 @@ class PlanningViewModel(
     }
 
     fun onPlanNameChanged(name: TextFieldValue) {
-        // Immediately update UI state preserving full TextFieldValue (cursor/selection)
         _uiState.update { it.copy(planHeader = it.planHeader.copy(name = name)) }
         // Send only the String to the domain layer
         viewModelScope.launch {
@@ -76,18 +79,21 @@ class PlanningViewModel(
     }
 
     fun onPlanDateChanged(start: Long, end: Long) {
+        logger.d { "Plan period changed to $start - $end" }
         viewModelScope.launch {
             repository.updatePeriod(start, end)
         }
     }
 
     fun onPlaceMovedToDate(placeId: String, dayId: String) {
+        logger.i { "Moving place $placeId to day $dayId" }
         viewModelScope.launch {
             repository.movePlaceToDay(placeId, dayId)
         }
     }
 
     fun deletePlace(placeId: String) {
+        logger.i { "Deleting place $placeId" }
         viewModelScope.launch {
             repository.deletePlace(placeId, null)
         }
@@ -102,12 +108,18 @@ class PlanningViewModel(
 
     /** Opens the question about including the API key. */
     fun startExport() {
-        if (_uiState.value.export !is ExportUiState.Idle) return
+        val export = _uiState.value.export
+        if (export !is ExportUiState.Idle) {
+            logger.d { "Export request ignored: one is already at $export" }
+            return
+        }
+        logger.d { "Export started, asking about the secrets" }
         _uiState.update { it.copy(export = ExportUiState.AwaitingSecretsChoice) }
     }
 
     /** Abandons the export before a destination has even been picked. */
     fun cancelExport() {
+        logger.d { "Export abandoned before a destination was picked" }
         _uiState.update { it.copy(export = ExportUiState.Idle) }
     }
 
@@ -118,14 +130,19 @@ class PlanningViewModel(
      * way.
      */
     fun exportTravel(destination: PlatformFile, secretsPassword: String? = null) {
-        if (_uiState.value.export is ExportUiState.InProgress) return
+        if (_uiState.value.export is ExportUiState.InProgress) {
+            logger.d { "Export request ignored: one is already running" }
+            return
+        }
 
         viewModelScope.launch {
+            logger.i { "Exporting travel $travelId, api key included: ${secretsPassword != null}" }
             _uiState.update { it.copy(export = ExportUiState.InProgress) }
             val export = archiveExporter.export(travelId, destination, secretsPassword)
 
             export
                 .onSuccess { result ->
+                    logger.i { "Export of $travelId done, ${result.skippedAttachments.size} attachments skipped" }
                     // Avoid flicker for high speed export
                     delay(1.seconds)
                     _uiState.update {
@@ -133,6 +150,7 @@ class PlanningViewModel(
                     }
                 }
                 .onFailure { throwable ->
+                    logger.e(throwable) { "Export of travel $travelId failed" }
                     _uiState.update {
                         it.copy(export = ExportUiState.Failed(throwable.asTravelArchiveError()))
                     }

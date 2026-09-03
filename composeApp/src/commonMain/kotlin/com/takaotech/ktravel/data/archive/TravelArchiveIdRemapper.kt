@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.archive
 
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.StepEntity
@@ -23,9 +24,13 @@ import kotlin.uuid.Uuid
  */
 internal object TravelArchiveIdRemapper {
 
+    private val logger = Logger.withTag("TravelArchiveIdRemapper")
+
     /**
-     * @property plan the plan with every id regenerated and every note already rewritten.
-     * @property attachmentPathMapping old relativePath -> new relativePath, used to read each file
+     * The outcome of a remap: the rebuilt plan, and where its files moved.
+     *
+     * @property plan The plan with every id regenerated and every note already rewritten.
+     * @property attachmentPathMapping Old relativePath -> new relativePath, used to read each file
      * out of the archive under its old name and write it under the new one.
      */
     data class Remapped(val plan: TravelPlanEntity, val attachmentPathMapping: Map<String, String>)
@@ -33,14 +38,19 @@ internal object TravelArchiveIdRemapper {
     /**
      * Rebuilds [plan] under fresh ids, in two passes over the tree.
      *
-     * @param newTravelId id of the destination trip.
-     * @param newId id generator, injectable to keep the tests deterministic.
+     * @param plan The plan as it was read from the archive.
+     * @param newTravelId Id of the destination trip.
+     * @param newId Id generator, injectable to keep the tests deterministic.
      */
     fun remap(
         plan: TravelPlanEntity,
         newTravelId: String,
         newId: () -> String = { Uuid.random().toString() },
     ): Remapped {
+        logger.d {
+            "Remapping plan ${plan.id} onto $newTravelId: ${plan.days.size} days, " +
+                "${plan.places.size} backlog places"
+        }
         val pathMapping = mutableMapOf<String, String>()
 
         // First pass: regenerate the ids and collect the complete path mapping.
@@ -50,6 +60,7 @@ internal object TravelArchiveIdRemapper {
             day.copy(id = newDayId, steps = steps, places = day.places.remapIds(newTravelId, newId, pathMapping))
         }
         val backlogWithNewIds = plan.places.remapIds(newTravelId, newId, pathMapping)
+        logger.d { "Ids regenerated, ${pathMapping.size} attachment paths to move" }
 
         // Second pass: the notes are rewritten only now, because a note may reference the
         // attachment of another step or of a backlog place, and the mapping has to be complete.
@@ -59,6 +70,8 @@ internal object TravelArchiveIdRemapper {
                 places = day.places.rewriteNotes(pathMapping),
             )
         }
+
+        logger.i { "Plan ${plan.id} remapped onto $newTravelId with ${pathMapping.size} attachments moved" }
 
         return Remapped(
             plan = plan.copy(
@@ -84,7 +97,7 @@ internal object TravelArchiveIdRemapper {
             id = newPlaceId,
             attachments = place.attachments.map { attachment ->
                 val newPath = attachment.relativePath.movedTo(newTravelId, newPlaceId)
-                pathMapping[attachment.relativePath] = newPath
+                pathMapping.record(attachment.relativePath, newPath)
                 attachment.copy(id = newId(), relativePath = newPath)
             },
         )
@@ -101,7 +114,7 @@ internal object TravelArchiveIdRemapper {
         val newStepId = newId()
         fun List<AttachmentEntity>.moved(): List<AttachmentEntity> = map { attachment ->
             val newPath = attachment.relativePath.movedTo(newTravelId, newStepId)
-            pathMapping[attachment.relativePath] = newPath
+            pathMapping.record(attachment.relativePath, newPath)
             attachment.copy(id = newId(), relativePath = newPath)
         }
 
@@ -114,6 +127,18 @@ internal object TravelArchiveIdRemapper {
     private fun StepEntity.rewriteNote(pathMapping: Map<String, String>): StepEntity = when (this) {
         is StepEntity.Transport -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
         is StepEntity.Place -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
+    }
+
+    /**
+     * Records `oldPath -> newPath`, and warns when the archive shipped two attachments under the
+     * same `relative_path`: only the last mapping survives, so the note references of the earlier
+     * one would end up rewritten onto the wrong file.
+     */
+    private fun MutableMap<String, String>.record(oldPath: String, newPath: String) {
+        val previous = put(oldPath, newPath)
+        if (previous != null && previous != newPath) {
+            logger.w { "Duplicate attachment path $oldPath in the archive: $previous replaced by $newPath" }
+        }
     }
 
     /**

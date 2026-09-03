@@ -6,10 +6,10 @@ import kotlinx.io.Buffer
 import kotlinx.io.files.Path
 
 /**
- * Implementazione basata su kzip, condivisa da Android, Desktop e iOS via `kotlin.srcDir`.
+ * Implementation on top of kzip, shared by Android, Desktop and iOS through `kotlin.srcDir`.
  *
- * kzip non pubblica un artefatto per il target androidJvm: Android e Desktop usano `kzip-jvm`,
- * iOS il modulo multipiattaforma. L'API è la stessa, quindi il sorgente è unico.
+ * kzip publishes no artifact for the androidJvm target: Android and Desktop take `kzip-jvm`, iOS
+ * the multiplatform module. The API is the same on both, so the source is written once.
  */
 internal actual fun createZipArchiveFactory(): ZipArchiveFactory = KzipArchiveFactory
 
@@ -19,8 +19,8 @@ private object KzipArchiveFactory : ZipArchiveFactory {
 
     override fun reader(archive: Path): ZipReader {
         val zip = Zip.open(archive, mode = Zip.Mode.Read)
-        // kzip legge la central directory in modo lazy: l'indice va costruito qui dentro, altrimenti
-        // un file che non è uno zip fallirebbe molto più tardi con un'eccezione non mappata.
+        // kzip reads the central directory lazily: the index has to be built inside this try,
+        // otherwise a file that is not a zip would fail much later with an unmapped exception.
         return try {
             KzipReader(zip)
         } catch (throwable: Throwable) {
@@ -46,15 +46,15 @@ private class KzipWriter(private val zip: Zip) : ZipWriter {
 private class KzipReader(private val zip: Zip) : ZipReader {
 
     /**
-     * Indice path -> posizione: il lookup per indice evita di dipendere da come ogni piattaforma
-     * normalizza i [Path] usati come chiave.
+     * Index from path to position: looking an entry up by index avoids depending on how each
+     * platform normalises the [Path] used as a key.
      */
     private val entryIndex = mutableMapOf<String, Int>()
     private var totalSize = 0L
 
     init {
-        // Loop esplicito invece di `forEachEntryIndexed`: le funzioni inline di kzip sono compilate
-        // con JVM target 22 e non sono inlinabili nel bytecode 21 del progetto.
+        // Explicit loop instead of `forEachEntryIndexed`: kzip's inline functions are compiled for
+        // JVM target 22 and cannot be inlined into this project's bytecode 21.
         for (index in 0 until zip.numberOfEntries) {
             zip.entry(index) {
                 if (!isDirectory) {
