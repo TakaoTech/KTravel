@@ -1,9 +1,6 @@
 package com.takaotech.ktravel.ui.plan.day.transportstep
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.takaotech.ktravel.ui.plan.day.notes.StepNotesTestTags
-import io.nacular.measured.units.times
 
 internal object TransportStepTestTags {
     const val MAP = "transport_detail_map"

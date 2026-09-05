@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.TransitStep
-import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.transit_preview_agency_label
 import ktravel.composeapp.generated.resources.transit_preview_cd_collapse_stops

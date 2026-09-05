@@ -1,9 +1,6 @@
 package com.takaotech.ktravel.ui.plan.day.transportstep
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import io.nacular.measured.units.times
 
 /** Zoom applied when framing a single point of the route, close enough to read the junction. */
 internal const val POINT_FOCUS_ZOOM = 16.0

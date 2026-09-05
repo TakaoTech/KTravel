@@ -54,7 +54,10 @@ fun RoutingRoutePreviewPage(
         focus = step
         scope.launch {
             cameraState.animateTo(
-                CameraPosition(target = Position(longitude = step.lng, latitude = step.lat), zoom = STEP_FOCUS_ZOOM),
+                CameraPosition(
+                    target = Position(longitude = step.lng, latitude = step.lat),
+                    zoom = STEP_FOCUS_ZOOM,
+                ),
             )
         }
     }
@@ -81,7 +84,8 @@ fun RoutingRoutePreviewPage(
             RoutePreviewMap(
                 modifier = Modifier.fillMaxSize(),
                 enabled = enabled,
-                paths = selected?.sections.orEmpty().mapNotNull { it.polyline }.map { RoutePreviewPath(it) }
+                paths = selected?.sections.orEmpty().mapNotNull { it.polyline }
+                    .map { RoutePreviewPath(it) }
                     .toPersistentList(),
                 cameraState = cameraState,
                 focus = focus,

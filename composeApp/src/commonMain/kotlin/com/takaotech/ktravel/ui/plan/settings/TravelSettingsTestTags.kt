@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.plan.settings
 
-import androidx.compose.runtime.getValue
-
 internal object TravelSettingsTestTags {
     const val API_KEY = "settings_api_key"
     const val TOGGLE_VISIBILITY = "settings_toggle_api_key_visibility"

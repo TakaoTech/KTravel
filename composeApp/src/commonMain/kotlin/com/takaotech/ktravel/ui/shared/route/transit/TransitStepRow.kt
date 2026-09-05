@@ -1,12 +1,9 @@
 package com.takaotech.ktravel.ui.shared.route.transit
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.TransitStep
-import io.nacular.measured.units.times
 
 /**
  * One step on the timeline.

@@ -62,7 +62,11 @@ class AppSettingsViewModel(
         _uiState.update {
             // Any edit invalidates what the last check said: leaving a green badge next to a changed
             // address is the one thing this indicator must never do.
-            it.copy(navigatorBaseUrl = value, reachability = NavigatorReachability.Unknown, isSaved = false)
+            it.copy(
+                navigatorBaseUrl = value,
+                reachability = NavigatorReachability.Unknown,
+                isSaved = false,
+            )
         }
     }
 

@@ -1,6 +1,7 @@
 package com.takaotech.ktravel.data.entity
 
 import com.takaotech.ktravel.core.data.mime.MimeType
+import com.takaotech.ktravel.data.entity.TravelPlanEntity.Companion.DOCUMENT_TYPE
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -53,7 +54,8 @@ data class TravelPlanEntity(
                 is StepEntity.Place -> step.attachments
                 is StepEntity.Transport -> step.attachments
             }
-        } + places.flatMap { it.attachments } + days.flatMap { day -> day.places }.flatMap { it.attachments }
+        } + places.flatMap { it.attachments } + days.flatMap { day -> day.places }
+        .flatMap { it.attachments }
 
     /**
      * Copy of the plan whose inventory holds only [retained], the counterpart of [allAttachments]:

@@ -20,6 +20,7 @@ import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.TravelSettingsEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
+import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.localTimeOrNull
 import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
@@ -548,7 +549,12 @@ internal object TravelPlanEntityMapper {
 
     /** A saved timetable moment, keeping the offset in force at the stop. */
     private fun String.toTransitTimeOrNull(): TransitTime? = parseIsoOrNull()?.let { components ->
-        runCatching { TransitTime(components.toInstantUsingOffset(), components.toUtcOffset()) }.getOrNull()
+        runCatching {
+            TransitTime(
+                components.toInstantUsingOffset(),
+                components.toUtcOffset(),
+            )
+        }.getOrNull()
     }
 
     /** The stored form of a section time: ISO 8601 keeping the offset in force where it happens. */

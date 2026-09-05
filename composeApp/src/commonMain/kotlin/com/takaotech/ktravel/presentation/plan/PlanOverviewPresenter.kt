@@ -23,8 +23,16 @@ fun PlanOverviewPresenter(screen: PlanOverviewScreen, navigator: Navigator): Pla
     PlanOverviewNavState { event ->
         when (event) {
             PlanOverviewEvent.Back -> navigator.pop()
+
             PlanOverviewEvent.AddPlace -> navigator.goTo(AddPlaceScreen(screen.travelId))
-            is PlanOverviewEvent.OpenDay -> navigator.goTo(DayDetailScreen(screen.travelId, event.dayId))
+
+            is PlanOverviewEvent.OpenDay -> navigator.goTo(
+                DayDetailScreen(
+                    screen.travelId,
+                    event.dayId,
+                ),
+            )
+
             PlanOverviewEvent.OpenSettings -> navigator.goTo(TravelSettingsScreen(screen.travelId))
         }
     }

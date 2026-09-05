@@ -1,5 +1,8 @@
 package com.takaotech.ktravel.core.data.mime
 
+import com.takaotech.ktravel.core.data.mime.MimeTypes.DEFAULT
+import com.takaotech.ktravel.core.data.mime.MimeTypes.fromExtension
+
 /**
  * Media type catalog, adapted from https://gist.github.com/retheviper/9b4e28f66b354d9f706e43d399100676
  *
@@ -102,10 +105,16 @@ internal object MimeTypes {
         OGG(arrayOf(".ogx"), "application/ogg"),
 
         /** OpenDocument presentation document */
-        OPEN_DOCUMENT_PRESENTATION(arrayOf(".odp"), "application/vnd.oasis.opendocument.presentation"),
+        OPEN_DOCUMENT_PRESENTATION(
+            arrayOf(".odp"),
+            "application/vnd.oasis.opendocument.presentation",
+        ),
 
         /** OpenDocument spreadsheet document */
-        OPEN_DOCUMENT_SPREADSHEET(arrayOf(".ods"), "application/vnd.oasis.opendocument.spreadsheet"),
+        OPEN_DOCUMENT_SPREADSHEET(
+            arrayOf(".ods"),
+            "application/vnd.oasis.opendocument.spreadsheet",
+        ),
 
         /** OpenDocument text document */
         OPEN_DOCUMENT_TEXT(arrayOf(".odt"), "application/vnd.oasis.opendocument.text"),

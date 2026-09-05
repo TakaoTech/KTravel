@@ -27,10 +27,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.foundation.CircuitContent
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
+import com.takaotech.ktravel.domain.routing.RouteTimeChoice
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
+import com.takaotech.ktravel.presentation.plan.StepUi
 import com.takaotech.ktravel.presentation.plan.transport.RouteTimeMode
 import com.takaotech.ktravel.presentation.plan.transport.TransportPlanningUiState
 import com.takaotech.ktravel.ui.plan.transport.component.TransportPlanningTestTags
@@ -38,7 +41,10 @@ import com.takaotech.ktravel.ui.plan.transport.composer.component.NavigatorBlock
 import com.takaotech.ktravel.ui.plan.transport.composer.component.ProfileBlock
 import com.takaotech.ktravel.ui.plan.transport.composer.component.StepEndpoints
 import com.takaotech.ktravel.ui.shared.format.label
+import com.takaotech.ktravel.ui.theme.KTravelTheme
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.Month
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.planning_transport_calculate
@@ -160,3 +166,43 @@ internal fun TransportPlanningContent(
         }
     }
 }
+
+//region Previews
+
+// The screen as a traveller normally meets it: a remote navigator that answered, and a catalog with
+// something picked in it. The empty state renders as a title and two addresses, which says nothing
+// about how the blocks sit together — so the preview carries a whole catalog, including the profiles
+// that cannot be picked, because the reason lines under them are the part most likely to be laid
+// out wrong. TransportPlanningUiState.routeOptionsScreen stays null: the options block is drawn
+// through CircuitContent, which needs a Circuit the preview has no way to provide.
+@PreviewScreenSizes
+@Composable
+private fun TransportPlanningPagePreview() = KTravelTheme {
+    TransportPlanningContent(
+        modifier = Modifier.fillMaxSize(),
+        uiState = TransportPlanningUiState(
+            startPlace = StepUi.Place(
+                name = "P.za del Colosseo, 1, 00184 Roma RM",
+                lat = 0.0,
+                lng = 0.0,
+            ),
+            endPlace = StepUi.Place(name = "Piazza di Trevi, 00187 Roma RM", lat = 0.0, lng = 0.0),
+            navigatorKind = NavigatorKind.REMOTE,
+            isRemoteConfigured = true,
+            catalog = PREVIEW_CATALOG,
+            selectedProfileId = PREVIEW_HERE_CAR.id,
+            isRequestReady = true,
+            timeChoice = RouteTimeChoice.DepartAt(LocalTime(hour = 10, minute = 30)),
+            dayDate = LocalDate(year = 2026, month = Month.MAY, day = 18),
+        ),
+        onNavigationBackClick = {},
+        onNavigatorChange = {},
+        onRetryCatalog = {},
+        onProfileChange = {},
+        onTimeModeChange = {},
+        onTimeChange = {},
+        onCalculateClick = {},
+        onFailureDismiss = {},
+    )
+}
+//endregion Previews

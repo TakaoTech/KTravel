@@ -32,11 +32,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.travels.ImportUiState
 import com.takaotech.ktravel.presentation.travels.TravelSummaryUiState
-import com.takaotech.ktravel.ui.shared.format.message
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import com.takaotech.ktravel.ui.travels.list.component.SelectionModeTopBar
 import com.takaotech.ktravel.ui.travels.list.component.TravelItem
 import kotlinx.collections.immutable.ImmutableSet
@@ -201,3 +201,28 @@ internal fun TravelListContent(
         }
     }
 }
+
+//region Previews
+
+@PreviewScreenSizes
+@Composable
+private fun TravelListPagePreview() = KTravelTheme {
+    TravelListContent(
+        travelList = previewTravelList,
+        onTravelClick = {},
+        newTravelClick = {},
+    )
+}
+
+@PreviewScreenSizes
+@Composable
+private fun TravelListPageSelectionModePreview() = KTravelTheme {
+    TravelListContent(
+        travelList = previewTravelList,
+        isSelectionMode = true,
+        selectedIds = persistentSetOf("1"),
+        onTravelClick = {},
+        newTravelClick = {},
+    )
+}
+//endregion Previews

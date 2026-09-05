@@ -7,14 +7,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -112,7 +109,13 @@ internal fun PlacesBacklogContent(
 private fun PlacesBacklogContentPreview() = KTravelTheme {
     PlacesBacklogContent(
         places = persistentListOf(
-            PlaceUi(name = "Tokyo Tower", lat = 0.0, lng = 0.0, hasNote = true, attachmentCount = 3),
+            PlaceUi(
+                name = "Tokyo Tower",
+                lat = 0.0,
+                lng = 0.0,
+                hasNote = true,
+                attachmentCount = 3,
+            ),
             PlaceUi(name = "Shibuya Crossing", lat = 0.0, lng = 0.0),
         ),
         pendingPermanentDelete = null,

@@ -22,8 +22,6 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
@@ -53,7 +51,6 @@ import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.edit
-import ktravel.composeapp.generated.resources.map
 import ktravel.composeapp.generated.resources.transport_detail_cd_recalculate
 import ktravel.composeapp.generated.resources.transport_detail_title
 import org.jetbrains.compose.resources.painterResource

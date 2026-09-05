@@ -26,10 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.takaotech.ktravel.presentation.settings.AppSettingsUiState
 import com.takaotech.ktravel.presentation.settings.AppSettingsViewModel
 import com.takaotech.ktravel.ui.settings.component.ReachabilityBadge
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.app_settings_about_section
 import ktravel.composeapp.generated.resources.app_settings_licenses
@@ -50,7 +55,6 @@ import org.jetbrains.compose.resources.stringResource
  * Reached from the trip list rather than from inside a trip: it has to be usable before any trip
  * exists, and it outlives all of them.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSettingsPage(
     viewModel: AppSettingsViewModel,
@@ -69,6 +73,36 @@ fun AppSettingsPage(
         }
     }
 
+    AppSettingsContent(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onNavigationBackClick = onNavigationBackClick,
+        onLicensesClick = onLicensesClick,
+        onBaseUrlChange = viewModel::onBaseUrlChanged,
+        onTestConnection = viewModel::checkReachability,
+        onSave = viewModel::save,
+        modifier = modifier,
+    )
+}
+
+/**
+ * The screen with nothing behind it: everything it draws is an argument.
+ *
+ * Split from [AppSettingsPage] because the page resolves a view model and a screen that needs the
+ * graph to exist can be neither rendered on its own nor previewed.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AppSettingsContent(
+    uiState: AppSettingsUiState,
+    snackbarHostState: SnackbarHostState,
+    onNavigationBackClick: () -> Unit,
+    onLicensesClick: () -> Unit,
+    onBaseUrlChange: (TextFieldValue) -> Unit,
+    onTestConnection: () -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -76,7 +110,10 @@ fun AppSettingsPage(
                 title = { Text(stringResource(Res.string.app_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigationBackClick) {
-                        Icon(painter = painterResource(Res.drawable.arrow_back), contentDescription = null)
+                        Icon(
+                            painter = painterResource(Res.drawable.arrow_back),
+                            contentDescription = null,
+                        )
                     }
                 },
             )
@@ -85,8 +122,9 @@ fun AppSettingsPage(
         bottomBar = {
             BottomAppBar {
                 Button(
-                    onClick = viewModel::save,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag(AppSettingsTestTags.SAVE),
+                    onClick = onSave,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                        .testTag(AppSettingsTestTags.SAVE),
                 ) {
                     Text(stringResource(Res.string.settings_save))
                 }
@@ -104,7 +142,7 @@ fun AppSettingsPage(
 
             OutlinedTextField(
                 value = uiState.navigatorBaseUrl,
-                onValueChange = viewModel::onBaseUrlChanged,
+                onValueChange = onBaseUrlChange,
                 label = { Text(stringResource(Res.string.settings_navigator_base_url)) },
                 supportingText = { Text(stringResource(Res.string.app_settings_navigator_hint)) },
                 singleLine = true,
@@ -116,7 +154,7 @@ fun AppSettingsPage(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(
-                    onClick = viewModel::checkReachability,
+                    onClick = onTestConnection,
                     modifier = Modifier.testTag(AppSettingsTestTags.TEST_CONNECTION),
                 ) {
                     Text(stringResource(Res.string.app_settings_test_connection))
@@ -141,3 +179,22 @@ fun AppSettingsPage(
         }
     }
 }
+
+//region Previews
+
+@PreviewScreenSizes
+@Composable
+private fun AppSettingsContentPreview(
+    @PreviewParameter(AppSettingsContentPreviewParams::class) uiState: AppSettingsUiState,
+) = KTravelTheme {
+    AppSettingsContent(
+        uiState = uiState,
+        snackbarHostState = remember { SnackbarHostState() },
+        onNavigationBackClick = {},
+        onLicensesClick = {},
+        onBaseUrlChange = {},
+        onTestConnection = {},
+        onSave = {},
+    )
+}
+//endregion Previews

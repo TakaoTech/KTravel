@@ -77,7 +77,8 @@ internal fun routingModeExtrasScreen(
         // Tolls stay catalog driven: the descriptor genuinely declares whether the profile
         // understands the question, and a profile that does not is told so rather than left to
         // wonder why the option is missing.
-        avoidable = avoidable.filterNot { it == RouteFeature.TOLL_ROAD && !spec.supportsTolls }.toSet(),
+        avoidable = avoidable.filterNot { it == RouteFeature.TOLL_ROAD && !spec.supportsTolls }
+            .toSet(),
         tollsUnsupported = RouteFeature.TOLL_ROAD in avoidable && !spec.supportsTolls,
         supportsShortest = supportsShortest,
     )

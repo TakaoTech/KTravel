@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.plan.day.placesbacklog
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.place_delete
 import ktravel.composeapp.generated.resources.place_delete_permanent

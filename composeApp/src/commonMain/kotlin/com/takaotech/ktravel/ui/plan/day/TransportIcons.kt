@@ -1,7 +1,6 @@
 package com.takaotech.ktravel.ui.plan.day
 
 import com.takaotech.ktravel.domain.model.TransportType
-import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.directions_bus
 import ktravel.composeapp.generated.resources.directions_car

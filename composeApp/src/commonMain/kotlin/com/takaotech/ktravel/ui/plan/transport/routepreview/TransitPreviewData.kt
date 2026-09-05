@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.plan.transport.routepreview
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.takaotech.ktravel.domain.routing.model.RouteLocation
 import com.takaotech.ktravel.domain.routing.model.RouteSummary
 import com.takaotech.ktravel.domain.routing.model.TransitAgency
@@ -11,7 +9,6 @@ import com.takaotech.ktravel.domain.routing.model.TransitStep
 import com.takaotech.ktravel.domain.routing.model.TransitStop
 import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
-import com.takaotech.ktravel.ui.shared.route.transit.textColor
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime

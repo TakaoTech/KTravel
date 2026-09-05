@@ -2,8 +2,6 @@ package com.takaotech.ktravel.ui.plan.day
 
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 
 // Backlog pane sizing, from the design: the pane hugs the right edge and the itinerary is inset by

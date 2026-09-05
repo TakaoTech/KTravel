@@ -35,7 +35,10 @@ fun RoutingRouteOptionsPresenter(
 
     // Rendered from the default immediately and published a frame later, so the first frame shows a
     // configured screen instead of an empty one and Calculate lights up on its own.
-    val selection = stored.asRoutingFor(screen.profileId) ?: defaultRoutingSelection(screen.profileId, screen.spec)
+    val selection = stored.asRoutingFor(screen.profileId) ?: defaultRoutingSelection(
+        screen.profileId,
+        screen.spec,
+    )
 
     LaunchedEffect(screen) {
         if (draft.selection.value.asRoutingFor(screen.profileId) == null) draft.update(selection)

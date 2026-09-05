@@ -210,8 +210,10 @@ fun String.toGeoPoint(): GeoPoint {
     val parts = split(',')
     require(parts.size >= 2) { "Expected a 'lat,lng' coordinate but got '$this'" }
 
-    val lat = requireNotNull(parts[0].trim().toDoubleOrNull()) { "Latitude is not a number in '$this'" }
-    val lng = requireNotNull(parts[1].trim().toDoubleOrNull()) { "Longitude is not a number in '$this'" }
+    val lat =
+        requireNotNull(parts[0].trim().toDoubleOrNull()) { "Latitude is not a number in '$this'" }
+    val lng =
+        requireNotNull(parts[1].trim().toDoubleOrNull()) { "Longitude is not a number in '$this'" }
 
     return GeoPoint(lat = lat, lng = lng)
 }
@@ -272,8 +274,18 @@ private fun RoutingSectionDto.toDomain(): RoutingSection = RoutingSection(
     summary = summary.toDomain(),
     mode = mode.name,
     actions = actions.map { it.toDomain() },
-    departure = departure?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
-    arrival = arrival?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
+    departure = departure?.let {
+        RouteDeparture(
+            it.place.toLocation(),
+            it.time?.toDateTimeComponents(),
+        )
+    },
+    arrival = arrival?.let {
+        RouteDeparture(
+            it.place.toLocation(),
+            it.time?.toDateTimeComponents(),
+        )
+    },
     polyline = geometry.drawableOrNull(),
     tollSystems = tollSystems.map { RouteTollSystem(id = it.id, name = it.name) },
     tolls = tolls.map { it.toDomain(tollSystems.map { system -> system.id }) },
@@ -356,7 +368,12 @@ private fun TollCostDto.toDomain(systemIds: List<String>): RouteTollCost = Route
  * offset — which is the local one at the stop, and the only reason the field is not just an instant.
  */
 private fun ZonedTime.toDateTimeComponents(): DateTimeComponents = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET
-    .parse(instant.format(DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET, UtcOffset(seconds = offsetSeconds)))
+    .parse(
+        instant.format(
+            DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET,
+            UtcOffset(seconds = offsetSeconds),
+        ),
+    )
 
 /** A moment on a timetable, which the journey model keeps as an instant it can subtract. */
 private fun ZonedTime.toTransitTime(): TransitTime =

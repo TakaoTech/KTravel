@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.settings.app
 
-import androidx.compose.runtime.getValue
-
 internal object AppSettingsTestTags {
     const val BASE_URL = "app_settings_base_url"
     const val TEST_CONNECTION = "app_settings_test_connection"

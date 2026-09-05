@@ -29,7 +29,8 @@ fun TransitRouteOptionsPresenter(
     }
     val stored by draft.selection.collectAsState()
 
-    val selection = stored.asTransitFor(screen.profileId) ?: defaultTransitSelection(screen.profileId)
+    val selection =
+        stored.asTransitFor(screen.profileId) ?: defaultTransitSelection(screen.profileId)
 
     LaunchedEffect(screen) {
         if (draft.selection.value.asTransitFor(screen.profileId) == null) draft.update(selection)

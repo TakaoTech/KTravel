@@ -29,10 +29,8 @@ import com.takaotech.ktravel.ui.shared.component.BackButton
 import com.takaotech.ktravel.ui.shared.format.toColorOrNull
 import com.takaotech.ktravel.ui.shared.map.RoutePreviewMap
 import com.takaotech.ktravel.ui.shared.map.RoutePreviewPath
-import io.nacular.measured.units.times
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
-import ktravel.composeapp.generated.resources.map
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.spatialk.geojson.Position

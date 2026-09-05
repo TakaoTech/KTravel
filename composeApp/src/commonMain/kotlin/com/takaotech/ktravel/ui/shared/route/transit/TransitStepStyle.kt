@@ -1,8 +1,6 @@
 package com.takaotech.ktravel.ui.shared.route.transit
 
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
@@ -11,7 +9,6 @@ import com.takaotech.ktravel.domain.routing.model.TransitStop
 import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.ui.shared.format.formatClock
 import com.takaotech.ktravel.ui.shared.format.toColorOrNull
-import io.nacular.measured.units.times
 
 /**
  * Makes a stop move the camera, when there is enough to place it with.

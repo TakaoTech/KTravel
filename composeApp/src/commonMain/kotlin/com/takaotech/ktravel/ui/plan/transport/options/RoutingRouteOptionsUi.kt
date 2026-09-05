@@ -117,7 +117,11 @@ internal fun RoutingRouteOptionsContent(
 private fun RoutingRouteOptionsContentPreview() = KTravelTheme {
     Surface {
         RoutingRouteOptionsContent(
-            modes = persistentListOf(RoutingMode("CAR"), RoutingMode("TRUCK"), RoutingMode("PEDESTRIAN")),
+            modes = persistentListOf(
+                RoutingMode("CAR"),
+                RoutingMode("TRUCK"),
+                RoutingMode("PEDESTRIAN"),
+            ),
             selectedMode = RoutingMode("CAR"),
             alternatives = 2,
             maxAlternatives = 6,

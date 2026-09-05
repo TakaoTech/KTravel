@@ -3,7 +3,6 @@ package com.takaotech.ktravel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.ui.tooling.preview.Preview
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.takaotech.ktravel.core.KTravelPlatform
 import com.takaotech.ktravel.di.createAppGraph
@@ -22,8 +21,8 @@ import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
  *   activity finishes on Android, the window closes on desktop, and nothing happens on iOS, where
  *   an application does not exit itself.
  */
+@Suppress("ModifierRequired")
 @Composable
-@Preview
 fun App(onRootPop: () -> Unit = {}) {
     val appGraph = remember { createAppGraph() }
 

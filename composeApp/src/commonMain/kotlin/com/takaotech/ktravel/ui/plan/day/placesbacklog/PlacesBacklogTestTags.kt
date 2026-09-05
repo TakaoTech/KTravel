@@ -1,8 +1,5 @@
 package com.takaotech.ktravel.ui.plan.day.placesbacklog
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
 internal object PlacesBacklogTestTags {
     const val LIST = "places_backlog_list"
     const val EMPTY = "places_backlog_empty"

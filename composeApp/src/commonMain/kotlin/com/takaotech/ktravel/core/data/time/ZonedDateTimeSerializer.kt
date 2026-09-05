@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.core.data.time
 
+import com.takaotech.ktravel.core.data.time.ZonedDateTimeSerializer.parseZonedDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.offsetAt
 import kotlinx.datetime.toLocalDateTime

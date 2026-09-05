@@ -307,14 +307,23 @@ internal data class RouteTimeSectionPreviewState(
 internal class RouteTimeSectionPreviewParams : PreviewParameterProvider<RouteTimeSectionPreviewState> {
     override val values = sequenceOf(
         RouteTimeSectionPreviewState(choice = RouteTimeChoice.Now, dayDate = PREVIEW_DAY),
-        RouteTimeSectionPreviewState(choice = RouteTimeChoice.DepartAt(DEPARTURE_HOUR), dayDate = PREVIEW_DAY),
-        RouteTimeSectionPreviewState(choice = RouteTimeChoice.ArriveBy(ARRIVAL_HOUR), dayDate = PREVIEW_DAY),
+        RouteTimeSectionPreviewState(
+            choice = RouteTimeChoice.DepartAt(DEPARTURE_HOUR),
+            dayDate = PREVIEW_DAY,
+        ),
+        RouteTimeSectionPreviewState(
+            choice = RouteTimeChoice.ArriveBy(ARRIVAL_HOUR),
+            dayDate = PREVIEW_DAY,
+        ),
         RouteTimeSectionPreviewState(
             choice = RouteTimeChoice.DepartAt(DEPARTURE_HOUR),
             dayDate = PREVIEW_DAY,
             canArriveBy = false,
         ),
-        RouteTimeSectionPreviewState(choice = RouteTimeChoice.DepartAt(DEPARTURE_HOUR), dayDate = null),
+        RouteTimeSectionPreviewState(
+            choice = RouteTimeChoice.DepartAt(DEPARTURE_HOUR),
+            dayDate = null,
+        ),
     )
 }
 

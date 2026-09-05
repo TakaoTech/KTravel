@@ -74,7 +74,14 @@ fun TransportStepPresenter(
             TransportStepEvent.NavigateBack -> navigator.pop()
 
             TransportStepEvent.Recalculate -> neighbours?.let { (startPlaceId, endPlaceId) ->
-                navigator.goTo(AddTransportScreen(screen.travelId, screen.dayId, startPlaceId, endPlaceId))
+                navigator.goTo(
+                    AddTransportScreen(
+                        screen.travelId,
+                        screen.dayId,
+                        startPlaceId,
+                        endPlaceId,
+                    ),
+                )
             }
 
             is TransportStepEvent.Notes -> notes(event.event)
@@ -93,7 +100,9 @@ private fun List<StepRow>.toTransportDetail(
     step: StepUi.Transport,
     neighbours: Pair<String, String>?,
 ): TransportStepUi {
-    val places = filterIsInstance<StepRow.Step>().map(StepRow.Step::step).filterIsInstance<StepUi.Place>()
+    val places =
+        filterIsInstance<StepRow.Step>().map(StepRow.Step::step).filterIsInstance<StepUi.Place>()
+
     fun nameOf(id: String?) = places.firstOrNull { it.id == id }?.name.orEmpty()
 
     val answer = step.answer

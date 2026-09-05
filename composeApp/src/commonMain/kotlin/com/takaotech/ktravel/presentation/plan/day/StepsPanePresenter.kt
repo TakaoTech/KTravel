@@ -79,7 +79,12 @@ fun StepsPanePresenter(
             }
 
             is StepsPaneEvent.AddTransport -> navigator.goTo(
-                AddTransportScreen(screen.travelId, screen.dayId, event.startPlaceId, event.endPlaceId),
+                AddTransportScreen(
+                    screen.travelId,
+                    screen.dayId,
+                    event.startPlaceId,
+                    event.endPlaceId,
+                ),
             )
 
             is StepsPaneEvent.SetStartTime -> scope.launch {

@@ -1,5 +1,7 @@
 package com.takaotech.ktravel.data.archive
 
+import com.takaotech.ktravel.data.archive.TravelArchiveValidation.SEGMENT
+
 /**
  * Validation of the paths coming out of an archive.
  *

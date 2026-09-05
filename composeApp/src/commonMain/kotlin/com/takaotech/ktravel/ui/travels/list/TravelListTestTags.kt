@@ -1,8 +1,5 @@
 package com.takaotech.ktravel.ui.travels.list
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
 internal object TravelListTestTags {
     const val SEARCH_BAR = "travel_selection_search_bar"
     const val FAB_NEW_TRAVEL = "travel_selection_fab"

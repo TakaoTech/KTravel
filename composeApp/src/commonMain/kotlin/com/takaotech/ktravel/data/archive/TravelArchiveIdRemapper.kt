@@ -57,7 +57,11 @@ internal object TravelArchiveIdRemapper {
         val daysWithNewIds = plan.days.map { day ->
             val newDayId = newId()
             val steps = day.steps.map { step -> step.remapIds(newTravelId, newId, pathMapping) }
-            day.copy(id = newDayId, steps = steps, places = day.places.remapIds(newTravelId, newId, pathMapping))
+            day.copy(
+                id = newDayId,
+                steps = steps,
+                places = day.places.remapIds(newTravelId, newId, pathMapping),
+            )
         }
         val backlogWithNewIds = plan.places.remapIds(newTravelId, newId, pathMapping)
         logger.d { "Ids regenerated, ${pathMapping.size} attachment paths to move" }
@@ -103,8 +107,14 @@ internal object TravelArchiveIdRemapper {
         )
     }
 
-    private fun List<PlaceEntity>.rewriteNotes(pathMapping: Map<String, String>): List<PlaceEntity> =
-        map { place -> place.copy(note = AttachmentReference.rewriteReferences(place.note, pathMapping)) }
+    private fun List<PlaceEntity>.rewriteNotes(pathMapping: Map<String, String>): List<PlaceEntity> = map { place ->
+        place.copy(
+            note = AttachmentReference.rewriteReferences(
+                place.note,
+                pathMapping,
+            ),
+        )
+    }
 
     private fun StepEntity.remapIds(
         newTravelId: String,
@@ -125,7 +135,13 @@ internal object TravelArchiveIdRemapper {
     }
 
     private fun StepEntity.rewriteNote(pathMapping: Map<String, String>): StepEntity = when (this) {
-        is StepEntity.Transport -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
+        is StepEntity.Transport -> copy(
+            note = AttachmentReference.rewriteReferences(
+                note,
+                pathMapping,
+            ),
+        )
+
         is StepEntity.Place -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
     }
 

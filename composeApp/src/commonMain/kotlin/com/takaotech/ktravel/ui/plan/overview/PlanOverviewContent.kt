@@ -43,7 +43,6 @@ import com.takaotech.ktravel.ui.plan.overview.component.PlanOverviewHeader
 import com.takaotech.ktravel.ui.plan.overview.component.PlanPlaceRow
 import com.takaotech.ktravel.ui.plan.overview.component.SectionTitle
 import com.takaotech.ktravel.ui.plan.preview.TravelDayStepPreviewParameterProvider
-import com.takaotech.ktravel.ui.shared.format.message
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList

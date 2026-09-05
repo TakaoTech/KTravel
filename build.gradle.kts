@@ -135,9 +135,9 @@ kover {
                     "*ComposableSingletons*",
                     $$$"*$$Metro*",
                     "*.BuildConfig",
-                    // Preview fixtures and the previews they feed: sample data, not covered behaviour.
+                    // Preview fixtures: sample data, not covered behaviour. The previews themselves
+                    // are excluded by annotation below, wherever the file they sit in.
                     "*PreviewDataKt",
-                    "*PreviewsKt",
                 )
                 annotatedBy(
                     "*Generated*",

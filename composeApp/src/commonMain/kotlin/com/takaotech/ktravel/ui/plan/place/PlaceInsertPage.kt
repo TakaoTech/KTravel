@@ -40,7 +40,10 @@ fun PlaceInsertPage(
                     IconButton(
                         onClick = onExit,
                     ) {
-                        Icon(painter = painterResource(Res.drawable.close), contentDescription = null)
+                        Icon(
+                            painter = painterResource(Res.drawable.close),
+                            contentDescription = null,
+                        )
                     }
                 },
             )

@@ -1,8 +1,5 @@
 package com.takaotech.ktravel.ui.shared.dialog
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
 internal object ImportSecretsDialogTestTags {
     const val CHOICE_IMPORT = "import_secrets_choice_import"
     const val CHOICE_SKIP = "import_secrets_choice_skip"

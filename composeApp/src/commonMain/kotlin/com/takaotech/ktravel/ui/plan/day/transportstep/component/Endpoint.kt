@@ -12,8 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,7 +22,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.ui.shared.format.formatClock
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.nacular.measured.units.times
 import kotlinx.datetime.LocalDateTime
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.flag
@@ -120,7 +117,11 @@ internal data class EndpointPreviewState(val isArrival: Boolean, val name: Strin
  */
 internal class EndpointPreviewParams : PreviewParameterProvider<EndpointPreviewState> {
     override val values = sequenceOf(
-        EndpointPreviewState(isArrival = false, name = "Kyoto Station", time = previewTime(hour = 9, minute = 12)),
+        EndpointPreviewState(
+            isArrival = false,
+            name = "Kyoto Station",
+            time = previewTime(hour = 9, minute = 12),
+        ),
         EndpointPreviewState(
             isArrival = true,
             name = "Fushimi Inari Taisha",

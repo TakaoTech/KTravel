@@ -1,8 +1,6 @@
 package com.takaotech.ktravel.ui.plan.day.placesbacklog
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.di.AppScope

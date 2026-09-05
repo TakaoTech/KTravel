@@ -52,7 +52,12 @@ fun PlacesBacklogPresenter(
         when (event) {
             PlacesBacklogEvent.Close -> navigator.pop()
 
-            PlacesBacklogEvent.AddPlace -> navigator.goTo(AddPlaceScreen(screen.travelId, screen.dayId))
+            PlacesBacklogEvent.AddPlace -> navigator.goTo(
+                AddPlaceScreen(
+                    screen.travelId,
+                    screen.dayId,
+                ),
+            )
 
             is PlacesBacklogEvent.MovePlaceToSteps -> scope.launch {
                 repository.movePlaceToStep(event.placeId, screen.dayId)

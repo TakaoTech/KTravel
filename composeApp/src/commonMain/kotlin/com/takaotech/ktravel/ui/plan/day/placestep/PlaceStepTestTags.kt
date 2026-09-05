@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.plan.day.placestep
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.takaotech.ktravel.ui.plan.day.notes.StepNotesTestTags
 
 internal object PlaceStepTestTags {

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.takaotech.ktravel.di.AppScope
@@ -23,7 +24,9 @@ import com.takaotech.ktravel.ui.plan.transport.component.SectionLabel
 import com.takaotech.ktravel.ui.plan.transport.component.ToggleRow
 import com.takaotech.ktravel.ui.plan.transport.component.TransportPlanningTestTags
 import com.takaotech.ktravel.ui.shared.format.label
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.planning_transport_avoid_hint
 import ktravel.composeapp.generated.resources.planning_transport_avoid_section
@@ -130,3 +133,46 @@ internal fun FilterChipFor(feature: RouteFeature, selected: Boolean, onClick: ()
         label = { Text(stringResource(feature.label())) },
     )
 }
+
+//region Previews
+
+@Preview
+@Composable
+private fun RoutingModeExtrasContentPreview() = KTravelTheme {
+    RoutingModeExtrasContent(
+        avoidable = persistentSetOf(
+            RouteFeature.TOLL_ROAD,
+            RouteFeature.CONTROLLED_ACCESS_HIGHWAY,
+            RouteFeature.FERRY,
+            RouteFeature.TUNNEL,
+            RouteFeature.DIRT_ROAD,
+            RouteFeature.CAR_SHUTTLE_TRAIN,
+        ),
+        avoided = persistentSetOf(RouteFeature.FERRY),
+        tollsUnsupported = false,
+        supportsShortest = true,
+        shortestDistance = false,
+        onAvoidClick = {},
+        onShortestChange = {},
+    )
+}
+
+@Preview
+@Composable
+private fun RoutingModeExtrasContentScooterPreview() = KTravelTheme {
+    RoutingModeExtrasContent(
+        avoidable = persistentSetOf(
+            RouteFeature.FERRY,
+            RouteFeature.TUNNEL,
+            RouteFeature.DIRT_ROAD,
+        ),
+        avoided = persistentSetOf(),
+        tollsUnsupported = false,
+        // A scooter is one of the vehicles HERE refuses to optimize for distance.
+        supportsShortest = false,
+        shortestDistance = false,
+        onAvoidClick = {},
+        onShortestChange = {},
+    )
+}
+//endregion Previews

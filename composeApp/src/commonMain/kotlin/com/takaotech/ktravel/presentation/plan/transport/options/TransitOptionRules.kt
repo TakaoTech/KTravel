@@ -69,5 +69,10 @@ internal fun RouteSelection.Transit.reduce(
         copy(pedestrianSpeedMetersPerSecond = event.pace.metersPerSecond)
 
     is TransitRouteOptionsEvent.SetMaxWalkingDistance ->
-        copy(pedestrianMaxDistanceMeters = event.meters?.coerceIn(WALK_DISTANCE_MIN, WALK_DISTANCE_MAX))
+        copy(
+            pedestrianMaxDistanceMeters = event.meters?.coerceIn(
+                WALK_DISTANCE_MIN,
+                WALK_DISTANCE_MAX,
+            ),
+        )
 }

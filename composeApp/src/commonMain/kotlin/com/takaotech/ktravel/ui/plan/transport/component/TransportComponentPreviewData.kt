@@ -7,9 +7,6 @@ import com.takaotech.ktravel.domain.routing.RoutingOptionsSpec
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.RoutingProfileInfo
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
-import com.takaotech.ktravel.ui.plan.transport.component.ProfileRow
-import com.takaotech.ktravel.ui.plan.transport.component.ReachabilityPill
-import com.takaotech.ktravel.ui.plan.transport.component.RoutingModeChip
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.flag
 import ktravel.composeapp.generated.resources.place
@@ -126,7 +123,11 @@ internal class RoutingModeChipPreviewParams : PreviewParameterProvider<RoutingMo
     override val values = sequenceOf(
         RoutingModeChipPreviewState(mode = RoutingMode("CAR"), selected = true, enabled = true),
         RoutingModeChipPreviewState(mode = RoutingMode("SUBWAY"), selected = false, enabled = true),
-        RoutingModeChipPreviewState(mode = RoutingMode("PEDESTRIAN"), selected = false, enabled = true),
+        RoutingModeChipPreviewState(
+            mode = RoutingMode("PEDESTRIAN"),
+            selected = false,
+            enabled = true,
+        ),
         RoutingModeChipPreviewState(mode = RoutingMode("FERRY"), selected = false, enabled = false),
         RoutingModeChipPreviewState(mode = RoutingMode("HIKING"), selected = false, enabled = true),
     )

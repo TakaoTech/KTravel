@@ -14,7 +14,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -25,7 +24,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.ui.plan.day.transportstep.TransportStepTestTags
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.keyboard_arrow_down
 import ktravel.composeapp.generated.resources.transport_detail_cd_collapse_steps

@@ -29,9 +29,7 @@ import com.takaotech.ktravel.ui.plan.day.notes.StepNotesSection
 import com.takaotech.ktravel.ui.plan.day.notes.rememberStepNotesHost
 import com.takaotech.ktravel.ui.plan.day.transportstep.TransportStepTestTags
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
-import ktravel.composeapp.generated.resources.map
 import ktravel.composeapp.generated.resources.transport_detail_note_empty
 import ktravel.composeapp.generated.resources.transport_detail_note_label
 import ktravel.composeapp.generated.resources.transport_detail_note_title

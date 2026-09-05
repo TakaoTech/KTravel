@@ -1,7 +1,5 @@
 package com.takaotech.ktravel.ui.travels.list
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.presentation.travels.TravelSummaryUiState
 import kotlinx.collections.immutable.persistentListOf

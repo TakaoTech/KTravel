@@ -49,7 +49,8 @@ data class RoutingModeExtrasScreen(
 
     @Transient
     val avoidable: ImmutableSet<RouteFeature> =
-        avoidableNames.mapNotNull { name -> RouteFeature.entries.firstOrNull { it.name == name } }.toPersistentSet()
+        avoidableNames.mapNotNull { name -> RouteFeature.entries.firstOrNull { it.name == name } }
+            .toPersistentSet()
 
     companion object {
 

@@ -46,7 +46,10 @@ suspend fun NavigatorClient.checkReachability(baseUrl: String): NavigatorReachab
 
         // A navigator that answers with an error is still a navigator that is there; anything that
         // could not be reached at all is not.
-        is NavigatorResult.ServerError -> NavigatorReachability.Reachable(version = "unknown", latencyMillis = elapsed)
+        is NavigatorResult.ServerError -> NavigatorReachability.Reachable(
+            version = "unknown",
+            latencyMillis = elapsed,
+        )
 
         is NavigatorResult.TransportError -> NavigatorReachability.Unreachable
     }

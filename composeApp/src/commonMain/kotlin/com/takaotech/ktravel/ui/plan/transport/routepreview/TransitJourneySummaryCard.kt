@@ -10,8 +10,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -19,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.routing.model.TransitJourney
 import com.takaotech.ktravel.ui.shared.route.transit.TransitStepBadge
 import com.takaotech.ktravel.ui.shared.route.transit.clock
-import io.nacular.measured.units.times
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.transit_preview_changes
 import ktravel.composeapp.generated.resources.transit_preview_no_change

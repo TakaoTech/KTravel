@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.ui.shared.format.formatIso
@@ -53,7 +52,10 @@ fun TravelDateRangePicker(
     val startDateMillis = dateRangePickerState.selectedStartDateMillis
     val endDateMillis = dateRangePickerState.selectedEndDateMillis
 
-    val dateText by remember(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
+    val dateText by remember(
+        dateRangePickerState.selectedStartDateMillis,
+        dateRangePickerState.selectedEndDateMillis,
+    ) {
         derivedStateOf {
             buildString {
                 val formatMillis = { millis: Long ->

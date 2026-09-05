@@ -119,7 +119,8 @@ class TransportPlanningViewModel(
 
         val preferred = navigatorTargets.defaultKind()
         val remoteConfigured = navigatorTargets.isRemoteConfigured()
-        val kind = if (preferred == NavigatorKind.REMOTE && !remoteConfigured) NavigatorKind.EMBEDDED else preferred
+        val kind =
+            if (preferred == NavigatorKind.REMOTE && !remoteConfigured) NavigatorKind.EMBEDDED else preferred
 
         mUiState.update { it.copy(navigatorKind = kind, isRemoteConfigured = remoteConfigured) }
 
@@ -219,8 +220,14 @@ class TransportPlanningViewModel(
         mUiState.update { state ->
             val choice = when (mode) {
                 RouteTimeMode.NOW -> RouteTimeChoice.Now
-                RouteTimeMode.DEPART_AT -> RouteTimeChoice.DepartAt(state.departureSuggestion ?: fallback)
-                RouteTimeMode.ARRIVE_BY -> RouteTimeChoice.ArriveBy(state.arrivalSuggestion ?: fallback)
+
+                RouteTimeMode.DEPART_AT -> RouteTimeChoice.DepartAt(
+                    state.departureSuggestion ?: fallback,
+                )
+
+                RouteTimeMode.ARRIVE_BY -> RouteTimeChoice.ArriveBy(
+                    state.arrivalSuggestion ?: fallback,
+                )
             }
 
             state.copy(timeChoice = choice)
@@ -252,7 +259,8 @@ class TransportPlanningViewModel(
         routeOptionsDraft.clear()
 
         mUiState.update { state ->
-            val profile = state.catalog?.options?.firstOrNull { it.profile.id == profileId }?.profile
+            val profile =
+                state.catalog?.options?.firstOrNull { it.profile.id == profileId }?.profile
 
             state.copy(
                 selectedProfileId = profileId,
@@ -273,7 +281,9 @@ class TransportPlanningViewModel(
         if (calculateTransportJob?.isActive == true) return
 
         val state = mUiState.value
-        val selection = routeOptionsDraft.selection.value?.takeIf { it.profileId == state.selectedProfileId } ?: return
+        val selection =
+            routeOptionsDraft.selection.value?.takeIf { it.profileId == state.selectedProfileId }
+                ?: return
         val start = state.startPlace ?: return
         val end = state.endPlace ?: return
         val dayDate = state.dayDate ?: return

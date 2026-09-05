@@ -1,25 +1,7 @@
 package com.takaotech.ktravel.ui.settings.component
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.PreviewFontScale
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.settings.NavigatorReachability
-import com.takaotech.ktravel.ui.theme.KTravelTheme
-
-@PreviewFontScale
-@Composable
-private fun ReachabilityBadgePreview(
-    @PreviewParameter(ReachabilityBadgePreviewParams::class) reachability: NavigatorReachability,
-) = KTravelTheme {
-    Surface {
-        ReachabilityBadge(reachability = reachability, modifier = Modifier.padding(12.dp))
-    }
-}
 
 /**
  * Every state the badge draws, including the two that share the neutral colours.

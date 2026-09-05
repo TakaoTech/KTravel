@@ -161,7 +161,13 @@ internal class BacklogPlaceRowPreviewParams : PreviewParameterProvider<PlaceUi> 
     override val values = sequenceOf(
         PlaceUi(name = loremIpsumName(words = 2), lat = 0.0, lng = 0.0),
         PlaceUi(name = loremIpsumName(words = 3), lat = 0.0, lng = 0.0, hasNote = true),
-        PlaceUi(name = loremIpsumName(words = 2), lat = 0.0, lng = 0.0, hasNote = true, attachmentCount = 3),
+        PlaceUi(
+            name = loremIpsumName(words = 2),
+            lat = 0.0,
+            lng = 0.0,
+            hasNote = true,
+            attachmentCount = 3,
+        ),
         PlaceUi(
             name = loremIpsumName(words = 14),
             lat = 0.0,

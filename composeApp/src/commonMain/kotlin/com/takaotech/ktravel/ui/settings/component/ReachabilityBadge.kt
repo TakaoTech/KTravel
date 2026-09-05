@@ -13,8 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.PreviewFontScale
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.presentation.settings.NavigatorReachability
+import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.planning_transport_status_checking
 import ktravel.composeapp.generated.resources.planning_transport_status_offline
@@ -35,8 +38,18 @@ fun ReachabilityBadge(reachability: NavigatorReachability, modifier: Modifier = 
     val scheme = MaterialTheme.colorScheme
 
     val (container, content, dot) = when (reachability) {
-        is NavigatorReachability.Reachable -> Triple(scheme.primaryContainer, scheme.onPrimaryContainer, scheme.primary)
-        NavigatorReachability.Unreachable -> Triple(scheme.errorContainer, scheme.onErrorContainer, scheme.error)
+        is NavigatorReachability.Reachable -> Triple(
+            scheme.primaryContainer,
+            scheme.onPrimaryContainer,
+            scheme.primary,
+        )
+
+        NavigatorReachability.Unreachable -> Triple(
+            scheme.errorContainer,
+            scheme.onErrorContainer,
+            scheme.error,
+        )
+
         else -> Triple(scheme.surfaceContainerHighest, scheme.onSurfaceVariant, scheme.outline)
     }
 
@@ -73,3 +86,16 @@ fun ReachabilityBadge(reachability: NavigatorReachability, modifier: Modifier = 
 internal fun Dot(color: Color, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.size(8.dp), shape = CircleShape, color = color) {}
 }
+
+//region Previews
+
+@PreviewFontScale
+@Composable
+private fun ReachabilityBadgePreview(
+    @PreviewParameter(ReachabilityBadgePreviewParams::class) reachability: NavigatorReachability,
+) = KTravelTheme {
+    Surface {
+        ReachabilityBadge(reachability = reachability, modifier = Modifier.padding(12.dp))
+    }
+}
+//endregion Previews

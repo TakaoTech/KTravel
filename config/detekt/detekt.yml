@@ -327,6 +327,9 @@ naming:
     parameterPattern: '[a-z][A-Za-z0-9]*|_'
   MatchingDeclarationName:
     active: true
+    # A '*PreviewData.kt' file is named after the composable whose fixtures it holds, not after the
+    # single provider class that may be all it contains yet: see the previewing-composables skill.
+    excludes: [ '**/*PreviewData.kt' ]
     mustBeFirst: true
   MemberNameEqualsClassName:
     active: true

@@ -1,8 +1,6 @@
 package com.takaotech.ktravel.ui.shared.time
 
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 /**
  * Presentation-agnostic handle exposed by [ScheduleTimeEditor] to its trigger [content]: the

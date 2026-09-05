@@ -22,9 +22,10 @@ import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 @CircuitInject(AddTransportScreen::class, AppScope::class)
 @Composable
 fun TransportPlanningUi(screen: AddTransportScreen, state: TransportPlanningNavState, modifier: Modifier = Modifier) {
-    val viewModel = assistedMetroViewModel<TransportPlanningViewModel, TransportPlanningViewModel.Factory>(
-        key = "transport_${screen.dayId}_${screen.startPlaceId}_${screen.endPlaceId}",
-    ) { _ -> create(screen.travelId, screen.dayId, screen.startPlaceId, screen.endPlaceId) }
+    val viewModel =
+        assistedMetroViewModel<TransportPlanningViewModel, TransportPlanningViewModel.Factory>(
+            key = "transport_${screen.dayId}_${screen.startPlaceId}_${screen.endPlaceId}",
+        ) { _ -> create(screen.travelId, screen.dayId, screen.startPlaceId, screen.endPlaceId) }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

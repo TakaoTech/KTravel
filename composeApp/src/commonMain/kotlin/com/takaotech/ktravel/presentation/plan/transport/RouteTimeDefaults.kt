@@ -64,7 +64,12 @@ internal fun Clock.nowRoundedUp(zone: TimeZone): LocalTime {
 
     // Rounding the last minutes of the day lands on the next one, which this leg is not on: the day
     // ends at 23:55 instead, which is the latest hour that is still today.
-    if (rounded >= MINUTES_PER_DAY) return LocalTime(hour = 23, minute = MINUTES_PER_HOUR - ROUNDING_MINUTES)
+    if (rounded >= MINUTES_PER_DAY) {
+        return LocalTime(
+        hour = 23,
+        minute = MINUTES_PER_HOUR - ROUNDING_MINUTES,
+    )
+    }
 
     return LocalTime(hour = rounded / MINUTES_PER_HOUR, minute = rounded % MINUTES_PER_HOUR)
 }

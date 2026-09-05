@@ -1,6 +1,5 @@
 package com.takaotech.ktravel.ui.plan.transport.composer
 
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
@@ -61,7 +60,8 @@ internal val PREVIEW_CATALOG = RoutingCatalog(
 )
 
 /** The same call, unanswered: a catalog without a version is one nothing was reached for. */
-internal val PREVIEW_CATALOG_UNREACHABLE = RoutingCatalog(options = emptyList(), navigatorVersion = null)
+internal val PREVIEW_CATALOG_UNREACHABLE =
+    RoutingCatalog(options = emptyList(), navigatorVersion = null)
 
 /**
  * The navigator block through the run of a switch to a remote one.
@@ -106,7 +106,10 @@ internal class ProfileBlockPreviewParams : PreviewParameterProvider<TransportPla
     override val values = sequenceOf(
         TransportPlanningUiState(),
         TransportPlanningUiState(isCatalogLoading = true),
-        TransportPlanningUiState(catalog = PREVIEW_CATALOG, selectedProfileId = PREVIEW_HERE_CAR.id),
+        TransportPlanningUiState(
+            catalog = PREVIEW_CATALOG,
+            selectedProfileId = PREVIEW_HERE_CAR.id,
+        ),
         TransportPlanningUiState(
             navigatorKind = NavigatorKind.REMOTE,
             isRemoteConfigured = true,

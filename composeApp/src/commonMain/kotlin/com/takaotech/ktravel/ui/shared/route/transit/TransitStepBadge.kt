@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -18,11 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.routing.model.TransitStep
-import com.takaotech.ktravel.ui.shared.route.transit.TransitStepRow
-import com.takaotech.ktravel.ui.shared.route.transit.clock
-import com.takaotech.ktravel.ui.shared.route.transit.lineColor
-import com.takaotech.ktravel.ui.shared.route.transit.textColor
-import io.nacular.measured.units.times
 
 /** One step of the journey reduced to what fits on a badge: the line, or how long the walk is. */
 @Composable

@@ -14,9 +14,10 @@ import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 @CircuitInject(TravelSettingsScreen::class, AppScope::class)
 @Composable
 fun TravelSettingsUi(screen: TravelSettingsScreen, state: TravelSettingsNavState, modifier: Modifier = Modifier) {
-    val viewModel = assistedMetroViewModel<TravelSettingsViewModel, TravelSettingsViewModel.Factory>(
-        key = "settings_${screen.travelId}",
-    ) { _ -> create(screen.travelId) }
+    val viewModel =
+        assistedMetroViewModel<TravelSettingsViewModel, TravelSettingsViewModel.Factory>(
+            key = "settings_${screen.travelId}",
+        ) { _ -> create(screen.travelId) }
 
     TravelSettingsPage(
         viewModel = viewModel,

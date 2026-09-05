@@ -12,8 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +24,6 @@ import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.ui.plan.day.toIcon
 import com.takaotech.ktravel.ui.shared.format.labelOrNull
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.nacular.measured.units.times
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import com.takaotech.ktravel.presentation.plan.day.TransportStepUi as TransportStepUiModel

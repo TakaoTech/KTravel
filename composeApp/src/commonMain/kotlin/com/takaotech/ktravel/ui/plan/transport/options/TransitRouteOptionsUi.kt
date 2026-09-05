@@ -207,7 +207,10 @@ internal fun WalkingPaceSelector(
                     modifier = Modifier.testTag(TransportPlanningTestTags.walkingPaceTag(entry.name)),
                     selected = entry == pace,
                     onClick = { onPaceChange(entry) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = WalkingPace.entries.size),
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = WalkingPace.entries.size,
+                    ),
                 ) {
                     Text(stringResource(entry.label()))
                 }

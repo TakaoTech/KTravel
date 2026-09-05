@@ -52,7 +52,10 @@ fun TransitJourneyPreviewPage(
         focus = stop
         scope.launch {
             cameraState.animateTo(
-                CameraPosition(target = Position(longitude = stop.lng, latitude = stop.lat), zoom = STOP_FOCUS_ZOOM),
+                CameraPosition(
+                    target = Position(longitude = stop.lng, latitude = stop.lat),
+                    zoom = STOP_FOCUS_ZOOM,
+                ),
             )
         }
     }
@@ -73,7 +76,12 @@ fun TransitJourneyPreviewPage(
                 enabled = enabled,
                 paths = selected?.steps.orEmpty()
                     .mapNotNull { step ->
-                        step.polyline?.let { RoutePreviewPath(polyline = it, color = step.lineColor()) }
+                        step.polyline?.let {
+                            RoutePreviewPath(
+                                polyline = it,
+                                color = step.lineColor(),
+                            )
+                        }
                     }
                     .toPersistentList(),
                 cameraState = cameraState,

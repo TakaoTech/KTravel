@@ -136,7 +136,8 @@ fun rememberStepNotesEditing(
                     // Leaving the editor: flush the pending note without waiting for the debounce.
                     if (!event.editing) {
                         scope.launch {
-                            noteInvalid = repository.flush(dayId, stepId, pendingNote, savedNote) ?: noteInvalid
+                            noteInvalid = repository.flush(dayId, stepId, pendingNote, savedNote)
+                                ?: noteInvalid
                         }
                     }
                 }

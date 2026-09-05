@@ -77,7 +77,12 @@ class TravelSettingsViewModel(
 
     fun onNavigatorBaseUrlChanged(value: TextFieldValue) {
         // An edited address invalidates whatever the last check said about the previous one.
-        _uiState.update { it.copy(navigatorBaseUrl = value, reachability = NavigatorReachability.Unknown) }
+        _uiState.update {
+            it.copy(
+                navigatorBaseUrl = value,
+                reachability = NavigatorReachability.Unknown,
+            )
+        }
     }
 
     private var checkJob: Job? = null

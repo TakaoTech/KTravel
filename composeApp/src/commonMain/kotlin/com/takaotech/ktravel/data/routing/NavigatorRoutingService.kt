@@ -79,14 +79,18 @@ class NavigatorRoutingService(
                             },
                         )
                     },
-                    navigatorVersion = response.value.version.orEmpty().ifBlank { UNNAMED_VERSION },
+                    navigatorVersion = response.value.version.orEmpty()
+                        .ifBlank { UNNAMED_VERSION },
                     latencyMillis = elapsed,
                 )
             }
 
             is NavigatorResult.ServerError -> unreachableCatalog(known, response.error.message)
 
-            is NavigatorResult.TransportError -> unreachableCatalog(known, response.cause.reachabilityMessage())
+            is NavigatorResult.TransportError -> unreachableCatalog(
+                known,
+                response.cause.reachabilityMessage(),
+            )
         }
     }
 
@@ -121,7 +125,11 @@ class NavigatorRoutingService(
 
             is RouteSelection.Transit -> RouteResult.Transit(
                 callWithRecovery(kind) { target ->
-                    client.hereTransit(selection.toTransitRouteRequest(from, to, routeTime), apiKey, target)
+                    client.hereTransit(
+                        selection.toTransitRouteRequest(from, to, routeTime),
+                        apiKey,
+                        target,
+                    )
                 }.orThrow().toDomain(),
             )
         }
@@ -194,7 +202,9 @@ private fun <T : Any> NavigatorResult<T>.orThrow(): T = when (this) {
 
         ErrorCode.NO_ROUTE_FOUND -> RoutingFailure.NoRouteFound(error.message)
 
-        ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(error.message)
+        ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(
+            error.message,
+        )
 
         ErrorCode.INTERNAL -> RoutingFailure.Unexpected(error.message)
     }

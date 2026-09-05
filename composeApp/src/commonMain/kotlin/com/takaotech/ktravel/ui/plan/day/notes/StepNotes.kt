@@ -330,7 +330,10 @@ internal class StepNotesSectionPreviewParams : PreviewParameterProvider<StepNote
             noteInvalid = true,
             missingReferences = persistentListOf("t1/s1/ticket.pdf"),
         ),
-        StepNotesUiState(note = "Ask at the desk whether the roof terrace is open", isEditing = true),
+        StepNotesUiState(
+            note = "Ask at the desk whether the roof terrace is open",
+            isEditing = true,
+        ),
     )
 }
 

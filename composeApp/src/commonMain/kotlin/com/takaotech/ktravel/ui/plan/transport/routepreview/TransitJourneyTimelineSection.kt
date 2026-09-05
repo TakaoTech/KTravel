@@ -4,15 +4,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
 import com.takaotech.ktravel.domain.routing.model.TransitJourney
 import com.takaotech.ktravel.ui.shared.route.transit.TransitStepRow
 import com.takaotech.ktravel.ui.theme.KTravelTheme
-import io.nacular.measured.units.times
 
 @Composable
 internal fun TransitJourneyTimelineSection(

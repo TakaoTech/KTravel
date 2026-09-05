@@ -105,10 +105,16 @@ internal fun previewTransitStep(
             summary = TRANSIT_SUMMARY,
             steps = listOf(
                 TransitStep.Walk(
-                    summary = RouteSummary(durationSeconds = 480.seconds, distance = 600.0 * Length.meters),
+                    summary = RouteSummary(
+                        durationSeconds = 480.seconds,
+                        distance = 600.0 * Length.meters,
+                    ),
                 ),
                 TransitStep.Ride(
-                    summary = RouteSummary(durationSeconds = 1320.seconds, distance = 8400.0 * Length.meters),
+                    summary = RouteSummary(
+                        durationSeconds = 1320.seconds,
+                        distance = 8400.0 * Length.meters,
+                    ),
                     line = TransitLine(mode = "SUBWAY", name = "Karasuma line", color = "#009944"),
                 ),
             ),

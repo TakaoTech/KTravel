@@ -15,8 +15,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -195,10 +193,30 @@ internal data class ScheduleFieldsPreviewState(
  */
 internal class ScheduleFieldsPreviewParams : PreviewParameterProvider<ScheduleFieldsPreviewState> {
     override val values = sequenceOf(
-        ScheduleFieldsPreviewState(width = 480.dp, stacked = false, fillWidth = false, stackContent = false),
-        ScheduleFieldsPreviewState(width = 400.dp, stacked = false, fillWidth = true, stackContent = false),
-        ScheduleFieldsPreviewState(width = 280.dp, stacked = false, fillWidth = true, stackContent = true),
-        ScheduleFieldsPreviewState(width = 180.dp, stacked = true, fillWidth = true, stackContent = true),
+        ScheduleFieldsPreviewState(
+            width = 480.dp,
+            stacked = false,
+            fillWidth = false,
+            stackContent = false,
+        ),
+        ScheduleFieldsPreviewState(
+            width = 400.dp,
+            stacked = false,
+            fillWidth = true,
+            stackContent = false,
+        ),
+        ScheduleFieldsPreviewState(
+            width = 280.dp,
+            stacked = false,
+            fillWidth = true,
+            stackContent = true,
+        ),
+        ScheduleFieldsPreviewState(
+            width = 180.dp,
+            stacked = true,
+            fillWidth = true,
+            stackContent = true,
+        ),
     )
 }
 
