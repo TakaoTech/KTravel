@@ -327,7 +327,6 @@ kotlin {
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
                 implementation(libs.compose.backhandler.core)
-                implementation(libs.navigation.compose)
                 implementation(libs.bundles.material.adaptive)
                 implementation(libs.compose.ui)
                 implementation(libs.compose.resources)
@@ -389,6 +388,10 @@ kotlin {
                 api(libs.circuit.runtime)
                 api(libs.circuit.runtime.presenter)
                 api(libs.circuit.runtime.ui)
+                // Nothing downstream of composeApp consumes these, so they stay off the published API.
+                implementation(libs.circuit.serialization)
+                implementation(libs.circuitx.navigation)
+                implementation(libs.circuitx.gesture.navigation)
 
                 implementation(libs.kotlinx.serialization.json)
 

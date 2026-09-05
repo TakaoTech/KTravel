@@ -4,10 +4,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
-import com.takaotech.ktravel.core.ui.FieldValidationState
-import com.takaotech.ktravel.core.ui.KFieldState
-import com.takaotech.ktravel.core.ui.toTextPayload
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.presentation.field.FieldValidationState
+import com.takaotech.ktravel.presentation.field.KFieldState
+import com.takaotech.ktravel.presentation.field.toTextPayload
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject

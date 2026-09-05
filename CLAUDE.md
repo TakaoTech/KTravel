@@ -97,6 +97,7 @@ starting the work, not after the first failure.
 | `generating-dependency-licenses`   | Touching the licenses screen, the AboutLibraries setup, or the release workflow that fetches the license texts       |
 | `localizing-strings`               | Adding or changing anything in `composeResources/**/strings.xml`, a `stringResource`, a translation, or a language   |
 | `migrating-archive-schema`         | Changing an entity behind the `.ktravel` archive (schema version, `TravelPlanJsonMigration`)                        |
+| `previewing-composables`           | Writing or changing a `@Preview`, its `PreviewParameterProvider` or its sample data                                 |
 | `text-to-lottie`                   | Creating or fixing the Lottie JSON animations played by Skottie                                                     |
 
 ### Android / KMP skills (`android-skills` plugin)
@@ -314,6 +315,8 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 - Place new label strings in `strings.xml` and use id for string references
 - Use Immutable package instead of standard List
 - For anything touching `strings.xml` or translations, use the `localizing-strings` skill
+- Every drawing composable gets a `@Preview`: load `previewing-composables` for where it and its
+  fixtures go
 - Load `android-skills:compose` before non trivial UI work, and `android-skills:android-ux` when
   reviewing a screen against Material 3
 
