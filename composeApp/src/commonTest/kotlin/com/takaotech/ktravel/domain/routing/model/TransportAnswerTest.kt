@@ -7,10 +7,12 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.times
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.toInstant
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 /**
  * What the two kinds of answer say about themselves.
@@ -24,9 +26,13 @@ class TransportAnswerTest : BehaviorSpec() {
     private fun summary(duration: Int, metres: Double) =
         RouteSummary(durationSeconds = duration.minutes, distance = metres * Length.meters)
 
+    /** Central European summer time, the offset the fixture's departure boards read in. */
+    private val offset = UtcOffset(hours = 2)
+
     private fun time(hour: Int, minute: Int) = TransitTime(
-        instant = Instant.parse("2026-05-30T%02d:%02d:00+02:00".format(hour, minute)),
-        offset = UtcOffset(hours = 2),
+        instant = LocalDateTime(year = 2026, month = Month.MAY, day = 30, hour = hour, minute = minute)
+            .toInstant(offset),
+        offset = offset,
     )
 
     init {

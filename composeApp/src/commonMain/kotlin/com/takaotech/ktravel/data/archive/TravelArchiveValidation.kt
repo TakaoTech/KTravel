@@ -1,18 +1,26 @@
 package com.takaotech.ktravel.data.archive
 
+import com.takaotech.ktravel.data.archive.TravelArchiveValidation.SEGMENT
+
 /**
- * Validazione dei path che arrivano dall'archivio.
+ * Validation of the paths coming out of an archive.
  *
- * `travel.json` è **input non fidato**: un `relative_path` come `../../../evil` farebbe scrivere
- * l'estrazione fuori dalla root degli allegati (zip-slip). Ogni path va validato prima di
- * qualunque scrittura su disco.
+ * `travel.json` is **untrusted input**: a `relative_path` such as `../../../evil` would make the
+ * extraction write outside the attachment root (zip slip). Every path has to be validated before
+ * any write to disk.
  */
 internal object TravelArchiveValidation {
 
     private val SEGMENT = Regex("[A-Za-z0-9._-]+")
     private const val EXPECTED_SEGMENTS = 3
 
-    /** True se [path] è nella forma sicura `<travelId>/<stepId>/<fileName>`. */
+    /**
+     * True when [path] has the safe `<travelId>/<stepId>/<fileName>` shape.
+     *
+     * The check is a whitelist rather than a blacklist of traversal sequences: the three segments
+     * must match [SEGMENT], which admits no separator, no drive letter and no empty segment, so a
+     * path that gets through can only resolve under the attachment root.
+     */
     fun isSafeRelativePath(path: String): Boolean {
         if (path.isEmpty() || path.startsWith('/') || path.contains('\\')) return false
         val segments = path.split('/')

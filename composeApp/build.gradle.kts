@@ -31,6 +31,7 @@ plugins {
     alias(libs.plugins.allopen)
     alias(libs.plugins.spmForKmp)
     alias(libs.plugins.aboutLibraries)
+    alias(libs.plugins.dokka)
     id("kotlin-parcelize")
 }
 
@@ -326,7 +327,6 @@ kotlin {
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
                 implementation(libs.compose.backhandler.core)
-                implementation(libs.navigation.compose)
                 implementation(libs.bundles.material.adaptive)
                 implementation(libs.compose.ui)
                 implementation(libs.compose.resources)
@@ -344,8 +344,8 @@ kotlin {
                 // to; the server is only here so it can be started in process, and nothing outside
                 // data/navigator imports it. :gunzou-here-client is deliberately absent: hiding it
                 // behind the contract is the whole reason the server exists.
-                implementation(project(":gunzou-navigator-client"))
-                implementation(project(":gunzou-navigator"))
+                implementation(projects.gunzouClient)
+                implementation(projects.gunzouServer)
 
                 // Logging facade of the whole process, configured by core/AppLogging.kt.
                 implementation(libs.kermit)
@@ -388,6 +388,10 @@ kotlin {
                 api(libs.circuit.runtime)
                 api(libs.circuit.runtime.presenter)
                 api(libs.circuit.runtime.ui)
+                // Nothing downstream of composeApp consumes these, so they stay off the published API.
+                implementation(libs.circuit.serialization)
+                implementation(libs.circuitx.navigation)
+                implementation(libs.circuitx.gesture.navigation)
 
                 implementation(libs.kotlinx.serialization.json)
 
@@ -578,9 +582,9 @@ compose.desktop {
             // generated serialisers have to survive the shrinker at runtime.
             configurationFiles.from(
                 file("$rootDir/gunzou/gunzou-here-client/proguard-consumer-rules.pro"),
-                file("$rootDir/gunzou/gunzou-navigator-api/proguard-consumer-rules.pro"),
-                file("$rootDir/gunzou/gunzou-navigator-client/proguard-consumer-rules.pro"),
-                file("$rootDir/gunzou/gunzou-navigator/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-api/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-client/proguard-consumer-rules.pro"),
+                file("$rootDir/gunzou/gunzou-server/proguard-consumer-rules.pro"),
                 file("proguard-consumer-rules.pro"),
                 file("proguard-desktop-rules.pro"),
             )
@@ -759,4 +763,17 @@ val checkStringResourceParity by tasks.registering {
 
 tasks.named("check") {
     dependsOn(checkStringResourceParity)
+}
+
+// src/kzipMain/kotlin is deliberately shared by androidMain, jvmMain and iosMain (see the source
+// set wiring above), and Dokka refuses a file that belongs to more than one source set
+// (Kotlin/dokka#3701). The jvm copy is the one that gets documented; the others are dropped from
+// Dokka's source roots, which leaves the actual declaration documented exactly once.
+dokka {
+    val kzipSources = layout.projectDirectory.dir("src/kzipMain/kotlin").asFile
+    dokkaSourceSets.configureEach {
+        if (name != "jvmMain") {
+            sourceRoots.setFrom(sourceRoots.files.filterNot { it.startsWith(kzipSources) })
+        }
+    }
 }

@@ -30,7 +30,7 @@ fun main() {
             title = "ktravel",
         ) {
             ProvideMapHost(host = rememberAwtComposeGpuHost(window)) {
-                App()
+                App(onRootPop = ::exitApplication)
             }
         }
     }

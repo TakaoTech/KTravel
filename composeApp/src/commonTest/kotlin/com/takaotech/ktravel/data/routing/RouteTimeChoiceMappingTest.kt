@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.data.routing
 
 import com.takaotech.ktravel.domain.routing.RouteTimeChoice
-import com.takaotech.navigator.api.common.RouteTime
+import com.takaotech.gunzou.api.common.RouteTime
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.LocalDate

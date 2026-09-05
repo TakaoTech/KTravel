@@ -1,0 +1,27 @@
+package com.takaotech.gunzou.here.routing.dto.response
+
+import com.takaotech.gunzou.here.common.dto.Location
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/**
+ * A place represents a generic location relevant for the route.
+ *
+ * @property type Place type identifier (always "place" for this type)
+ * @property location The position used in route calculation
+ * @property originalLocation Original position provided in the request (if different)
+ * @property displayLocation Display position for POI visualization
+ * @property name Location name
+ * @property waypoint Index of the corresponding via waypoint in the request
+ * @property sideOfStreet Location relative to driving direction ("left" or "right")
+ */
+@Serializable
+data class Place(
+    @SerialName("type") val type: String,
+    @SerialName("location") val location: Location,
+    @SerialName("originalLocation") val originalLocation: Location? = null,
+    @SerialName("displayLocation") val displayLocation: Location? = null,
+    @SerialName("name") val name: String? = null,
+    @SerialName("waypoint") val waypoint: Int? = null,
+    @SerialName("sideOfStreet") val sideOfStreet: String? = null,
+)

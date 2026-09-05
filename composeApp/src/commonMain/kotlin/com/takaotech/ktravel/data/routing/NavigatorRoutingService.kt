@@ -1,5 +1,10 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.gunzou.api.catalog.NavigatorProfile
+import com.takaotech.gunzou.api.error.ErrorCode
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorResult
+import com.takaotech.gunzou.client.NavigatorTarget
 import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
@@ -12,11 +17,6 @@ import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingProfileOption
 import com.takaotech.ktravel.domain.routing.RoutingService
 import com.takaotech.ktravel.domain.routing.model.RouteResult
-import com.takaotech.navigator.api.catalog.NavigatorProfile
-import com.takaotech.navigator.api.error.ErrorCode
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorResult
-import com.takaotech.navigator.client.NavigatorTarget
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.Dispatchers
@@ -79,14 +79,18 @@ class NavigatorRoutingService(
                             },
                         )
                     },
-                    navigatorVersion = response.value.version.orEmpty().ifBlank { UNNAMED_VERSION },
+                    navigatorVersion = response.value.version.orEmpty()
+                        .ifBlank { UNNAMED_VERSION },
                     latencyMillis = elapsed,
                 )
             }
 
             is NavigatorResult.ServerError -> unreachableCatalog(known, response.error.message)
 
-            is NavigatorResult.TransportError -> unreachableCatalog(known, response.cause.reachabilityMessage())
+            is NavigatorResult.TransportError -> unreachableCatalog(
+                known,
+                response.cause.reachabilityMessage(),
+            )
         }
     }
 
@@ -121,7 +125,11 @@ class NavigatorRoutingService(
 
             is RouteSelection.Transit -> RouteResult.Transit(
                 callWithRecovery(kind) { target ->
-                    client.hereTransit(selection.toTransitRouteRequest(from, to, routeTime), apiKey, target)
+                    client.hereTransit(
+                        selection.toTransitRouteRequest(from, to, routeTime),
+                        apiKey,
+                        target,
+                    )
                 }.orThrow().toDomain(),
             )
         }
@@ -194,7 +202,9 @@ private fun <T : Any> NavigatorResult<T>.orThrow(): T = when (this) {
 
         ErrorCode.NO_ROUTE_FOUND -> RoutingFailure.NoRouteFound(error.message)
 
-        ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(error.message)
+        ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> RoutingFailure.InvalidRequest(
+            error.message,
+        )
 
         ErrorCode.INTERNAL -> RoutingFailure.Unexpected(error.message)
     }

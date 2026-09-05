@@ -4,9 +4,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
-import com.takaotech.navigator.client.NavigatorClient
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
@@ -62,7 +62,11 @@ class AppSettingsViewModel(
         _uiState.update {
             // Any edit invalidates what the last check said: leaving a green badge next to a changed
             // address is the one thing this indicator must never do.
-            it.copy(navigatorBaseUrl = value, reachability = NavigatorReachability.Unknown, isSaved = false)
+            it.copy(
+                navigatorBaseUrl = value,
+                reachability = NavigatorReachability.Unknown,
+                isSaved = false,
+            )
         }
     }
 

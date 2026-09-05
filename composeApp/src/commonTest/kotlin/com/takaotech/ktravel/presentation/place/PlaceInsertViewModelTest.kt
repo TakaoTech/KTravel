@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.core.ui.FieldValidationState
+import com.takaotech.ktravel.presentation.field.FieldValidationState
 import com.takaotech.ktravel.di.PlanningGraph
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase

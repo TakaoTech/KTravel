@@ -20,6 +20,7 @@ import com.takaotech.ktravel.data.entity.TravelDayEntity
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.entity.TravelSettingsEntity
 import com.takaotech.ktravel.data.entity.VisitScheduleEntity
+import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper.localTimeOrNull
 import com.takaotech.ktravel.domain.model.AttachmentDomain
 import com.takaotech.ktravel.domain.model.PlaceDomain
 import com.takaotech.ktravel.domain.model.StepDomain
@@ -58,10 +59,30 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeComponents
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Translation between the plan as it is stored and the plan the rest of the application works
+ * with, in both directions.
+ *
+ * The two directions are deliberately not symmetrical. Writing is exact: the domain value has
+ * already been validated, so enums go out as their `name`, measured values as plain numbers in a
+ * fixed unit, and times as ISO 8601 text. Reading is lenient: a document may come from an older
+ * build, from a newer one, or from a hand-edited archive, so a name or a time this build cannot
+ * make sense of degrades to a default instead of taking the whole plan down with it. Every such
+ * decision is recorded on the function that makes it.
+ *
+ * The conversions are extensions on the entity and domain types, so a call site reads as
+ * `plan.toEntity(id)`; callers import the members they need or open the object with `with`.
+ */
 internal object TravelPlanEntityMapper {
 
     // ── Domain → Entity ───────────────────────────────────────────────────────
 
+    /**
+     * The plan as it is stored, as the document [id].
+     *
+     * The identifier comes from the caller and takes precedence over the one the plan carries, so
+     * the result always describes the document being written.
+     */
     fun TravelPlanDomain.toEntity(id: String): TravelPlanEntity = TravelPlanEntity(
         id = id,
         name = name,
@@ -72,12 +93,14 @@ internal object TravelPlanEntityMapper {
         settings = settings.toEntity(),
     )
 
+    /** The stored form of the plan's preferences, the navigator preference written as its name. */
     private fun TravelSettingsDomain.toEntity(): TravelSettingsEntity = TravelSettingsEntity(
         hereApiKey = hereApiKey,
         navigatorPreference = navigatorPreference.name,
         navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
+    /** The stored form of a day: its itinerary and the places still waiting to enter it. */
     private fun TravelDayDomain.toEntity(): TravelDayEntity = TravelDayEntity(
         id = id,
         date = date,
@@ -85,6 +108,7 @@ internal object TravelPlanEntityMapper {
         places = places.map { it.toEntity() },
     )
 
+    /** The stored form of a backlog place, note and attachments included. */
     private fun PlaceDomain.toEntity(): PlaceEntity = PlaceEntity(
         id = id,
         name = name,
@@ -94,6 +118,11 @@ internal object TravelPlanEntityMapper {
         attachments = attachments.map { it.toEntity() },
     )
 
+    /**
+     * The stored form of a visit time: the date as epoch days, each time split in hour and minute.
+     *
+     * Reading them back is [localTimeOrNull], which needs both halves of a time to rebuild it.
+     */
     private fun VisitScheduleDomain.toEntity(): VisitScheduleEntity = VisitScheduleEntity(
         dateEpochDays = date?.toEpochDays()?.toInt(),
         startTimeHour = startTime?.hour,
@@ -102,6 +131,7 @@ internal object TravelPlanEntityMapper {
         endTimeMinute = endTime?.minute,
     )
 
+    /** The stored form of an attachment: its path under the attachments root and its metadata. */
     private fun AttachmentDomain.toEntity(): AttachmentEntity = AttachmentEntity(
         id = id,
         relativePath = relativePath,
@@ -110,6 +140,12 @@ internal object TravelPlanEntityMapper {
         sizeBytes = sizeBytes,
     )
 
+    /**
+     * The stored form of an itinerary step, place or transport.
+     *
+     * A transport keeps the answer in the shape it was answered in and the request that produced
+     * it, so a saved leg can be shown again without being recomputed.
+     */
     fun StepDomain.toEntity(): StepEntity = when (this) {
         is StepDomain.Place -> StepEntity.Place(
             id = id,
@@ -132,6 +168,7 @@ internal object TravelPlanEntityMapper {
         )
     }
 
+    /** The stored form of a route request, road options and service options kept apart. */
     private fun RouteSelection.toEntity(): TransportRequestEntity = when (this) {
         is RouteSelection.Routing -> TransportRequestEntity.Routing(
             provider = profileId.provider,
@@ -153,16 +190,19 @@ internal object TravelPlanEntityMapper {
         )
     }
 
+    /** The stored form of a calculated answer: a road route, or a journey on scheduled services. */
     private fun TransportAnswer.toEntity(): TransportAnswerEntity = when (this) {
         is TransportAnswer.Routing -> TransportAnswerEntity.Routing(route.toEntity())
         is TransportAnswer.Transit -> TransportAnswerEntity.Transit(journey.toEntity())
     }
 
+    /** The stored form of a road route: its summary and its sections. */
     private fun RoutingRoute.toEntity(): RoutingRouteEntity = RoutingRouteEntity(
         summary = summary.toEntity(),
         sections = sections.map { it.toEntity() },
     )
 
+    /** The stored form of a section of a road route, geometry and turn-by-turn actions included. */
     private fun RoutingSection.toEntity(): RoutingSectionEntity = RoutingSectionEntity(
         summary = summary.toEntity(),
         mode = mode,
@@ -172,11 +212,13 @@ internal object TravelPlanEntityMapper {
         polyline = polyline,
     )
 
+    /** The stored form of a journey on scheduled services: its summary and its steps. */
     private fun TransitJourney.toEntity(): TransitJourneyEntity = TransitJourneyEntity(
         summary = summary.toEntity(),
         steps = steps.map { it.toEntity() },
     )
 
+    /** The stored form of a journey step, on foot or aboard a service. Times go out as ISO 8601. */
     private fun TransitStep.toEntity(): TransitStepEntity = when (this) {
         is TransitStep.Walk -> TransitStepEntity.Walk(
             summary = summary.toEntity(),
@@ -198,6 +240,7 @@ internal object TravelPlanEntityMapper {
         )
     }
 
+    /** The stored form of a service line, the wheelchair access written as its name. */
     private fun TransitLine.toEntity(): TransitLineEntity = TransitLineEntity(
         mode = mode,
         name = name,
@@ -211,12 +254,14 @@ internal object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.name,
     )
 
+    /** The stored form of the operator running a line. */
     private fun TransitAgency.toEntity(): TransitAgencyEntity = TransitAgencyEntity(
         name = name,
         id = id,
         website = website,
     )
 
+    /** The stored form of a stop call: its location, its times and the dwell reduced to seconds. */
     private fun TransitStop.toEntity(): TransitStopEntity = TransitStopEntity(
         location = location.toEntity(),
         name = name,
@@ -228,18 +273,22 @@ internal object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.name,
     )
 
+    /** The stored form of a summary: seconds and meters, so storage depends on no unit type. */
     private fun RouteSummary.toEntity(): RouteSummaryEntity = RouteSummaryEntity(
         durationSeconds = durationSeconds.inWholeSeconds,
         distanceMeters = distance `in` Distance.meters,
     )
 
+    /** The stored form of a coordinate. */
     private fun RouteLocation.toEntity(): RouteLocationEntity = RouteLocationEntity(lat = lat, lng = lng)
 
+    /** The stored form of an end of a section: where it is and, when it is known, when. */
     private fun RouteDeparture.toEntity(): RouteDepartureEntity = RouteDepartureEntity(
         location = location.toEntity(),
         time = time?.formatIso(),
     )
 
+    /** The stored form of a manoeuvre, its duration in seconds and its distance in meters. */
     private fun RouteAction.toEntity(): RouteActionEntity = RouteActionEntity(
         action = action,
         durationSeconds = durationSeconds.inWholeSeconds,
@@ -252,6 +301,11 @@ internal object TravelPlanEntityMapper {
 
     // ── Entity → Domain ───────────────────────────────────────────────────────
 
+    /**
+     * The plan reduced to what a list of plans shows: its identity, its name and its dates.
+     *
+     * It reads the stored document directly, so listing plans never pays for decoding their days.
+     */
     fun TravelPlanEntity.toSummary(): TravelPlanSummary = TravelPlanSummary(
         id = id,
         name = name,
@@ -259,6 +313,7 @@ internal object TravelPlanEntityMapper {
         periodEnd = periodEnd,
     )
 
+    /** The stored plan back as the domain tree the application edits. */
     fun TravelPlanEntity.toDomain(): TravelPlanDomain = TravelPlanDomain(
         id = id,
         name = name,
@@ -270,11 +325,11 @@ internal object TravelPlanEntityMapper {
     )
 
     /**
-     * Converts the domain on the receiver [TravelSettingsEntity].
-     * [navigatorPreference] Lenient by design: a plan stored before the preference existed carries an empty string,
-     * and one stored by a newer build may carry a name this build does not know. Both mean the
-     * embedded server, which is the choice that always works.
-     * @return the travel settings domain
+     * The stored preferences back in domain form.
+     *
+     * The navigator preference is read leniently: a plan stored before the preference existed
+     * carries an empty string, and one stored by a newer build may carry a name this build does not
+     * know. Both mean the embedded server, which is the choice that always works.
      */
     private fun TravelSettingsEntity.toDomain(): TravelSettingsDomain = TravelSettingsDomain(
         hereApiKey = hereApiKey,
@@ -282,6 +337,7 @@ internal object TravelPlanEntityMapper {
         navigatorRemoteBaseUrl = navigatorRemoteBaseUrl,
     )
 
+    /** A stored day back in domain form. */
     private fun TravelDayEntity.toDomain(): TravelDayDomain = TravelDayDomain(
         id = id,
         date = date,
@@ -289,6 +345,7 @@ internal object TravelPlanEntityMapper {
         places = places.map { it.toDomain() },
     )
 
+    /** A stored backlog place back in domain form. */
     private fun PlaceEntity.toDomain(): PlaceDomain = PlaceDomain(
         id = id,
         name = name,
@@ -298,15 +355,18 @@ internal object TravelPlanEntityMapper {
         attachments = attachments.map { it.toDomain() },
     )
 
+    /** A stored visit time back in domain form; a half-written time reads as no time at all. */
     private fun VisitScheduleEntity.toDomain(): VisitScheduleDomain = VisitScheduleDomain(
         date = dateEpochDays?.let { LocalDate.fromEpochDays(it) },
         startTime = localTimeOrNull(startTimeHour, startTimeMinute),
         endTime = localTimeOrNull(endTimeHour, endTimeMinute),
     )
 
+    /** The time these two halves make, or null when either of them is missing. */
     private fun localTimeOrNull(hour: Int?, minute: Int?): LocalTime? =
         if (hour != null && minute != null) LocalTime(hour, minute) else null
 
+    /** A stored attachment back in domain form. */
     fun AttachmentEntity.toDomain(): AttachmentDomain = AttachmentDomain(
         id = id,
         relativePath = relativePath,
@@ -315,6 +375,12 @@ internal object TravelPlanEntityMapper {
         sizeBytes = sizeBytes,
     )
 
+    /**
+     * A stored step back in domain form.
+     *
+     * The transport type is read strictly, unlike the options around it: it names what the step is,
+     * so an unknown name is a document that cannot be shown rather than one missing an option.
+     */
     fun StepEntity.toDomain(): StepDomain = when (this) {
         is StepEntity.Place -> StepDomain.Place(
             id = id,
@@ -337,6 +403,7 @@ internal object TravelPlanEntityMapper {
         )
     }
 
+    /** A stored route request back in domain form, avoid options this build cannot read dropped. */
     fun TransportRequestEntity.toDomain(): RouteSelection = when (this) {
         is TransportRequestEntity.Routing -> RouteSelection.Routing(
             profileId = RoutingProfileId(provider = provider, profile = profile),
@@ -365,16 +432,19 @@ internal object TravelPlanEntityMapper {
      */
     private fun String.toRouteFeatureOrNull(): RouteFeature? = RouteFeature.entries.firstOrNull { it.name == this }
 
+    /** A stored answer back in domain form. */
     private fun TransportAnswerEntity.toDomain(): TransportAnswer = when (this) {
         is TransportAnswerEntity.Routing -> TransportAnswer.Routing(route.toDomain())
         is TransportAnswerEntity.Transit -> TransportAnswer.Transit(journey.toDomain())
     }
 
+    /** A stored road route back in domain form. */
     private fun RoutingRouteEntity.toDomain(): RoutingRoute = RoutingRoute(
         summary = summary.toDomain(),
         sections = sections.map { it.toDomain() },
     )
 
+    /** A stored section back in domain form. */
     private fun RoutingSectionEntity.toDomain(): RoutingSection = RoutingSection(
         summary = summary.toDomain(),
         mode = mode,
@@ -384,11 +454,13 @@ internal object TravelPlanEntityMapper {
         polyline = polyline,
     )
 
+    /** A stored journey back in domain form. */
     private fun TransitJourneyEntity.toDomain(): TransitJourney = TransitJourney(
         summary = summary.toDomain(),
         steps = steps.map { it.toDomain() },
     )
 
+    /** A stored journey step back in domain form; a time it cannot read leaves the step none. */
     private fun TransitStepEntity.toDomain(): TransitStep = when (this) {
         is TransitStepEntity.Walk -> TransitStep.Walk(
             summary = summary.toDomain(),
@@ -410,6 +482,7 @@ internal object TravelPlanEntityMapper {
         )
     }
 
+    /** A stored line back in domain form. */
     private fun TransitLineEntity.toDomain(): TransitLine = TransitLine(
         mode = mode,
         name = name,
@@ -423,8 +496,10 @@ internal object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.toWheelchairAccess(),
     )
 
+    /** A stored operator back in domain form. */
     private fun TransitAgencyEntity.toDomain(): TransitAgency = TransitAgency(name = name, id = id, website = website)
 
+    /** A stored stop call back in domain form, the dwell read back as a duration. */
     private fun TransitStopEntity.toDomain(): TransitStop = TransitStop(
         location = location.toDomain(),
         name = name,
@@ -436,18 +511,22 @@ internal object TravelPlanEntityMapper {
         wheelchairAccessible = wheelchairAccessible.toWheelchairAccess(),
     )
 
+    /** A stored summary back in domain form, the distance measured in meters again. */
     private fun RouteSummaryEntity.toDomain(): RouteSummary = RouteSummary(
         durationSeconds = durationSeconds.seconds,
         distance = Measure(distanceMeters, Length.meters),
     )
 
+    /** A stored coordinate back in domain form. */
     private fun RouteLocationEntity.toDomain(): RouteLocation = RouteLocation(lat = lat, lng = lng)
 
+    /** A stored end of a section back in domain form. */
     private fun RouteDepartureEntity.toDomain(): RouteDeparture = RouteDeparture(
         location = location.toDomain(),
         time = time?.parseIsoOrNull(),
     )
 
+    /** A stored manoeuvre back in domain form. */
     private fun RouteActionEntity.toDomain(): RouteAction = RouteAction(
         action = action,
         durationSeconds = durationSeconds.seconds,
@@ -461,8 +540,8 @@ internal object TravelPlanEntityMapper {
     /**
      * How well a saved vehicle or stop serves a traveller in a wheelchair.
      *
-     * Unknown wording — an older document, or a newer build's vocabulary — reads as [
-     * WheelchairAccess.UNKNOWN] and never as `NO`: "not asked" and "not possible" are not the same
+     * Unknown wording — an older document, or a newer build's vocabulary — reads as
+     * [WheelchairAccess.UNKNOWN] and never as `NO`: "not asked" and "not possible" are not the same
      * thing to say to someone planning a trip.
      */
     private fun String?.toWheelchairAccess(): WheelchairAccess =
@@ -470,7 +549,12 @@ internal object TravelPlanEntityMapper {
 
     /** A saved timetable moment, keeping the offset in force at the stop. */
     private fun String.toTransitTimeOrNull(): TransitTime? = parseIsoOrNull()?.let { components ->
-        runCatching { TransitTime(components.toInstantUsingOffset(), components.toUtcOffset()) }.getOrNull()
+        runCatching {
+            TransitTime(
+                components.toInstantUsingOffset(),
+                components.toUtcOffset(),
+            )
+        }.getOrNull()
     }
 
     /** The stored form of a section time: ISO 8601 keeping the offset in force where it happens. */

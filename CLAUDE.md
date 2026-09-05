@@ -18,9 +18,37 @@ application targets multiple platforms including Android, iOS, and Desktop (JVM)
 
 ### Root Level
 
-- `/composeApp` - Main application module containing shared and platform-specific code
+- `/androidApp` - Android application module (produces the APK/AAB)
+- `/composeApp` - Main shared module containing shared and platform-specific code
 - `/iosApp` - iOS application entry point and SwiftUI code
+- `/gunzou` - The routing stack: wire contract, server, clients (see the table below)
+- `/password-strength` - Standalone password strength library
 - `/gradle` - Gradle wrapper and configuration files
+- `/config/detekt` - Detekt configuration
+
+### Gradle modules and their packages
+
+The Gradle paths are flat even though the `gunzou` modules live in the `gunzou/` directory on disk.
+
+| Gradle path              | Directory                      | Root package                          |
+|--------------------------|--------------------------------|---------------------------------------|
+| `:androidApp`            | `androidApp/`                  | `com.takaotech.ktravel`               |
+| `:composeApp`            | `composeApp/`                  | `com.takaotech.ktravel`               |
+| `:gunzou-api`            | `gunzou/gunzou-api/`           | `com.takaotech.gunzou.api`            |
+| `:gunzou-client`         | `gunzou/gunzou-client/`        | `com.takaotech.gunzou.client`         |
+| `:gunzou-here-client`    | `gunzou/gunzou-here-client/`   | `com.takaotech.gunzou.here`           |
+| `:gunzou-server`         | `gunzou/gunzou-server/`        | `com.takaotech.ktravel.gunzou.server` |
+| `:gunzou-server-app`     | `gunzou/gunzou-server-app/`    | `com.takaotech.ktravel.gunzou.server` |
+| `:password-strength`     | `password-strength/`           | `com.takaotech.password`              |
+
+- `:gunzou-api` is the wire contract shared by the server and its client; it depends on nothing else
+  in the repository.
+- `:gunzou-here-client` wraps the HERE vendor API. It is an `implementation` dependency of
+  `:gunzou-server` and is deliberately kept off every downstream compile classpath, so the vendor
+  DTOs never leak past the contract.
+- `:gunzou-server` is the Ktor server, built as a KMP library so `:composeApp` can embed it in
+  process. `:gunzou-server-app` is the thin JVM module that packages it for deployment.
+- `:gunzou-client` is the HTTP client `:composeApp` talks to the server through.
 
 ### ComposeApp Module Structure
 
@@ -64,9 +92,12 @@ starting the work, not after the first failure.
 
 | Skill                              | Use it when                                                                                                       |
 |------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `documenting-with-kdoc`            | Writing or changing any public Kotlin declaration, or adding KDoc to existing code                                  |
+| `generating-api-documentation`     | Generating or configuring the Dokka API documentation, or the jobs that publish it to GitHub Pages                   |
 | `generating-dependency-licenses`   | Touching the licenses screen, the AboutLibraries setup, or the release workflow that fetches the license texts       |
 | `localizing-strings`               | Adding or changing anything in `composeResources/**/strings.xml`, a `stringResource`, a translation, or a language   |
 | `migrating-archive-schema`         | Changing an entity behind the `.ktravel` archive (schema version, `TravelPlanJsonMigration`)                        |
+| `previewing-composables`           | Writing or changing a `@Preview`, its `PreviewParameterProvider` or its sample data                                 |
 | `text-to-lottie`                   | Creating or fixing the Lottie JSON animations played by Skottie                                                     |
 
 ### Android / KMP skills (`android-skills` plugin)
@@ -83,7 +114,7 @@ then add the specific skill for the area being touched.
 | `android-skills:kotlin-flows`           | `Flow` / `StateFlow` in presenters and repositories, exposing UI state                                              |
 | `android-skills:kotlin-coroutines`      | Dispatchers, scopes, structured concurrency, cancellation                                                           |
 | `android-skills:kmp-boundaries`         | `expect`/`actual`, platform services (files, share, permissions), source set layout                                  |
-| `android-skills:kmp-ktor`               | `HttpClient` work in `gunzou-here-client` / `gunzou-navigator-client`: engines, serialization, `MockEngine` tests     |
+| `android-skills:kmp-ktor`               | `HttpClient` work in `gunzou-here-client` / `gunzou-client`: engines, serialization, `MockEngine` tests               |
 | `android-skills:coil-compose`           | Image loading (`AsyncImage`, attachment previews, `LocalPlatformContext`)                                            |
 | `android-skills:android-testing`        | Writing or fixing tests, above all Compose UI tests, test clock and animation determinism                            |
 | `android-skills:android-debugging`      | Crashes, ANRs, R8/ProGuard stack traces, Logcat, recomposition bugs, Gradle build failures                           |
@@ -92,7 +123,7 @@ then add the specific skill for the area being touched.
 | `android-skills:android-gradle-logic`   | Build logic, version catalog, configuration shared between modules                                                  |
 | `android-skills:gradle-build-performance` | Slow builds, configuration cache, KSP, CI build times                                                             |
 | `android-skills:android-source-search`  | Reading AOSP or AndroidX source when the public documentation is not enough                                          |
-| `android-skills:koin`                   | Only `gunzou-navigator`, the Ktor server module and the single module wired with Koin                               |
+| `android-skills:koin`                   | Only `gunzou-server`, the Ktor server module and the single module wired with Koin                                 |
 
 The remaining skills in the plugin do not apply to this project, because it does not use those
 libraries: `android-retrofit` (Ktor instead), the Room half of `android-data-layer` (Couchbase Lite
@@ -137,7 +168,8 @@ Nothing is produced on macOS or Windows hosts, where the loader is a no-op.
 
 ### Coverage (Kover)
 
-Kover is applied to `composeApp`, `gunzou-here-client` and `password-strength`; the root project
+Kover is applied to `composeApp`, `password-strength` and every `gunzou` module
+(`gunzou-api`, `gunzou-client`, `gunzou-here-client`, `gunzou-server`); the root project
 aggregates them into a single report. `androidApp` is excluded on purpose — it is a framework entry
 point with no test source set.
 
@@ -207,12 +239,19 @@ a JDK 25 jmod.
 
 Keep rules live with the module that needs them:
 
-| File                                                 | Scope                                                                   |
-|------------------------------------------------------|-------------------------------------------------------------------------|
+| File                                                    | Scope                                                                   |
+|---------------------------------------------------------|-------------------------------------------------------------------------|
+| `gunzou/gunzou-api/proguard-consumer-rules.pro`         | published as Android consumer rules, also included by the desktop build |
+| `gunzou/gunzou-client/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
 | `gunzou/gunzou-here-client/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-consumer-rules.pro`             | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`              | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
-| `androidApp/proguard-rules.pro`                      | application-level (`-dontobfuscate`, Parcelize)                         |
+| `gunzou/gunzou-server/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-consumer-rules.pro`                | published as Android consumer rules, also included by the desktop build |
+| `composeApp/proguard-desktop-rules.pro`                 | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
+| `androidApp/proguard-rules.pro`                         | application-level (`-dontobfuscate`, Parcelize)                         |
+
+The desktop build cannot read Android consumer rules, so the four `gunzou` files above are also
+listed explicitly in the `compose.desktop` ProGuard block of `composeApp/build.gradle.kts`. A module
+renamed on disk has to be renamed there too, or the shrinker silently loses those keep rules.
 
 The list behind the licenses screen is generated at build time by AboutLibraries: for anything
 touching it, or the release workflow that fetches the license texts, use the
@@ -249,6 +288,9 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 - Follow Kotlin coding conventions
 - Use meaningful variable and function names
 - Keep functions small and focused on a single responsibility
+- Document every public class, function and property with KDoc in the same edit as the code —
+  detekt fails the build otherwise; load `documenting-with-kdoc` for the JetBrains and AndroidX
+  KDoc conventions this project follows
 
 ### Architecture Guidelines
 
@@ -273,6 +315,8 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 - Place new label strings in `strings.xml` and use id for string references
 - Use Immutable package instead of standard List
 - For anything touching `strings.xml` or translations, use the `localizing-strings` skill
+- Every drawing composable gets a `@Preview`: load `previewing-composables` for where it and its
+  fixtures go
 - Load `android-skills:compose` before non trivial UI work, and `android-skills:android-ux` when
   reviewing a screen against Material 3
 

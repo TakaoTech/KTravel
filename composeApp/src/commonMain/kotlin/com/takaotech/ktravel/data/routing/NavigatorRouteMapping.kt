@@ -1,5 +1,30 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.gunzou.api.catalog.NavigatorProfile
+import com.takaotech.gunzou.api.catalog.ProviderProfileDescriptor
+import com.takaotech.gunzou.api.common.GeoPoint
+import com.takaotech.gunzou.api.common.RouteTime
+import com.takaotech.gunzou.api.common.TransitMode
+import com.takaotech.gunzou.api.common.ZonedTime
+import com.takaotech.gunzou.api.here.HereAvoidFeature
+import com.takaotech.gunzou.api.here.HereAvoidOptions
+import com.takaotech.gunzou.api.here.HereReturnAttribute
+import com.takaotech.gunzou.api.here.HereRoutingMode
+import com.takaotech.gunzou.api.here.HereRoutingRequest
+import com.takaotech.gunzou.api.here.HereTransitModeFilter
+import com.takaotech.gunzou.api.here.HereTransitRouteRequest
+import com.takaotech.gunzou.api.here.HereTransportMode
+import com.takaotech.gunzou.api.response.PolylineEncoding
+import com.takaotech.gunzou.api.response.RouteActionDto
+import com.takaotech.gunzou.api.response.RouteGeometry
+import com.takaotech.gunzou.api.response.RouteSummaryDto
+import com.takaotech.gunzou.api.response.RoutingRouteResponse
+import com.takaotech.gunzou.api.response.RoutingSectionDto
+import com.takaotech.gunzou.api.response.TollCostDto
+import com.takaotech.gunzou.api.response.TransitJourneyResponse
+import com.takaotech.gunzou.api.response.TransitJourneyStep
+import com.takaotech.gunzou.api.response.TransitLineDto
+import com.takaotech.gunzou.api.response.TransitStopDto
 import com.takaotech.ktravel.domain.routing.RouteFeature
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.RouteTimeChoice
@@ -24,31 +49,6 @@ import com.takaotech.ktravel.domain.routing.model.TransitStep
 import com.takaotech.ktravel.domain.routing.model.TransitStop
 import com.takaotech.ktravel.domain.routing.model.TransitTime
 import com.takaotech.ktravel.domain.routing.model.WheelchairAccess
-import com.takaotech.navigator.api.catalog.NavigatorProfile
-import com.takaotech.navigator.api.catalog.ProviderProfileDescriptor
-import com.takaotech.navigator.api.common.GeoPoint
-import com.takaotech.navigator.api.common.RouteTime
-import com.takaotech.navigator.api.common.TransitMode
-import com.takaotech.navigator.api.common.ZonedTime
-import com.takaotech.navigator.api.here.HereAvoidFeature
-import com.takaotech.navigator.api.here.HereAvoidOptions
-import com.takaotech.navigator.api.here.HereReturnAttribute
-import com.takaotech.navigator.api.here.HereRoutingMode
-import com.takaotech.navigator.api.here.HereRoutingRequest
-import com.takaotech.navigator.api.here.HereTransitModeFilter
-import com.takaotech.navigator.api.here.HereTransitRouteRequest
-import com.takaotech.navigator.api.here.HereTransportMode
-import com.takaotech.navigator.api.response.PolylineEncoding
-import com.takaotech.navigator.api.response.RouteActionDto
-import com.takaotech.navigator.api.response.RouteGeometry
-import com.takaotech.navigator.api.response.RouteSummaryDto
-import com.takaotech.navigator.api.response.RoutingRouteResponse
-import com.takaotech.navigator.api.response.RoutingSectionDto
-import com.takaotech.navigator.api.response.TollCostDto
-import com.takaotech.navigator.api.response.TransitJourneyResponse
-import com.takaotech.navigator.api.response.TransitJourneyStep
-import com.takaotech.navigator.api.response.TransitLineDto
-import com.takaotech.navigator.api.response.TransitStopDto
 import io.nacular.measured.units.Length
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
@@ -60,7 +60,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.toInstant
 import kotlin.time.Duration.Companion.seconds
-import com.takaotech.navigator.api.response.WheelchairAccess as WheelchairAccessDto
+import com.takaotech.gunzou.api.response.WheelchairAccess as WheelchairAccessDto
 
 // Between the app's own routing model and the navigator contract.
 //
@@ -210,8 +210,10 @@ fun String.toGeoPoint(): GeoPoint {
     val parts = split(',')
     require(parts.size >= 2) { "Expected a 'lat,lng' coordinate but got '$this'" }
 
-    val lat = requireNotNull(parts[0].trim().toDoubleOrNull()) { "Latitude is not a number in '$this'" }
-    val lng = requireNotNull(parts[1].trim().toDoubleOrNull()) { "Longitude is not a number in '$this'" }
+    val lat =
+        requireNotNull(parts[0].trim().toDoubleOrNull()) { "Latitude is not a number in '$this'" }
+    val lng =
+        requireNotNull(parts[1].trim().toDoubleOrNull()) { "Longitude is not a number in '$this'" }
 
     return GeoPoint(lat = lat, lng = lng)
 }
@@ -272,8 +274,18 @@ private fun RoutingSectionDto.toDomain(): RoutingSection = RoutingSection(
     summary = summary.toDomain(),
     mode = mode.name,
     actions = actions.map { it.toDomain() },
-    departure = departure?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
-    arrival = arrival?.let { RouteDeparture(it.place.toLocation(), it.time?.toDateTimeComponents()) },
+    departure = departure?.let {
+        RouteDeparture(
+            it.place.toLocation(),
+            it.time?.toDateTimeComponents(),
+        )
+    },
+    arrival = arrival?.let {
+        RouteDeparture(
+            it.place.toLocation(),
+            it.time?.toDateTimeComponents(),
+        )
+    },
     polyline = geometry.drawableOrNull(),
     tollSystems = tollSystems.map { RouteTollSystem(id = it.id, name = it.name) },
     tolls = tolls.map { it.toDomain(tollSystems.map { system -> system.id }) },
@@ -356,7 +368,12 @@ private fun TollCostDto.toDomain(systemIds: List<String>): RouteTollCost = Route
  * offset — which is the local one at the stop, and the only reason the field is not just an instant.
  */
 private fun ZonedTime.toDateTimeComponents(): DateTimeComponents = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET
-    .parse(instant.format(DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET, UtcOffset(seconds = offsetSeconds)))
+    .parse(
+        instant.format(
+            DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET,
+            UtcOffset(seconds = offsetSeconds),
+        ),
+    )
 
 /** A moment on a timetable, which the journey model keeps as an instant it can subtract. */
 private fun ZonedTime.toTransitTime(): TransitTime =

@@ -1,10 +1,10 @@
 package com.takaotech.ktravel.data.navigator
 
+import com.takaotech.gunzou.client.NavigatorTarget
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
 import com.takaotech.ktravel.domain.repository.SettingsRepository
-import com.takaotech.navigator.client.NavigatorTarget
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 

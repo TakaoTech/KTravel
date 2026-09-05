@@ -1,3 +1,5 @@
+@file:Suppress("UndocumentedPublicProperty")
+
 package com.takaotech.ktravel.ui.theme
 
 import androidx.compose.material3.darkColorScheme

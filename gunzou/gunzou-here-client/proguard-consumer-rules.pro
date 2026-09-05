@@ -11,12 +11,12 @@
 
 # The HERE routing and public transit DTOs are @Serializable. kotlinx.serialization looks up the
 # generated Companion / $$serializer by name, so the shrinker cannot see those references.
--keepclassmembers class com.takaotech.navigation.** {
+-keepclassmembers class com.takaotech.gunzou.here.** {
     *** Companion;
     *** INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
--keep,includedescriptorclasses class com.takaotech.navigation.**$$serializer { *; }
+-keep,includedescriptorclasses class com.takaotech.gunzou.here.**$$serializer { *; }
 
 # OkHttp references these TLS providers reflectively; they are never on the runtime classpath.
 -dontwarn org.conscrypt.**

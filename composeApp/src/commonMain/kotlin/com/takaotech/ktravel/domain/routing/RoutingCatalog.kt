@@ -24,7 +24,7 @@ data class RoutingMode(val id: String)
  * What a profile lets a traveller ask for, in the shape of the API family that answers it.
  *
  * A sealed type rather than a flat list of fields, and it mirrors
- * [com.takaotech.navigator.api.catalog.SupportedModes] on the wire for the same reason: the two
+ * [com.takaotech.gunzou.api.catalog.SupportedModes] on the wire for the same reason: the two
  * families do not take the same parameters. A road profile has a single required vehicle and things
  * to keep off the route; a transit profile has a set of acceptable vehicles and a tolerance for
  * transfers. Flattening both into one record forces every profile to carry the other's fields

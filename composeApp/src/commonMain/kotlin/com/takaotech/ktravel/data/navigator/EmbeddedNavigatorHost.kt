@@ -1,11 +1,11 @@
 package com.takaotech.ktravel.data.navigator
 
 import co.touchlab.kermit.Logger
-import com.takaotech.ktravel.LOOPBACK_HOST
-import com.takaotech.ktravel.RunningServer
 import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.di.AppScope
-import com.takaotech.ktravel.startServerOnFreePort
+import com.takaotech.ktravel.gunzou.server.LOOPBACK_HOST
+import com.takaotech.ktravel.gunzou.server.RunningServer
+import com.takaotech.ktravel.gunzou.server.startServerOnFreePort
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred

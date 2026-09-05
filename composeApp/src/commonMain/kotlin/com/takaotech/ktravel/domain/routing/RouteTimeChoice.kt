@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalTime
 /**
  * When the traveller wants to be moving, as the screen asks it.
  *
- * Sealed for the same reason [com.takaotech.navigator.api.common.RouteTime] is downstream: leaving at
+ * Sealed for the same reason [com.takaotech.gunzou.api.common.RouteTime] is downstream: leaving at
  * a time and arriving by one are exclusive, and a type that cannot hold both is a better guarantee
  * than a rule that says it must not.
  *

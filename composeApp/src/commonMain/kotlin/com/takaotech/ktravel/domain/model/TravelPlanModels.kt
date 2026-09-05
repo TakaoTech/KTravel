@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.routing.RouteSelection
 import com.takaotech.ktravel.domain.routing.model.TransportAnswer
@@ -104,10 +105,10 @@ data class AttachmentDomain(
     val id: String = newId(),
     val relativePath: String,
     val originalName: String,
-    val mimeType: String,
+    val mimeType: MimeType,
     val sizeBytes: Long,
 ) {
-    val isImage: Boolean get() = mimeType.startsWith("image/")
+    val isImage: Boolean get() = mimeType.isImage
 }
 
 sealed class StepDomain(open val id: String = newId()) {

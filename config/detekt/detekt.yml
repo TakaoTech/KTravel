@@ -90,6 +90,7 @@ complexity:
     active: false
   LargeClass:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     allowedLines: 600
   LongMethod:
     active: true
@@ -231,6 +232,7 @@ exceptions:
     ignoreLabeled: false
   SwallowedException:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     ignoredExceptionTypes:
       - 'InterruptedException'
       - 'MalformedURLException'
@@ -276,6 +278,7 @@ exceptions:
       - 'Exception'
       - 'RuntimeException'
       - 'Throwable'
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
 
 # =============================================================================
 # NAMING RULES
@@ -324,6 +327,9 @@ naming:
     parameterPattern: '[a-z][A-Za-z0-9]*|_'
   MatchingDeclarationName:
     active: true
+    # A '*PreviewData.kt' file is named after the composable whose fixtures it holds, not after the
+    # single provider class that may be all it contains yet: see the previewing-composables skill.
+    excludes: [ '**/*PreviewData.kt' ]
     mustBeFirst: true
   MemberNameEqualsClassName:
     active: true
@@ -590,6 +596,7 @@ style:
     maxChainedCalls: 5
   MaxLineLength:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     maxLineLength: 120  # Questionnaire: 100 characters strict
     excludePackageStatements: true
     excludeImportStatements: true
@@ -944,6 +951,7 @@ ktlint:
     active: false
   ImportOrdering:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**' ]
     autoCorrect: true
   Indentation:
     active: true

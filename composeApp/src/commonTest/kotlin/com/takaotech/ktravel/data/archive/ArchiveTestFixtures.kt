@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.data.archive
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.RouteLocationEntity
@@ -78,14 +79,14 @@ internal object ArchiveTestFixtures {
                 id = "att-1",
                 relativePath = PHOTO_PATH,
                 originalName = "photo.jpg",
-                mimeType = "image/jpeg",
+                mimeType = MimeType("image/jpeg"),
                 sizeBytes = PHOTO_BYTES.size.toLong(),
             ),
             AttachmentEntity(
                 id = "att-2",
                 relativePath = DOC_PATH,
                 originalName = "guide.pdf",
-                mimeType = "application/pdf",
+                mimeType = MimeType("application/pdf"),
                 sizeBytes = DOC_BYTES.size.toLong(),
             ),
         ),
@@ -107,7 +108,7 @@ internal object ArchiveTestFixtures {
                             id = "att-backlog",
                             relativePath = BACKLOG_PATH,
                             originalName = "ticket.pdf",
-                            mimeType = "application/pdf",
+                            mimeType = MimeType("application/pdf"),
                             sizeBytes = BACKLOG_BYTES.size.toLong(),
                         ),
                     ),

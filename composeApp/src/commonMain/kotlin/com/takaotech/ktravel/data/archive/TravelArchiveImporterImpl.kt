@@ -44,6 +44,21 @@ import kotlin.uuid.Uuid
 /** Deserialized plan carried inside [StagedTravelArchive]. */
 internal class TravelPlanPayload(val plan: TravelPlanEntity) : StagedPlanPayload
 
+/**
+ * Reads a `.ktravel` archive back into a stored plan, in two steps.
+ *
+ * `stage` copies the file the user picked into the staging area and validates it whole — the
+ * zip-bomb limits, the manifest, the schema migration, every attachment path — then answers with
+ * what the user has to decide on, above all whether the archive would land on a plan already
+ * stored. `import` applies that decision, and `discard` throws the staged archive away when they
+ * decide against it. Nothing touches the database or the attachment root until the second step, so
+ * a rejected archive or an abandoned dialog costs nothing.
+ *
+ * `import` itself is written to land whole or not at all: the secrets are decrypted first, so a
+ * wrong password is free to retry; a replacement deletes the existing trip before anything is
+ * extracted, so no orphan file is left behind; and a failure part way through removes what had
+ * already been written.
+ */
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class TravelArchiveImporterImpl private constructor(

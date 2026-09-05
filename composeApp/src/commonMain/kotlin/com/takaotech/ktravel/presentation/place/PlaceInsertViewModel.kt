@@ -3,10 +3,11 @@ package com.takaotech.ktravel.presentation.place
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.takaotech.ktravel.core.ui.FieldValidationState
-import com.takaotech.ktravel.core.ui.KFieldState
-import com.takaotech.ktravel.core.ui.toTextPayload
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.di.PlanningGraphStore
+import com.takaotech.ktravel.presentation.field.FieldValidationState
+import com.takaotech.ktravel.presentation.field.KFieldState
+import com.takaotech.ktravel.presentation.field.toTextPayload
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -50,7 +51,14 @@ class PlaceInsertViewModel(
     private val _uiState = MutableStateFlow(PlaceInsertUiState())
     val uiState: StateFlow<PlaceInsertUiState> = _uiState.asStateFlow()
 
+    private val logger = Logger.withTag("PlaceInsertViewModel")
+
+    init {
+        logger.d { "Opened for travel $travelId, day $dayId" }
+    }
+
     fun onInputModeChanged(mode: PlaceInputMode) {
+        logger.d { "Input mode changed to $mode" }
         _uiState.update { it.copy(inputMode = mode) }
     }
 
@@ -92,6 +100,7 @@ class PlaceInsertViewModel(
     private fun tryParseAndSetLatLng(text: String): Boolean {
         val parsed = parseLatLng(text) ?: return false
         val (lat, lng) = parsed
+        logger.d { "Pasted text split into the coordinate pair $lat, $lng" }
         _uiState.update {
             it.copy(
                 placeLat = it.placeLat.copy(
@@ -201,6 +210,7 @@ class PlaceInsertViewModel(
                 newUiState.placeLng.takeIf { it.validationState is FieldValidationState.Valid }
 
             if (name != null && lat != null && lng != null) {
+                logger.d { "Saving place '${name.value.text}' at ${lat.value.text},${lng.value.text}, day $dayId" }
                 planningGraphStore.getOrCreate(travelId)
                     .savePlaceUseCase
                     .invoke(
@@ -209,8 +219,10 @@ class PlaceInsertViewModel(
                         lng = lng.value.text.toDoubleOrNull() ?: 0.0,
                         dayId = dayId,
                     )
+                logger.i { "Place '${name.value.text}' saved on travel $travelId" }
 
                 if (newUiState.isBulk) {
+                    logger.d { "Bulk insert on: clearing the form for the next place" }
                     _uiState.update {
                         it.copy(
                             placeName = KFieldState(),
@@ -220,6 +232,13 @@ class PlaceInsertViewModel(
                         )
                     }
                 }
+            } else {
+                val invalidFields = listOfNotNull(
+                    "name".takeIf { name == null },
+                    "lat".takeIf { lat == null },
+                    "lng".takeIf { lng == null },
+                )
+                logger.w { "Save rejected: ${invalidFields.joinToString()} did not validate" }
             }
         }
     }

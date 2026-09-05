@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.archive
 
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.core.KTravelBuildInfo
 import com.takaotech.ktravel.core.io.deleteRecursively
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsCipher
@@ -37,6 +38,19 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 
+/**
+ * Writes a plan and the files it references into a `.ktravel` archive.
+ *
+ * The archive is built in a staging directory and copied to the destination only once it is
+ * complete, so a failure halfway through leaves the file the user picked untouched. That copy is
+ * also the one point where the real filesystem is left behind: on Android the destination may be a
+ * `content://` uri that only FileKit knows how to write to.
+ *
+ * What lands in the archive is not quite the stored plan. It lists only the attachments whose file
+ * was actually found, so the archive is never self-inconsistent with itself, and its HERE key is
+ * stripped unconditionally: the key leaves the device only inside `secrets.json`, encrypted under a
+ * password the user chose, and only when they asked for it.
+ */
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class TravelArchiveExporterImpl private constructor(
@@ -48,6 +62,8 @@ class TravelArchiveExporterImpl private constructor(
     // Injectable staging: the app cache dir in production, a tempdir in tests.
     private val stagingRootProvider: () -> PlatformFile,
 ) : TravelArchiveExporter {
+
+    private val logger = Logger.withTag("TravelArchiveExporter")
 
     @Inject
     constructor(
@@ -112,11 +128,16 @@ class TravelArchiveExporterImpl private constructor(
                 ),
             )
         } catch (cancellation: CancellationException) {
+            logger.i { "Export cancelled" }
             throw cancellation
         } catch (throwable: Throwable) {
             Result.failure(throwable.asTravelArchiveException())
         } finally {
+            logger.i { "Start cancel staging area" }
             runCatching { stagingDir.deleteRecursively() }
+                .onFailure {
+                    logger.e(it) { "Failed to delete staging area" }
+                }
         }
     }
 
@@ -189,7 +210,9 @@ class TravelArchiveExporterImpl private constructor(
         }
     }
 
+    /** Shared with the importer, which stages under the same root. */
     companion object {
+        /** Directory under the cache root that export and import both work in. */
         const val STAGING_DIR: String = "archive-staging"
     }
 }

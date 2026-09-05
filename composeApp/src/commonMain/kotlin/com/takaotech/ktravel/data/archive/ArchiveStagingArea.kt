@@ -14,17 +14,26 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
- * Area di lavoro su filesystem reale usata da export e import.
+ * Real filesystem workspace shared by export and import.
  *
- * Serve perché l'astrazione zip lavora su path del filesystem, mentre i file scelti dall'utente su
- * Android sono `content://` non convertibili in path.
+ * It exists because the zip abstraction works on filesystem paths, while the files the user picks on
+ * Android are `content://` uris that cannot be turned into one: everything is copied here first.
  *
- * Export e import cancellano sempre la propria directory, ma un archivio in attesa di conferma
- * sopravvive alla morte del processo: la prima operazione dopo l'avvio ripulisce quindi i residui.
+ * Export and import always delete their own directory, but a staged archive waiting for the user to
+ * confirm the import outlives the death of the process, so the first session after startup also
+ * sweeps away what previous runs left behind.
  */
 internal class ArchiveStagingArea(private val rootProvider: () -> PlatformFile) {
 
-    /** Crea una directory di lavoro esclusiva, ripulendo una volta sola i residui di sessioni morte. */
+    /**
+     * Creates an exclusive working directory under the root, sweeping the leftovers of dead sessions
+     * once per process.
+     *
+     * The sweep runs before the new directory exists, so it can delete every child of the root
+     * without having to tell live sessions from dead ones. It is best effort on purpose: a leftover
+     * that cannot be removed (a file still locked, a permission lost) must not fail the export or
+     * import that is only passing through here.
+     */
     suspend fun newSession(): PlatformFile {
         val root = rootProvider()
         if (leftoversCleaned.compareAndSet(false, true)) {
@@ -36,7 +45,13 @@ internal class ArchiveStagingArea(private val rootProvider: () -> PlatformFile) 
     }
 
     private companion object {
-        /** Il flag è di processo: le sessioni della stessa esecuzione non si cancellano a vicenda. */
+        /**
+         * Process wide flag: sessions of the same run never delete each other.
+         *
+         * It is shared by every instance, which is correct as long as they all stage under the same
+         * root — as export and import do. An area rooted elsewhere would be swept only if it happens
+         * to open the first session of the process.
+         */
         val leftoversCleaned = AtomicBoolean(false)
     }
 }

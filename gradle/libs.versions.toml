@@ -24,7 +24,6 @@ kotlinx-coroutines = "1.11.0"
 kotlinx-serialization-json = "1.11.0"
 material3 = "1.9.0"
 navigationevent = "1.1.0"
-navigation-compose = "2.9.2"
 platformtoolsCore = "0.7.5"
 runner = "1.7.0"
 core = "1.7.0"
@@ -42,15 +41,16 @@ kotlinx-io = "0.9.1"
 signum-indispensable = "3.24.0"
 signum-supreme = "0.15.0"
 
-detekt = "2.0.0-alpha.5"
+detekt = "2.0.0-alpha.6"
 kover = "0.9.9"
 sonarqube = "7.4.0.8496"
-compottie = "2.2.4"
+dokka = "2.2.0"
+compottie = "2.3.0"
 
 hyphen = "0.7.0-alpha01"
 markdown-renderer = "0.45.0"
 
-aboutLibraries = "15.1.1"
+aboutLibraries = "15.2.0"
 
 # region Server deps
 koin = "4.2.2"
@@ -90,7 +90,6 @@ compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", vers
 compose-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-backhandler-core = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 compose-constraintlayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform-shaded", version = "0.8.2" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
@@ -152,7 +151,10 @@ circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.
 circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = "circuit" }
 circuit-runtime-presenter = { module = "com.slack.circuit:circuit-runtime-presenter", version.ref = "circuit" }
 circuit-runtime-ui = { module = "com.slack.circuit:circuit-runtime-ui", version.ref = "circuit" }
+circuit-serialization = { module = "com.slack.circuit:circuit-serialization", version.ref = "circuit" }
 circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circuit" }
+circuitx-gesture-navigation = { module = "com.slack.circuit:circuitx-gesture-navigation", version.ref = "circuit" }
+circuitx-navigation = { module = "com.slack.circuit:circuitx-navigation", version.ref = "circuit" }
 
 hyphen = { module = "io.github.densermeerkat:hyphen", version.ref = "hyphen" }
 markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
@@ -170,7 +172,7 @@ signum-indispensable = { module = "at.asitplus.signum:indispensable", version.re
 signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signum-supreme" }
 
 detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
-detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
+detekt-composerules = { module = "io.nlopez.compose.rules:detekt", version = "0.6.4" }
 
 aboutLibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
 aboutLibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
@@ -208,6 +210,7 @@ aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "abo
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.5" }
 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [bundles]
 material-adaptive = ["material-adaptive", "material-adaptive-layout", "material-adaptive-navigation"]

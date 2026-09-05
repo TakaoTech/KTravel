@@ -12,7 +12,9 @@ class DatabaseProvider(
     val databaseName: String = DB_NAME,
     val directory: String? = null,
     val readContext: CoroutineContext = CoroutineName("db-read") + Dispatchers.IO,
-    val writeContext: CoroutineContext = CoroutineName("db-write") + Dispatchers.IO.limitedParallelism(1),
+    val writeContext: CoroutineContext = CoroutineName("db-write") + Dispatchers.IO.limitedParallelism(
+        1,
+    ),
     val scope: CoroutineScope = CoroutineScope(writeContext),
 ) {
 

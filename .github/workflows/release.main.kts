@@ -9,12 +9,19 @@
 @file:DependsOn("actions:checkout:v7")
 @file:DependsOn("actions:setup-java:v5")
 @file:DependsOn("actions:upload-artifact:v7")
+@file:DependsOn("actions:upload-pages-artifact:v5")
+@file:DependsOn("actions:deploy-pages:v5")
 @file:DependsOn("gradle:actions__setup-gradle:v6")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
+import io.github.typesafegithub.workflows.actions.actions.DeployPages
 import io.github.typesafegithub.workflows.actions.actions.SetupJava
 import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
+import io.github.typesafegithub.workflows.actions.actions.UploadPagesArtifact
 import io.github.typesafegithub.workflows.actions.gradle.ActionsSetupGradle
+import io.github.typesafegithub.workflows.domain.Environment
+import io.github.typesafegithub.workflows.domain.Mode
+import io.github.typesafegithub.workflows.domain.Permission
 import io.github.typesafegithub.workflows.domain.RunnerType
 import io.github.typesafegithub.workflows.domain.Shell
 import io.github.typesafegithub.workflows.domain.triggers.Push
@@ -154,5 +161,55 @@ workflow(
                 path = listOf("composeApp/build/compose/binaries/main-release/")
             )
         )
+    }
+
+    // The API documentation ships with the release: what Pages serves then always describes the
+    // version that was just built, never an intermediate state of the default branch.
+    val docs = job(id = "docs", runsOn = RunnerType.UbuntuLatest, needs = listOf(test)) {
+        uses(name = "Checkout code", action = Checkout())
+        uses(
+            name = "Set up JDK",
+            action = SetupJava(
+                distribution = SetupJava.Distribution.Corretto,
+                javaVersion = jdkVersion
+            )
+        )
+        uses(name = "Setup Gradle", action = ActionsSetupGradle())
+
+        run(
+            name = "Grant permission to execute gradlew",
+            command = "chmod +x gradlew"
+        )
+
+        // :dokkaAll aggregates the six documented modules into build/dokka/html. The runner is
+        // Linux, where the Kotlin/Native targets are disabled, so iosMain is absent from the
+        // output; everything the app exposes lives in commonMain, which is documented.
+        run(
+            name = "Generate API documentation",
+            command = "./gradlew dokkaAll"
+        )
+
+        uses(
+            name = "Upload Pages artifact",
+            action = UploadPagesArtifact(path = "build/dokka/html")
+        )
+    }
+
+    // Split from the job above so the write permissions on Pages are held by the deployment alone.
+    job(
+        id = "deploy-docs",
+        runsOn = RunnerType.UbuntuLatest,
+        needs = listOf(docs),
+        permissions = mapOf(
+            Permission.Pages to Mode.Write,
+            Permission.IdToken to Mode.Write
+        ),
+        // Pages deployments are gated on this environment; the URL is what the run summary links.
+        environment = Environment(
+            name = "github-pages",
+            url = expr("steps.deployment.outputs.page_url")
+        )
+    ) {
+        uses(name = "Deploy to GitHub Pages", action = DeployPages(), id = "deployment")
     }
 }

@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.domain.repository
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.datasource.AttachmentDataSource
 import com.takaotech.ktravel.data.datasource.TravelPlanStorageDataSource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
@@ -68,7 +69,7 @@ private val TICKET = AttachmentDomain(
     id = "att-1",
     relativePath = "$TEST_PLAN_ID/place1/ticket.pdf",
     originalName = "ticket.pdf",
-    mimeType = "application/pdf",
+    mimeType = MimeType("application/pdf"),
     sizeBytes = 512,
 )
 

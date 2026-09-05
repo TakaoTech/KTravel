@@ -2,13 +2,14 @@
 
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.updateStepNote
-import com.takaotech.ktravel.presentation.planning.StepUi
-import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
+import com.takaotech.ktravel.presentation.plan.StepUi
+import com.takaotech.ktravel.presentation.plan.TravelPlanUiMapper
 import com.takaotech.ktravel.testutil.roadAnswer
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -31,7 +32,7 @@ class TransportStepNotesTest : BehaviorSpec() {
         id = "a1",
         relativePath = "t1/t-step/ticket.pdf",
         originalName = "ticket.pdf",
-        mimeType = "application/pdf",
+        mimeType = MimeType("application/pdf"),
         sizeBytes = 512,
     )
 

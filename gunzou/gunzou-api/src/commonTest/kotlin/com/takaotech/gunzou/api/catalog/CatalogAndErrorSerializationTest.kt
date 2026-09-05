@@ -1,0 +1,111 @@
+package com.takaotech.gunzou.api.catalog
+
+import com.takaotech.gunzou.api.NavigatorApi
+import com.takaotech.gunzou.api.NavigatorJson
+import com.takaotech.gunzou.api.common.ProviderId
+import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.TransitMode
+import com.takaotech.gunzou.api.error.ErrorCode
+import com.takaotech.gunzou.api.error.ErrorResponse
+import com.takaotech.gunzou.api.here.HereTransportMode
+import kotlinx.serialization.json.jsonObject
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+
+class CatalogAndErrorSerializationTest {
+
+    private val catalog = ProviderCatalogResponse(
+        profiles = listOf(
+            ProviderProfileDescriptor(
+                provider = ProviderId.HERE,
+                profile = ProviderProfile.ROUTING,
+                path = NavigatorApi.HERE_ROUTING_TEMPLATE,
+                displayName = "HERE road routing",
+                supportedModes = SupportedModes.HereRouting(
+                    listOf(
+                        HereTransportMode.CAR,
+                        HereTransportMode.TRUCK,
+                        HereTransportMode.PEDESTRIAN,
+                        HereTransportMode.BICYCLE,
+                        HereTransportMode.SCOOTER,
+                    ),
+                ),
+                maxAlternatives = 6,
+                maxVia = 20,
+                supportsArriveBy = true,
+                supportsTolls = true,
+                requiresApiKey = true,
+            ),
+            ProviderProfileDescriptor(
+                provider = ProviderId.HERE,
+                profile = ProviderProfile.TRANSIT,
+                path = NavigatorApi.HERE_TRANSIT,
+                displayName = "HERE public transit",
+                supportedModes = SupportedModes.Transit(listOf(TransitMode.SUBWAY, TransitMode.BUS)),
+                maxAlternatives = 5,
+                supportsArriveBy = true,
+                requiresApiKey = true,
+            ),
+        ),
+    )
+
+    @Test
+    fun `Given a catalog of two profiles When encoding and decoding Then it is unchanged`() {
+        val encoded = NavigatorJson.encodeToString(ProviderCatalogResponse.serializer(), catalog)
+
+        assertEquals(catalog, NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), encoded))
+    }
+
+    @Test
+    fun `Given a descriptor When decoding Then the path it advertises is the one the client would call`() {
+        val encoded = NavigatorJson.encodeToString(ProviderCatalogResponse.serializer(), catalog)
+
+        val paths = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), encoded)
+            .profiles.map { it.path }
+
+        assertEquals(listOf(NavigatorApi.HERE_ROUTING_TEMPLATE, NavigatorApi.HERE_TRANSIT), paths)
+    }
+
+    @Test
+    fun `Given a server that returns no profiles When decoding Then the list is empty rather than absent`() {
+        val decoded = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), "{}")
+
+        assertEquals(emptyList(), decoded.profiles)
+    }
+
+    @Test
+    fun `Given a failure carrying the provider own words When encoding and decoding Then they survive`() {
+        val error = ErrorResponse(
+            code = ErrorCode.PROVIDER_UNAUTHORIZED,
+            message = "The HERE routing API rejected the supplied key",
+            providerStatus = 401,
+            providerMessage = "Invalid credentials for this resource",
+        )
+
+        val encoded = NavigatorJson.encodeToString(ErrorResponse.serializer(), error)
+
+        assertEquals(error, NavigatorJson.decodeFromString(ErrorResponse.serializer(), encoded))
+    }
+
+    @Test
+    fun `Given a failure with no upstream behind it When encoding Then the provider fields are omitted`() {
+        val error = ErrorResponse(code = ErrorCode.INVALID_REQUEST, message = "alternatives must be at least 1")
+
+        val encoded = NavigatorJson.encodeToJsonElement(ErrorResponse.serializer(), error).jsonObject
+
+        assertFalse(encoded.containsKey("providerStatus"))
+        assertFalse(encoded.containsKey("providerMessage"))
+    }
+
+    @Test
+    fun `Given a health payload When encoding and decoding Then the status defaults to ok`() {
+        val health = HealthResponse(version = "1.0.0-SNAPSHOT")
+
+        val encoded = NavigatorJson.encodeToString(HealthResponse.serializer(), health)
+        val decoded = NavigatorJson.decodeFromString(HealthResponse.serializer(), encoded)
+
+        assertEquals(HealthResponse.STATUS_OK, decoded.status)
+        assertEquals("1.0.0-SNAPSHOT", decoded.version)
+    }
+}

@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.presentation.settings
 
-import com.takaotech.navigator.client.NavigatorClient
-import com.takaotech.navigator.client.NavigatorResult
-import com.takaotech.navigator.client.NavigatorTarget
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorResult
+import com.takaotech.gunzou.client.NavigatorTarget
 
 /**
  * Whether a remote navigator answers, as a settings screen shows it.
@@ -46,7 +46,10 @@ suspend fun NavigatorClient.checkReachability(baseUrl: String): NavigatorReachab
 
         // A navigator that answers with an error is still a navigator that is there; anything that
         // could not be reached at all is not.
-        is NavigatorResult.ServerError -> NavigatorReachability.Reachable(version = "unknown", latencyMillis = elapsed)
+        is NavigatorResult.ServerError -> NavigatorReachability.Reachable(
+            version = "unknown",
+            latencyMillis = elapsed,
+        )
 
         is NavigatorResult.TransportError -> NavigatorReachability.Unreachable
     }

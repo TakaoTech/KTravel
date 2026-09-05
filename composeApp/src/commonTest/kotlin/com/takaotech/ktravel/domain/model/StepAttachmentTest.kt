@@ -1,11 +1,12 @@
 package com.takaotech.ktravel.domain.model
 
+import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.data.mapper.TravelPlanEntityMapper
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.addStepAttachment
 import com.takaotech.ktravel.domain.model.TravelPlanEditor.removeStepAttachment
-import com.takaotech.ktravel.presentation.planning.StepUi
-import com.takaotech.ktravel.presentation.planning.TravelPlanUiMapper
+import com.takaotech.ktravel.presentation.plan.StepUi
+import com.takaotech.ktravel.presentation.plan.TravelPlanUiMapper
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -24,7 +25,7 @@ class StepAttachmentTest :
             id = "a1",
             relativePath = "t1/s1/abc.jpg",
             originalName = "photo.jpg",
-            mimeType = "image/jpeg",
+            mimeType = MimeType("image/jpeg"),
             sizeBytes = 1234,
         )
 

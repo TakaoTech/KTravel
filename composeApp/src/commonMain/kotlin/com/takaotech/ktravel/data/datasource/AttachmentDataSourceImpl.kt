@@ -2,6 +2,8 @@
 
 package com.takaotech.ktravel.data.datasource
 
+import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.core.data.mime.MimeTypes
 import com.takaotech.ktravel.core.io.deleteRecursively
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.di.AppScope
@@ -35,7 +37,10 @@ class AttachmentDataSourceImpl private constructor(
 
     private val root: PlatformFile get() = rootProvider()
 
+    private val logger = Logger.withTag("AttachmentDataSource")
+
     override suspend fun saveAttachment(travelId: String, stepId: String, source: PlatformFile): AttachmentEntity {
+        logger.d { "Saving attachment ${source.name} under $travelId/$stepId" }
         val stepDir = root / travelId / stepId
         stepDir.createDirectories()
 
@@ -53,19 +58,26 @@ class AttachmentDataSourceImpl private constructor(
             id = Uuid.random().toString(),
             relativePath = "$travelId/$stepId/$fileName",
             originalName = source.name,
-            mimeType = mimeTypeFromExtension(extension),
+            mimeType = MimeTypes.fromExtension(extension),
             sizeBytes = destination.size(),
-        )
+        ).also { attachment ->
+            logger.i {
+                "Saved attachment ${attachment.relativePath} (${attachment.sizeBytes} bytes, " +
+                    "${attachment.mimeType}) from ${source.name}"
+            }
+        }
     }
 
     override fun resolveFile(relativePath: String): PlatformFile =
         relativePath.split('/').fold(root) { dir, segment -> dir / segment }
 
     override suspend fun deleteAttachment(relativePath: String) {
+        logger.d { "Deleting attachment $relativePath" }
         resolveFile(relativePath).delete(mustExist = false)
     }
 
     override suspend fun deleteTravelAttachments(travelId: String) {
+        logger.i { "Deleting every attachment of travel $travelId" }
         (root / travelId).deleteRecursively()
     }
 

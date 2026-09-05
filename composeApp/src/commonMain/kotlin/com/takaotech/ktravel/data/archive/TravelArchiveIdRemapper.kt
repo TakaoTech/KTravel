@@ -2,6 +2,7 @@
 
 package com.takaotech.ktravel.data.archive
 
+import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.StepEntity
@@ -11,49 +12,70 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
- * Rigenera tutti gli id di un piano importato, per poterlo affiancare a un viaggio già presente
- * senza collisioni.
+ * Regenerates every id of an imported plan, so it can sit next to an already existing trip without
+ * collisions.
  *
- * Il piano non contiene riferimenti incrociati per id (nessun puntatore step -> place, nessun id
- * dentro le rotte), quindi la rigenerazione è "piatta". L'unico legame da mantenere coerente è
- * quello fra il `relative_path` degli allegati e i riferimenti `ktravel://attachment/...` dentro le
- * note Markdown.
+ * Used only by the `DUPLICATE` conflict strategy: replacing a trip keeps the ids as they are.
+ *
+ * The plan holds no cross references by id (no step -> place pointer, no id inside the routes), so
+ * the regeneration is flat. The one link that has to stay consistent is the one between the
+ * `relative_path` of the attachments and the `ktravel://attachment/...` references inside the
+ * Markdown notes.
  */
 internal object TravelArchiveIdRemapper {
 
-    data class Remapped(
-        val plan: TravelPlanEntity,
-        /** vecchio relativePath -> nuovo relativePath, per estrarre i file e riscrivere le note. */
-        val attachmentPathMapping: Map<String, String>,
-    )
+    private val logger = Logger.withTag("TravelArchiveIdRemapper")
 
     /**
-     * @param newTravelId id del viaggio di destinazione.
-     * @param newId generatore di id, iniettabile per rendere i test deterministici.
+     * The outcome of a remap: the rebuilt plan, and where its files moved.
+     *
+     * @property plan The plan with every id regenerated and every note already rewritten.
+     * @property attachmentPathMapping Old relativePath -> new relativePath, used to read each file
+     * out of the archive under its old name and write it under the new one.
+     */
+    data class Remapped(val plan: TravelPlanEntity, val attachmentPathMapping: Map<String, String>)
+
+    /**
+     * Rebuilds [plan] under fresh ids, in two passes over the tree.
+     *
+     * @param plan The plan as it was read from the archive.
+     * @param newTravelId Id of the destination trip.
+     * @param newId Id generator, injectable to keep the tests deterministic.
      */
     fun remap(
         plan: TravelPlanEntity,
         newTravelId: String,
         newId: () -> String = { Uuid.random().toString() },
     ): Remapped {
+        logger.d {
+            "Remapping plan ${plan.id} onto $newTravelId: ${plan.days.size} days, " +
+                "${plan.places.size} backlog places"
+        }
         val pathMapping = mutableMapOf<String, String>()
 
-        // Primo passaggio: rigenera gli id e raccoglie la mappa completa dei path.
+        // First pass: regenerate the ids and collect the complete path mapping.
         val daysWithNewIds = plan.days.map { day ->
             val newDayId = newId()
             val steps = day.steps.map { step -> step.remapIds(newTravelId, newId, pathMapping) }
-            day.copy(id = newDayId, steps = steps, places = day.places.remapIds(newTravelId, newId, pathMapping))
+            day.copy(
+                id = newDayId,
+                steps = steps,
+                places = day.places.remapIds(newTravelId, newId, pathMapping),
+            )
         }
         val backlogWithNewIds = plan.places.remapIds(newTravelId, newId, pathMapping)
+        logger.d { "Ids regenerated, ${pathMapping.size} attachment paths to move" }
 
-        // Secondo passaggio: riscrive le note solo ora, perché una nota può referenziare
-        // l'allegato di un altro step o di un posto del backlog, e la mappa deve essere completa.
+        // Second pass: the notes are rewritten only now, because a note may reference the
+        // attachment of another step or of a backlog place, and the mapping has to be complete.
         val days = daysWithNewIds.map { day ->
             day.copy(
                 steps = day.steps.map { step -> step.rewriteNote(pathMapping) },
                 places = day.places.rewriteNotes(pathMapping),
             )
         }
+
+        logger.i { "Plan ${plan.id} remapped onto $newTravelId with ${pathMapping.size} attachments moved" }
 
         return Remapped(
             plan = plan.copy(
@@ -66,8 +88,8 @@ internal object TravelArchiveIdRemapper {
     }
 
     /**
-     * Un posto porta con sé nota e allegati come uno step, quindi va rimappato come uno step: nuovo
-     * id, e i file spostati sotto la coppia viaggio/posto nuova.
+     * A place carries a note and attachments just like a step, so it is remapped like a step: a new
+     * id, and the files moved under the new trip/place pair.
      */
     private fun List<PlaceEntity>.remapIds(
         newTravelId: String,
@@ -79,14 +101,20 @@ internal object TravelArchiveIdRemapper {
             id = newPlaceId,
             attachments = place.attachments.map { attachment ->
                 val newPath = attachment.relativePath.movedTo(newTravelId, newPlaceId)
-                pathMapping[attachment.relativePath] = newPath
+                pathMapping.record(attachment.relativePath, newPath)
                 attachment.copy(id = newId(), relativePath = newPath)
             },
         )
     }
 
-    private fun List<PlaceEntity>.rewriteNotes(pathMapping: Map<String, String>): List<PlaceEntity> =
-        map { place -> place.copy(note = AttachmentReference.rewriteReferences(place.note, pathMapping)) }
+    private fun List<PlaceEntity>.rewriteNotes(pathMapping: Map<String, String>): List<PlaceEntity> = map { place ->
+        place.copy(
+            note = AttachmentReference.rewriteReferences(
+                place.note,
+                pathMapping,
+            ),
+        )
+    }
 
     private fun StepEntity.remapIds(
         newTravelId: String,
@@ -96,7 +124,7 @@ internal object TravelArchiveIdRemapper {
         val newStepId = newId()
         fun List<AttachmentEntity>.moved(): List<AttachmentEntity> = map { attachment ->
             val newPath = attachment.relativePath.movedTo(newTravelId, newStepId)
-            pathMapping[attachment.relativePath] = newPath
+            pathMapping.record(attachment.relativePath, newPath)
             attachment.copy(id = newId(), relativePath = newPath)
         }
 
@@ -107,13 +135,31 @@ internal object TravelArchiveIdRemapper {
     }
 
     private fun StepEntity.rewriteNote(pathMapping: Map<String, String>): StepEntity = when (this) {
-        is StepEntity.Transport -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
+        is StepEntity.Transport -> copy(
+            note = AttachmentReference.rewriteReferences(
+                note,
+                pathMapping,
+            ),
+        )
+
         is StepEntity.Place -> copy(note = AttachmentReference.rewriteReferences(note, pathMapping))
     }
 
     /**
-     * Il nome fisico del file è già un uuid univoco e viene conservato: cambiano solo le cartelle
-     * viaggio e step.
+     * Records `oldPath -> newPath`, and warns when the archive shipped two attachments under the
+     * same `relative_path`: only the last mapping survives, so the note references of the earlier
+     * one would end up rewritten onto the wrong file.
+     */
+    private fun MutableMap<String, String>.record(oldPath: String, newPath: String) {
+        val previous = put(oldPath, newPath)
+        if (previous != null && previous != newPath) {
+            logger.w { "Duplicate attachment path $oldPath in the archive: $previous replaced by $newPath" }
+        }
+    }
+
+    /**
+     * The physical file name is already a unique uuid and is kept as is: only the trip and step
+     * folders change.
      */
     private fun String.movedTo(newTravelId: String, newStepId: String): String =
         "$newTravelId/$newStepId/${substringAfterLast('/')}"

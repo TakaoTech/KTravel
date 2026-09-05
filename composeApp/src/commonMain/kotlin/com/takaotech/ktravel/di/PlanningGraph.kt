@@ -6,7 +6,8 @@ import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingService
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
-import com.takaotech.ktravel.presentation.planning.transport.RouteOptionsDraft
+import com.takaotech.ktravel.presentation.plan.transport.RouteAnswerDraft
+import com.takaotech.ktravel.presentation.plan.transport.RouteOptionsDraft
 import dev.zacsweers.metro.GraphExtension
 import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.Provides
@@ -37,6 +38,14 @@ interface PlanningGraph {
      * route preview and back.
      */
     val routeOptionsDraft: RouteOptionsDraft
+
+    /**
+     * The answer that request produced.
+     *
+     * Scoped to the plan for the same reason as the request, and because the composer and the route
+     * preview are two destinations reading one answer — see [RouteAnswerDraft].
+     */
+    val routeAnswerDraft: RouteAnswerDraft
 
     @GraphExtension.Factory
     fun interface Factory {

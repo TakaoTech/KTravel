@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 java {
@@ -17,7 +18,7 @@ java {
 
 kotlin {
     android {
-        namespace = "com.takaotech.navigation"
+        namespace = "com.takaotech.gunzou.here"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 

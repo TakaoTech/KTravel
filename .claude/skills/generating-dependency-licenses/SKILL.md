@@ -12,7 +12,7 @@ part of it is written or committed by hand.
 
 The metadata is collected from **`:composeApp`'s classpaths**. Project dependencies are not reported
 as entries, but the graph walk continues into their own dependencies, so every `gunzou` module is
-included through `:gunzou-navigator` and `:gunzou-navigator-client`. `:password-strength`
+included through `:gunzou-server` and `:gunzou-client`. `:password-strength`
 contributes nothing: it depends on the standard library alone.
 
 Out of scope on purpose: the dependencies `:androidApp` declares for itself. Collection is

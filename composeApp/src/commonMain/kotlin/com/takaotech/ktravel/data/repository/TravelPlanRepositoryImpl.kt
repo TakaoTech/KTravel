@@ -167,7 +167,8 @@ class TravelPlanRepositoryImpl(
      */
     override suspend fun deletePlace(placeId: String, dayId: String?) {
         val state = _planningState.value
-        val places = if (dayId == null) state.places else state.days.firstOrNull { it.id == dayId }?.places
+        val places =
+            if (dayId == null) state.places else state.days.firstOrNull { it.id == dayId }?.places
         val relativePaths = places?.firstOrNull { it.id == placeId }
             ?.attachments.orEmpty()
             .map { it.relativePath }
