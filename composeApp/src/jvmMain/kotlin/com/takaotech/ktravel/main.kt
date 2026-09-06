@@ -6,18 +6,14 @@ import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.github.vinceglb.filekit.FileKit
-import org.maplibre.compose.desktop.DesktopRuntimeOptions
 import org.maplibre.compose.desktop.MapLibre
 import org.maplibre.compose.desktop.ProvideMapHost
-import org.maplibre.compose.desktop.desktopCachePath
-import org.maplibre.compose.desktop.rememberAwtComposeGpuHost
+import org.maplibre.compose.desktop.rememberAwtComposeMapHost
 
 @Suppress("UndocumentedPublicFunction")
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun main() {
-    MapLibre.configure(
-        DesktopRuntimeOptions(cachePath = desktopCachePath("com.takaotech.ktravel")),
-    )
+    MapLibre.configure(applicationId = "com.takaotech.ktravel")
 
     application {
         System.setProperty("compose.interop.blending", "true")
@@ -29,7 +25,7 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "ktravel",
         ) {
-            ProvideMapHost(host = rememberAwtComposeGpuHost(window)) {
+            ProvideMapHost(host = rememberAwtComposeMapHost(window)) {
                 App(onRootPop = ::exitApplication)
             }
         }

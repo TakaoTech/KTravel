@@ -6,7 +6,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TakaoTech_KTravel&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TakaoTech_KTravel)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-4285F4.svg)](https://github.com/JetBrains/compose-multiplatform)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.12.0-4285F4.svg)](https://github.com/JetBrains/compose-multiplatform)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Desktop-lightgrey.svg)](#supported-platforms)
 
 A travel planning application built with Kotlin Multiplatform and Compose Multiplatform. One shared
@@ -53,7 +53,7 @@ built today.
 | Area            | Choice                                                                 |
 |-----------------|------------------------------------------------------------------------|
 | Language        | Kotlin 2.4.0 (Multiplatform)                                           |
-| UI              | Compose Multiplatform 1.11.1, Material 3, adaptive layouts             |
+| UI              | Compose Multiplatform 1.12.0, Material 3, adaptive layouts             |
 | Architecture    | Clean Architecture (domain / presentation / ui) + Circuit              |
 | DI              | Metro (compiler-plugin DI) with Circuit code generation                |
 | Persistence     | Couchbase Lite (Kotbase)                                               |
@@ -108,11 +108,11 @@ downstream compile classpath: the vendor DTOs stay behind the contract in `:gunz
 
 ## Prerequisites
 
-| Tool        | Requirement                                                          |
-|-------------|----------------------------------------------------------------------|
-| JDK         | 21+ to run Gradle; the build uses a Java 25 toolchain                |
-| Android SDK | API 37 installed, with `sdk.dir` set in `local.properties`           |
-| Xcode       | Only for iOS — 16+, with Swift Package Manager support (`spmForKmp`) |
+| Tool        | Requirement                                                             |
+|-------------|-------------------------------------------------------------------------|
+| JDK         | 21+ to run Gradle; the build uses a Java 25 toolchain                   |
+| Android SDK | API 37 installed, with `sdk.dir` set in `local.properties`              |
+| Xcode       | Only for iOS — 16+; it resolves CouchbaseLite via Swift Package Manager |
 
 **Java 25 is a hard floor for the desktop target.** MapLibre Compose reaches MapLibre Native through
 the FFM API, so the desktop map cannot run on an older JVM, and the JVM must be granted native

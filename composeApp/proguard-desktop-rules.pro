@@ -90,11 +90,19 @@
 -keep class org.maplibre.compose.mlnffi.** { *; }
 -keep class org.maplibre.nativeffi.** { *; }
 
-# Every downcall goes through MethodHandle.invokeExact, which is signature polymorphic: the JDK
-# declares a single invokeExact(Object...) and the compiler emits a call site carrying the real
+# Since 0.15.0 the location engine is a module of its own, and its desktop providers reach the
+# platform the same way — Objective-C message sends on macOS, the corresponding system calls
+# elsewhere.
+-keep class org.maplibre.compose.location.desktop.** { *; }
+
+# Every downcall goes through MethodHandle.invoke / invokeExact, which is signature polymorphic: the
+# JDK declares a single invokeExact(Object...) and the compiler emits a call site carrying the real
 # descriptor. ProGuard resolves members by descriptor and cannot match those, so it reports one
-# "can't find referenced method" per stub — 47 of them, all expected and all harmless.
+# "can't find referenced method" per stub — all expected and all harmless. The list has to cover
+# every package that holds downcall stubs, because ProGuard treats these warnings as errors.
 -dontwarn org.maplibre.nativeffi.**
+-dontwarn org.maplibre.compose.desktop.**
+-dontwarn org.maplibre.compose.location.desktop.**
 
 # LWJGL loads its own native libraries through Configuration / Class.forName, and reads the field
 # order of its Struct subclasses reflectively.

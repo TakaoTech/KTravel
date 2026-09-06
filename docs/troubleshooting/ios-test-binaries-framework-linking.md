@@ -55,14 +55,14 @@ build (see the root `CLAUDE.md`).
 ## Symptom 2 — it links, then aborts at startup
 
 ```
-dyld[…]: Library not loaded: @rpath/MapLibre.framework/MapLibre
+dyld[…]: Library not loaded: @rpath/CouchbaseLite.framework/CouchbaseLite
   Referenced from: …/composeApp/build/bin/iosSimulatorArm64/debugTest/test.kexe
 Child process terminated with signal 6: Abort trap
 ```
 
 ### Cause
 
-Both frameworks the test binary depends on are dynamic, with an `@rpath`-relative install name:
+`CouchbaseLite.framework` is dynamic, with an `@rpath`-relative install name:
 
 ```
 $ otool -D …/CouchbaseLite.framework/CouchbaseLite
@@ -70,18 +70,17 @@ $ otool -D …/CouchbaseLite.framework/CouchbaseLite
 ```
 
 A search path (`-F`/`-L`) is enough to *link*; loading the library at run time needs an `-rpath`
-entry as well. The SwiftPM plugin builds `MapLibre.framework` and passes the linker its search path,
-but no `-rpath`, so the executable links cleanly and then dies on the first load.
+entry as well, so the executable links cleanly and then dies on the first load.
 
 ### Fix
 
-The same `TestExecutable` block adds absolute `-rpath` entries for both frameworks:
+The same `TestExecutable` block adds an absolute `-rpath` entry:
 
 ```kotlin
 iosTarget.binaries.withType<TestExecutable>().configureEach {
     val couchbaseDir = couchbaseLiteFrameworkDir(iosTarget.name).absolutePath
-    val swiftPackageDir = swiftPackageProductDir(iosTarget.name).absolutePath
-    linkerOpts("-F$couchbaseDir", "-rpath", couchbaseDir, "-rpath", swiftPackageDir)
+    linkerOpts(*MAPLIBRE_IOS_LINKER_FLAGS)
+    linkerOpts("-F$couchbaseDir", "-rpath", couchbaseDir)
     linkTaskProvider.configure { dependsOn(fetchCouchbaseLiteAppleFramework) }
 }
 ```
@@ -89,13 +88,34 @@ iosTarget.binaries.withType<TestExecutable>().configureEach {
 Absolute paths into the build directory are fine here: the simulator runs on the host filesystem,
 and these binaries are never distributed.
 
-## Maintenance note
+## Symptom 3 — undefined C++, ImageIO or Metal symbols
 
-`swiftPackageProductDir` builds the path
-`build/spmKmpPlugin/<target>/scratch/<triple>/release`, which is an internal layout detail of the
-`spmForKmp` plugin, not a published API. The plugin always builds the release configuration,
-whatever the Kotlin binary asks for. If a plugin upgrade brings back
-`Library not loaded: @rpath/MapLibre.framework/MapLibre`, check that path first.
+```
+Undefined symbols for architecture arm64:
+  "std::__1::__throw_system_error(int, char const*)", referenced from: …
+  "_CGImageSourceCreateWithData", referenced from: …
+```
+
+### Cause
+
+Since maplibre-compose 0.15.0 the iOS map is MapLibre Native FFI, shipped as a **static** library
+inside the klib — there is no `MapLibre.framework` Swift package any more, and no `spmForKmp` plugin
+in the build. A static library records no link dependencies of its own, so the system libraries it
+was compiled against have to be named by whatever produces the executable.
+
+### Fix
+
+`MAPLIBRE_IOS_LINKER_FLAGS` in `composeApp/build.gradle.kts` holds the list from MapLibre's
+[getting started guide](https://maplibre.org/maplibre-compose/getting-started/) — `-lc++`, `-lz` and
+the CoreFoundation / CoreGraphics / CoreText / Foundation / ImageIO / Metal / QuartzCore frameworks.
+It is applied in two places, and both have to stay in step with the guide:
+
+- the test executables, through the `linkerOpts` above;
+- the application, through `OTHER_LDFLAGS` on the app target of `iosApp/iosApp.xcodeproj` —
+  `composeApp` exports a *static* framework, so Xcode is what links these symbols for the app.
+
+A change that only touches the Gradle side will pass `iosSimulatorArm64Test` and then fail the Xcode
+build, and the other way round.
 
 ## Diagnosing a new missing framework
 

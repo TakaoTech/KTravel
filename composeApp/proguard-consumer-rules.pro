@@ -22,9 +22,11 @@
 # Generated Compose Resources accessor (namespace com.takaotech.ktravel.compose).
 -keep class com.takaotech.ktravel.compose.generated.resources.** { *; }
 
-# maplibre-compose declares @Serializable location models whose Companion / $$serializer are
-# resolved by name at runtime. The MapLibre Android SDK ships its own consumer rules (Gson,
-# org.maplibre.geojson, enum values()), so only what those do not cover belongs here.
+# org.maplibre.compose:location, an api dependency of maplibre-compose, declares @Serializable
+# models (Location, Orientation, the *WithAccuracy types) whose Companion / $$serializer are
+# resolved by name at runtime, and ships no consumer rules of its own. Everything else MapLibre
+# needs from the shrinker is covered upstream: maplibre-compose-android keeps the Vulkan JNI
+# bridge, and maplibre-native-ffi-android keeps the JavaCPP loader.
 -keepclassmembers class org.maplibre.compose.location.** {
     *** Companion;
     *** INSTANCE;

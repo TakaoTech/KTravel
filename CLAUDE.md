@@ -229,8 +229,8 @@ The desktop release needs a JDK with `jmods` (ProGuard reads them as `-libraryja
 builds the runtime image from them). `composeApp/build.gradle.kts` requests an Amazon Corretto 25
 toolchain by vendor and assigns it to `compose.desktop.application.javaHome`, so `JAVA_HOME` never
 matters here; the foojay resolver in `settings.gradle.kts` lets Gradle download it. ProGuard is
-pinned to 7.9.1: the 7.7.0 that Compose 1.11.1 defaults to reads class file 68 at most and dies on
-a JDK 25 jmod.
+pinned to 7.9.1: it has to accept class file 69, which 7.7.0 did not — 7.8.0, the version Compose
+1.12.0 defaults to, raised the ceiling, and the pin keeps it from moving back.
 
 ```bash
 ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease   # APK + AAB (currently unsigned)

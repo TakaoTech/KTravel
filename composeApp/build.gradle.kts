@@ -4,7 +4,6 @@ import com.android.build.api.dsl.KotlinMultiplatformAndroidCompilation
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import dev.detekt.gradle.Detekt
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
-import io.github.frankois944.spmForKmp.swiftPackageConfig
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -29,7 +28,6 @@ plugins {
     alias(libs.plugins.mokkery)
     alias(libs.plugins.metro)
     alias(libs.plugins.allopen)
-    alias(libs.plugins.spmForKmp)
     alias(libs.plugins.aboutLibraries)
     alias(libs.plugins.dokka)
     id("kotlin-parcelize")
@@ -148,13 +146,23 @@ fun couchbaseLiteFrameworkDir(targetName: String) = couchbaseLiteAppleFrameworks
     .resolve("CouchbaseLite.xcframework")
     .resolve(if (targetName == "iosSimulatorArm64") "ios-arm64_x86_64-simulator" else "ios-arm64")
 
-// Where the SwiftPM plugin leaves the products it builds for a given Apple target — MapLibre.framework
-// among them. The plugin always builds the release configuration, whatever the Kotlin binary asks for.
-fun swiftPackageProductDir(targetName: String) = layout.buildDirectory.dir(
-    "spmKmpPlugin/$targetName/scratch/" +
-        (if (targetName == "iosSimulatorArm64") "arm64-apple-ios-simulator" else "arm64-apple-ios") +
-        "/release",
-).get().asFile
+// ── MapLibre iOS system libraries ────────────────────────────────────────────────────────────────
+// Since 0.15.0 the iOS map is MapLibre Native FFI, a static library inside the klib, and no longer
+// the MapLibre.framework Swift package. A static library carries no link dependencies of its own,
+// so the system libraries it was built against have to be named by whatever produces the executable:
+// the Xcode project for the app (Other Linker Flags in iosApp.xcodeproj), and the block below for
+// the Kotlin test executables.
+val MAPLIBRE_IOS_LINKER_FLAGS = arrayOf(
+    "-lc++",
+    "-lz",
+    "-framework", "CoreFoundation",
+    "-framework", "CoreGraphics",
+    "-framework", "CoreText",
+    "-framework", "Foundation",
+    "-framework", "ImageIO",
+    "-framework", "Metal",
+    "-framework", "QuartzCore",
+)
 
 // ── MapLibre desktop runtime ─────────────────────────────────────────────────────────────────────
 // MapLibre Native FFI ships one runtime artifact per OS/architecture pair, and MapLibre's own
@@ -224,36 +232,25 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        // MapLibre's iOS SDK is a Swift package, pulled into the static framework below so the
-        // Xcode project needs no package reference of its own.
-        iosTarget.swiftPackageConfig {
-            dependency {
-                remotePackageVersion(
-                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
-                    products = { add("MapLibre", exportToKotlin = true) },
-                    packageName = "maplibre-gl-native-distribution",
-                    version = "6.25.1",
-                )
-            }
-        }
-
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
         }
 
         // The framework above is static, so its unresolved symbols are the consuming Xcode
-        // project's problem. The test executables are the one Apple binary linked and run for
-        // real, which is why the two dynamic frameworks behind it have to be spelled out here:
-        //   - CouchbaseLite, asked for by kotbase's cinterop, is not provided at all outside
-        //     Xcode: it needs the search path (-F) as well as the runtime one.
-        //   - MapLibre is built by the SwiftPM plugin, which passes the linker its search path but
-        //     no -rpath, so the executable links and then aborts on "Library not loaded".
-        // Both install names are @rpath relative, hence the absolute -rpath entries.
+        // project's problem — OTHER_LDFLAGS on the iosApp target names the libraries behind them.
+        // The test executables are the one Apple binary linked and run for real, so what is
+        // behind those symbols has to be spelled out here:
+        //   - MapLibre Native FFI ships as a static library inside the klib since 0.15.0. It is
+        //     C++ and pulls in the system imaging, text and Metal stacks, which the Kotlin linker
+        //     does not add on its own.
+        //   - CouchbaseLite, asked for by kotbase's cinterop, is a dynamic framework not provided
+        //     at all outside Xcode: it needs the search path (-F) as well as the runtime one
+        //     (-rpath), because its install name is @rpath relative.
         iosTarget.binaries.withType<TestExecutable>().configureEach {
             val couchbaseDir = couchbaseLiteFrameworkDir(iosTarget.name).absolutePath
-            val swiftPackageDir = swiftPackageProductDir(iosTarget.name).absolutePath
-            linkerOpts("-F$couchbaseDir", "-rpath", couchbaseDir, "-rpath", swiftPackageDir)
+            linkerOpts(*MAPLIBRE_IOS_LINKER_FLAGS)
+            linkerOpts("-F$couchbaseDir", "-rpath", couchbaseDir)
             linkTaskProvider.configure { dependsOn(fetchCouchbaseLiteAppleFramework) }
         }
     }
@@ -414,6 +411,9 @@ kotlin {
             kotlin.srcDir("src/kzipMain/kotlin")
             dependencies {
                 implementation(libs.kzip.jvm)
+                // Render backend of the Android map (see the catalog entry): runtime only, the
+                // compile classpath sees nothing but the shared maplibre-compose API.
+                runtimeOnly(libs.maplibre.runtime.android)
             }
         }
         jvmMain {
@@ -568,8 +568,9 @@ compose.desktop {
 
 
         buildTypes.release.proguard {
-            // Compose 1.11.1 defaults to ProGuard 7.7.0, which reads class file 68 at most and
-            // dies on the JDK 25 jmods it reads as -libraryjars. 7.8.0 raised the ceiling to 69.
+            // ProGuard reads the JDK 25 jmods as -libraryjars, so it has to accept class file 69.
+            // 7.7.0 stopped at 68; 7.8.0, which Compose 1.12.0 defaults to, raised the ceiling.
+            // The pin stays explicit so a Compose downgrade cannot quietly take the ceiling away.
             version.set("7.9.1")
             isEnabled.set(true)
             optimize.set(true)
