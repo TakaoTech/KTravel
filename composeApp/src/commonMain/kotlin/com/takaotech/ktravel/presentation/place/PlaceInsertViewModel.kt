@@ -3,7 +3,7 @@ package com.takaotech.ktravel.presentation.place
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.presentation.field.FieldValidationState
 import com.takaotech.ktravel.presentation.field.KFieldState
@@ -34,6 +34,7 @@ class PlaceInsertViewModel(
     @Assisted private val travelId: String,
     @Assisted private val dayId: String?,
     private val planningGraphStore: PlanningGraphStore,
+    appLogger: AppLogger,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -51,7 +52,7 @@ class PlaceInsertViewModel(
     private val _uiState = MutableStateFlow(PlaceInsertUiState())
     val uiState: StateFlow<PlaceInsertUiState> = _uiState.asStateFlow()
 
-    private val logger = Logger.withTag("PlaceInsertViewModel")
+    private val logger = appLogger.withTag("PlaceInsertViewModel")
 
     init {
         logger.d { "Opened for travel $travelId, day $dayId" }

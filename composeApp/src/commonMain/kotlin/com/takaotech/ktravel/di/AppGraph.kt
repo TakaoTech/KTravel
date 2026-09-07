@@ -11,14 +11,36 @@ import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.gunzou.client.NavigatorClientConfig
 import com.takaotech.ktravel.core.createAppLogger
+import com.takaotech.ktravel.core.logging.AppLogger
+import com.takaotech.ktravel.core.logging.DiagnosticsInitializer
+import com.takaotech.ktravel.core.logging.InMemoryLogStore
+import com.takaotech.ktravel.core.logging.KermitAppLogger
+import com.takaotech.ktravel.core.logging.LogBufferWriter
+import com.takaotech.ktravel.core.logging.LogFileSink
+import com.takaotech.ktravel.core.logging.LogFileStore
+import com.takaotech.ktravel.core.logging.LogRepository
+import com.takaotech.ktravel.core.logging.LogScope
+import com.takaotech.ktravel.core.logging.LogStore
+import com.takaotech.ktravel.core.logging.installPlatformLogBridge
+import com.takaotech.ktravel.core.telemetry.KTravelTelemetry
+import com.takaotech.ktravel.core.telemetry.TelemetryLogWriter
+import com.takaotech.ktravel.core.telemetry.TelemetrySink
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
+import com.takaotech.ktravel.data.consent.ConsentFlowDataSource
+import com.takaotech.ktravel.data.consent.ConsentFlowRepository
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
 import com.takaotech.ktravel.data.storage.DatabaseProvider
+import com.takaotech.ktravel.domain.repository.AppSettingsRepository
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metrox.viewmodel.ViewModelGraph
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.filesDir
+import io.github.vinceglb.filekit.toKotlinxIoPath
+import kotlin.time.Clock
 
 @DependencyGraph(AppScope::class)
 interface AppGraph : ViewModelGraph {
@@ -32,10 +54,38 @@ interface AppGraph : ViewModelGraph {
     /** The application logger, also used to record what the back stack does. */
     val logger: Logger
 
+    /** What the application's own code logs through. */
+    val appLogger: AppLogger
+
+    /** The lines of the running session, which the diagnostics screen watches. */
+    val logStore: LogStore
+
+    /** The trip a log line belongs to, stamped by navigation. */
+    val logScope: LogScope
+
+    /** Reads the kept log, from the files and from memory alike. */
+    val logRepository: LogRepository
+
+    /** The remote diagnostics backend, no-op in a build without a Kotzilla project file. */
+    val telemetrySink: TelemetrySink
+
+    /** Starts the log file writer and keeps telemetry in step with the user's consent. */
+    val diagnosticsInitializer: DiagnosticsInitializer
+
+    /** The privacy notice, read by navigation to decide whether it is due. */
+    val consentFlowRepository: ConsentFlowRepository
+
+    /** The installation's preferences, read by navigation for the same reason. */
+    val appSettingsRepository: AppSettingsRepository
+
     /** The embedded gunzo-navigator, so a host can stop it when the application goes away. */
     val embeddedNavigatorHost: EmbeddedNavigatorHost
 
     companion object {
+
+        /** Where the log files live, under the application's data directory. */
+        private const val LOGS_DIRECTORY = "logs"
+
         /**
          * The one logger of the process.
          *
@@ -46,7 +96,71 @@ interface AppGraph : ViewModelGraph {
          */
         @Provides
         @SingleIn(AppScope::class)
-        fun provideLogger(): Logger = createAppLogger()
+        fun provideLogger(
+            logStore: LogStore,
+            logFileSink: LogFileSink,
+            logScope: LogScope,
+            telemetrySink: TelemetrySink,
+            appSettingsRepository: AppSettingsRepository,
+        ): Logger = createAppLogger(
+            extraWriters = listOf(
+                LogBufferWriter(store = logStore, sink = logFileSink, scope = logScope),
+                TelemetryLogWriter(sink = telemetrySink) {
+                    appSettingsRepository.settings.value.effectiveConsent(Clock.System.now())
+                },
+            ),
+        ).also {
+            // Every library that logs through SLF4J writes here too, which is what puts a Ktor or a
+            // Couchbase line on the diagnostics screen next to the application's own.
+            installPlatformLogBridge(it)
+        }
+
+        /** What the application's own code logs through, so no call site names Kermit. */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideAppLogger(logger: Logger): AppLogger = KermitAppLogger(logger)
+
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogStore(): LogStore = InMemoryLogStore()
+
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogScope(): LogScope = LogScope()
+
+        /**
+         * The log files, under the application's own data directory.
+         *
+         * Resolved lazily, when something first logs: `FileKit.filesDir` needs the platform to have
+         * been initialised, which on the desktop happens in `main`.
+         */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogFileStore(): LogFileStore = LogFileStore((FileKit.filesDir / LOGS_DIRECTORY).toKotlinxIoPath())
+
+        /**
+         * The queue that writes the log to disk.
+         *
+         * The retention is read through the settings flow rather than captured, so changing it in the
+         * diagnostics screen deletes the files that just fell out of the window, without a restart.
+         */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogFileSink(logFileStore: LogFileStore, appSettingsRepository: AppSettingsRepository): LogFileSink =
+            LogFileSink(
+                store = logFileStore,
+                retentionDays = { appSettingsRepository.settings.value.logRetentionDays },
+            )
+
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideLogRepository(logFileStore: LogFileStore, logStore: LogStore): LogRepository =
+            LogRepository(store = logFileStore, logStore = logStore)
+
+        /** The telemetry backend of the process, the same instance the entry points started. */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideTelemetrySink(): TelemetrySink = KTravelTelemetry.sink
 
         /**
          * The embedded navigator, built here rather than by its own `@Inject` constructor so the
@@ -56,6 +170,16 @@ interface AppGraph : ViewModelGraph {
         @Provides
         @SingleIn(AppScope::class)
         fun provideEmbeddedNavigatorHost(logger: Logger): EmbeddedNavigatorHost = EmbeddedNavigatorHost(logger)
+
+        /**
+         * Reads the packaged privacy notice.
+         *
+         * Provided rather than `@Inject`ed because its one parameter is the function that reads a
+         * resource, which a test replaces and a graph has no business binding.
+         */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun provideConsentFlowDataSource(): ConsentFlowDataSource = ConsentFlowDataSource()
 
         @Provides
         @SingleIn(AppScope::class)

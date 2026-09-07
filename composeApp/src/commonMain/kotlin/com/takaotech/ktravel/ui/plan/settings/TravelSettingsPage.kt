@@ -25,6 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 fun TravelSettingsPage(
     viewModel: TravelSettingsViewModel,
     onNavigationBackClick: () -> Unit,
+    onDiagnosticsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,6 +42,7 @@ fun TravelSettingsPage(
     TravelSettingsContent(
         uiState = uiState,
         onNavigationBackClick = onNavigationBackClick,
+        onDiagnosticsClick = onDiagnosticsClick,
         onHereApiKeyChange = viewModel::onHereApiKeyChanged,
         onApiKeyVisibilityToggle = viewModel::onApiKeyVisibilityToggled,
         onNavigatorPreferenceChange = viewModel::onNavigatorPreferenceChanged,

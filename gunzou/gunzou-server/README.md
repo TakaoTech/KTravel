@@ -73,15 +73,24 @@ through.
 
 ## Logging
 
-Kermit is the application-wide facade, reached through `appLog`. The writer behind it is per target:
+Kermit is the application-wide facade, reached through `appLog`. Where it ends up depends on which of
+the two deployments this server is in, and the difference is made by the classpath rather than by a
+flag: SLF4J 2.x resolves its backend through `ServiceLoader`, and each application has exactly one.
 
-- **JVM** — `Slf4jLogWriter` forwards to SLF4J, so `logback.xml` in `:gunzou-server-app` keeps
-  owning the format. Kermit's own `platformLogWriter()` would write straight to stdout and bypass it.
-- **Android** — Logcat, **iOS** — NSLog, both via `platformLogWriter()`.
+| Deployment | SLF4J backend | Writer behind `appLog` | Who owns the format |
+|---|---|---|---|
+| **Embedded** in `:composeApp` | `KermitSlf4jServiceProvider`, in `composeApp` | the host's, through `installLogging(logger)` | the application: buffer, log file, diagnostics screen, telemetry |
+| **Standalone** `:gunzou-server-app` | logback | `appLogWriter()`, i.e. `Slf4jLogWriter` | `logback.xml` of the server |
 
-Ktor's internal logger (`application.log`) is a separate channel: SLF4J on the JVM, `KtorSimpleLogger`
-elsewhere. Merging the two would mean implementing `org.slf4j.Logger` by hand, since on the JVM
-`io.ktor.util.logging.Logger` is a typealias to it.
+So the writers this module ships are unchanged — `Slf4jLogWriter` on the JVM, Logcat on Android, NSLog
+on iOS, all through `appLogWriter()` — and they are what the standalone deployment uses. The embedded
+one never reaches them: `installLogging(logger)` hands the host's Kermit logger over, and the host
+configures it with `platformLogWriter()` plus its own writers. That matters: the host is also the
+SLF4J backend there, so a writer forwarding to SLF4J would be a cycle rather than a route.
+
+Ktor's internal logger (`application.log`) goes the same way. It is SLF4J on the JVM and
+`KtorSimpleLogger` elsewhere, so under the embedded deployment its lines arrive in the host's Kermit
+logger too, and end up on the diagnostics screen next to the application's own.
 
 ## Starting the server
 

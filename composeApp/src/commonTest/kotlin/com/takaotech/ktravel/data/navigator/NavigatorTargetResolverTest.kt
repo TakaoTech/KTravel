@@ -1,5 +1,6 @@
 package com.takaotech.ktravel.data.navigator
 
+import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.domain.model.AppSettingsDomain
 import com.takaotech.ktravel.domain.model.TravelSettingsDomain
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
@@ -13,6 +14,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.time.Instant
 
 private const val EMBEDDED_URL = "http://127.0.0.1:54213"
 private const val APP_URL = "https://nav.example.com"
@@ -22,6 +24,12 @@ private class FakeAppSettings(initial: AppSettingsDomain) : AppSettingsRepositor
     private val state = MutableStateFlow(initial)
     override val settings: StateFlow<AppSettingsDomain> = state
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, flowVersion: Int, decidedAt: Instant) =
+        error("Not written here")
+
+    override suspend fun updateLogRetentionDays(days: Int) = error("Not written here")
+
+    override suspend fun installationId(): String = "test-installation"
 }
 
 private class FakePlanSettings(override val settings: TravelSettingsDomain) : SettingsRepository {

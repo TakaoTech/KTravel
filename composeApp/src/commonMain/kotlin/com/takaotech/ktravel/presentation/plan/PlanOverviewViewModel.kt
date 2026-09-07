@@ -3,7 +3,7 @@ package com.takaotech.ktravel.presentation.plan
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.archive.TravelArchiveExporter
@@ -30,6 +30,7 @@ class PlanOverviewViewModel(
     @Assisted private val travelId: String,
     private val planningGraphStore: PlanningGraphStore,
     private val archiveExporter: TravelArchiveExporter,
+    appLogger: AppLogger,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -44,7 +45,7 @@ class PlanOverviewViewModel(
     private val _uiState = MutableStateFlow(PlanOverviewUiState())
     val uiState: StateFlow<PlanOverviewUiState> = _uiState.asStateFlow()
 
-    private val logger = Logger.withTag("PlanOverviewViewModel")
+    private val logger = appLogger.withTag("PlanOverviewViewModel")
 
     init {
         logger.d { "Opened for travel $travelId" }

@@ -1,10 +1,11 @@
 package com.takaotech.ktravel.presentation.place
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.presentation.field.FieldValidationState
 import com.takaotech.ktravel.di.PlanningGraph
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
+import com.takaotech.ktravel.presentation.field.FieldValidationState
+import com.takaotech.ktravel.testutil.testAppLogger
 import dev.mokkery.MockMode
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -45,7 +46,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
     init {
         given("a PlaceInsertViewModel with initial state") {
-            val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+            val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
             then("should have default input mode as LAT_LNG") {
                 viewModel.uiState.value.inputMode shouldBe PlaceInputMode.LAT_LNG
@@ -78,7 +79,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel") {
             `when`("onInputModeChanged is called with SEARCH mode") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onInputModeChanged(PlaceInputMode.SEARCH)
 
@@ -88,7 +89,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onInputModeChanged is called with LAT_LNG mode") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 viewModel.onInputModeChanged(PlaceInputMode.SEARCH)
 
                 viewModel.onInputModeChanged(PlaceInputMode.LAT_LNG)
@@ -101,7 +102,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for place name changes") {
             `when`("onPlaceNameChanged is called with a name") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val newName = TextFieldValue("Colosseo")
 
                 viewModel.onPlaceNameChanged(newName)
@@ -114,7 +115,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for latitude validation") {
             `when`("onPlaceLatChanged is called with valid latitude 45.0") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLat = TextFieldValue("45.0")
 
                 viewModel.onPlaceLatChanged(validLat)
@@ -125,7 +126,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with valid latitude 90") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLat = TextFieldValue("90")
 
                 viewModel.onPlaceLatChanged(validLat)
@@ -136,7 +137,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with valid latitude -90") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLat = TextFieldValue("-90")
 
                 viewModel.onPlaceLatChanged(validLat)
@@ -147,7 +148,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with valid latitude 0") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLat = TextFieldValue("0")
 
                 viewModel.onPlaceLatChanged(validLat)
@@ -158,7 +159,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with valid latitude with decimals") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLat = TextFieldValue("41.890251")
 
                 viewModel.onPlaceLatChanged(validLat)
@@ -171,7 +172,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for longitude validation") {
             `when`("onPlaceLngChanged is called with valid longitude 45.0") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLng = TextFieldValue("45.0")
 
                 viewModel.onPlaceLngChanged(validLng)
@@ -182,7 +183,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLngChanged is called with valid longitude -180") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLng = TextFieldValue("-180")
 
                 viewModel.onPlaceLngChanged(validLng)
@@ -193,7 +194,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLngChanged is called with valid longitude 0") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLng = TextFieldValue("0")
 
                 viewModel.onPlaceLngChanged(validLng)
@@ -204,7 +205,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLngChanged is called with valid longitude with decimals") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val validLng = TextFieldValue("12.492373")
 
                 viewModel.onPlaceLngChanged(validLng)
@@ -217,7 +218,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for search query changes") {
             `when`("onSearchQueryChanged is called with a query") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val query = TextFieldValue("Roma")
 
                 viewModel.onSearchQueryChanged(query)
@@ -230,7 +231,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for time selection") {
             `when`("onTimeSelected is called with hour and minute") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onTimeSelected(14, 30)
 
@@ -242,7 +243,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for date selection") {
             `when`("onDateSelected is called with a date") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 val date = LocalDate(2024, 6, 15)
 
                 viewModel.onDateSelected(date)
@@ -253,7 +254,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onDateSelected is called with null") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
                 viewModel.onDateSelected(LocalDate(2024, 6, 15))
 
                 viewModel.onDateSelected(null)
@@ -268,7 +269,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with valid data") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -296,7 +297,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with empty name") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
                 viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
@@ -323,7 +324,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with empty latitude in LAT_LNG mode") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
@@ -350,7 +351,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with empty longitude in LAT_LNG mode") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -377,7 +378,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with invalid latitude format") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLatChanged(TextFieldValue("invalid"))
@@ -405,7 +406,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with invalid longitude format") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -433,7 +434,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with latitude out of range") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLatChanged(TextFieldValue("91"))
@@ -461,7 +462,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with longitude out of range") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test Place"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -492,7 +493,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val testDayId = "day-123"
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, testDayId, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, testDayId, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
@@ -512,7 +513,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with valid data and dayId is null") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Fontana di Trevi"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.900932"))
@@ -539,9 +540,9 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 val dayId1 = "day-abc"
                 val dayId2 = "day-xyz"
                 val viewModel1 =
-                    PlaceInsertViewModel(TRAVEL_ID, dayId1, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, dayId1, createStore(mockSavePlaceUseCase), testAppLogger())
                 val viewModel2 =
-                    PlaceInsertViewModel(TRAVEL_ID, dayId2, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, dayId2, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel1.onPlaceNameChanged(TextFieldValue("Place 1"))
                 viewModel1.onPlaceLatChanged(TextFieldValue("45.0"))
@@ -567,7 +568,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val testDayId = "day-456"
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, testDayId, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, testDayId, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.savePlace()
 
@@ -591,7 +592,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for lat/lng paste detection") {
             `when`("onPlaceLatChanged is called with 'lat, lng' format") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251, 12.492373"))
 
@@ -602,7 +603,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLngChanged is called with 'lat, lng' format") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLngChanged(TextFieldValue("41.890251, 12.492373"))
 
@@ -613,7 +614,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with 'lat lng' space-separated format") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251 12.492373"))
 
@@ -624,7 +625,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with a single lat value") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLatChanged(TextFieldValue("41.890251"))
 
@@ -635,7 +636,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLngChanged is called with a single lng value") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLngChanged(TextFieldValue("12.492373"))
 
@@ -646,7 +647,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onPlaceLatChanged is called with negative coordinates 'lat, lng' format") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onPlaceLatChanged(TextFieldValue("-33.865143, 151.209900"))
 
@@ -661,7 +662,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with valid data and isBulk is true") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onBulkChanged(true)
                 viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
@@ -712,7 +713,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called multiple times with isBulk true") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onBulkChanged(true)
 
@@ -750,7 +751,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with invalid data and isBulk is true") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onBulkChanged(true)
 
@@ -776,7 +777,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("savePlace is called with valid data and isBulk is false") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onBulkChanged(false)
                 viewModel.onPlaceNameChanged(TextFieldValue("Colosseo"))
@@ -815,7 +816,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
 
         given("a PlaceInsertViewModel for isBulk state management") {
             `when`("onBulkChanged is called with true") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onBulkChanged(true)
 
@@ -825,7 +826,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onBulkChanged is called with false") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onBulkChanged(false)
 
@@ -835,7 +836,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             }
 
             `when`("onBulkChanged is toggled from true to false") {
-                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore())
+                val viewModel = PlaceInsertViewModel(TRAVEL_ID, null, createEmptyStore(), testAppLogger())
 
                 viewModel.onBulkChanged(true)
                 viewModel.onBulkChanged(false)
@@ -850,7 +851,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("onPlaceNameChanged is called after name error") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.savePlace()
                 eventually(duration = 1.seconds) {
@@ -867,7 +868,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("onPlaceLatChanged is called after lat error") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test"))
                 viewModel.onPlaceLngChanged(TextFieldValue("12.0"))
@@ -886,7 +887,7 @@ class PlaceInsertViewModelTest : BehaviorSpec() {
             `when`("onPlaceLngChanged is called after lng error") {
                 val mockSavePlaceUseCase = mock<SavePlaceUseCase>(MockMode.autoUnit)
                 val viewModel =
-                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase))
+                    PlaceInsertViewModel(TRAVEL_ID, null, createStore(mockSavePlaceUseCase), testAppLogger())
 
                 viewModel.onPlaceNameChanged(TextFieldValue("Test"))
                 viewModel.onPlaceLatChanged(TextFieldValue("41.0"))

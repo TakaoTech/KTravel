@@ -50,13 +50,13 @@
 -dontwarn com.couchbase.lite.**
 -dontwarn javax.annotation.**
 
-# ── logback / SLF4J ──────────────────────────────────────────────────────────────────────────────
-# SLF4J 2.x binds its backend through ServiceLoader<SLF4JServiceProvider>; the provider named in
-# META-INF/services is unreachable for the shrinker.
--keep class ch.qos.logback.classic.spi.LogbackServiceProvider { *; }
--keep class ch.qos.logback.** { *; }
+# ── SLF4J ────────────────────────────────────────────────────────────────────────────────────────
+# The application is its own SLF4J backend: Kermit. SLF4J 2.x resolves the backend through
+# ServiceLoader<SLF4JServiceProvider>, so the provider named in META-INF/services is unreachable for
+# the shrinker and has to be kept by name. logback is not on this classpath at all — only the
+# standalone :gunzou-server-app still uses it.
+-keep class com.takaotech.ktravel.core.logging.slf4j.KermitSlf4jServiceProvider { *; }
 -keep class org.slf4j.** { *; }
--dontwarn ch.qos.logback.**
 -dontwarn javax.servlet.**
 -dontwarn jakarta.servlet.**
 

@@ -2,6 +2,7 @@ package com.takaotech.ktravel
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.takaotech.ktravel.core.KTravelPlatform
@@ -25,6 +26,8 @@ import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 @Composable
 fun App(onRootPop: () -> Unit = {}) {
     val appGraph = remember { createAppGraph() }
+
+    LaunchedEffect(appGraph) { appGraph.diagnosticsInitializer.start() }
 
     KTravelPlatform {
         KTravelTheme {

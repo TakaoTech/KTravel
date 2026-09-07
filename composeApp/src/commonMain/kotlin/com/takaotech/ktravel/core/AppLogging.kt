@@ -1,9 +1,10 @@
 package com.takaotech.ktravel.core
 
+import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.loggerConfigInit
-import com.takaotech.ktravel.gunzou.server.appLogWriter
+import co.touchlab.kermit.platformLogWriter
 
 /** The tag the application's own lines carry. Its clients and the embedded server re-tag their own. */
 private const val APP_TAG = "KTravel"
@@ -19,18 +20,25 @@ private val DEFAULT_MIN_SEVERITY = Severity.Debug
 /**
  * The application's logger, built once and handed out by the dependency graph.
  *
- * Everything logs through the instance this returns — the application itself, both HTTP clients and
- * the embedded navigator, each re-tagging it as its own — so where output lands and how much of it
- * survives are decided here and passed down, rather than read from the Kermit singleton by whoever
- * happens to want a log line. That is what makes the decision reviewable: there is one call site,
- * and a component that logs had to be given a logger to do it.
+ * Everything logs through the instance this returns — the application itself through `AppLogger`,
+ * both HTTP clients and the embedded navigator through Kermit directly, and every library that
+ * speaks SLF4J through the binding in `core/logging/slf4j` — so where output lands and how much of
+ * it survives are decided here and passed down, rather than read from the Kermit singleton by
+ * whoever happens to want a log line.
  *
- * The writer comes from `:gunzou-server` because that is where the per target one already lives:
- * Logcat on Android, NSLog on iOS, SLF4J and therefore `logback.xml` on the desktop.
+ * The platform writer is Kermit's own: Logcat on Android, NSLog on iOS, the console on the desktop.
+ * It is deliberately *not* `:gunzou-server`'s `appLogWriter()`, which on the JVM forwards to SLF4J:
+ * with the SLF4J binding of this application pointing back at this logger, that would be a loop.
+ * The standalone `:gunzou-server-app` keeps that writer, and its logback configuration with it.
  *
+ * @param extraWriters The writers that make a line reachable: the diagnostics buffer, the file on
+ *   disk, and telemetry when the user has consented.
  * @param minSeverity The lowest severity kept.
  */
-fun createAppLogger(minSeverity: Severity = DEFAULT_MIN_SEVERITY): Logger = Logger(
-    config = loggerConfigInit(appLogWriter(), minSeverity = minSeverity),
+fun createAppLogger(
+    extraWriters: List<LogWriter> = emptyList(),
+    minSeverity: Severity = DEFAULT_MIN_SEVERITY,
+): Logger = Logger(
+    config = loggerConfigInit(platformLogWriter(), *extraWriters.toTypedArray(), minSeverity = minSeverity),
     tag = APP_TAG,
 )

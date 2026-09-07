@@ -46,3 +46,7 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+
+# The SLF4J backend of the application (core/logging/slf4j), resolved through
+# ServiceLoader<SLF4JServiceProvider> from META-INF/services and therefore invisible to R8.
+-keep class com.takaotech.ktravel.core.logging.slf4j.KermitSlf4jServiceProvider { *; }

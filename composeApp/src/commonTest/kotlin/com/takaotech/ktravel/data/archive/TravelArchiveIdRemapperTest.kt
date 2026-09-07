@@ -2,6 +2,7 @@ package com.takaotech.ktravel.data.archive
 
 import com.takaotech.ktravel.data.entity.StepEntity
 import com.takaotech.ktravel.domain.model.AttachmentReference
+import com.takaotech.ktravel.testutil.testAppLogger
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -14,7 +15,7 @@ class TravelArchiveIdRemapperTest :
         given("a plan imported as a duplicate") {
             val original = ArchiveTestFixtures.plan()
             val ids = generateSequence(1) { it + 1 }.map { "new-$it" }.iterator()
-            val remapped = TravelArchiveIdRemapper.remap(
+            val remapped = TravelArchiveIdRemapper(testAppLogger()).remap(
                 plan = original,
                 newTravelId = "travel-copy",
                 newId = { ids.next() },
@@ -88,7 +89,7 @@ class TravelArchiveIdRemapperTest :
         given("a plan whose backlog place carries a note and a file") {
             val original = with(ArchiveTestFixtures) { ArchiveTestFixtures.plan().withBacklogAttachment() }
             val ids = generateSequence(1) { it + 1 }.map { "new-$it" }.iterator()
-            val remapped = TravelArchiveIdRemapper.remap(
+            val remapped = TravelArchiveIdRemapper(testAppLogger()).remap(
                 plan = original,
                 newTravelId = "travel-copy",
                 newId = { ids.next() },

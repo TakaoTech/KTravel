@@ -10,6 +10,7 @@ import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.archive.TravelArchiveException
 import com.takaotech.ktravel.testutil.tempdir
+import com.takaotech.ktravel.testutil.testAppLogger
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.div
@@ -47,13 +48,14 @@ class TravelArchiveSecretsRoundTripTest :
                 directory = root.also { it.createDirectories() }.path,
                 scope = TestScope(UnconfinedTestDispatcher()),
             )
-            val attachments = AttachmentDataSourceImpl(attachmentRoot)
+            val attachments = AttachmentDataSourceImpl(attachmentRoot, testAppLogger())
             val storage = TravelPlanStorageDataSourceImpl(databaseProvider, attachments)
             val exporter = TravelArchiveExporterImpl(
                 storage = storage,
                 attachments = attachments,
                 zipFactory = zipFactory,
                 stagingRoot = root / "staging",
+                appLogger = testAppLogger(),
             )
             var nextId = 0
             val importer = TravelArchiveImporterImpl(
@@ -61,6 +63,7 @@ class TravelArchiveSecretsRoundTripTest :
                 attachments = attachments,
                 zipFactory = zipFactory,
                 stagingRoot = root / "staging",
+                appLogger = testAppLogger(),
                 newId = { "imported-${++nextId}" },
             )
         }

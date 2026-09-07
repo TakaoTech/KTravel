@@ -7,6 +7,7 @@ internal object TravelSettingsTestTags {
     const val NAVIGATOR_BASE_URL = "settings_navigator_base_url"
     const val NAVIGATOR_TEST = "settings_navigator_test"
     const val NAVIGATOR_REACHABILITY = "settings_navigator_reachability"
+    const val DIAGNOSTICS = "settings_diagnostics"
 
     fun navigatorPreferenceTag(kind: String): String = "settings_navigator_preference_$kind"
 }

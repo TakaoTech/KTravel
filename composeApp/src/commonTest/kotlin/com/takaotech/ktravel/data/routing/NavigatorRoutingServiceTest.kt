@@ -1,5 +1,10 @@
 package com.takaotech.ktravel.data.routing
 
+import com.takaotech.gunzou.api.NavigatorApi
+import com.takaotech.gunzou.api.catalog.NavigatorProfile
+import com.takaotech.gunzou.client.NavigatorClient
+import com.takaotech.gunzou.client.NavigatorClientConfig
+import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
 import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
 import com.takaotech.ktravel.domain.model.AppSettingsDomain
@@ -15,10 +20,6 @@ import com.takaotech.ktravel.domain.routing.RoutingFailure
 import com.takaotech.ktravel.domain.routing.RoutingMode
 import com.takaotech.ktravel.domain.routing.RoutingProfileId
 import com.takaotech.ktravel.domain.routing.model.RouteResult
-import com.takaotech.gunzou.api.NavigatorApi
-import com.takaotech.gunzou.api.catalog.NavigatorProfile
-import com.takaotech.gunzou.client.NavigatorClient
-import com.takaotech.gunzou.client.NavigatorClientConfig
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
+import kotlin.time.Instant
 
 private const val EMBEDDED_URL = "http://127.0.0.1:54213"
 private const val API_KEY = "here-key"
@@ -75,6 +77,12 @@ private const val ONE_ROUTE = """
 private class FakeAppSettings(initial: AppSettingsDomain = AppSettingsDomain()) : AppSettingsRepository {
     override val settings: StateFlow<AppSettingsDomain> = MutableStateFlow(initial)
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, flowVersion: Int, decidedAt: Instant) =
+        error("Not written here")
+
+    override suspend fun updateLogRetentionDays(days: Int) = error("Not written here")
+
+    override suspend fun installationId(): String = "test-installation"
 }
 
 private class FakePlanSettings(override val settings: TravelSettingsDomain) : SettingsRepository {

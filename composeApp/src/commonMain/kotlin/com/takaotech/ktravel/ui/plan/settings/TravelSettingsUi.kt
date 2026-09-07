@@ -22,6 +22,7 @@ fun TravelSettingsUi(screen: TravelSettingsScreen, state: TravelSettingsNavState
     TravelSettingsPage(
         viewModel = viewModel,
         onNavigationBackClick = { state.eventSink(TravelSettingsEvent.Back) },
+        onDiagnosticsClick = { state.eventSink(TravelSettingsEvent.OpenDiagnostics) },
         modifier = modifier,
     )
 }

@@ -75,6 +75,45 @@ The project follows **Clean Architecture** principles:
 2. **Presentation Layer** - ViewModels and UI state management
 3. **UI Layer** - Compose UI components and screens
 
+### Logging, diagnostics and telemetry
+
+Application code logs through **`AppLogger`** (`core/logging`) and names no logging library. Behind it
+there is one Kermit `Logger`, built in `core/AppLogging.kt` and bound by `AppGraph`, carrying three
+writers:
+
+| Writer | Where the line goes |
+|---|---|
+| `platformLogWriter()` | Logcat on Android, NSLog on iOS, the console on the desktop |
+| `LogBufferWriter` | the in-memory buffer the diagnostics screen watches, and the log file |
+| `TelemetryLogWriter` | Kotzilla, from `Info` up, and only with the user's consent |
+
+The same logger is what `:gunzou-client` and the embedded `:gunzou-server` are handed, and what the
+SLF4J binding in `core/logging/slf4j` writes into — so a Ktor or a Couchbase line lands on the
+diagnostics screen next to the application's own. logback is deliberately absent from the application
+and excluded in the root build; the standalone `:gunzou-server-app` keeps it. Nothing in the
+repository uses log4j, and the same exclusions keep it that way.
+
+The log is written one file per day under `<filesDir>/logs`, kept for three days by default
+(`MIN_LOG_RETENTION_DAYS`..`MAX_LOG_RETENTION_DAYS`, changed by the user from the diagnostics screen).
+
+Telemetry is Kotzilla, and it is optional at build time: the SDK is configured by `composeApp/kotzilla.json`,
+which is gitignored. Without that file the Gradle plugin is disabled and `src/telemetryNoopMain` is
+compiled instead of `src/telemetryKotzillaMain`, so a clone without a key — CI included — builds and
+runs identically, minus the sending. Nothing is ever sent before the user answers the privacy notice
+(`ConsentScreen`), the answer expires after a year (`CONSENT_VALIDITY`), and revoking it calls
+`forgetMe()`.
+
+On iOS the Xcode side of Kotzilla is checked in rather than injected: `iosApp.xcodeproj` carries the
+`Kotzilla Dsym` build phase, which uploads the symbols, and `iosApp/iosApp/Info.plist` carries
+`KotzillaConsentRequired`, which is what holds a pre-main session back until the notice is answered.
+The injector that would rewrite both is disabled in `composeApp/build.gradle.kts`
+(`tasks.matching { it.name == "setupKotzillaXcode" }`), because with `consentRequired = true` the
+plugin adds a second phase of its own, `Kotzilla Info.plist Inject`, and then reads both as dSYM
+scripts, warning on every iOS build that it is skipping the injection. Note that the plugin's own
+`autoInjectXcodeScript` flag does not stop it: it is read while the plugin is applied, before the
+`kotzilla { }` block runs. Re-enabling the task refreshes the dSYM script when the plugin raises
+`KOTZILLA_SCRIPT_VERSION` — delete the `Kotzilla Info.plist Inject` phase it adds back.
+
 ## Technology Stack
 
 - **Language:** Kotlin
@@ -148,9 +187,11 @@ no `testDebugUnitTest`: these are AGP *KMP library* modules, not classic Android
 A local Android unit test has no real Android runtime behind it, so a few suites are compiled out
 of the Android compilation in `composeApp/build.gradle.kts` and verified on the JVM target only:
 `ui/**` (Compose UI tests need Robolectric, which Kotest specs cannot opt into because `@RunWith`
-is JVM-only and `commonTest` also compiles for iOS) and the three suites that open the Couchbase
-database (its Android artifact needs a `Context`). When adding a test that touches either area,
-expect it to run on the JVM target only.
+is JVM-only and `commonTest` also compiles for iOS), the three suites that open the Couchbase
+database (its Android artifact needs a `Context`) and `ConsentFlowDataSourceTest`, which reads the
+packaged privacy notice through Compose Resources — on Android that means the assets, and a local
+unit test has no `Context` to reach them. When adding a test that touches any of those areas, expect
+it to run on the JVM target only.
 
 ### Couchbase Lite native libraries on Linux
 
@@ -246,7 +287,7 @@ Keep rules live with the module that needs them:
 | `gunzou/gunzou-here-client/proguard-consumer-rules.pro` | published as Android consumer rules, also included by the desktop build |
 | `gunzou/gunzou-server/proguard-consumer-rules.pro`      | published as Android consumer rules, also included by the desktop build |
 | `composeApp/proguard-consumer-rules.pro`                | published as Android consumer rules, also included by the desktop build |
-| `composeApp/proguard-desktop-rules.pro`                 | desktop only (Couchbase JNI, logback, JNA, MapLibre FFI/LWJGL, enums)   |
+| `composeApp/proguard-desktop-rules.pro`                 | desktop only (Couchbase JNI, the SLF4J binding, JNA, MapLibre FFI/LWJGL, enums) |
 | `androidApp/proguard-rules.pro`                         | application-level (`-dontobfuscate`, Parcelize)                         |
 
 The desktop build cannot read Android consumer rules, so the four `gunzou` files above are also
@@ -281,6 +322,11 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 1. The conversation with the user.
 2. Translation *values* in `composeResources/values-**/strings.xml` (see the `localizing-strings`
    skill). `composeResources/values/strings.xml` stays English-only.
+3. The text of the privacy notice, in `composeResources/files/consent/consent_flow_<language>.json`.
+   That content is versioned data rather than a label — an answer is given to a *version* of the
+   notice — and `composeResources/files` takes no language qualifier, so the language is resolved by
+   `ConsentFlowDataSource`, with English (`consent_flow_en.json`) as the file that must exist. The
+   frame around it — buttons, titles, settings labels — is in `strings.xml` like everything else.
 
 ### General Principles
 

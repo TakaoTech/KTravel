@@ -24,6 +24,7 @@ plugins {
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.allopen) apply false
     alias(libs.plugins.aboutLibraries) apply false
+    alias(libs.plugins.kotzilla) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.sonarqube)
@@ -90,6 +91,30 @@ dependencies {
     dokka(projects.gunzouServer)
     dokka(projects.gunzouApi)
     dokka(projects.gunzouClient)
+}
+
+// ── Logging backends ─────────────────────────────────────────────────────────────────────────────
+// One SLF4J backend per application, and never log4j.
+//
+// log4j is on no classpath of this repository today, and these exclusions are what keeps a
+// transitive dependency from quietly putting it back. logback is excluded from the application
+// only: there the SLF4J backend is Kermit (core/logging/slf4j), and a second provider would make
+// which one wins a matter of classpath order. The standalone :gunzou-server-app keeps logback, and
+// its logback.xml with it.
+subprojects {
+    configurations.configureEach {
+        exclude(group = "log4j")
+        exclude(group = "org.apache.logging.log4j")
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+
+        if (project.path in listOf(":composeApp", ":androidApp")) {
+            exclude(group = "ch.qos.logback")
+        }
+    }
+
+    tasks.matching { it.name.startsWith("ksp") }.configureEach {
+        dependsOn(tasks.matching { it.name.startsWith("generateKotzillaConfig") })
+    }
 }
 
 // Shared Dokka configuration. It lives here rather than in a convention plugin because a

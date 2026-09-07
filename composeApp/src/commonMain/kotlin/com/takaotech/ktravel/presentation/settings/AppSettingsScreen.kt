@@ -30,4 +30,10 @@ sealed interface AppSettingsEvent : CircuitUiEvent {
 
     /** The user asked to read the dependency licenses. */
     data object OpenLicenses : AppSettingsEvent
+
+    /** The user asked to read the log this installation kept. */
+    data object OpenDiagnostics : AppSettingsEvent
+
+    /** Read the privacy notice again, and answer it again. */
+    data object PrivacyPolicy : AppSettingsEvent
 }

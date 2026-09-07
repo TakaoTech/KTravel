@@ -5,6 +5,7 @@ import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import dev.detekt.gradle.Detekt
 import dev.zacsweers.metro.gradle.ExperimentalMetroGradleApi
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.internal.utils.getLocalProperty
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -30,7 +31,15 @@ plugins {
     alias(libs.plugins.allopen)
     alias(libs.plugins.aboutLibraries)
     alias(libs.plugins.dokka)
+//    alias(libs.plugins.kotzilla)
     id("kotlin-parcelize")
+}
+
+val telemetryEnabled = getLocalProperty("kotzilla.telemetry.enabled")?.toBooleanStrictOrNull()
+    ?: layout.projectDirectory.file("kotzilla.json").asFile.exists()
+
+if (!telemetryEnabled) {
+    logger.lifecycle("composeApp: no kotzilla.json, telemetry is compiled out (NoopTelemetrySink)")
 }
 
 java {
@@ -309,9 +318,7 @@ kotlin {
     sourceSets {
 //        androidMain.dependencies {
 //            implementation(libs.androidx.activity.compose)
-//            implementation(libs.kotzilla.koin.android)
 //            implementation(libs.ktor.client.okhttp)
-////            implementation(libs.kotzilla.sdk.compose)
 //        }
 
 //        androidUnitTest.dependencies {
@@ -319,6 +326,9 @@ kotlin {
 //        }
 
         val commonMain by getting {
+            kotlin.srcDir(
+                if (telemetryEnabled) "src/telemetryKotzillaMain/kotlin" else "src/telemetryNoopMain/kotlin",
+            )
             dependencies {
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.foundation)
@@ -400,6 +410,7 @@ kotlin {
             dependencies {
                 //Source set sharede with And-JVM-JS, currently no iOS
                 implementation(libs.hyphen)
+                implementation(libs.slf4j.api)
             }
         }
 
@@ -432,7 +443,6 @@ kotlin {
         iosMain {
             kotlin.srcDir("src/kzipMain/kotlin")
             dependencies {
-//                implementation(libs.kotzilla.sdk.compose)
                 implementation(libs.ktor.client.darwin)
                 implementation(libs.kzip)
             }
@@ -452,7 +462,6 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.logback.classic)
             runtimeOnly(maplibreDesktopRuntime)
         }
         jvmTest.dependencies {
@@ -602,6 +611,8 @@ compose.desktop {
 //     which is null without Robolectric.
 //   - the specs that open the database: Couchbase Lite fails with "Did you forget to call
 //     CouchbaseLite.init()?" because the Android artifact needs a Context to initialise.
+//   - the spec that reads the packaged privacy notice: Compose Resources reads it out of the
+//     Android assets, which a local unit test has no Context to reach.
 // Everything else — domain, presentation, mappers, the rest of data — runs on both targets.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     if (name == "compileAndroidHostTest") {
@@ -612,6 +623,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "**/TravelArchiveCorruptionTest.kt",
             "**/TravelPlanStorageDataSourceImplTest.kt",
             "**/AppSettingsRepositoryTest.kt",
+            "**/ConsentFlowDataSourceTest.kt",
         )
     }
 }
@@ -628,11 +640,31 @@ tasks.withType<Test>().configureEach {
     outputs.upToDateWhen { false }
 }
 
-// kotzilla {
+//kotzilla {
+//    enabled = telemetryEnabled
 //    versionName = libs.versions.ktravel.version.get()
-//    keyGeneration = KotzillaKeyGeneration.NONE
-//    composeInstrumentation = true
-// }
+//    consentRequired = true
+//    composeInstrumentation = false
+//    obfuscateGeneratedConfig = true
+//
+//    autoInjectXcodeScript = true
+//    displayLogs = true
+//    skipBuildReportFailure = false
+//}
+
+// ── Xcode wiring for Kotzilla ────────────────────────────────────────────────────────────────────
+// It lives in `iosApp/iosApp.xcodeproj` and in `iosApp/iosApp/Info.plist`, both readable in a diff,
+// and the injector that would rewrite them on every iOS build is switched off. With
+// `consentRequired = true` the 2.3.5 plugin adds two build phases — "Kotzilla Dsym" and "Kotzilla
+// Info.plist Inject" — and its own check then counts every phase whose name contains "Kotzilla" as a
+// dSYM script: from the second build on it finds two, gives up and says so. The dSYM phase is the
+// one worth keeping, because it uploads the symbols; the other only writes a single Info.plist key,
+// `KotzillaConsentRequired`, which the checked in Info.plist already carries.
+// `autoInjectXcodeScript` is not the switch for this: the plugin reads it while applying itself,
+// before this file configures the extension, so the task stays wired to the iOS compilations either
+// way. Comment the line out and run `./gradlew :composeApp:setupKotzillaXcode` to refresh the dSYM
+// script when the plugin raises KOTZILLA_SCRIPT_VERSION, then delete the phase it adds back.
+//tasks.matching { it.name == "setupKotzillaXcode" }.configureEach { enabled = false }
 
 allOpen {
     annotation("com.takaotech.ktravel.core.annotation.OpenForMokkery")

@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composer
 import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.takaotech.ktravel.core.telemetry.KTravelTelemetry
 import io.github.vinceglb.filekit.FileKit
 import org.maplibre.compose.desktop.MapLibre
 import org.maplibre.compose.desktop.ProvideMapHost
@@ -13,6 +14,10 @@ import org.maplibre.compose.desktop.rememberAwtComposeMapHost
 @Suppress("UndocumentedPublicFunction")
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun main() {
+    // Before anything else: a crash during startup is exactly the one worth reporting, and the
+    // backend has to be up to catch it. A no-op in a build without a Kotzilla project file.
+    KTravelTelemetry.start()
+
     MapLibre.configure(applicationId = "com.takaotech.ktravel")
 
     application {
