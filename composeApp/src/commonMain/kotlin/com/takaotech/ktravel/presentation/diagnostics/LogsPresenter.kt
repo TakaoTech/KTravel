@@ -39,7 +39,7 @@ import kotlin.time.Clock
  * the loudest thing in the log.
  *
  * @param screen The trip to narrow to, when the screen was opened from inside one.
- * @param navigator Where the screen can go: back, or to the privacy notice.
+ * @param navigator Where the screen can go: back.
  * @param logRepository Reads the kept log.
  * @param logStore The lines of the running session.
  * @param appSettingsRepository The consent and the retention, both editable from here.
@@ -122,7 +122,8 @@ fun LogsPresenter(
 
                 appSettingsRepository.updateTelemetryConsent(
                     consent = consent,
-                    flowVersion = settings.acknowledgedConsentVersion,
+                    introVersion = settings.acknowledgedIntroVersion,
+                    privacyVersion = settings.acknowledgedPrivacyVersion,
                     decidedAt = Clock.System.now(),
                 )
 

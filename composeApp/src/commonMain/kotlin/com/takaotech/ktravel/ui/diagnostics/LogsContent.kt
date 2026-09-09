@@ -216,7 +216,7 @@ private fun DiagnosticsSettings(state: LogsUiState, modifier: Modifier = Modifie
     }
 }
 
-/** When the user answered the notice, and when the answer runs out. */
+/** When the user answered about diagnostics, and when the answer runs out. */
 @Composable
 private fun ConsentDecisionLine(decidedAt: Instant?, modifier: Modifier = Modifier) {
     val zone = TimeZone.currentSystemDefault()

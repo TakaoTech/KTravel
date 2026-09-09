@@ -14,7 +14,7 @@ import io.kotest.matchers.shouldBe
  */
 class TelemetryLogWriterTest :
     BehaviorSpec({
-        given("a user who has not answered the notice yet") {
+        given("a user who has not answered about diagnostics yet") {
             `when`("a line is logged") {
                 then("nothing reaches the backend") {
                     val sink = RecordingSink()

@@ -31,17 +31,23 @@ interface AppSettingsRepository {
     suspend fun updateNavigatorRemote(baseUrl: String)
 
     /**
-     * Records what the user answered to the privacy notice.
+     * Records what the user answered about sending diagnostics.
      *
      * The moment is stored with the answer because the answer expires: see
      * [com.takaotech.ktravel.domain.staticflows.CONSENT_VALIDITY]. It is written on every answer, even
      * one that repeats the previous choice, so the year runs from the question that was just asked.
      *
      * @param consent What they chose.
-     * @param flowVersion The version of the notice they were shown.
+     * @param introVersion The version of the introduction they went through.
+     * @param privacyVersion The version of the privacy policy they were shown.
      * @param decidedAt When they answered.
      */
-    suspend fun updateTelemetryConsent(consent: TelemetryConsent, flowVersion: Int, decidedAt: Instant)
+    suspend fun updateTelemetryConsent(
+        consent: TelemetryConsent,
+        introVersion: Int,
+        privacyVersion: Int,
+        decidedAt: Instant,
+    )
 
     /**
      * Sets how many days of log files are kept, within the allowed range.

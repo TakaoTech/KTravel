@@ -11,6 +11,22 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 /**
+ * How the settings document is read and written.
+ *
+ * `coerceInputValues` is what makes an unreadable value fall back to the property's default instead
+ * of failing the whole read: a `telemetry.consent` written by a newer build comes back as
+ * [com.takaotech.ktravel.core.telemetry.TelemetryConsent.Unknown], which means the privacy page is shown
+ * again rather than the preferences being lost.
+ *
+ * Internal rather than private so a test can check that fallback without opening a database.
+ */
+internal val appSettingsJson: Json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    coerceInputValues = true
+}
+
+/**
  * The installation's preferences, in their own collection.
  *
  * Separate from `travel_plans` rather than a document inside it: the export path walks that
@@ -23,10 +39,7 @@ import kotlinx.serialization.json.Json
 class AppSettingsStorageDataSourceImpl(private val databaseProvider: DatabaseProvider) :
     AppSettingsStorageDataSource {
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
+    private val json = appSettingsJson
 
     private val settingsCollection = databaseProvider.database.createCollection("app_settings")
 

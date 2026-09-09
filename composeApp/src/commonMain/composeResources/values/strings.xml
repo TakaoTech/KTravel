@@ -345,4 +345,38 @@
         <item quantity="one">Steps · %1$d step</item>
         <item quantity="other">Steps · %1$d steps</item>
     </plurals>
+
+    <!-- region Intro, privacy policy and diagnostics -->
+    <string name="intro_back">Back</string>
+    <string name="intro_next">Next</string>
+    <string name="intro_allow">Send diagnostics</string>
+    <string name="intro_deny">Keep everything local</string>
+    <string name="intro_cd_loading">Loading the introduction</string>
+    <string name="intro_cd_open_detail">Open the privacy policy at this point</string>
+
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_cd_loading">Loading the privacy policy</string>
+    <string name="privacy_policy_index">Contents</string>
+    <string name="privacy_policy_cd_expand_index">Show the contents</string>
+    <string name="privacy_policy_cd_collapse_index">Hide the contents</string>
+
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="app_settings_diagnostics">Diagnostics and logs</string>
+    <string name="travel_settings_diagnostics">Diagnostics of this trip</string>
+    <string name="diagnostics_empty">Nothing has been logged yet.</string>
+    <string name="diagnostics_search_label">Search the log</string>
+    <string name="diagnostics_day_all">All days</string>
+    <string name="diagnostics_level_all">All levels</string>
+    <string name="diagnostics_retention_label">Days of log kept: %1$d</string>
+    <string name="diagnostics_consent_label">Send diagnostics to the developer</string>
+    <string name="diagnostics_consent_decided">Answered on %1$s, asked again on %2$s</string>
+    <string name="diagnostics_consent_never">Never answered</string>
+    <string name="privacy_policy_label">Privacy Policy</string>
+    <string name="diagnostics_cd_save">Save the log to a file</string>
+    <string name="diagnostics_cd_report">Report a problem</string>
+    <string name="diagnostics_cd_clear">Delete the log</string>
+    <string name="diagnostics_saved">Log saved.</string>
+    <string name="diagnostics_report_hint">The log has been saved: attach it to the issue that just opened.</string>
+    <string name="diagnostics_file_name">ktravel-log-%1$s.txt</string>
+    <!-- endregion Intro, privacy policy and diagnostics -->
 </resources>

@@ -34,6 +34,6 @@ sealed interface AppSettingsEvent : CircuitUiEvent {
     /** The user asked to read the log this installation kept. */
     data object OpenDiagnostics : AppSettingsEvent
 
-    /** Read the privacy notice again, and answer it again. */
+    /** Read the privacy policy, in full. */
     data object PrivacyPolicy : AppSettingsEvent
 }

@@ -101,7 +101,7 @@ sealed interface LogsEvent : CircuitUiEvent {
     data class RetentionChanged(val days: Int) : LogsEvent
 
     /**
-     * Change the answer about sending diagnostics, without going through the notice again.
+     * Change the answer about sending diagnostics, without going through the introduction again.
      *
      * @property granted True to start sending, false to stop and to be forgotten.
      */

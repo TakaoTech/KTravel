@@ -2,9 +2,9 @@
 
 package com.takaotech.ktravel.data.datasource
 
-import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.core.data.mime.MimeTypes
 import com.takaotech.ktravel.core.io.deleteRecursively
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.di.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -25,19 +25,20 @@ import kotlin.uuid.Uuid
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class AttachmentDataSourceImpl private constructor(
-    // Root iniettabile: in produzione deriva da FileKit.filesDir, nei test da una tempdir.
+    // Root injectable: in prod use FileKit.filesDir, in test use tempdir.
     private val rootProvider: () -> PlatformFile,
+    appLogger: AppLogger,
 ) : AttachmentDataSource {
 
     @Inject
-    constructor() : this({ FileKit.filesDir / ATTACHMENTS_DIR })
+    constructor(appLogger: AppLogger) : this({ FileKit.filesDir / ATTACHMENTS_DIR }, appLogger)
 
-    /** Costruttore per i test: root esplicita. */
-    internal constructor(root: PlatformFile) : this({ root })
+    /** Constructor for testing purpose */
+    internal constructor(root: PlatformFile, appLogger: AppLogger) : this({ root }, appLogger)
 
     private val root: PlatformFile get() = rootProvider()
 
-    private val logger = Logger.withTag("AttachmentDataSource")
+    private val logger = appLogger.withTag("AttachmentDataSource")
 
     override suspend fun saveAttachment(travelId: String, stepId: String, source: PlatformFile): AttachmentEntity {
         logger.d { "Saving attachment ${source.name} under $travelId/$stepId" }

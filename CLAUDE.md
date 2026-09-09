@@ -99,9 +99,9 @@ The log is written one file per day under `<filesDir>/logs`, kept for three days
 Telemetry is Kotzilla, and it is optional at build time: the SDK is configured by `composeApp/kotzilla.json`,
 which is gitignored. Without that file the Gradle plugin is disabled and `src/telemetryNoopMain` is
 compiled instead of `src/telemetryKotzillaMain`, so a clone without a key — CI included — builds and
-runs identically, minus the sending. Nothing is ever sent before the user answers the privacy notice
-(`ConsentScreen`), the answer expires after a year (`CONSENT_VALIDITY`), and revoking it calls
-`forgetMe()`.
+runs identically, minus the sending. Nothing is ever sent before the user answers the question the
+introduction ends on (`IntroFlowScreen`), the answer expires after a year (`CONSENT_VALIDITY`), and
+revoking it calls `forgetMe()`.
 
 On iOS the Xcode side of Kotzilla is checked in rather than injected: `iosApp.xcodeproj` carries the
 `Kotzilla Dsym` build phase, which uploads the symbols, and `iosApp/iosApp/Info.plist` carries
@@ -188,9 +188,10 @@ A local Android unit test has no real Android runtime behind it, so a few suites
 of the Android compilation in `composeApp/build.gradle.kts` and verified on the JVM target only:
 `ui/**` (Compose UI tests need Robolectric, which Kotest specs cannot opt into because `@RunWith`
 is JVM-only and `commonTest` also compiles for iOS), the three suites that open the Couchbase
-database (its Android artifact needs a `Context`) and `ConsentFlowDataSourceTest`, which reads the
-packaged privacy notice through Compose Resources — on Android that means the assets, and a local
-unit test has no `Context` to reach them. When adding a test that touches any of those areas, expect
+database (its Android artifact needs a `Context`) and `IntroFlowDataSourceTest` /
+`PrivacyPolicyDataSourceTest`, which read the packaged introduction and privacy policy through
+Compose Resources — on Android that means the assets, and a local unit test has no `Context` to
+reach them. When adding a test that touches any of those areas, expect
 it to run on the JVM target only.
 
 ### Couchbase Lite native libraries on Linux
@@ -322,10 +323,11 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 1. The conversation with the user.
 2. Translation *values* in `composeResources/values-**/strings.xml` (see the `localizing-strings`
    skill). `composeResources/values/strings.xml` stays English-only.
-3. The text of the privacy notice, in `composeResources/files/consent/consent_flow_<language>.json`.
-   That content is versioned data rather than a label — an answer is given to a *version* of the
-   notice — and `composeResources/files` takes no language qualifier, so the language is resolved by
-   `ConsentFlowDataSource`, with English (`consent_flow_en.json`) as the file that must exist. The
+3. The introduction and the privacy policy, in `composeResources/files/intro/intro_flow_<language>.json`
+   and `composeResources/files/privacy/privacy_policy_<language>.json`. That content is versioned data
+   rather than a label — an answer is given to a *version* of the policy, and each of the two carries
+   its own version — and `composeResources/files` takes no language qualifier, so the language is
+   resolved by `LocalizedContentReader`, with English (`..._en.json`) as the file that must exist. The
    frame around it — buttons, titles, settings labels — is in `strings.xml` like everything else.
 
 ### General Principles

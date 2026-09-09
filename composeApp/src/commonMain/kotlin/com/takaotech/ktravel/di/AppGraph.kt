@@ -27,9 +27,10 @@ import com.takaotech.ktravel.core.telemetry.TelemetryLogWriter
 import com.takaotech.ktravel.core.telemetry.TelemetrySink
 import com.takaotech.ktravel.data.archive.zip.ZipArchiveFactory
 import com.takaotech.ktravel.data.archive.zip.createZipArchiveFactory
-import com.takaotech.ktravel.data.consent.ConsentFlowDataSource
-import com.takaotech.ktravel.data.consent.ConsentFlowRepository
 import com.takaotech.ktravel.data.navigator.EmbeddedNavigatorHost
+import com.takaotech.ktravel.data.staticflows.IntroFlowDataSource
+import com.takaotech.ktravel.data.staticflows.PrivacyPolicyDataSource
+import com.takaotech.ktravel.data.staticflows.StaticContentRepository
 import com.takaotech.ktravel.data.storage.DatabaseProvider
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
 import dev.zacsweers.metro.DependencyGraph
@@ -72,8 +73,8 @@ interface AppGraph : ViewModelGraph {
     /** Starts the log file writer and keeps telemetry in step with the user's consent. */
     val diagnosticsInitializer: DiagnosticsInitializer
 
-    /** The privacy notice, read by navigation to decide whether it is due. */
-    val consentFlowRepository: ConsentFlowRepository
+    /** The introduction and the privacy policy, read by navigation to decide what is due. */
+    val staticContentRepository: StaticContentRepository
 
     /** The installation's preferences, read by navigation for the same reason. */
     val appSettingsRepository: AppSettingsRepository
@@ -172,14 +173,19 @@ interface AppGraph : ViewModelGraph {
         fun provideEmbeddedNavigatorHost(logger: Logger): EmbeddedNavigatorHost = EmbeddedNavigatorHost(logger)
 
         /**
-         * Reads the packaged privacy notice.
+         * Reads the packaged introduction.
          *
          * Provided rather than `@Inject`ed because its one parameter is the function that reads a
          * resource, which a test replaces and a graph has no business binding.
          */
         @Provides
         @SingleIn(AppScope::class)
-        fun provideConsentFlowDataSource(): ConsentFlowDataSource = ConsentFlowDataSource()
+        fun provideIntroFlowDataSource(): IntroFlowDataSource = IntroFlowDataSource()
+
+        /** Reads the packaged privacy policy, provided for the same reason as the introduction. */
+        @Provides
+        @SingleIn(AppScope::class)
+        fun providePrivacyPolicyDataSource(): PrivacyPolicyDataSource = PrivacyPolicyDataSource()
 
         @Provides
         @SingleIn(AppScope::class)

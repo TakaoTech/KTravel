@@ -611,8 +611,8 @@ compose.desktop {
 //     which is null without Robolectric.
 //   - the specs that open the database: Couchbase Lite fails with "Did you forget to call
 //     CouchbaseLite.init()?" because the Android artifact needs a Context to initialise.
-//   - the spec that reads the packaged privacy notice: Compose Resources reads it out of the
-//     Android assets, which a local unit test has no Context to reach.
+//   - the specs that read the packaged introduction and privacy policy: Compose Resources reads
+//     them out of the Android assets, which a local unit test has no Context to reach.
 // Everything else — domain, presentation, mappers, the rest of data — runs on both targets.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     if (name == "compileAndroidHostTest") {
@@ -623,7 +623,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "**/TravelArchiveCorruptionTest.kt",
             "**/TravelPlanStorageDataSourceImplTest.kt",
             "**/AppSettingsRepositoryTest.kt",
-            "**/ConsentFlowDataSourceTest.kt",
+            "**/IntroFlowDataSourceTest.kt",
+            "**/PrivacyPolicyDataSourceTest.kt",
         )
     }
 }

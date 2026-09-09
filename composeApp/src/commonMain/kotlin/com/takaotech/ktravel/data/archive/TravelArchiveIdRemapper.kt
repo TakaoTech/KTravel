@@ -2,7 +2,7 @@
 
 package com.takaotech.ktravel.data.archive
 
-import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.data.entity.AttachmentEntity
 import com.takaotech.ktravel.data.entity.PlaceEntity
 import com.takaotech.ktravel.data.entity.StepEntity
@@ -21,10 +21,12 @@ import kotlin.uuid.Uuid
  * the regeneration is flat. The one link that has to stay consistent is the one between the
  * `relative_path` of the attachments and the `ktravel://attachment/...` references inside the
  * Markdown notes.
+ *
+ * @param appLogger Where the remap is traced, the application's own logger.
  */
-internal object TravelArchiveIdRemapper {
+internal class TravelArchiveIdRemapper(appLogger: AppLogger) {
 
-    private val logger = Logger.withTag("TravelArchiveIdRemapper")
+    private val logger = appLogger.withTag("TravelArchiveIdRemapper")
 
     /**
      * The outcome of a remap: the rebuilt plan, and where its files moved.

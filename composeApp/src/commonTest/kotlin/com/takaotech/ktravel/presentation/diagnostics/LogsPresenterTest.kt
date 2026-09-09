@@ -113,7 +113,8 @@ class LogsPresenterTest :
                     val settings = FakeAppSettings(
                         AppSettingsDomain(
                             telemetryConsent = TelemetryConsent.Granted,
-                            acknowledgedConsentVersion = 1,
+                            acknowledgedIntroVersion = 1,
+                            acknowledgedPrivacyVersion = 1,
                             consentDecidedAt = NOW,
                         ),
                     )
@@ -214,10 +215,16 @@ private class FakeAppSettings(initial: AppSettingsDomain) : AppSettingsRepositor
 
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
 
-    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, flowVersion: Int, decidedAt: Instant) {
+    override suspend fun updateTelemetryConsent(
+        consent: TelemetryConsent,
+        introVersion: Int,
+        privacyVersion: Int,
+        decidedAt: Instant,
+    ) {
         state.value = state.value.copy(
             telemetryConsent = consent,
-            acknowledgedConsentVersion = flowVersion,
+            acknowledgedIntroVersion = introVersion,
+            acknowledgedPrivacyVersion = privacyVersion,
             consentDecidedAt = decidedAt,
         )
     }

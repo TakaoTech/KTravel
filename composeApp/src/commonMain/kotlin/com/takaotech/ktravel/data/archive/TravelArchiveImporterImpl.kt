@@ -3,6 +3,7 @@
 package com.takaotech.ktravel.data.archive
 
 import com.takaotech.ktravel.core.io.deleteRecursively
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsCipher
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsEnvelope
 import com.takaotech.ktravel.data.archive.migration.TravelPlanSchemaMigrator
@@ -67,6 +68,7 @@ class TravelArchiveImporterImpl private constructor(
     private val zipFactory: ZipArchiveFactory,
     private val stagingRootProvider: () -> PlatformFile,
     private val newId: () -> String,
+    private val idRemapper: TravelArchiveIdRemapper,
 ) : TravelArchiveImporter {
 
     @Inject
@@ -74,22 +76,25 @@ class TravelArchiveImporterImpl private constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
         zipFactory: ZipArchiveFactory,
+        appLogger: AppLogger,
     ) : this(
         storage = storage,
         attachments = attachments,
         zipFactory = zipFactory,
         stagingRootProvider = { FileKit.cacheDir / TravelArchiveExporterImpl.STAGING_DIR },
         newId = { Uuid.random().toString() },
+        idRemapper = TravelArchiveIdRemapper(appLogger),
     )
 
-    /** Constructor for tests: explicit staging and deterministic ids. */
+    /** Constructor for tests: explicit staging, deterministic ids and an explicit logger. */
     internal constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
         zipFactory: ZipArchiveFactory,
         stagingRoot: PlatformFile,
+        appLogger: AppLogger,
         newId: () -> String = { Uuid.random().toString() },
-    ) : this(storage, attachments, zipFactory, { stagingRoot }, newId)
+    ) : this(storage, attachments, zipFactory, { stagingRoot }, newId, TravelArchiveIdRemapper(appLogger))
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -136,7 +141,7 @@ class TravelArchiveImporterImpl private constructor(
             staged.conflictingTravelName != null
 
         val remapped = if (duplicating) {
-            TravelArchiveIdRemapper.remap(sourcePlan, newTravelId = newId(), newId = newId)
+            idRemapper.remap(sourcePlan, newTravelId = newId(), newId = newId)
         } else {
             TravelArchiveIdRemapper.Remapped(
                 plan = sourcePlan.copy(id = staged.travelId),

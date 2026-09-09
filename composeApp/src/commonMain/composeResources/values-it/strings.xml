@@ -303,12 +303,12 @@
     <string name="settings_navigator_not_checked">Non verificato</string>
     <string name="settings_navigator_not_configured">Non configurato</string>
 
-    <string name="app_settings_title">Impostazioni dell app</string>
+    <string name="app_settings_title">Impostazioni dell'app</string>
     <string name="app_settings_navigator_section">Navigator remoto</string>
     <string name="app_settings_navigator_hint">Usato da tutti i viaggi che non ne indicano uno proprio.</string>
     <string name="app_settings_test_connection">Verifica connessione</string>
     <string name="app_settings_saved">Impostazioni salvate.</string>
-    <string name="app_settings_cd_open">Apri le impostazioni dell app</string>
+    <string name="app_settings_cd_open">Apri le impostazioni dell'app</string>
     <string name="app_settings_about_section">Informazioni</string>
     <string name="app_settings_licenses">Licenze open source</string>
 
@@ -345,4 +345,38 @@
         <item quantity="one">Indicazioni · %1$d passo</item>
         <item quantity="other">Indicazioni · %1$d passi</item>
     </plurals>
+
+    <!-- region Intro, privacy policy and diagnostics -->
+    <string name="intro_back">Indietro</string>
+    <string name="intro_next">Avanti</string>
+    <string name="intro_allow">Invia la diagnostica</string>
+    <string name="intro_deny">Tieni tutto in locale</string>
+    <string name="intro_cd_loading">Caricamento della presentazione</string>
+    <string name="intro_cd_open_detail">Apri la privacy policy su questo punto</string>
+
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_cd_loading">Caricamento della privacy policy</string>
+    <string name="privacy_policy_index">Indice</string>
+    <string name="privacy_policy_cd_expand_index">Mostra l'indice</string>
+    <string name="privacy_policy_cd_collapse_index">Nascondi l'indice</string>
+
+    <string name="diagnostics_title">Diagnostica</string>
+    <string name="app_settings_diagnostics">Diagnostica e log</string>
+    <string name="travel_settings_diagnostics">Diagnostica di questo viaggio</string>
+    <string name="diagnostics_empty">Non è ancora stato registrato nulla.</string>
+    <string name="diagnostics_search_label">Cerca nel log</string>
+    <string name="diagnostics_day_all">Tutti i giorni</string>
+    <string name="diagnostics_level_all">Tutti i livelli</string>
+    <string name="diagnostics_retention_label">Giorni di log conservati: %1$d</string>
+    <string name="diagnostics_consent_label">Invia la diagnostica allo sviluppatore</string>
+    <string name="diagnostics_consent_decided">Risposta del %1$s, verrà richiesta il %2$s</string>
+    <string name="diagnostics_consent_never">Mai risposto</string>
+    <string name="privacy_policy_label">Privacy Policy</string>
+    <string name="diagnostics_cd_save">Salva il log su file</string>
+    <string name="diagnostics_cd_report">Segnala un problema</string>
+    <string name="diagnostics_cd_clear">Cancella il log</string>
+    <string name="diagnostics_saved">Log salvato.</string>
+    <string name="diagnostics_report_hint">Il log è stato salvato: allegalo alla issue che si è appena aperta.</string>
+    <string name="diagnostics_file_name">ktravel-log-%1$s.txt</string>
+    <!-- endregion Intro, privacy policy and diagnostics -->
 </resources>

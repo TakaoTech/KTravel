@@ -13,9 +13,11 @@ import com.slack.circuitx.navigation.intercepting.LoggingNavigationEventListener
 import com.slack.circuitx.navigation.intercepting.LoggingNavigatorFailureNotifier
 import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import com.takaotech.ktravel.di.AppGraph
-import com.takaotech.ktravel.domain.staticflows.ConsentFlow
+import com.takaotech.ktravel.domain.staticflows.IntroFlow
+import com.takaotech.ktravel.domain.staticflows.IntroRequirement
+import com.takaotech.ktravel.domain.staticflows.PrivacyPolicy
 import com.takaotech.ktravel.navigation.interceptor.PlanningGraphInterceptor
-import com.takaotech.ktravel.presentation.consent.PrivacyPolicyScreen
+import com.takaotech.ktravel.presentation.intro.IntroFlowScreen
 import com.takaotech.ktravel.presentation.travels.TravelListScreen
 import kotlin.time.Clock
 
@@ -27,9 +29,9 @@ import kotlin.time.Clock
  * is persisted through the serializing `CircuitSaver` configured in `AppGraph`, which is what lets
  * it survive process death without the screens having to be `Parcelable`.
  *
- * The first screen is not always the trip list: when the privacy notice is due — never answered,
- * answered to an older version, or answered more than a year ago — the notice is the root, and
- * answering it resets the stack onto the trip list.
+ * The first screen is not always the trip list: when the introduction is due — never seen, or its
+ * privacy half brought back by a new policy or an answer that has expired — the introduction is the
+ * root, and answering it resets the stack onto the trip list.
  *
  * @param appGraph The application dependency graph, source of the trip scoped object graphs.
  * @param onRootPop What leaving the root screen means, which only the platform entry point knows:
@@ -38,21 +40,31 @@ import kotlin.time.Clock
  */
 @Composable
 internal fun KTravelNavigation(appGraph: AppGraph, onRootPop: () -> Unit, modifier: Modifier = Modifier) {
-    // The notice decides the first screen, so it has to be read before there is one. Nothing is
-    // drawn until it has been: showing the trip list and then replacing it with the notice would be
-    // both a flash and, for a moment, an application the user has not agreed to use yet.
+    // The two packaged files decide the first screen, so they have to be read before there is one.
+    // Nothing is drawn until they have been: showing the trip list and then replacing it with the
+    // introduction would be both a flash and, for a moment, an application the user has not agreed
+    // to use yet.
     val language = Locale.current.language
-    val consentFlow: ConsentFlow? by produceState(initialValue = null, language, appGraph) {
-        value = appGraph.consentFlowRepository.flow(language)
+    val content: Pair<IntroFlow, PrivacyPolicy>? by produceState(initialValue = null, language, appGraph) {
+        value = appGraph.staticContentRepository.introFlow(language) to
+            appGraph.staticContentRepository.privacyPolicy(language)
     }
-    val flow = consentFlow ?: return
+    val (introFlow, privacyPolicy) = content ?: return
 
-    val startsWithNotice = remember(flow, appGraph) {
-        appGraph.appSettingsRepository.settings.value.needsConsentFlow(flow.version, Clock.System.now())
+    val requirement = remember(introFlow, privacyPolicy, appGraph) {
+        appGraph.appSettingsRepository.settings.value.introRequirement(
+            introVersion = introFlow.version,
+            policyVersion = privacyPolicy.version,
+            now = Clock.System.now(),
+        )
     }
 
     val navStack = rememberSaveableNavStack(
-        root = if (startsWithNotice) PrivacyPolicyScreen(fromStart = true) else TravelListScreen,
+        root = if (requirement == IntroRequirement.None) {
+            TravelListScreen
+        } else {
+            IntroFlowScreen(requirement = requirement, fromStart = true)
+        },
     )
 
     val circuitNavigator = rememberCircuitNavigator(
