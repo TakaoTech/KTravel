@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +48,10 @@ import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.domain.staticflows.CONSENT_VALIDITY
 import com.takaotech.ktravel.presentation.diagnostics.LogsEvent
 import com.takaotech.ktravel.presentation.diagnostics.LogsUiState
+import com.takaotech.ktravel.ui.shared.dialog.DisruptiveOperationDialog
 import com.takaotech.ktravel.ui.shared.format.formatDayMonthYear
 import com.takaotech.ktravel.ui.theme.KTravelTheme
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import ktravel.composeapp.generated.resources.Res
@@ -63,6 +66,11 @@ import ktravel.composeapp.generated.resources.diagnostics_consent_label
 import ktravel.composeapp.generated.resources.diagnostics_consent_never
 import ktravel.composeapp.generated.resources.diagnostics_day_all
 import ktravel.composeapp.generated.resources.diagnostics_empty
+import ktravel.composeapp.generated.resources.diagnostics_forget_me
+import ktravel.composeapp.generated.resources.diagnostics_forget_me_confirm
+import ktravel.composeapp.generated.resources.diagnostics_forget_me_done
+import ktravel.composeapp.generated.resources.diagnostics_forget_me_message
+import ktravel.composeapp.generated.resources.diagnostics_forget_me_title
 import ktravel.composeapp.generated.resources.diagnostics_level_all
 import ktravel.composeapp.generated.resources.diagnostics_retention_label
 import ktravel.composeapp.generated.resources.diagnostics_search_label
@@ -129,7 +137,7 @@ internal fun LogsContent(state: LogsUiState, snackbarHostState: SnackbarHostStat
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            DiagnosticsSettings(state = state)
+            DiagnosticsSettings(state = state, snackbarHostState = snackbarHostState)
 
             HorizontalDivider()
 
@@ -157,9 +165,38 @@ internal fun LogsContent(state: LogsUiState, snackbarHostState: SnackbarHostStat
     }
 }
 
-/** The two decisions that belong to the log itself: who sees it, and for how long it is kept. */
+/**
+ * The decisions that belong to the log itself: who sees it, for how long it is kept, and what the
+ * backend is allowed to keep holding.
+ *
+ * @param state What to draw.
+ * @param snackbarHostState Where the confirmation of the deletion request is shown.
+ * @param modifier The modifier applied to the card.
+ */
 @Composable
-private fun DiagnosticsSettings(state: LogsUiState, modifier: Modifier = Modifier) {
+private fun DiagnosticsSettings(
+    state: LogsUiState,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+    val requestedMessage = stringResource(Res.string.diagnostics_forget_me_done)
+    var confirmingForgetMe by remember { mutableStateOf(false) }
+
+    if (confirmingForgetMe) {
+        DisruptiveOperationDialog(
+            onConfirm = {
+                confirmingForgetMe = false
+                state.eventSink(LogsEvent.ForgetMeRequested)
+                scope.launch { snackbarHostState.showSnackbar(requestedMessage) }
+            },
+            onDismiss = { confirmingForgetMe = false },
+            title = stringResource(Res.string.diagnostics_forget_me_title),
+            text = stringResource(Res.string.diagnostics_forget_me_message),
+            confirmText = stringResource(Res.string.diagnostics_forget_me_confirm),
+        )
+    }
+
     Card(modifier = modifier.fillMaxWidth().padding(16.dp)) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -183,6 +220,16 @@ private fun DiagnosticsSettings(state: LogsUiState, modifier: Modifier = Modifie
             }
 
             ConsentDecisionLine(decidedAt = state.consentDecidedAt)
+
+            TextButton(
+                onClick = { confirmingForgetMe = true },
+                modifier = Modifier.align(Alignment.End).testTag(LogsTestTags.FORGET_ME),
+            ) {
+                Text(
+                    text = stringResource(Res.string.diagnostics_forget_me),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth().testTag(LogsTestTags.RETENTION),

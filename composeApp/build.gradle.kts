@@ -31,6 +31,7 @@ plugins {
     alias(libs.plugins.allopen)
     alias(libs.plugins.aboutLibraries)
     alias(libs.plugins.dokka)
+    // TODO Restore when kotzilla fix analisys problem
 //    alias(libs.plugins.kotzilla)
     id("kotlin-parcelize")
 }
@@ -641,6 +642,7 @@ tasks.withType<Test>().configureEach {
     outputs.upToDateWhen { false }
 }
 
+// TODO Restore when kotzilla fix analisys problem
 //kotzilla {
 //    enabled = telemetryEnabled
 //    versionName = libs.versions.ktravel.version.get()

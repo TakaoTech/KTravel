@@ -30,10 +30,10 @@ private const val TRAVEL_ID = "trip-42"
 /**
  * The diagnostics screen.
  *
- * Three things are worth holding onto here, and none of them is about drawing: that a screen opened
- * from inside a trip shows that trip alone, that revoking the consent both stores the refusal and
- * asks the backend to forget what it has, and that reporting a problem produces a file to attach and
- * a URL to open rather than doing either itself.
+ * Four things are worth holding onto here, and none of them is about drawing: that a screen opened
+ * from inside a trip shows that trip alone, that changing the consent both stores the answer and
+ * hands it to the backend at once, that being forgotten is asked for on its own, and that reporting
+ * a problem produces a file to attach and a URL to open rather than doing either itself.
  */
 class LogsPresenterTest :
     BehaviorSpec({
@@ -109,7 +109,7 @@ class LogsPresenterTest :
 
         given("an installation that had consented") {
             `when`("the consent is revoked from the diagnostics screen") {
-                then("the refusal is stored and the backend is asked to forget the installation") {
+                then("the refusal is stored and handed to the backend, which is not asked to forget") {
                     val settings = FakeAppSettings(
                         AppSettingsDomain(
                             telemetryConsent = TelemetryConsent.Granted,
@@ -125,10 +125,36 @@ class LogsPresenterTest :
 
                         eventually(2.seconds) {
                             settings.settings.value.telemetryConsent shouldBe TelemetryConsent.Denied
-                            sink.forgotten shouldBe true
+                            sink.appliedConsent shouldBe TelemetryConsent.Denied
                         }
+                        sink.forgotten shouldBe false
 
                         // The recomposition the write causes is not what this test is about.
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+
+            `when`("the deletion of what was already sent is asked for") {
+                then("the backend is asked to forget the installation, and the consent is left alone") {
+                    val settings = FakeAppSettings(
+                        AppSettingsDomain(
+                            telemetryConsent = TelemetryConsent.Granted,
+                            acknowledgedIntroVersion = 1,
+                            acknowledgedPrivacyVersion = 1,
+                            consentDecidedAt = NOW,
+                        ),
+                    )
+                    val sink = RecordingSink()
+
+                    presenterTestOf({ presenter(LogsScreen(), settings = settings, sink = sink) }) {
+                        awaitLoaded().eventSink(LogsEvent.ForgetMeRequested)
+
+                        eventually(2.seconds) {
+                            sink.forgotten shouldBe true
+                        }
+                        settings.settings.value.telemetryConsent shouldBe TelemetryConsent.Granted
+
                         cancelAndIgnoreRemainingEvents()
                     }
                 }
@@ -236,15 +262,20 @@ private class FakeAppSettings(initial: AppSettingsDomain) : AppSettingsRepositor
     override suspend fun installationId(): String = "test-installation"
 }
 
-/** A backend that sends nothing and remembers whether it was asked to forget. */
+/** A backend that sends nothing and remembers what it was told: the consent, and being forgotten. */
 private class RecordingSink : TelemetrySink {
 
     var forgotten = false
         private set
 
+    var appliedConsent: TelemetryConsent? = null
+        private set
+
     override fun start() = Unit
 
-    override fun applyConsent(consent: TelemetryConsent) = Unit
+    override fun applyConsent(consent: TelemetryConsent) {
+        appliedConsent = consent
+    }
 
     override fun identify(installationId: String) = Unit
 

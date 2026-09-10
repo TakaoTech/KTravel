@@ -103,9 +103,17 @@ sealed interface LogsEvent : CircuitUiEvent {
     /**
      * Change the answer about sending diagnostics, without going through the introduction again.
      *
-     * @property granted True to start sending, false to stop and to be forgotten.
+     * @property granted True to start sending, false to stop.
      */
     data class ConsentChanged(val granted: Boolean) : LogsEvent
+
+    /**
+     * Ask the backend to forget everything it already holds about this installation.
+     *
+     * Separate from [ConsentChanged] on purpose: stopping the sending and deleting what was already
+     * sent are two different decisions, and the second one is asked for explicitly.
+     */
+    data object ForgetMeRequested : LogsEvent
 
     /** Save the whole kept log to a file. */
     data object SaveRequested : LogsEvent

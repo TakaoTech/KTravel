@@ -382,6 +382,11 @@
     <string name="diagnostics_consent_label">Send diagnostics to the developer</string>
     <string name="diagnostics_consent_decided">Answered on %1$s, asked again on %2$s</string>
     <string name="diagnostics_consent_never">Never answered</string>
+    <string name="diagnostics_forget_me">Delete the diagnostics already sent</string>
+    <string name="diagnostics_forget_me_title">Delete the diagnostics already sent?</string>
+    <string name="diagnostics_forget_me_message">The developer is asked to delete everything sent by this installation so far.\nThe log kept on this device is not touched, and the action cannot be undone.</string>
+    <string name="diagnostics_forget_me_confirm">Delete</string>
+    <string name="diagnostics_forget_me_done">The deletion has been requested.</string>
     <string name="privacy_policy_label">Privacy Policy</string>
     <string name="diagnostics_cd_save">Save the log to a file</string>
     <string name="diagnostics_cd_report">Report a problem</string>

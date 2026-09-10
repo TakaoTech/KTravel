@@ -382,6 +382,11 @@
     <string name="diagnostics_consent_label">Invia la diagnostica allo sviluppatore</string>
     <string name="diagnostics_consent_decided">Risposta del %1$s, verrà richiesta il %2$s</string>
     <string name="diagnostics_consent_never">Mai risposto</string>
+    <string name="diagnostics_forget_me">Elimina la diagnostica già inviata</string>
+    <string name="diagnostics_forget_me_title">Eliminare la diagnostica già inviata?</string>
+    <string name="diagnostics_forget_me_message">Verrà chiesto allo sviluppatore di eliminare tutto quello che questa installazione ha inviato finora.\nIl log conservato su questo dispositivo non viene toccato e l'azione non può essere annullata.</string>
+    <string name="diagnostics_forget_me_confirm">Elimina</string>
+    <string name="diagnostics_forget_me_done">Eliminazione richiesta.</string>
     <string name="privacy_policy_label">Privacy Policy</string>
     <string name="diagnostics_cd_save">Salva il log su file</string>
     <string name="diagnostics_cd_report">Segnala un problema</string>

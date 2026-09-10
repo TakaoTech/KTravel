@@ -43,7 +43,8 @@ import kotlin.time.Clock
  * @param logRepository Reads the kept log.
  * @param logStore The lines of the running session.
  * @param appSettingsRepository The consent and the retention, both editable from here.
- * @param telemetrySink Told when the consent changes, so it stops or resumes at once.
+ * @param telemetrySink Told when the consent changes, so it stops or resumes at once, and asked to
+ * forget the installation when the user requests it.
  */
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 @CircuitInject(LogsScreen::class, AppScope::class)
@@ -127,9 +128,13 @@ fun LogsPresenter(
                     decidedAt = Clock.System.now(),
                 )
 
-                // Revoking is not only "stop sending": what was already sent is asked to be dropped.
-                if (!event.granted) telemetrySink.forgetMe()
+                // Told straight away rather than waiting for the settings flow to reach
+                // DiagnosticsInitializer: the sending stops, or resumes, with the switch.
+                telemetrySink.applyConsent(consent)
             }
+
+            // Deleting what was already sent is its own decision, confirmed on the screen.
+            LogsEvent.ForgetMeRequested -> telemetrySink.forgetMe()
 
             LogsEvent.SaveRequested -> scope.launch {
                 pendingSave = PendingLogSave(fileName = logFileName(), content = logRepository.exportText())
