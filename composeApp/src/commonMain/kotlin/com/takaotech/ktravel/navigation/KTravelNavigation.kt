@@ -40,12 +40,14 @@ import kotlin.time.Clock
  */
 @Composable
 internal fun KTravelNavigation(appGraph: AppGraph, onRootPop: () -> Unit, modifier: Modifier = Modifier) {
-    // The two packaged files decide the first screen, so they have to be read before there is one.
-    // Nothing is drawn until they have been: showing the trip list and then replacing it with the
-    // introduction would be both a flash and, for a moment, an application the user has not agreed
-    // to use yet.
     val language = Locale.current.language
-    val content: Pair<IntroFlow, PrivacyPolicy>? by produceState(initialValue = null, language, appGraph) {
+
+    // TODO Change this, async this and push navigation to Intro
+    val content: Pair<IntroFlow, PrivacyPolicy>? by produceState(
+        initialValue = null,
+        language,
+        appGraph,
+    ) {
         value = appGraph.staticContentRepository.introFlow(language) to
             appGraph.staticContentRepository.privacyPolicy(language)
     }

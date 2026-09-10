@@ -30,7 +30,7 @@ private val previewReadingStep = IntroStep.Card(
     media = IntroMedia.Static(name = "description"),
 )
 
-private val previewPrivacyStep = IntroStep.Privacy(
+internal val previewPrivacyStep = IntroStep.Privacy(
     id = "privacy",
     title = "Where your trips live",
     body = "The short version, in three points. Tap one to open the privacy policy exactly where " +
@@ -51,7 +51,7 @@ private val previewPrivacyStep = IntroStep.Privacy(
     ),
 )
 
-private val previewDecisionStep = IntroStep.Decision(
+internal val previewDecisionStep = IntroStep.Decision(
     id = "decision",
     title = "Send diagnostics?",
     body = "Crashes and diagnostic logs only. **Your trips are never sent.**",

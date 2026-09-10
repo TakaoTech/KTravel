@@ -48,9 +48,10 @@ sealed interface IntroEvent : CircuitUiEvent {
     data class Answered(val consent: TelemetryConsent) : IntroEvent
 
     /**
-     * The user asked to read what the policy says about one of the points.
+     * The user asked to read the policy: about one of the points, or in full.
      *
-     * @property policyRef The path of the section the document opens on, e.g. `collection.provided`.
+     * @property policyRef The path of the section the document opens on, e.g. `collection.provided`;
+     *   null opens it at the top, which is what the link under the acknowledgement asks for.
      */
-    data class PolicyOpened(val policyRef: String) : IntroEvent
+    data class PolicyOpened(val policyRef: String? = null) : IntroEvent
 }

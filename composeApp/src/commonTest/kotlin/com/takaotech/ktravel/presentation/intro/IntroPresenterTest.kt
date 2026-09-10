@@ -109,6 +109,20 @@ class IntroPresenterTest :
                 }
             }
 
+            `when`("the policy is asked for in full instead") {
+                then("the document is opened at the top") {
+                    val screen = IntroFlowScreen()
+                    val navigator = FakeNavigator(screen)
+
+                    presenterTestOf({ presenter(screen, navigator, FakeAppSettings()) }) {
+                        awaitLoaded().eventSink(IntroEvent.PolicyOpened(policyRef = null))
+
+                        navigator.awaitNextScreen() shouldBe PrivacyPolicyScreen(anchor = null)
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+
             `when`("it names a section nobody wrote") {
                 then("nowhere is navigated to") {
                     val screen = IntroFlowScreen()

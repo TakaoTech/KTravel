@@ -86,11 +86,16 @@ fun IntroPresenter(
 
             // A point that names a section nobody wrote goes nowhere rather than opening a document
             // that would scroll to nothing: the introduction is content, and content must not be
-            // able to take the first screen of the application down.
-            is IntroEvent.PolicyOpened -> if (content?.policy?.section(event.policyRef) != null) {
-                navigator.goTo(PrivacyPolicyScreen(anchor = event.policyRef))
-            } else {
-                logger.w { "The privacy policy has no section at ${event.policyRef}" }
+            // able to take the first screen of the application down. The document asked for in
+            // full names no section, so there is nothing to check: it opens at the top.
+            is IntroEvent.PolicyOpened -> {
+                val anchor = event.policyRef
+
+                if (anchor == null || content?.policy?.section(anchor) != null) {
+                    navigator.goTo(PrivacyPolicyScreen(anchor = anchor))
+                } else {
+                    logger.w { "The privacy policy has no section at $anchor" }
+                }
             }
         }
     }

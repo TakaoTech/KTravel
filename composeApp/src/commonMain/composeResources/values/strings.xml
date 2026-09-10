@@ -349,8 +349,19 @@
     <!-- region Intro, privacy policy and diagnostics -->
     <string name="intro_back">Back</string>
     <string name="intro_next">Next</string>
-    <string name="intro_allow">Send diagnostics</string>
-    <string name="intro_deny">Keep everything local</string>
+    <string name="intro_allow_diagnostic">Send diagnostics</string>
+    <string name="intro_deny_diagnostic">Keep everything local</string>
+    <string name="intro_decision_overline">Last step</string>
+    <string name="intro_allow_detail">Version, platform, log lines and stack traces. Your trips, notes and attachments are never sent.</string>
+    <string name="intro_deny_detail">Nothing is sent automatically. You can still save the log and attach it to a report.</string>
+    <string name="intro_decision_answer_hint">Pick one of the two answers to continue.</string>
+    <string name="intro_decision_note_settings">Change your mind whenever you like, under Settings → Diagnostics.</string>
+    <string name="intro_decision_note_renewal">We will ask again in a year.</string>
+    <string name="intro_finish">Start using KTravel</string>
+    <string name="intro_privacy_overline">Privacy policy</string>
+    <string name="intro_privacy_acknowledge">I have read and acknowledged the privacy policy.</string>
+    <string name="intro_privacy_link">Here</string>
+    <string name="intro_privacy_acknowledge_hint">Tick the acknowledgement to continue.</string>
     <string name="intro_cd_loading">Loading the introduction</string>
     <string name="intro_cd_open_detail">Open the privacy policy at this point</string>
 

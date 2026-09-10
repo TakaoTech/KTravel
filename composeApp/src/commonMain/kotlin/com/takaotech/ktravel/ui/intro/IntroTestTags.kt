@@ -8,6 +8,10 @@ internal object IntroTestTags {
     const val ALLOW = "intro_allow"
     const val DENY = "intro_deny"
     const val LOADING = "intro_loading"
+    const val COUNTER = "intro_step_counter"
+    const val ACKNOWLEDGE = "intro_privacy_acknowledge"
+    const val ACKNOWLEDGE_LINK = "intro_privacy_acknowledge_link"
+    const val FINISH = "intro_finish"
 
     /** The step with [id], so a test can name the one it means. */
     fun step(id: String): String = "intro_step_$id"

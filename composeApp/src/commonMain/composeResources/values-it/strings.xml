@@ -349,8 +349,19 @@
     <!-- region Intro, privacy policy and diagnostics -->
     <string name="intro_back">Indietro</string>
     <string name="intro_next">Avanti</string>
-    <string name="intro_allow">Invia la diagnostica</string>
-    <string name="intro_deny">Tieni tutto in locale</string>
+    <string name="intro_allow_diagnostic">Invia la diagnostica</string>
+    <string name="intro_deny_diagnostic">Tieni tutto in locale</string>
+    <string name="intro_decision_overline">Ultimo passo</string>
+    <string name="intro_allow_detail">Versione, piattaforma, righe di log e stack trace. I tuoi viaggi, le tue note e i tuoi allegati non vengono mai inviati.</string>
+    <string name="intro_deny_detail">Nessun invio automatico. Puoi sempre salvare il log e allegarlo a una segnalazione.</string>
+    <string name="intro_decision_answer_hint">Scegli una delle due risposte per continuare.</string>
+    <string name="intro_decision_note_settings">Cambi idea quando vuoi, in Impostazioni → Diagnostica.</string>
+    <string name="intro_decision_note_renewal">Te lo richiediamo fra un anno.</string>
+    <string name="intro_finish">Inizia a usare KTravel</string>
+    <string name="intro_privacy_overline">Informativa privacy</string>
+    <string name="intro_privacy_acknowledge">Ho letto e preso visione dell'informativa privacy.</string>
+    <string name="intro_privacy_link">Qui</string>
+    <string name="intro_privacy_acknowledge_hint">Spunta la presa visione per continuare.</string>
     <string name="intro_cd_loading">Caricamento della presentazione</string>
     <string name="intro_cd_open_detail">Apri la privacy policy su questo punto</string>
 
