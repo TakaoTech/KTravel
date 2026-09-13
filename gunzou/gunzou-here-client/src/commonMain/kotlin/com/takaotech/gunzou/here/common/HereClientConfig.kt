@@ -8,8 +8,8 @@ import co.touchlab.kermit.Logger
  * There is no logging flag. Requests and responses are always written, at `Severity.Debug`, through
  * [logger]: what decides whether they exist is the minimum severity of the logger the caller passed,
  * and a caller that builds its logger through a dependency graph decides it in one place for the
- * whole application. Worth knowing what that decision means here: the API key travels in the URL as
- * a query parameter, so a logger that keeps debug lines is a logger that keeps the key.
+ * whole application. [apiKey] travels in the URL as a query parameter, but it does not reach the
+ * log: the adapter behind [logger] redacts it, so keeping debug lines does not mean keeping the key.
  *
  * @property apiKey HERE API key, sent as a query parameter on every request
  * @property logger Where HTTP traffic is written. Null falls back to the Kermit singleton, which is

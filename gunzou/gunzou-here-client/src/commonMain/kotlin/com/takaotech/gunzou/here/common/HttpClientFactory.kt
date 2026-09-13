@@ -43,9 +43,12 @@ internal fun createHereHttpClient(config: HereClientConfig): HttpClient =
  *
  * Logging is installed unconditionally and there is no flag to turn it off, because the logger in
  * [HereClientConfig] already is that flag: every line is written at `Severity.Debug`, and a caller
- * whose logger keeps `Severity.Info` — which is what a release build does — drops them before they
- * are formatted. Note that `LogLevel.ALL` prints the request URL, and the HERE API key travels in it
- * as a query parameter: a build that logs at debug is a build that logs the key.
+ * whose logger keeps `Severity.Info` drops them before they are formatted.
+ *
+ * `LogLevel.ALL` prints the request URL, and the HERE API key travels in it as a query parameter —
+ * so [KermitKtorLogger] is handed the key and takes it back out, and the line reaches the writers
+ * with `apiKey=***`. That is not a matter of severity and not a matter of build type: there is no
+ * configuration of this client in which the key is written.
  */
 internal fun HttpClient.withHereDefaults(config: HereClientConfig): HttpClient = this.config {
     install(ContentNegotiation) {
@@ -56,7 +59,7 @@ internal fun HttpClient.withHereDefaults(config: HereClientConfig): HttpClient =
 
     install(Logging) {
         level = LogLevel.ALL
-        logger = KermitKtorLogger(config.logger)
+        logger = KermitKtorLogger(config.logger, apiKey = config.apiKey)
     }
 
     defaultRequest {

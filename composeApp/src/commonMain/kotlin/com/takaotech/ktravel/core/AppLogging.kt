@@ -12,8 +12,10 @@ private const val APP_TAG = "KTravel"
 /**
  * Keeps `Severity.Debug`, which is what the HTTP clients write their request and response dumps at.
  *
- * Lowering this to [Severity.Info] is how a build stops logging them, and there is a reason to want
- * that: the dumps contain the URLs and bodies of routing calls, HERE API keys included.
+ * Raising this to [Severity.Info] is how a build stops logging them. It is not what keeps the HERE
+ * key out of the log: the dumps carry the URLs and bodies of routing calls, and both clients redact
+ * the key from those before writing, so the log this application shows and attaches to an issue
+ * report has no key in it at any severity.
  */
 private val DEFAULT_MIN_SEVERITY = Severity.Debug
 

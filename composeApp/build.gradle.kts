@@ -402,6 +402,8 @@ kotlin {
                 implementation(libs.circuitx.gesture.navigation)
 
                 implementation(libs.kotlinx.serialization.json)
+                // The privacy policy is packaged as YAML, so its Markdown bodies stay editable.
+                implementation(libs.kotaml)
 
                 implementation(libs.bundles.aboutLibraries)
             }

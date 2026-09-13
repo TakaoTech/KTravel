@@ -9,9 +9,10 @@ const val PRIVACY_PATH_SEPARATOR: Char = '.'
 /**
  * The privacy policy, as it is shipped: a versioned tree of sections.
  *
- * Packaged as `composeResources/files/privacy/privacy_policy_<language>.json`, for the same reasons
+ * Packaged as `composeResources/files/privacy/privacy_policy_<language>.yaml`, for the same reasons
  * [IntroFlow] is: the version travels with the text, because an answer about telemetry is given to a
- * version of the policy, and a newer one has to be shown again.
+ * version of the policy, and a newer one has to be shown again. YAML rather than JSON because the
+ * bodies are long Markdown, which a `|-` block scalar keeps as it is typed.
  *
  * Every section is addressable: [section] takes the path of ids joined by [PRIVACY_PATH_SEPARATOR],
  * which is what lets the introduction point at one paragraph and what lets the document scroll to it.

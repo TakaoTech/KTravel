@@ -4,6 +4,7 @@ import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.loggerConfigInit
+import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.common.GeoPoint
 import com.takaotech.gunzou.api.common.ProviderId
@@ -19,6 +20,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -28,7 +30,11 @@ import kotlin.test.assertTrue
  * There is no logging flag on [NavigatorClientConfig], so this is the whole switch: an application
  * whose logger keeps `Severity.Debug` sees the calls, one that stays at `Severity.Info` sees none of
  * them. It is worth a test because the failure is silent in both directions — either nothing is
- * logged and the client looks mute, or a release build writes provider keys into the log.
+ * logged and the client looks mute, or the traffic is logged and nobody notices what is in it.
+ *
+ * What must not depend on that switch is the provider key: it is the traveller's own credential, and
+ * the log it would land in is shown on a diagnostics screen and attached to an issue report. So the
+ * dump it appears in is checked for it, at the severity that produces the dump.
  *
  * Nothing here touches the Kermit singleton: a logger is built for the test and handed to the
  * client, which is how the application does it too.
@@ -61,6 +67,17 @@ class NavigatorClientLoggingTest {
             recorded.any { (_, message) -> message.contains("http://navigator.test") },
             "the request was expected in the log, got: ${recorded.map { it.second }}",
         )
+    }
+
+    @Test
+    fun `Given a call carrying a provider key When the traffic is logged Then the key is redacted`() = runTest {
+        client(minSeverity = Severity.Debug)
+            .hereRouting(HereTransportMode.CAR, routingRequest, apiKey = "the-provider-key")
+
+        val logged = recorded.joinToString("\n") { it.second }
+
+        assertTrue(logged.contains(NavigatorApi.PROVIDER_KEY_HEADER), "the header itself is expected in the dump")
+        assertFalse(logged.contains("the-provider-key"), "the provider key was written into the log: $logged")
     }
 
     @Test

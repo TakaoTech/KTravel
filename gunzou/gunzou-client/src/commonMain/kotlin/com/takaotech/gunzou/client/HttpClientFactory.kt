@@ -1,5 +1,6 @@
 package com.takaotech.gunzou.client
 
+import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -46,5 +47,7 @@ internal fun HttpClient.withNavigatorDefaults(config: NavigatorClientConfig): Ht
     install(Logging) {
         level = LogLevel.ALL
         logger = KermitKtorLogger(config.logger)
+
+        sanitizeHeader { it.equals(NavigatorApi.PROVIDER_KEY_HEADER, ignoreCase = true) }
     }
 }

@@ -102,6 +102,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor-client" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+kotaml = { module = "io.heapy.kotaml:kotaml", version = "0.110.0" }
 
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 metro-viewmodel = { module = "dev.zacsweers.metro:metrox-viewmodel", version.ref = "metro" }

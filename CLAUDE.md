@@ -324,11 +324,13 @@ Other languages (like Italian) is used in exactly two places, and nowhere else:
 2. Translation *values* in `composeResources/values-**/strings.xml` (see the `localizing-strings`
    skill). `composeResources/values/strings.xml` stays English-only.
 3. The introduction and the privacy policy, in `composeResources/files/intro/intro_flow_<language>.json`
-   and `composeResources/files/privacy/privacy_policy_<language>.json`. That content is versioned data
+   and `composeResources/files/privacy/privacy_policy_<language>.yaml`. That content is versioned data
    rather than a label — an answer is given to a *version* of the policy, and each of the two carries
    its own version — and `composeResources/files` takes no language qualifier, so the language is
-   resolved by `LocalizedContentReader`, with English (`..._en.json`) as the file that must exist. The
+   resolved by `LocalizedContentReader`, with English (`..._en.*`) as the file that must exist. The
    frame around it — buttons, titles, settings labels — is in `strings.xml` like everything else.
+   The policy is YAML (read with kotaml) so that its Markdown bodies are `|-` block scalars: write
+   them unindented relative to the block, and keep the ids identical across languages.
 
 ### General Principles
 
