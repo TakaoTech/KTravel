@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.travel_creation_name_empty_error
+import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 @ContributesIntoMap(AppScope::class)
 @ViewModelKey
@@ -76,6 +79,14 @@ class TravelCreationViewModel(
             logger.w { "Creation rejected: incomplete date range ($start - $end)" }
             // TODO Move to strings
             _uiState.update { it.copy(error = "Compila tutti i campi") }
+            return
+        }
+
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val startDate = Instant.fromEpochMilliseconds(start).toLocalDate()
+        if (startDate < today) {
+            logger.w { "Creation rejected: start date $startDate is before today $today" }
+            _uiState.update { it.copy(error = "La data di inizio non può essere precedente a oggi") }
             return
         }
 
