@@ -6,6 +6,7 @@ import com.takaotech.gunzou.here.common.createHereHttpClient
 import com.takaotech.gunzou.here.common.withHereDefaults
 import com.takaotech.gunzou.here.publictransit.client.HereTransitApi
 import com.takaotech.gunzou.here.routing.client.HereRoutingApi
+import com.takaotech.gunzou.here.search.autocomplete.client.HereAutocompleteApi
 import com.takaotech.gunzou.here.search.browser.client.HereBrowseApi
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
@@ -22,6 +23,7 @@ import io.ktor.client.engine.HttpClientEngine
  * here.routing.getRoutes(request)
  * here.publicTransit.getRoutes(transitRequest)
  * here.browse.browse(browseRequest)
+ * here.autocomplete.autocomplete(autocompleteRequest)
  * here.close()
  * ```
  *
@@ -50,6 +52,11 @@ class HereClient private constructor(private val httpClient: HttpClient, val con
 
     /** HERE Geocoding and Search API v7, Browse endpoint. */
     val browse: HereBrowseApi by lazy { HereBrowseApi(httpClient, config.browseBaseUrl) }
+
+    /** HERE Geocoding and Search API v7, Autocomplete endpoint. */
+    val autocomplete: HereAutocompleteApi by lazy {
+        HereAutocompleteApi(httpClient, config.autocompleteBaseUrl)
+    }
 
     /**
      * Closes the underlying HTTP client. An engine passed to [withEngine] outlives it, as its owner
