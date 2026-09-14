@@ -5,6 +5,7 @@ import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.error.ErrorResponse
 import com.takaotech.gunzou.api.response.RoutingRouteResponse
 import com.takaotech.gunzou.api.response.TransitJourneyResponse
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -47,6 +48,10 @@ suspend fun HttpResponse.decodeRoutes(): RoutingRouteResponse =
 /** Reads a successful answer from a transit profile. */
 suspend fun HttpResponse.decodeJourneys(): TransitJourneyResponse =
     NavigatorJson.decodeFromString(TransitJourneyResponse.serializer(), bodyAsText())
+
+/** Reads a successful answer from an autocomplete service. */
+suspend fun HttpResponse.decodeAutocomplete(): AutocompleteResponse =
+    NavigatorJson.decodeFromString(AutocompleteResponse.serializer(), bodyAsText())
 
 /** Reads a failure. */
 suspend fun HttpResponse.decodeError(): ErrorResponse =

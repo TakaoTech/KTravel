@@ -11,6 +11,9 @@ import com.takaotech.gunzou.api.here.HereTransitRouteRequest
 import com.takaotech.gunzou.api.here.HereTransportMode
 import com.takaotech.gunzou.api.response.RoutingRouteResponse
 import com.takaotech.gunzou.api.response.TransitJourneyResponse
+import com.takaotech.gunzou.api.search.SearchCatalogResponse
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -84,6 +87,38 @@ class NavigatorClient private constructor(
         target: NavigatorTarget? = null,
     ): NavigatorResult<TransitJourneyResponse> =
         post(NavigatorApi.HERE_TRANSIT, HereTransitRouteRequest.serializer(), request, apiKey, target)
+
+    /**
+     * Suggests places for what the user is typing, through HERE.
+     *
+     * The request and the answer are the ones every autocomplete provider shares, so switching to
+     * another provider is calling its method with the same [request] and reading the same answer.
+     * What HERE accepts of the request is published in
+     * [com.takaotech.gunzou.api.search.SearchProfile.HereAutocomplete]: among other things it needs
+     * the search located, by [AutocompleteRequest.at] or by a circle or bounding box.
+     *
+     * @param request What has been typed so far, and where the user is looking.
+     * @param apiKey The caller's HERE key, unless the navigator holds one of its own.
+     * @param target Which navigator to ask, when it is not the configured one.
+     * @return The suggestions, or the failure. No suggestion at all is a success with an empty list.
+     */
+    suspend fun hereAutocomplete(
+        request: AutocompleteRequest,
+        apiKey: String? = null,
+        target: NavigatorTarget? = null,
+    ): NavigatorResult<AutocompleteResponse> =
+        post(NavigatorApi.HERE_SEARCH_AUTOCOMPLETE, AutocompleteRequest.serializer(), request, apiKey, target)
+
+    /**
+     * What the navigator can search with.
+     *
+     * The search counterpart of [profiles]: which search services this deployment mounts, and what
+     * each of them accepts.
+     *
+     * @param target Which navigator to ask, when it is not the configured one.
+     */
+    suspend fun searchProfiles(target: NavigatorTarget? = null): NavigatorResult<SearchCatalogResponse> =
+        get(NavigatorApi.SEARCH_PROFILES, target)
 
     /**
      * What the navigator can route with.

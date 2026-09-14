@@ -8,6 +8,9 @@ import com.takaotech.ktravel.gunzou.server.endpoint.here.HereRoutingEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereTransitEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.LiveHereRoutingEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.LiveHereTransitEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.LiveHereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchCatalog
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
@@ -49,14 +52,16 @@ internal fun Application.configureKoin(overrides: Module?) {
 }
 
 /**
- * The real wiring: HERE behind both profiles, sharing one pool of clients.
+ * The real wiring: HERE behind both routing profiles and the autocomplete, sharing one pool of
+ * clients.
  *
  * @param logger What the server writes through, passed on to the HTTP clients so their request and
  *   response dumps end up beside everything else rather than in a channel of their own.
  */
 private fun navigatorModule(logger: Logger): Module = module {
-    // One pool for both profiles. HereClient is a facade over a single HTTP client that serves the
-    // routing and the transit host alike, so a second pool would double the connections for nothing.
+    // One pool for every HERE endpoint. HereClient is a facade over a single HTTP client that serves
+    // the routing, the transit and the search hosts alike, so a second pool would double the
+    // connections for nothing.
     single {
         HereClientPool(
             logger = logger,
@@ -73,6 +78,11 @@ private fun navigatorModule(logger: Logger): Module = module {
             get(),
         )
     }
+    single<HereAutocompleteEndpoint> {
+        LiveHereAutocompleteEndpoint(
+            get(),
+        )
+    }
 
     // Assembled from the endpoints that exist, so `GET /v1/profiles` cannot advertise a profile no
     // route serves.
@@ -81,6 +91,15 @@ private fun navigatorModule(logger: Logger): Module = module {
             listOf(
                 get<HereRoutingEndpoint>(),
                 get<HereTransitEndpoint>(),
+            ),
+        )
+    }
+
+    // The search services have a catalog of their own, assembled the same way.
+    single {
+        SearchCatalog(
+            listOf(
+                get<HereAutocompleteEndpoint>(),
             ),
         )
     }

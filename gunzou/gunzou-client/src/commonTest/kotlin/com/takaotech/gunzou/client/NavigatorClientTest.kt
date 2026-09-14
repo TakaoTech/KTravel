@@ -3,8 +3,8 @@ package com.takaotech.gunzou.client
 import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.error.ErrorCode
 import com.takaotech.gunzou.api.error.ErrorResponse
@@ -17,6 +17,12 @@ import com.takaotech.gunzou.api.response.TransitJourneyDto
 import com.takaotech.gunzou.api.response.TransitJourneyResponse
 import com.takaotech.gunzou.api.response.TransitJourneyStep
 import com.takaotech.gunzou.api.response.TransitLineDto
+import com.takaotech.gunzou.api.search.SearchCatalogResponse
+import com.takaotech.gunzou.api.search.SearchProfile
+import com.takaotech.gunzou.api.search.SearchResultType
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
@@ -50,7 +56,10 @@ class NavigatorClientTest {
         destination = GeoPoint(lat = 43.7696, lng = 11.2558),
     )
 
-    private val routeResponse = RoutingRouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING)
+    private val routeResponse = RoutingRouteResponse(
+        provider = RoutingProviderId.Here,
+        profile = ProviderProfile.ROUTING,
+    )
 
     private val recorded = mutableListOf<HttpRequestData>()
 
@@ -181,7 +190,7 @@ class NavigatorClientTest {
         val result = client().use { it.hereRouting(HereTransportMode.CAR, routingRequest) }
 
         assertIs<NavigatorResult.Success<RoutingRouteResponse>>(result)
-        assertEquals(ProviderId.HERE, result.value.provider)
+        assertEquals(RoutingProviderId.Here, result.value.provider)
     }
 
     @Test
@@ -189,7 +198,7 @@ class NavigatorClientTest {
         val body = NavigatorJson.encodeToString(
             TransitJourneyResponse.serializer(),
             TransitJourneyResponse(
-                provider = ProviderId.HERE,
+                provider = RoutingProviderId.Here,
                 profile = ProviderProfile.TRANSIT,
                 journeys = listOf(
                     TransitJourneyDto(
@@ -216,6 +225,61 @@ class NavigatorClientTest {
         val journeys = assertIs<NavigatorResult.Success<TransitJourneyResponse>>(result).value
         assertEquals("M2", assertIs<TransitJourneyStep.Ride>(journeys.journeys.single().steps.single()).line.name)
     }
+
+    @Test
+    fun `Given an autocomplete request When it is sent Then it goes to the HERE search path as a POST`() = clientTest {
+        val request = AutocompleteRequest(query = "colo", language = "it-IT", at = GeoPoint(lat = 41.89, lng = 12.49))
+
+        client().use { it.hereAutocomplete(request, apiKey = "user-key") }
+
+        val sent = recorded.single()
+        assertEquals(HttpMethod.Post, sent.method)
+        assertEquals(NavigatorApi.HERE_SEARCH_AUTOCOMPLETE, sent.url.encodedPath)
+        assertEquals("user-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+    }
+
+    @Test
+    fun `Given the navigator answers suggestions When they are read Then the contract type comes back`() = clientTest {
+        val body = NavigatorJson.encodeToString(
+            AutocompleteResponse.serializer(),
+            AutocompleteResponse(
+                suggestions = listOf(
+                    AutocompleteSuggestion.Place(
+                        id = "here:pds:place:1",
+                        title = "Colosseo",
+                        resultType = SearchResultType.PLACE,
+                        position = GeoPoint(lat = 41.8902, lng = 12.4922),
+                    ),
+                ),
+            ),
+        )
+
+        val result = client(body = body).use {
+            it.hereAutocomplete(
+                AutocompleteRequest(query = "colo", language = "it-IT", at = GeoPoint(lat = 41.89, lng = 12.49)),
+            )
+        }
+
+        val suggestions = assertIs<NavigatorResult.Success<AutocompleteResponse>>(result).value.suggestions
+        assertEquals("Colosseo", assertIs<AutocompleteSuggestion.Place>(suggestions.single()).title)
+    }
+
+    @Test
+    fun `Given the navigator publishes its search catalog When it is read Then it goes to the search profiles path`() =
+        clientTest {
+            val body = NavigatorJson.encodeToString(
+                SearchCatalogResponse.serializer(),
+                SearchCatalogResponse(profiles = listOf(SearchProfile.HereAutocomplete.descriptor)),
+            )
+
+            val result = client(body = body).use { it.searchProfiles() }
+
+            val sent = recorded.single()
+            assertEquals(HttpMethod.Get, sent.method)
+            assertEquals(NavigatorApi.SEARCH_PROFILES, sent.url.encodedPath)
+            val catalog = assertIs<NavigatorResult.Success<SearchCatalogResponse>>(result).value
+            assertEquals(listOf(SearchProfile.HereAutocomplete.descriptor), catalog.profiles)
+        }
 
     @Test
     fun `Given the navigator refuses When it is read Then the failure is its own and not the transport`() = clientTest {

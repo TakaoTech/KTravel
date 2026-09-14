@@ -1,8 +1,8 @@
 package com.takaotech.ktravel.gunzou.server.endpoint.here
 
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TravelMode
 import com.takaotech.gunzou.api.response.NoticeDto
 import com.takaotech.gunzou.api.response.PolylineEncoding
@@ -32,7 +32,7 @@ import com.takaotech.gunzou.here.routing.model.TransportMode
  * belongs now that nothing but the server sees a HERE DTO.
  */
 fun RouterRouteResponse.toRoutingRouteResponse(): RoutingRouteResponse = RoutingRouteResponse(
-    provider = ProviderId.HERE,
+    provider = RoutingProviderId.Here,
     profile = ProviderProfile.ROUTING,
     routes = routes.map { route ->
         val sections = route.sections.map { it.toSectionDto() }

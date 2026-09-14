@@ -1,5 +1,8 @@
 package com.takaotech.gunzou.api
 
+import com.takaotech.gunzou.api.NavigatorApi.HERE_ROUTING_TEMPLATE
+import com.takaotech.gunzou.api.NavigatorApi.PROFILES
+import com.takaotech.gunzou.api.NavigatorApi.hereRouting
 import com.takaotech.gunzou.api.here.HereTransportMode
 import kotlinx.serialization.json.Json
 
@@ -40,8 +43,26 @@ object NavigatorApi {
     /** Public transport routing through HERE. */
     const val HERE_TRANSIT: String = "/$VERSION/here/transit"
 
+    /**
+     * Place autocomplete through HERE, answered in the provider neutral
+     * [com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse].
+     *
+     * Every search path follows the same `/{provider}/search/{service}` shape, so a second provider
+     * of the same service is a new path taking the same body, not a new body.
+     */
+    const val HERE_SEARCH_AUTOCOMPLETE: String = "/$VERSION/here/search/autocomplete"
+
     /** What this server can route with. */
     const val PROFILES: String = "/$VERSION/profiles"
+
+    /**
+     * What this server can search with.
+     *
+     * A catalog of its own rather than more entries in [PROFILES]: a search service shares none of
+     * the limits a routing profile publishes — alternatives, via waypoints, tolls — and folding the
+     * two together would give every entry of one a set of fields that mean nothing for it.
+     */
+    const val SEARCH_PROFILES: String = "/$VERSION/search/profiles"
 
     /** Liveness. */
     const val HEALTH: String = "/$VERSION/health"

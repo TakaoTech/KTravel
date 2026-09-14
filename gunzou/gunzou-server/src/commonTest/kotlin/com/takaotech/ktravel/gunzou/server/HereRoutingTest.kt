@@ -2,9 +2,9 @@ package com.takaotech.ktravel.gunzou.server
 
 import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
 import com.takaotech.gunzou.api.common.RouteTime
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TravelMode
 import com.takaotech.gunzou.api.common.Units
 import com.takaotech.gunzou.api.error.ErrorCode
@@ -210,7 +210,7 @@ class HereRoutingTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         val routes = response.decodeRoutes()
-        assertEquals(ProviderId.HERE, routes.provider)
+        assertEquals(RoutingProviderId.Here, routes.provider)
         assertEquals(ProviderProfile.ROUTING, routes.profile)
         assertEquals(2, routes.routes.single().sections.size)
         assertEquals(TravelMode.CAR, routes.routes.single().sections.first().mode)

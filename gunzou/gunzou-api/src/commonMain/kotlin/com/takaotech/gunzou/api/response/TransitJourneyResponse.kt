@@ -1,8 +1,8 @@
 package com.takaotech.gunzou.api.response
 
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.common.ZonedTime
 import kotlinx.serialization.SerialName
@@ -27,7 +27,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TransitJourneyResponse(
-    @SerialName("provider") val provider: ProviderId,
+    @SerialName("provider") val provider: RoutingProviderId,
     @SerialName("profile") val profile: ProviderProfile,
     @SerialName("journeys") val journeys: List<TransitJourneyDto> = emptyList(),
     @SerialName("notices") val notices: List<NoticeDto> = emptyList(),

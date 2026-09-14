@@ -2,8 +2,8 @@ package com.takaotech.gunzou.api.catalog
 
 import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.error.ErrorCode
 import com.takaotech.gunzou.api.error.ErrorResponse
@@ -18,7 +18,7 @@ class CatalogAndErrorSerializationTest {
     private val catalog = ProviderCatalogResponse(
         profiles = listOf(
             ProviderProfileDescriptor(
-                provider = ProviderId.HERE,
+                provider = RoutingProviderId.Here,
                 profile = ProviderProfile.ROUTING,
                 path = NavigatorApi.HERE_ROUTING_TEMPLATE,
                 displayName = "HERE road routing",
@@ -38,7 +38,7 @@ class CatalogAndErrorSerializationTest {
                 requiresApiKey = true,
             ),
             ProviderProfileDescriptor(
-                provider = ProviderId.HERE,
+                provider = RoutingProviderId.Here,
                 profile = ProviderProfile.TRANSIT,
                 path = NavigatorApi.HERE_TRANSIT,
                 displayName = "HERE public transit",

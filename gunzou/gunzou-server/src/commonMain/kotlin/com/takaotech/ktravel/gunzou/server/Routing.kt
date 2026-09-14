@@ -6,17 +6,20 @@ package com.takaotech.ktravel.gunzou.server
 // import io.ktor.server.auth.principal
 import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.catalog.HealthResponse
-import com.takaotech.gunzou.api.catalog.ProviderProfileDescriptor
 import com.takaotech.gunzou.api.error.ErrorCode
 import com.takaotech.gunzou.api.here.HereRoutingRequest
 import com.takaotech.gunzou.api.here.HereTransitRouteRequest
 import com.takaotech.gunzou.api.here.HereTransportMode
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
 import com.takaotech.ktravel.gunzou.server.endpoint.NavigatorException
 import com.takaotech.ktravel.gunzou.server.endpoint.ProviderCatalog
 import com.takaotech.ktravel.gunzou.server.endpoint.ProviderCredentials
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereRoutingCall
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereRoutingEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereTransitEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchCatalog
+import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchEndpoint
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.request.ApplicationRequest
@@ -34,7 +37,7 @@ import org.koin.ktor.ext.inject
 /**
  * Every path this server answers on.
  *
- * One route per provider profile, wired by hand. There is no registry and no dispatch table: Ktor
+ * One route per provider profile or search service, wired by hand. There is no registry and no dispatch table: Ktor
  * already picks the handler by path, so a generic one would only add a way for
  * `/v1/here/routing/{transportMode}` to reach something that is not the HERE road endpoint. The
  * price is a line per profile here, which is the same line that would otherwise be a registry entry.
@@ -43,7 +46,7 @@ import org.koin.ktor.ext.inject
  * than a field of the body, so every mode is its own address and nothing has to read a payload to
  * know whether a call was a walk or a truck.
  *
- * The routing paths are the only ones behind a rate limit. `/v1/health` is left open on purpose: it
+ * The routing and search paths are the only ones behind a rate limit, and they share it. `/v1/health` is left open on purpose: it
  * is what a load balancer polls to decide whether this instance is alive, it carries nothing worth
  * protecting, and a probe that can be throttled is a probe that reports an outage the server does
  * not have.
@@ -63,6 +66,8 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
     val catalog: ProviderCatalog by inject()
     val hereRouting: HereRoutingEndpoint by inject()
     val hereTransit: HereTransitEndpoint by inject()
+    val searchCatalog: SearchCatalog by inject()
+    val hereAutocomplete: HereAutocompleteEndpoint by inject()
 
     routing {
         get(NavigatorApi.HEALTH) {
@@ -72,6 +77,10 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
         get(NavigatorApi.PROFILES) {
             call.respond(catalog.toResponse(config.version))
         }.describe(ProfilesOperation)
+
+        get(NavigatorApi.SEARCH_PROFILES) {
+            call.respond(searchCatalog.toResponse(config.version))
+        }.describe(SearchProfilesOperation)
 
         // AUTH DISABLED: the routing paths used to sit inside this block. `optional` always, so an
         // unknown caller reached the handler and was refused there with the contract's error body —
@@ -93,6 +102,11 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
                 // AUTH DISABLED: requireCaller(config)
                 respondWithRoute(hereTransit, call.receive<HereTransitRouteRequest>(), config)
             }.describe(HereTransitOperation)
+
+            post(NavigatorApi.HERE_SEARCH_AUTOCOMPLETE) {
+                // AUTH DISABLED: requireCaller(config)
+                respondWithSearch(hereAutocomplete, call.receive<AutocompleteRequest>(), config)
+            }.describe(HereAutocompleteOperation)
         }
         // }
     }
@@ -149,9 +163,31 @@ private suspend inline fun <REQ : Any, reified RES : Any> RoutingContext.respond
     request: REQ,
     config: NavigatorServerConfig,
 ) {
-    val credentials = call.request.providerCredentials(endpoint.descriptor, config)
+    val descriptor = endpoint.descriptor
+    val credentials = call.request.providerCredentials(descriptor.requiresApiKey, "${descriptor.profile}", config)
 
     call.respond(endpoint.route(request, credentials))
+}
+
+/**
+ * Runs one search endpoint and answers with what it produced.
+ *
+ * The search counterpart of [respondWithRoute], resolving credentials through the same
+ * [providerCredentials] so the two families cannot drift apart on how a key is found.
+ */
+private suspend inline fun <REQ : Any, reified RES : Any> RoutingContext.respondWithSearch(
+    endpoint: SearchEndpoint<REQ, RES>,
+    request: REQ,
+    config: NavigatorServerConfig,
+) {
+    val descriptor = endpoint.descriptor
+    val credentials = call.request.providerCredentials(
+        descriptor.requiresApiKey,
+        "${descriptor.provider} ${descriptor.service}",
+        config,
+    )
+
+    call.respond(endpoint.search(request, credentials))
 }
 
 /**
@@ -165,20 +201,23 @@ private suspend inline fun <REQ : Any, reified RES : Any> RoutingContext.respond
  * A profile that needs no key ignores both, so a client can keep sending the same header everywhere
  * without knowing which endpoints care.
  *
+ * @param requiresApiKey Whether the profile or service being called refuses a call without a key.
+ * @param name What to call it in the refusal, such as `routing` or `here autocomplete`.
  * @throws com.takaotech.ktravel.gunzou.server.endpoint.NavigatorException [ErrorCode.MISSING_CREDENTIALS] when the profile needs a key and
  *   neither the caller nor this server has one.
  */
 private fun ApplicationRequest.providerCredentials(
-    descriptor: ProviderProfileDescriptor,
+    requiresApiKey: Boolean,
+    name: String,
     config: NavigatorServerConfig,
 ): ProviderCredentials? {
     val key = header(NavigatorApi.PROVIDER_KEY_HEADER)?.takeIf { it.isNotBlank() }
         ?: config.providerApiKey?.takeIf { it.isNotBlank() }
 
-    if (descriptor.requiresApiKey && key == null) {
+    if (requiresApiKey && key == null) {
         throw NavigatorException(
             code = ErrorCode.MISSING_CREDENTIALS,
-            message = "${descriptor.profile} needs a provider key in ${NavigatorApi.PROVIDER_KEY_HEADER}, " +
+            message = "$name needs a provider key in ${NavigatorApi.PROVIDER_KEY_HEADER}, " +
                 "and this navigator holds none of its own",
         )
     }

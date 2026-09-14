@@ -1,7 +1,7 @@
 package com.takaotech.gunzou.api.catalog
 
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -34,7 +34,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ProviderProfileDescriptor(
-    @SerialName("provider") val provider: ProviderId,
+    @SerialName("provider") val provider: RoutingProviderId,
     @SerialName("profile") val profile: ProviderProfile,
     @SerialName("path") val path: String,
     @SerialName("displayName") val displayName: String,

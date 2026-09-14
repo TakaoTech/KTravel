@@ -2,8 +2,8 @@ package com.takaotech.gunzou.api.response
 
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.common.ZonedTime
 import kotlinx.serialization.json.jsonArray
@@ -27,7 +27,7 @@ class TransitJourneyResponseSerializationTest {
     private val alightsAt = Instant.parse("2026-08-12T07:50:00Z")
 
     private val response = TransitJourneyResponse(
-        provider = ProviderId.HERE,
+        provider = RoutingProviderId.Here,
         profile = ProviderProfile.TRANSIT,
         journeys = listOf(
             TransitJourneyDto(

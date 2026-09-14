@@ -255,6 +255,83 @@ object HerePayloads {
         }
     """.trimIndent()
 
+    /**
+     * An Autosuggest answer: a place, a street, a postal code, an address HERE sent without a
+     * position, a category query, a chain query and a term completion.
+     */
+    val AUTOSUGGEST = """
+        {
+          "items": [
+            {
+              "title": "Colosseo",
+              "id": "here:pds:place:380sr2yk-1",
+              "resultType": "place",
+              "address": {
+                "label": "Colosseo, Piazza del Colosseo, 00184 Roma RM, Italia",
+                "countryCode": "ITA",
+                "countryName": "Italia",
+                "state": "Lazio",
+                "county": "Roma",
+                "city": "Roma",
+                "street": "Piazza del Colosseo",
+                "postalCode": "00184"
+              },
+              "position": { "lat": 41.89021, "lng": 12.49223 },
+              "distance": 350,
+              "categories": [
+                { "id": "800-8200-0174", "name": "School" },
+                { "id": "300-3000-0023", "name": "Tourist Attraction", "primary": true }
+              ],
+              "highlights": {
+                "title": [ { "start": 0, "end": 4 } ],
+                "address": { "label": [ { "start": 0, "end": 4 } ] }
+              }
+            },
+            {
+              "title": "Via del Colosseo, 00184 Roma RM, Italia",
+              "id": "here:af:street:1",
+              "resultType": "street",
+              "address": { "label": "Via del Colosseo, 00184 Roma RM, Italia", "countryCode": "ITA", "street": "Via del Colosseo" },
+              "position": { "lat": 41.89377, "lng": 12.48993 },
+              "mapView": { "west": 12.48871, "south": 41.89311, "east": 12.49114, "north": 41.89443 }
+            },
+            {
+              "title": "00184 Roma RM, Italia",
+              "id": "here:cm:namedplace:2",
+              "resultType": "locality",
+              "localityType": "postalCode",
+              "address": { "label": "00184 Roma RM, Italia", "postalCode": "00184" },
+              "position": { "lat": 41.8933, "lng": 12.4958 }
+            },
+            {
+              "title": "Somewhere HERE could not place",
+              "id": "here:af:street:3",
+              "resultType": "street",
+              "address": { "label": "Somewhere" }
+            },
+            {
+              "title": "Restaurants near Roma",
+              "id": "here:cm:ontology:restaurant",
+              "resultType": "categoryQuery",
+              "href": "https://autosuggest.search.hereapi.com/v1/discover?at=41.89,12.49&q=restaurant&_ontology=restaurant",
+              "highlights": { "title": [ { "start": 0, "end": 4 } ] }
+            },
+            {
+              "title": "Coop",
+              "id": "here:cm:chain:3",
+              "resultType": "chainQuery",
+              "href": "https://autosuggest.search.hereapi.com/v1/discover?at=41.89,12.49&q=Coop&_chain=3"
+            }
+          ],
+          "queryTerms": [
+            { "term": "colosseo", "replaces": "colo", "start": 0, "end": 4 }
+          ]
+        }
+    """.trimIndent()
+
+    /** An Autosuggest answer with nothing in it, which is an ordinary moment of typing. */
+    const val NO_SUGGESTIONS = """{ "items": [], "queryTerms": [] }"""
+
     /** An answer with no route in it, which HERE reports as a success. */
     const val NO_ROUTES = """{ "routes": [] }"""
 }

@@ -4,8 +4,8 @@ import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.catalog.HealthResponse
 import com.takaotech.gunzou.api.catalog.ProviderCatalogResponse
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.error.ErrorCode
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -45,7 +45,7 @@ class ServerTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         val catalog = NavigatorJson.decodeFromString(ProviderCatalogResponse.serializer(), response.bodyAsText())
-        assertEquals(listOf(ProviderId.HERE, ProviderId.HERE), catalog.profiles.map { it.provider })
+        assertEquals(listOf(RoutingProviderId.Here, RoutingProviderId.Here), catalog.profiles.map { it.provider })
         assertEquals(listOf(ProviderProfile.ROUTING, ProviderProfile.TRANSIT), catalog.profiles.map { it.profile })
         assertEquals(
             listOf(NavigatorApi.HERE_ROUTING_TEMPLATE, NavigatorApi.HERE_TRANSIT),

@@ -1,8 +1,12 @@
 package com.takaotech.gunzou.api.catalog
 
 import com.takaotech.gunzou.api.NavigatorApi
-import com.takaotech.gunzou.api.common.ProviderId
+import com.takaotech.gunzou.api.catalog.NavigatorProfile.HereRouting.descriptor
+import com.takaotech.gunzou.api.catalog.NavigatorProfile.HereRouting.modes
+import com.takaotech.gunzou.api.catalog.NavigatorProfile.HereTransit.descriptor
+import com.takaotech.gunzou.api.catalog.NavigatorProfile.HereTransit.modeFilter
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.here.HereTransportMode
 
@@ -52,7 +56,7 @@ sealed class NavigatorProfile {
         val modes: List<HereTransportMode> = HereTransportMode.entries
 
         override val descriptor: ProviderProfileDescriptor = ProviderProfileDescriptor(
-            provider = ProviderId.HERE,
+            provider = RoutingProviderId.Here,
             profile = ProviderProfile.ROUTING,
             // The template, since the mode is part of the path: a client picks a mode out of
             // `supportedModes` and builds the real path with NavigatorApi.hereRouting.
@@ -101,7 +105,7 @@ sealed class NavigatorProfile {
         val modeFilter: List<TransitMode> = TransitMode.entries.filterNot { it == TransitMode.OTHER }
 
         override val descriptor: ProviderProfileDescriptor = ProviderProfileDescriptor(
-            provider = ProviderId.HERE,
+            provider = RoutingProviderId.Here,
             profile = ProviderProfile.TRANSIT,
             path = NavigatorApi.HERE_TRANSIT,
             displayName = "HERE public transit",
@@ -127,7 +131,7 @@ sealed class NavigatorProfile {
         val ALL: List<NavigatorProfile> by lazy { listOf(HereRouting, HereTransit) }
 
         /** The profile with this identity, or `null` when the caller knows one this version does not. */
-        fun find(provider: ProviderId, profile: ProviderProfile): NavigatorProfile? =
+        fun find(provider: RoutingProviderId, profile: ProviderProfile): NavigatorProfile? =
             ALL.firstOrNull { it.descriptor.provider == provider && it.descriptor.profile == profile }
 
         /** The profile a served [descriptor] refers to, matched on identity rather than on contents. */
@@ -143,6 +147,6 @@ sealed class NavigatorProfile {
  * the route, and which of their APIs does it — and a caller groups by the first while dispatching on
  * both.
  */
-data class ProfileKey(val provider: ProviderId, val profile: ProviderProfile) {
+data class ProfileKey(val provider: RoutingProviderId, val profile: ProviderProfile) {
     override fun toString(): String = "$provider/$profile"
 }

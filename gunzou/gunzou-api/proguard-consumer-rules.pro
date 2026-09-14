@@ -22,3 +22,7 @@
 # only ever reached reflectively through the generated sealed serializer.
 -keep class com.takaotech.gunzou.api.common.RouteTime { *; }
 -keep class com.takaotech.gunzou.api.common.RouteTime$* { *; }
+-keep class com.takaotech.gunzou.api.search.SearchArea { *; }
+-keep class com.takaotech.gunzou.api.search.SearchArea$* { *; }
+-keep class com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion { *; }
+-keep class com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion$* { *; }

@@ -4,6 +4,10 @@ import com.takaotech.gunzou.api.common.GeoPoint
 import com.takaotech.gunzou.api.here.HereReturnAttribute
 import com.takaotech.gunzou.api.here.HereRoutingRequest
 import com.takaotech.gunzou.api.here.HereTransitRouteRequest
+import com.takaotech.gunzou.api.search.SearchArea
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
+import com.vanniktech.locale.Country
+import com.vanniktech.locale.Locale
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
@@ -18,6 +22,9 @@ private const val MAX_LONGITUDE = 180.0
 // catching it here turns a vendor error into one that names the field.
 private const val MIN_WALKING_SPEED = 0.5
 private const val MAX_WALKING_SPEED = 2.0
+
+/** An ISO 3166-1 alpha-2 code as the contract spells it: two uppercase letters. */
+private val ALPHA_2_COUNTRY_CODE = Regex("[A-Z]{2}")
 
 /**
  * What is wrong with a request whatever provider is behind it.
@@ -38,6 +45,7 @@ fun Application.configureRequestValidation() {
     install(RequestValidation) {
         validate<HereRoutingRequest> { it.invalidReasons().toValidationResult() }
         validate<HereTransitRouteRequest> { it.invalidReasons().toValidationResult() }
+        validate<AutocompleteRequest> { it.invalidReasons().toValidationResult() }
     }
 }
 
@@ -69,6 +77,60 @@ private fun HereTransitRouteRequest.invalidReasons(): List<String> = buildList {
     }
     pedestrianMaxDistanceMeters?.takeIf { it < 0 }?.let {
         add("pedestrianMaxDistanceMeters cannot be negative, was $it")
+    }
+}
+
+/**
+ * Everything wrong with an autocomplete request whatever provider answers it.
+ *
+ * The ceiling on `limit` and whether a location is required are the service's own words, and are
+ * enforced beside its descriptor instead.
+ */
+private fun AutocompleteRequest.invalidReasons(): List<String> = buildList {
+    if (query.isBlank()) {
+        add("query cannot be blank")
+    }
+    // Checked here rather than left to the provider: the answer is only readable in a language the
+    // user speaks, and a tag no provider can parse would otherwise be silently answered in another.
+    if (Locale.fromOrNull(language) == null) {
+        add("language: '$language' is not an IETF BCP 47 tag, such as it-IT")
+    }
+    at?.let { addAll(it.invalidReasons("at")) }
+
+    if (limit < 1) {
+        add("limit must be at least 1, was $limit")
+    }
+    area?.let { addAll(it.invalidReasons()) }
+}
+
+/** Why this area cannot restrict a search, or nothing at all if it can. */
+private fun SearchArea.invalidReasons(): List<String> = buildList {
+    when (val area = this@invalidReasons) {
+        is SearchArea.Countries -> {
+            if (area.codes.isEmpty()) {
+                add("area.codes cannot be empty")
+            }
+            // A code of the right shape can still name no country, and a provider that is handed
+            // one either fails the whole request or silently ignores the filter.
+            area.codes
+                .filterNot { it.matches(ALPHA_2_COUNTRY_CODE) && Country.fromOrNull(it) != null }
+                .forEach { add("area.codes: '$it' is not an ISO 3166-1 alpha-2 country code in uppercase") }
+        }
+
+        is SearchArea.Circle -> {
+            addAll(area.center.invalidReasons("area.center"))
+            if (area.radiusMeters <= 0) {
+                add("area.radiusMeters must be positive, was ${area.radiusMeters}")
+            }
+        }
+
+        is SearchArea.BoundingBox -> {
+            addAll(GeoPoint(lat = area.south, lng = area.west).invalidReasons("area.southWest"))
+            addAll(GeoPoint(lat = area.north, lng = area.east).invalidReasons("area.northEast"))
+            if (area.south > area.north) {
+                add("area.south cannot be north of area.north, was ${area.south} > ${area.north}")
+            }
+        }
     }
 }
 

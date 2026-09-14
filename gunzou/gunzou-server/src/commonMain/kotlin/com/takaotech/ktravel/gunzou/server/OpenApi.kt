@@ -9,6 +9,9 @@ import com.takaotech.gunzou.api.here.HereRoutingRequest
 import com.takaotech.gunzou.api.here.HereTransitRouteRequest
 import com.takaotech.gunzou.api.response.RoutingRouteResponse
 import com.takaotech.gunzou.api.response.TransitJourneyResponse
+import com.takaotech.gunzou.api.search.SearchCatalogResponse
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.openapi.JsonSchema
 import io.ktor.openapi.OpenApiDoc
@@ -44,6 +47,9 @@ import io.ktor.server.routing.routingRoot
 
 /** Computing routes. Rate limited. */
 private const val TAG_ROUTING = "routing"
+
+/** Searching for places. Rate limited, with the same budget as routing. */
+private const val TAG_SEARCH = "search"
 
 /** What this server can do, and whether it is alive. */
 private const val TAG_DISCOVERY = "discovery"
@@ -96,6 +102,7 @@ internal fun OpenApiDocDsl.navigatorApiDocument(version: String) {
     }
 
     tag(TAG_ROUTING)
+    tag(TAG_SEARCH)
     tag(TAG_DISCOVERY)
 }
 
@@ -155,6 +162,45 @@ internal val ProfilesOperation: RouteOperationFunction = {
             schema = jsonSchema<ProviderCatalogResponse>()
         }
     }
+}
+
+/** `GET /v1/search/profiles`. */
+internal val SearchProfilesOperation: RouteOperationFunction = {
+    tag(TAG_DISCOVERY)
+    summary = "What this server can search with"
+    description = """
+        The search services this deployment mounts, one per provider and service. A catalog apart from
+        `/v1/profiles` because a search publishes none of the limits a routing profile does.
+    """.trimIndent()
+
+    responses {
+        response(HttpStatusCode.OK.value) {
+            description = "The mounted search services"
+            schema = jsonSchema<SearchCatalogResponse>()
+        }
+    }
+}
+
+/** `POST /v1/here/search/autocomplete`. */
+internal val HereAutocompleteOperation: RouteOperationFunction = {
+    tag(TAG_SEARCH)
+    summary = "Suggest places for what the user is typing"
+    description = """
+        Served by HERE Autosuggest, answered in the provider neutral `AutocompleteResponse` every
+        autocomplete path shares. Each suggestion is either a `place`, with a position, or a `query`
+        to run as a further search, discriminated on `type`.
+
+        HERE needs the search located: either `at`, or an `area` that is a `circle` or a
+        `boundingBox`, never both. A `countries` area narrows the results and still needs `at`.
+        An empty list of suggestions is a success.
+    """.trimIndent()
+
+    providerKeyHeader()
+    requestBody {
+        required = true
+        schema = jsonSchema<AutocompleteRequest>()
+    }
+    routeResponses(jsonSchema<AutocompleteResponse>(), "The suggestions, most relevant first")
 }
 
 /** `POST /v1/here/routing/{transportMode}`. */

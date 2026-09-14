@@ -1,7 +1,7 @@
 package com.takaotech.gunzou.api.response
 
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TravelMode
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RoutingRouteResponse(
-    @SerialName("provider") val provider: ProviderId,
+    @SerialName("provider") val provider: RoutingProviderId,
     @SerialName("profile") val profile: ProviderProfile,
     @SerialName("routes") val routes: List<RoutingRouteDto> = emptyList(),
     @SerialName("notices") val notices: List<NoticeDto> = emptyList(),

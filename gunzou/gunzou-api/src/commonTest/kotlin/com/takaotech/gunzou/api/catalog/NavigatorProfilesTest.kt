@@ -1,8 +1,8 @@
 package com.takaotech.gunzou.api.catalog
 
 import com.takaotech.gunzou.api.NavigatorApi
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TransitMode
 import com.takaotech.gunzou.api.here.HereTransportMode
 import kotlin.test.Test
@@ -58,7 +58,7 @@ class NavigatorProfilesTest {
     fun `Given a profile this version does not have When it is looked up Then nothing is found`() {
         // What a client does when a newer navigator serves something it was not built against: it has
         // to degrade to "unknown", not to a wrong profile.
-        assertNull(NavigatorProfile.find(ProviderId.VALHALLA, ProviderProfile.ROUTING))
+        assertNull(NavigatorProfile.find(RoutingProviderId.Valhalla, ProviderProfile.ROUTING))
     }
 
     @Test
@@ -169,7 +169,7 @@ class NavigatorProfilesTest {
 
     @Test
     fun `Given the profile identity When it is printed Then it reads as provider over profile`() {
-        assertNotNull(NavigatorProfile.find(ProviderId.HERE, ProviderProfile.TRANSIT))
+        assertNotNull(NavigatorProfile.find(RoutingProviderId.Here, ProviderProfile.TRANSIT))
         assertEquals("here/transit", NavigatorProfile.HereTransit.id.toString())
     }
 }

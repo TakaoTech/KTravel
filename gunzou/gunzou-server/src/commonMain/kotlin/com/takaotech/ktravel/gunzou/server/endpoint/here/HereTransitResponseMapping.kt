@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.gunzou.server.endpoint.here
 
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.response.NoticeDto
 import com.takaotech.gunzou.api.response.PolylineEncoding
 import com.takaotech.gunzou.api.response.RouteGeometry
@@ -27,7 +27,7 @@ private const val PEDESTRIAN_SECTION_TYPE = "pedestrian"
 
 /** Translates a HERE transit answer into the shape every timetable profile answers in. */
 fun TransitRouteResponse.toJourneyResponse(): TransitJourneyResponse = TransitJourneyResponse(
-    provider = ProviderId.HERE,
+    provider = RoutingProviderId.Here,
     profile = ProviderProfile.TRANSIT,
     journeys = routes.map { route ->
         val steps = route.sections.map { it.toStep() }

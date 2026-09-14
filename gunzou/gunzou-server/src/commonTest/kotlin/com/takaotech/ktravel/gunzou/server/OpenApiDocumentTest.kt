@@ -65,6 +65,8 @@ class OpenApiDocumentTest {
                     NavigatorApi.PROFILES,
                     NavigatorApi.HERE_ROUTING_TEMPLATE,
                     NavigatorApi.HERE_TRANSIT,
+                    NavigatorApi.SEARCH_PROFILES,
+                    NavigatorApi.HERE_SEARCH_AUTOCOMPLETE,
                 ),
                 paths,
             )

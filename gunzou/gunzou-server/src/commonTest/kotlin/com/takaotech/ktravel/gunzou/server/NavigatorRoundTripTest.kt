@@ -1,8 +1,9 @@
 package com.takaotech.ktravel.gunzou.server
 
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
+import com.takaotech.gunzou.api.common.SearchProviderId
 import com.takaotech.gunzou.api.common.TravelMode
 import com.takaotech.gunzou.api.error.ErrorCode
 import com.takaotech.gunzou.api.here.HereRoutingRequest
@@ -10,6 +11,9 @@ import com.takaotech.gunzou.api.here.HereTransitRouteRequest
 import com.takaotech.gunzou.api.here.HereTransportMode
 import com.takaotech.gunzou.api.response.PolylineEncoding
 import com.takaotech.gunzou.api.response.TransitJourneyStep
+import com.takaotech.gunzou.api.search.SearchService
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
+import com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion
 import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.gunzou.client.NavigatorClientConfig
 import com.takaotech.gunzou.client.NavigatorResult
@@ -76,7 +80,7 @@ class NavigatorRoundTripTest {
             val profiles = client.profiles().getOrThrow().profiles
 
             assertEquals(listOf(ProviderProfile.ROUTING, ProviderProfile.TRANSIT), profiles.map { it.profile })
-            assertTrue(profiles.all { it.provider == ProviderId.HERE })
+            assertTrue(profiles.all { it.provider == RoutingProviderId.Here })
         }
 
     @Test
@@ -88,7 +92,7 @@ class NavigatorRoundTripTest {
                 apiKey = "round-trip-key",
             ).getOrThrow()
 
-            assertEquals(ProviderId.HERE, routes.provider)
+            assertEquals(RoutingProviderId.Here, routes.provider)
             val route = routes.routes.single()
             assertEquals(TravelMode.CAR, route.sections.first().mode)
             assertEquals(PolylineEncoding.HERE_FLEXIBLE, route.sections.first().geometry?.encoding)
@@ -113,6 +117,31 @@ class NavigatorRoundTripTest {
             assertEquals("R 2841", ride.line.name)
             assertEquals("Trenitalia", ride.agency?.name)
             assertEquals(2 * 60 * 60, ride.departureTime?.offsetSeconds)
+        }
+
+    @Test
+    fun `Given a running navigator When the search catalog is fetched Then the autocomplete arrives typed`() =
+        roundTrip { client ->
+            val profiles = client.searchProfiles().getOrThrow().profiles
+
+            assertEquals(listOf(SearchService.AUTOCOMPLETE), profiles.map { it.service })
+            assertTrue(profiles.all { it.provider == SearchProviderId.Here })
+        }
+
+    @Test
+    fun `Given suggestions are asked for over HTTP When they come back Then places and queries stay apart`() =
+        roundTrip(HereMockServer(HerePayloads.AUTOSUGGEST)) { client ->
+            val request = AutocompleteRequest(
+                query = "colo",
+                language = "it-IT",
+                at = GeoPoint(lat = 41.89, lng = 12.49),
+            )
+
+            val suggestions = client.hereAutocomplete(request, apiKey = "round-trip-key").getOrThrow().suggestions
+
+            val place = assertIs<AutocompleteSuggestion.Place>(suggestions.first())
+            assertEquals("Colosseo", place.title)
+            assertIs<AutocompleteSuggestion.Query>(suggestions.last())
         }
 
     @Test

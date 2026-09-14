@@ -7,8 +7,8 @@ import co.touchlab.kermit.loggerConfigInit
 import com.takaotech.gunzou.api.NavigatorApi
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.here.HereRoutingRequest
 import com.takaotech.gunzou.api.here.HereTransportMode
 import com.takaotech.gunzou.api.response.RoutingRouteResponse
@@ -92,7 +92,7 @@ class NavigatorClientLoggingTest {
             respond(
                 content = NavigatorJson.encodeToString(
                     RoutingRouteResponse.serializer(),
-                    RoutingRouteResponse(provider = ProviderId.HERE, profile = ProviderProfile.ROUTING),
+                    RoutingRouteResponse(provider = RoutingProviderId.Here, profile = ProviderProfile.ROUTING),
                 ),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),

@@ -2,8 +2,8 @@ package com.takaotech.gunzou.api.response
 
 import com.takaotech.gunzou.api.NavigatorJson
 import com.takaotech.gunzou.api.common.GeoPoint
-import com.takaotech.gunzou.api.common.ProviderId
 import com.takaotech.gunzou.api.common.ProviderProfile
+import com.takaotech.gunzou.api.common.RoutingProviderId
 import com.takaotech.gunzou.api.common.TravelMode
 import com.takaotech.gunzou.api.common.ZonedTime
 import kotlinx.serialization.json.jsonObject
@@ -24,7 +24,7 @@ class RoutingRouteResponseSerializationTest {
     private val departure = Instant.parse("2026-08-12T07:30:00Z")
 
     private val response = RoutingRouteResponse(
-        provider = ProviderId.HERE,
+        provider = RoutingProviderId.Here,
         profile = ProviderProfile.ROUTING,
         routes = listOf(
             RoutingRouteDto(
@@ -116,7 +116,7 @@ class RoutingRouteResponseSerializationTest {
 
         val decoded = NavigatorJson.decodeFromString(RoutingRouteResponse.serializer(), json)
 
-        assertEquals(ProviderId("an-engine-added-after-this-client-shipped"), decoded.provider)
+        assertEquals(RoutingProviderId.from("an-engine-added-after-this-client-shipped"), decoded.provider)
         assertEquals(ProviderProfile("auto"), decoded.profile)
     }
 
