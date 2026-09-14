@@ -9,7 +9,7 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations, AnnotationDefault
 
-# The HERE routing and public transit DTOs are @Serializable. kotlinx.serialization looks up the
+# The HERE routing, public transit and search DTOs are @Serializable. kotlinx.serialization looks up the
 # generated Companion / $$serializer by name, so the shrinker cannot see those references.
 -keepclassmembers class com.takaotech.gunzou.here.** {
     *** Companion;

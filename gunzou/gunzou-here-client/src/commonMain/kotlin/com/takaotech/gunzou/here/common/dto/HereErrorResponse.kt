@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property cause Description of the error cause
  * @property action Suggested action to resolve the error
  * @property correlationId Unique identifier for support requests
+ * @property requestId The `X-Request-ID` the request was sent with, returned by the search APIs
  */
 @Serializable
 data class HereErrorResponse(
@@ -24,4 +25,5 @@ data class HereErrorResponse(
     @SerialName("cause") val cause: String? = null,
     @SerialName("action") val action: String? = null,
     @SerialName("correlationId") val correlationId: String? = null,
+    @SerialName("requestId") val requestId: String? = null,
 )

@@ -16,10 +16,13 @@ import co.touchlab.kermit.Logger
  *   what a caller with no logger of its own — a test, a script — ends up on.
  * @property routingBaseUrl Base URL of the Routing API, overridable for tests
  * @property publicTransitBaseUrl Base URL of the Public Transit API, overridable for tests
+ * @property browseBaseUrl Base URL of the Browse endpoint of the Geocoding and Search API,
+ *   overridable for tests
  */
 data class HereClientConfig(
     val apiKey: String,
     val logger: Logger? = null,
     val routingBaseUrl: String = HereEndpointUrls.ROUTING,
     val publicTransitBaseUrl: String = HereEndpointUrls.PUBLIC_TRANSIT,
+    val browseBaseUrl: String = HereEndpointUrls.BROWSE,
 )
