@@ -20,6 +20,8 @@ import co.touchlab.kermit.Logger
  *   overridable for tests
  * @property autocompleteBaseUrl Base URL of the Autocomplete endpoint of the Geocoding and Search
  *   API, overridable for tests
+ * @property autosuggestBaseUrl Base URL of the Autosuggest endpoint of the Geocoding and Search
+ *   API, overridable for tests
  */
 data class HereClientConfig(
     val apiKey: String,
@@ -28,4 +30,5 @@ data class HereClientConfig(
     val publicTransitBaseUrl: String = HereEndpointUrls.PUBLIC_TRANSIT,
     val browseBaseUrl: String = HereEndpointUrls.BROWSE,
     val autocompleteBaseUrl: String = HereEndpointUrls.AUTOCOMPLETE,
+    val autosuggestBaseUrl: String = HereEndpointUrls.AUTOSUGGEST,
 )

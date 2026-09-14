@@ -36,7 +36,6 @@ data class AutocompleteRequest(
     val types: List<AutocompleteType>? = null,
     val lang: List<Locale>,
     val limit: Int? = null,
-    val politicalView: String? = null,
     val show: List<AutocompleteShowOption>? = null,
     val requestId: String? = null,
 ) {

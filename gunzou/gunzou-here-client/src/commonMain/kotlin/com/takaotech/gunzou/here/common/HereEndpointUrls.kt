@@ -16,6 +16,9 @@ object HereEndpointUrls {
     /** Base URL of the Autocomplete endpoint of the Geocoding and Search API */
     const val AUTOCOMPLETE = "https://autocomplete.search.hereapi.com/v1/"
 
+    /** Base URL of the Autosuggest endpoint of the Geocoding and Search API */
+    const val AUTOSUGGEST = "https://autosuggest.search.hereapi.com/v1/"
+
     /** Query parameter carrying the API key. */
     const val API_KEY_PARAM = "apiKey"
 }

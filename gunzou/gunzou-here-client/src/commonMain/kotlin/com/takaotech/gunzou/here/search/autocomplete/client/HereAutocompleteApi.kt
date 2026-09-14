@@ -52,10 +52,6 @@ private fun HttpRequestBuilder.applyAutocompleteParameters(request: Autocomplete
         parameter("limit", it)
     }
 
-    request.politicalView?.let {
-        parameter("politicalView", it)
-    }
-
     request.show?.takeIf { it.isNotEmpty() }?.let { options ->
         parameter("show", options.joinToString(",") { it.toQueryString() })
     }
