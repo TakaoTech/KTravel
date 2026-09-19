@@ -1,0 +1,190 @@
+---
+version: 1
+language: en
+sections:
+  - id: controller
+    title: 1. Data Controller
+    body: |-
+      KTravel is an application developed and distributed by **Samuele Bruschi** (TakaoTech), an independent developer, who acts as data controller pursuant to Art. 4(7) of Regulation (EU) 2016/679 ("GDPR"), limited to the processing activities described in this privacy policy.
+
+      The application is distributed as open source through the releases published on [GitHub](https://github.com/TakaoTech/KTravel/releases) and does not require the creation of any account.
+
+      Almost all of the data managed by KTravel remains stored exclusively on the user's device: such data is not transmitted to the controller, who is therefore unable to consult, copy, or delete it on the user's behalf. The only exception is the diagnostic data referred to in section 2.2, transmitted solely upon the user's consent.
+
+      The cases in which data leaves the device are exhaustively listed in section 4, together with the relevant recipient and the content transmitted.
+
+      No data protection officer (DPO) has been appointed, as the conditions set out in Art. 37 GDPR are not met.
+
+  - id: collection
+    title: 2. Categories of data processed
+    body: |-
+      This section describes:
+
+      - the data stored based on the information entered by the user;
+      - the data transmitted upon the user's consent;
+      - the diagnostic data relating to the operation of the application.
+    subsections:
+      - id: provided
+        title: 2.1 Data entered by the user
+        body: |-
+          The content entered by the user during trip planning is stored in a **local application database**.
+
+          This data is not uploaded to any server, nor stored or consulted by the controller. It leaves the device solely as a result of a voluntary action by the user: exporting a trip generates an archive in `.ktravel` format, whose destination and subsequent use are determined solely by the user, independently of the application.
+      - id: automatic
+        title: 2.2 Data transmitted upon consent (diagnostics)
+        body: |-
+          No data is transmitted before the user has responded to the consent request relating to diagnostics, nor in the event of a negative response or expired consent.
+
+          Following consent, the application transmits to the controller the following categories of technical data, in the event of malfunctions and through diagnostic log lines:
+
+          - **application information** - KTravel version;
+          - **platform information** - operating system (Android, iOS, or desktop), relevant version, device model, and device name;
+          - **log lines** - those recorded at `Info` level or higher, including the identifying tag of the component and the related message;
+          - **crash reports** - the exception generated and the related stack trace;
+          - **installation identifier** - a randomly generated value on the device, referring exclusively to the installation and not suitable for identifying the user.
+
+          For further information on this processing, see section 4.3.
+      - id: log
+        title: 2.3 Log stored on the device
+        body: |-
+          The application generates a log of its own operation, which the user can view in *Settings → Diagnostics*.
+
+          This log has a greater level of detail than the one transmitted pursuant to section 2.2 and remains stored exclusively on the device, according to the retention terms indicated in section 7.
+      - id: permissions
+        title: 2.4 Permissions required
+        body: |-
+          The application requires the following system permission:
+
+          - **Internet access**.
+  - id: use
+    title: 3. Purposes of processing
+    body: |-
+      The data indicated in section 2 is processed exclusively for the following purposes:
+
+      - **provision of the application's features** - display of trips, days, and places entered by the user, entirely on the device;
+      - **map display** - downloading of tiles relating to the displayed area;
+      - **route calculation** - querying the selected routing engine to connect two stops;
+      - **verification of the application's operation** - keeping of the local log, which the user can view and, at their discretion, attach to a report;
+      - **correction of malfunctions** - analysis of crashes and diagnostic logs, exclusively where consent has been given.
+
+      No data is processed for profiling or marketing purposes.
+
+  - id: services
+    title: 4. Third parties involved
+    body: |-
+      To provide certain features, KTravel relies on the third-party services described in the following subsections.
+    subsections:
+      - id: map
+        title: 4.1 OpenFreeMap - map display
+        body: |-
+          While browsing the map, the application requests from [OpenFreeMap](https://openfreemap.org) the tiles corresponding to the area displayed on screen.
+
+          The request is sent directly from the user's device to OpenFreeMap, which receives the device's IP address and the coordinates of the requested area, according to its own processing methods. For further information, please refer to OpenFreeMap's privacy policy, available [at this address](https://openfreemap.org/privacy).
+      - id: routing
+        title: 4.2 HERE - route calculation and place search
+        body: |-
+          Route calculation can be performed via [HERE](https://www.here.com). The relationship regarding this service exists directly **between the user and HERE**.
+
+          The application does not include any API key of its own. To calculate a route, the user must obtain their own API key directly from HERE, accepting its terms of service and [privacy policy](https://www.here.com/it-it/privacy), and enter it in the trip settings. The controller is not a party to this relationship, does not receive any data from it, and cannot exercise any right on the user's behalf with respect to HERE.
+
+          The way the request is transmitted depends on the configured routing engine (hereinafter referred to as "Gunzou"):
+
+          - the **built-in Gunzou** (default option) runs within the application's own process, on the device. The request is sent directly from the user's device to HERE and contains the user's API key, the coordinates of the stops to be connected, the selected mode of transport, and the indicated departure or arrival time. HERE receives this data, together with the device's IP address, in the same way as any client of its API;
+          - a **remote Gunzou**, if configured by the user, corresponds to an installation of the same engine at an address chosen by the user. The request - including coordinates, mode of transport, time, and the HERE API key inserted in a header - is first sent to that address and, from there, forwarded to HERE. The operator of that server is able to view this data in full: it is therefore recommended to configure only servers that are trusted; if the server is managed directly by the user, the traffic remains under their control.
+      - id: telemetry
+        title: 4.3 Kotzilla - crashes and diagnostic logs
+        body: |-
+          Diagnostic data is received, on behalf of the controller, by [Kotzilla](https://www.kotzilla.io) ([privacy policy](https://kotzilla.io/privacy-policy)), the provider of the SDK used for transmission. Kotzilla acts as a **data processor** pursuant to Art. 28 GDPR.
+
+          Kotzilla receives exclusively the categories of data indicated in section 2.2, transmitted via HTTPS and only for the period of validity of the consent.
+
+          Builds compiled without a Kotzilla key do not include the related SDK and do not perform any diagnostic transmission.
+  - id: legalbasis
+    title: 5. Legal bases for processing
+    body: |-
+      The only processing carried out directly by the controller is that relating to the diagnostic data referred to in section 2.2, whose legal basis is the user's **consent** pursuant to Art. 6(1)(a) GDPR. Consent is explicitly requested at the end of the application's introductory section; in the absence of a response, it is considered denied; it can be withdrawn at any time in *Settings → Diagnostics*, without this resulting in the loss of any application functionality, except for the controller's inability to correct malfunctions that are not otherwise reported.
+
+      Consent is valid for one (1) year from the date it is given. Upon expiry, the information page and the related request are presented to the user again and, in the meantime, no data is transmitted. Expired consent is equivalent to consent not given.
+
+      Requests relating to map tiles (section 4.1) and route calculation (section 4.2) are sent directly from the user's device to the respective third-party providers, based on actions taken by the user within the application. Such transmissions do not constitute processing carried out by the controller, who neither determines their purposes nor has access to them.
+
+  - id: sharing
+    title: 6. Disclosure to third parties
+    body: |-
+      The user's personal data is not sold or disclosed for advertising purposes.
+
+      Trip data is not disclosed to third parties under any circumstances.
+
+      The categories of data that leave the device, and their respective recipients, are exhaustively indicated in section 4.
+
+  - id: retention
+    title: 7. Retention periods
+    body: |-
+      - **Trips, days, places, notes, and attachments** - retained until deleted by the user. Uninstalling the application results in the removal of the database and the data contained in it.
+      - **Local log files** - generated on a daily basis and retained, by default, for three days. The user can set a period between one and thirty days in *Settings → Diagnostics*; files exceeding this period are automatically deleted.
+      - **Diagnostics consent** - valid for one year from the date it is given, after which the application requests consent again and does not transmit any data until a new response is provided.
+      - **Installation identifier** - retained for the duration of the application's installation and deleted upon uninstallation, unless it has been retained by a system backup independent of the application.
+      - **Diagnostic data already transmitted** - retained by Kotzilla according to its own retention rules (see section 4.3). Withdrawal of consent results in a request to Kotzilla to delete the data already received relating to the installation in question.
+      - **HERE API key** - retained until deleted by the user and subject, for the part falling under HERE's responsibility, to HERE's retention rules.
+
+  - id: rights
+    title: 8. Rights of the data subject
+    body: |-
+      Since most of the data resides exclusively on the user's device, the exercise of the related rights takes place, in most cases, directly and without the need for requests to the controller. The methods are described in the following subsections, together with the cases in which the controller is unable to intervene and the parties responsible in such cases.
+    subsections:
+      - id: self
+        title: 8.1 Rights that can be exercised directly by the user
+        body: |-
+          - **Access to data** - the data can be viewed directly within the application.
+          - **Portability** - a trip can be exported as a `.ktravel` archive and opened in a different environment.
+          - **Rectification** - content entered by the user can be modified at any time.
+          - **Erasure** - it is possible to delete a single trip, or to uninstall the application, resulting in the removal of the database, logs, installation identifier, and HERE API key.
+          - **Withdrawal of consent to diagnostics** - can be granted or withdrawn at any time in *Settings → Diagnostics*. Withdrawal immediately stops the transmission of data and results in a request to Kotzilla to delete the data already received relating to the installation.
+          - **Log review** - the user can view the activities recorded by the application and decide whether to attach them to a report.
+      - id: gdpr
+        title: 8.2 Rights provided for by the GDPR
+        body: |-
+          In the European Union and the European Economic Area, the data subject has the right of access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18), data portability (Art. 20), objection (Art. 21), and withdrawal of consent (Art. 7(3) GDPR).
+
+          With regard to data stored exclusively on the device, there is no processing by the controller against whom such rights could be exercised, since this data never reaches the controller under any circumstances. Subsection 8.1 indicates the practical ways in which these rights are implemented; the export function constitutes the practical equivalent of the right to portability in a format readable by automated means.
+
+          With regard to diagnostic data - the only processing carried out by the controller - requests can be sent to the contact details indicated in section 11. Withdrawing consent within the application already triggers a request to delete the corresponding data, making it the fastest way to achieve this outcome.
+
+          The data subject also has the right to lodge a complaint with a supervisory authority (Art. 77 GDPR). In Italy, the competent authority is the [Garante per la protezione dei dati personali](https://www.garanteprivacy.it); for data subjects residing in another EEA Member State, the supervisory authority of their country of residence is competent.
+      - id: limits
+        title: 8.3 Objective limits on the controller's ability to intervene
+        body: |-
+          This subsection defines the scope of the controller's ability to intervene, in order to avoid the privacy policy suggesting guarantees that cannot actually be provided.
+
+          - **Data stored on the device** - any requests for access, rectification, or erasure relating to trips, notes, attachments, or logs cannot be fulfilled by the controller, since this data is in no way held by or accessible to anyone outside the user's device. These rights must be exercised directly within the application.
+          - **Data processed by HERE** - the API key and the related account are solely at the user's disposal; the processing carried out by HERE in connection with route calculation is governed by HERE's privacy policy. The related rights must be exercised directly against HERE; the controller cannot forward any request on the user's behalf, nor does it have access to the user's HERE account or to the data recorded by it.
+          - **Diagnostic data** - the identifier transmitted with a report is a value randomly generated on the device and does not, under any circumstances, allow the user to be identified. The controller is therefore unable to trace a report back to a specific person and, pursuant to Art. 11 GDPR, is not required to collect additional information for the sole purpose of making such identification possible. To exercise a right relating to diagnostic data already transmitted, the user is invited to provide the installation identifier, viewable in *Settings → Diagnostics*, the only element capable of linking a report to its device of origin. Alternatively, withdrawing consent triggers a request to delete the corresponding data without the need to identify the user.
+
+  - id: transfers
+    title: 9. International transfers
+    body: |-
+      Data that remains exclusively on the user's device is not subject to any transfer.
+
+      Data that leaves the device - requests relating to map tiles, route calculation requests, diagnostic data transmitted upon consent, as well as the download of the application itself - reaches infrastructure that may be located in a country other than the user's own, including outside the European Economic Area. Each of the providers indicated in section 4 operates according to its own privacy policy and its own transfer safeguards, such as the standard contractual clauses adopted by the European Commission; the data transmitted to such parties nonetheless remains limited to what is indicated in sections 2.2 and 4.
+
+      In the case of a remote navigator configured by the user, the destination country corresponds to the one chosen by the user when configuring the server address.
+
+  - id: changes
+    title: 10. Changes to this privacy policy
+    body: |-
+      This privacy policy bears a version number, monitored by the application.
+
+      In the event of a substantial change to the processing - introduction of a new data transmission, addition of a third-party service, change of a purpose - the version number is increased. On the next launch, the application presents the information page and the diagnostics consent request again, since the consent given refers to the specific version of the policy for which it was granted, and not to the application as a whole.
+
+      Corrections that do not affect data processing - editorial corrections, linguistic clarifications, new translations - do not result in an increase of the version number and do not interrupt the user experience.
+
+  - id: contact
+    title: 11. Contact
+    body: |-
+      KTravel is developed by **Samuele Bruschi** (TakaoTech); its source code is public.
+
+      - **Requests, privacy questions, and bug reports** - [github.com/TakaoTech/KTravel/issues](https://github.com/TakaoTech/KTravel/issues). Issues posted on this channel are public: it is recommended not to include any information you do not wish to make visible to third parties.
+      - **Private channel** - email address indicated on the controller's GitHub profile, [github.com/samuele794](https://github.com/samuele794).
+      - **Source code** - [github.com/TakaoTech/KTravel](https://github.com/TakaoTech/KTravel).
+
+      For requests relating to diagnostic data already transmitted, the user is invited to provide the installation identifier viewable in *Settings → Diagnostics*: as indicated in section 8.3, this is the only element capable of linking a report to its device of origin.

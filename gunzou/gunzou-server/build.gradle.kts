@@ -86,6 +86,7 @@ kotlin {
             implementation(ktorLibs.server.statusPages)
             implementation(ktorLibs.server.rateLimit)
             implementation(ktorLibs.server.routingOpenapi)
+            implementation(libs.kotaml)
             implementation(ktorLibs.serialization.kotlinx.json)
 
             implementation(libs.kotlinx.serialization.json)
@@ -134,6 +135,10 @@ kotlin {
         jvmTest.dependencies {
             // Without an SLF4J binding the JVM tests only print the "no providers were found" notice.
             implementation(libs.logback.classic.server)
+        }
+
+        configurations.all {
+            exclude(group = "com.charleskorn.kaml")
         }
     }
 }

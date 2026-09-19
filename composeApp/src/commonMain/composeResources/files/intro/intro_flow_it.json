@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "language": "it",
+  "steps": [
+    {
+      "type": "card",
+      "id": "welcome",
+      "media": {
+        "type": "lottie",
+        "path": "files/lottie_paper_airplane.json"
+      },
+      "title": "Organizza un viaggio, giorno per giorno",
+      "body": "KTravel trasforma un viaggio in **giorni, tappe e luoghi**, con la mappa e il percorso accanto.\n\nAggiungi un luogo, mettilo in un giorno e guarda com'è davvero il tragitto fra due tappe."
+    },
+    {
+      "type": "card",
+      "id": "diagnostics",
+      "media": {
+        "type": "drawable",
+        "name": "description"
+      },
+      "title": "Un log che puoi leggere",
+      "body": "Mentre lavora, l'app scrive un **log locale**: cosa ha fatto e cosa è fallito.\n\nLo trovi in *Impostazioni → Diagnostica*, puoi salvarlo su file e allegarlo a una segnalazione. Viene conservato tre giorni, e sei tu a decidere quanti."
+    },
+    {
+      "type": "privacy",
+      "id": "privacy",
+      "title": "Dove stanno i tuoi viaggi",
+      "body": "In breve, in tre punti. Toccane uno per aprire la privacy policy esattamente dove ne parla.",
+      "details": [
+        {
+          "id": "provided",
+          "title": "I tuoi viaggi restano su questo dispositivo",
+          "body": "Luoghi, giorni, note e allegati finiscono in un database locale. Niente account, nessun nostro server — ed escono solo quando sei tu a esportarli.\n\nSezione **1.1**, per esteso.",
+          "policyRef": "collection.provided"
+        },
+        {
+          "id": "services",
+          "title": "I soggetti terzi coinvolti nell'app",
+          "body": "Le tessere della mappa, il calcolo del Routing via HERE, i report di crash, chi è coinvolto è descritto in questa sezione",
+          "policyRef": "services"
+        },
+        {
+          "id": "automatic",
+          "title": "La diagnostica parte solo se lo dici tu",
+          "body": "Non viene inviato nulla automaticamente prima che tu risponda alla prossima domanda, e puoi cambiare idea quando vuoi.",
+          "policyRef": "collection.automatic"
+        }
+      ]
+    },
+    {
+      "type": "decision",
+      "id": "decision",
+      "title": "Inviare la diagnostica?",
+      "body": "Puoi permettere all'app di inviare **crash e log diagnostici** allo sviluppatore, così un errore si vede senza che tu debba raccontarlo.",
+      "policyRef": "collection.automatic"
+    }
+  ]
+}

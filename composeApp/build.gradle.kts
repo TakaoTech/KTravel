@@ -396,13 +396,11 @@ kotlin {
                 api(libs.circuit.runtime)
                 api(libs.circuit.runtime.presenter)
                 api(libs.circuit.runtime.ui)
-                // Nothing downstream of composeApp consumes these, so they stay off the published API.
                 implementation(libs.circuit.serialization)
                 implementation(libs.circuitx.navigation)
                 implementation(libs.circuitx.gesture.navigation)
 
                 implementation(libs.kotlinx.serialization.json)
-                // The privacy policy is packaged as YAML, so its Markdown bodies stay editable.
                 implementation(libs.kotaml)
 
                 implementation(libs.bundles.aboutLibraries)
