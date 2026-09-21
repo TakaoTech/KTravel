@@ -3,7 +3,7 @@ package com.takaotech.ktravel.presentation.travels
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.core.toLocalDate
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.di.PlanningGraphStore
@@ -29,12 +29,13 @@ import kotlin.time.Instant
 class TravelCreationViewModel(
     private val repository: TravelManagerRepository,
     private val planningGraphStore: PlanningGraphStore,
+    appLogger: AppLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TravelCreationUiState())
     val uiState: StateFlow<TravelCreationUiState> = _uiState.asStateFlow()
 
-    private val logger = Logger.withTag("TravelCreationViewModel")
+    private val logger = appLogger.withTag("TravelCreationViewModel")
 
     fun onNameChange(name: TextFieldValue) {
         _uiState.update {

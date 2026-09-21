@@ -2,9 +2,9 @@
 
 package com.takaotech.ktravel.data.archive
 
-import co.touchlab.kermit.Logger
 import com.takaotech.ktravel.core.KTravelBuildInfo
 import com.takaotech.ktravel.core.io.deleteRecursively
+import com.takaotech.ktravel.core.logging.AppLogger
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsCipher
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsEnvelope
 import com.takaotech.ktravel.data.archive.crypto.ArchiveSecretsPayload
@@ -61,15 +61,17 @@ class TravelArchiveExporterImpl private constructor(
     private val clock: Clock,
     // Injectable staging: the app cache dir in production, a tempdir in tests.
     private val stagingRootProvider: () -> PlatformFile,
+    appLogger: AppLogger,
 ) : TravelArchiveExporter {
 
-    private val logger = Logger.withTag("TravelArchiveExporter")
+    private val logger = appLogger.withTag("TravelArchiveExporter")
 
     @Inject
     constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
         zipFactory: ZipArchiveFactory,
+        appLogger: AppLogger,
     ) : this(
         storage = storage,
         attachments = attachments,
@@ -77,17 +79,19 @@ class TravelArchiveExporterImpl private constructor(
         appVersion = KTravelBuildInfo.VERSION,
         clock = Clock.System,
         stagingRootProvider = { FileKit.cacheDir / STAGING_DIR },
+        appLogger = appLogger,
     )
 
-    /** Constructor for tests: explicit staging and a deterministic clock. */
+    /** Constructor for tests: explicit staging, a deterministic clock and an explicit logger. */
     internal constructor(
         storage: TravelPlanStorageDataSource,
         attachments: AttachmentDataSource,
         zipFactory: ZipArchiveFactory,
         stagingRoot: PlatformFile,
+        appLogger: AppLogger,
         appVersion: String = "test",
         clock: Clock = Clock.System,
-    ) : this(storage, attachments, zipFactory, appVersion, clock, { stagingRoot })
+    ) : this(storage, attachments, zipFactory, appVersion, clock, { stagingRoot }, appLogger)
 
     private val json = Json {
         prettyPrint = false

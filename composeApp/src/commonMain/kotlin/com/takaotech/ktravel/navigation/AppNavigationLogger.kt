@@ -1,7 +1,7 @@
 package com.takaotech.ktravel.navigation
 
-import co.touchlab.kermit.Logger
 import com.slack.circuitx.navigation.intercepting.NavigationLogger
+import com.takaotech.ktravel.core.logging.AppLogger
 
 /**
  * Sends CircuitX's navigation trace to the application logger.
@@ -12,7 +12,7 @@ import com.slack.circuitx.navigation.intercepting.NavigationLogger
  *
  * @param logger The application logger, tagged so navigation is greppable on its own.
  */
-internal class KermitNavigationLogger(logger: Logger) : NavigationLogger {
+internal class AppNavigationLogger(logger: AppLogger) : NavigationLogger {
 
     private val logger = logger.withTag("Navigation")
 

@@ -11,6 +11,7 @@ import com.takaotech.ktravel.domain.archive.ImportConflictStrategy
 import com.takaotech.ktravel.domain.archive.TravelArchiveError
 import com.takaotech.ktravel.domain.archive.TravelArchiveException
 import com.takaotech.ktravel.testutil.tempdir
+import com.takaotech.ktravel.testutil.testAppLogger
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.div
@@ -47,13 +48,14 @@ class TravelArchiveCorruptionTest :
                 directory = root.path,
                 scope = TestScope(UnconfinedTestDispatcher()),
             ),
-            AttachmentDataSourceImpl(root / "attachments"),
+            AttachmentDataSourceImpl(root / "attachments", testAppLogger()),
         )
         val importer = TravelArchiveImporterImpl(
             storage = storage,
-            attachments = AttachmentDataSourceImpl(root / "attachments"),
+            attachments = AttachmentDataSourceImpl(root / "attachments", testAppLogger()),
             zipFactory = zipFactory,
             stagingRoot = stagingRoot,
+            appLogger = testAppLogger(),
         )
 
         /** Hand-builds an archive with an arbitrary manifest and plan. */

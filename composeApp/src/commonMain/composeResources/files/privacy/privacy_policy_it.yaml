@@ -1,0 +1,195 @@
+---
+version: 1
+language: it
+sections:
+  - id: controller
+    title: 1. Titolare del trattamento
+    body: |-
+      KTravel è un'applicazione sviluppata e distribuita da **Samuele Bruschi** (TakaoTech), sviluppatore indipendente, il quale riveste la qualifica di titolare del trattamento ai sensi dell'art. 4, n. 7, del Regolamento (UE) 2016/679 ("GDPR"), limitatamente ai trattamenti descritti nella presente informativa.
+
+      L'applicazione è distribuita in modalità open source tramite le release pubblicate su [GitHub](https://github.com/TakaoTech/KTravel/releases) e non richiede la creazione di alcun account.
+
+      La quasi totalità dei dati gestiti da KTravel rimane memorizzata esclusivamente sul dispositivo dell'utente: tali dati non sono trasmessi al titolare, che non è pertanto in grado di consultarli, copiarli o cancellarli per conto dell'utente. L'unica eccezione è costituita dai dati diagnostici di cui alla sezione 2.2, trasmessi sulla base del legittimo interesse del titolare e fino a che l'utente non vi si opponga.
+
+      Le ipotesi in cui i dati lasciano il dispositivo sono indicate in modo esaustivo alla sezione 4, unitamente al relativo destinatario e al contenuto trasmesso.
+
+      Non è stato nominato un responsabile della protezione dei dati (DPO), non ricorrendone i presupposti di cui all'art. 37 GDPR.
+
+  - id: collection
+    title: 2. Categorie di dati trattati
+    body: |-
+      La presente sezione descrive:
+
+      - i dati conservati sulla base delle informazioni inserite dall'utente;
+      - i dati diagnostici trasmessi al titolare;
+      - i dati diagnostici relativi al funzionamento dell'applicazione.
+    subsections:
+      - id: provided
+        title: 2.1 Dati inseriti dall'utente
+        body: |-
+          I contenuti inseriti dall'utente in fase di pianificazione sono conservati in un **database locale dell'applicazione**.
+
+          Tali dati non sono caricati su alcun server, né conservati o consultati dal titolare. Essi lasciano il dispositivo esclusivamente per effetto di un'azione volontaria dell'utente: l'esportazione di un viaggio genera un archivio in formato `.ktravel`, la cui destinazione e il cui successivo utilizzo sono determinati unicamente dall'utente, indipendentemente dall'applicazione.
+      - id: automatic
+        title: 2.2 Dati diagnostici trasmessi al titolare
+        body: |-
+          La diagnostica è attiva per impostazione predefinita, sulla base del legittimo interesse del titolare descritto alla sezione 5. Nessun dato è trasmesso prima che la sezione introduttiva abbia presentato all'utente la presente informativa, né dopo che l'utente si sia opposto disattivando la diagnostica in *Impostazioni → Diagnostica*.
+
+          Quando la diagnostica è attiva, l'applicazione trasmette al titolare le seguenti categorie di dati tecnici, in caso di anomalie di funzionamento e tramite le righe di log diagnostico:
+
+          - **informazioni sull'applicazione** - versione di KTravel;
+          - **informazioni sulla piattaforma** - sistema operativo (Android, iOS o desktop), relativa versione, modello del dispositivo e nome del dispositivo;
+          - **righe di log** - quelle registrate a livello `Info` o superiore, comprensive del tag identificativo del componente e del relativo messaggio;
+          - **segnalazioni di anomalia (crash)** - l'eccezione generata e il relativo stack trace;
+          - **identificativo di installazione** - un valore generato in modo casuale sul dispositivo, riferito esclusivamente all'installazione e non idoneo a identificare l'utente.
+
+          Per ulteriori informazioni su tale trattamento, si rinvia alla sezione 4.3.
+      - id: log
+        title: 2.3 Log conservato sul dispositivo
+        body: |-
+          L'applicazione genera un log del proprio funzionamento, consultabile dall'utente in *Impostazioni → Diagnostica*.
+
+          Tale log presenta un maggior grado di dettaglio rispetto a quello trasmesso ai sensi della sezione 2.2 e rimane memorizzato esclusivamente sul dispositivo, secondo i termini di conservazione indicati alla sezione 7.
+      - id: permissions
+        title: 2.4 Permessi richiesti
+        body: |-
+          L'applicazione richiede il seguente permesso di sistema:
+
+          - **accesso a Internet**.
+  - id: use
+    title: 3. Finalità del trattamento
+    body: |-
+      I dati indicati alla sezione 2 sono trattati esclusivamente per le seguenti finalità:
+
+      - **erogazione delle funzionalità dell'applicazione** - visualizzazione di viaggi, giorni e luoghi inseriti dall'utente, interamente sul dispositivo;
+      - **visualizzazione della mappa** - download delle tessere relative all'area visualizzata;
+      - **calcolo dei percorsi** - interrogazione del motore di routing selezionato per il collegamento tra due soste;
+      - **verifica del funzionamento dell'applicazione** - tenuta del log locale, consultabile dall'utente e allegabile, a sua discrezione, a una segnalazione;
+      - **correzione di anomalie di funzionamento** - analisi di crash e log diagnostici, salvo opposizione dell'utente.
+
+      Nessun dato è trattato per finalità di profilazione o di marketing.
+
+  - id: services
+    title: 4. Soggetti terzi coinvolti
+    body: |-
+      Per l'erogazione di alcune funzionalità, KTravel si avvale dei servizi di terze parti descritti nelle sottosezioni seguenti.
+    subsections:
+      - id: map
+        title: 4.1 OpenFreeMap - visualizzazione della mappa
+        body: |-
+          Durante la consultazione della mappa, l'applicazione richiede a [OpenFreeMap](https://openfreemap.org) le tessere corrispondenti all'area visualizzata a schermo.
+
+          La richiesta è inviata direttamente dal dispositivo dell'utente a OpenFreeMap, che riceve l'indirizzo IP del dispositivo e le coordinate dell'area richiesta, secondo le proprie modalità di trattamento. Per ulteriori informazioni si rinvia all'informativa privacy di OpenFreeMap, disponibile [a questo indirizzo](https://openfreemap.org/privacy).
+      - id: routing
+        title: 4.2 HERE - calcolo dei percorsi e ricerca dei luoghi
+        body: |-
+          Il calcolo dei percorsi può essere effettuato tramite [HERE](https://www.here.com). Il rapporto relativo a tale servizio intercorre direttamente **tra l'utente e HERE**.
+
+          L'applicazione non integra alcuna chiave API propria. Per calcolare un percorso, l'utente deve ottenere una propria chiave API direttamente da HERE, accettandone i termini di servizio e l'[informativa privacy](https://www.here.com/it-it/privacy), e inserirla nelle impostazioni del viaggio. Il titolare non è parte di tale rapporto, non riceve alcun dato dallo stesso e non può esercitare alcun diritto per conto dell'utente nei confronti di HERE.
+
+          Le modalità di trasmissione della richiesta dipendono dal motore di navigazione (successivamente chiamato "Gunzou") configurato:
+
+          - il **Gunzou integrato** (opzione predefinita) è eseguito all'interno del processo dell'applicazione, sul dispositivo. La richiesta è inviata direttamente dal dispositivo dell'utente a HERE e contiene la chiave API dell'utente, le coordinate delle soste da collegare, il mezzo di trasporto selezionato e l'orario di partenza o arrivo indicato. HERE riceve tali dati, unitamente all'indirizzo IP del dispositivo, secondo le medesime modalità applicabili a qualsiasi client della propria API;
+          - un **Gunzou remoto**, se configurato dall'utente, corrisponde a un'installazione dello stesso motore presso un indirizzo scelto dall'utente. La richiesta - comprensiva di coordinate, mezzo di trasporto, orario e chiave API HERE inserita in un'intestazione - è inviata anzitutto a tale indirizzo e, da questo, inoltrata a HERE. Il gestore di tale server è in grado di visualizzare integralmente tali dati: si raccomanda pertanto di configurare esclusivamente server di cui si ha fiducia; qualora il server sia gestito direttamente dall'utente, il traffico rimane sotto il suo controllo.
+      - id: telemetry
+        title: 4.3 Kotzilla - crash e log diagnostici
+        body: |-
+          I dati diagnostici sono ricevuti, per conto del titolare, da [Kotzilla](https://www.kotzilla.io) ([informativa privacy](https://kotzilla.io/privacy-policy)), fornitore dell'SDK utilizzato per la trasmissione. Kotzilla agisce in qualità di **responsabile del trattamento** ai sensi dell'art. 28 GDPR.
+
+          Kotzilla riceve esclusivamente le categorie di dati indicate alla sezione 2.2, trasmesse via HTTPS e limitatamente al periodo in cui la diagnostica è attiva.
+
+          Le build compilate senza una chiave Kotzilla non includono il relativo SDK e non effettuano alcuna trasmissione diagnostica.
+  - id: legalbasis
+    title: 5. Basi giuridiche del trattamento
+    body: |-
+      L'unico trattamento effettuato direttamente dal titolare è quello relativo ai dati diagnostici di cui alla sezione 2.2, la cui base giuridica è il **legittimo interesse** del titolare ai sensi dell'art. 6, par. 1, lett. f), GDPR. All'utente non è pertanto richiesto alcun consenso.
+
+      L'interesse perseguito consiste nel mantenere l'applicazione sicura, stabile e funzionante: senza la ricezione automatica delle anomalie e delle righe di log tecniche, un malfunzionamento che l'utente non segnali spontaneamente resta invisibile al titolare e non viene corretto.
+
+      Il bilanciamento tra tale interesse e i diritti e le libertà dell'interessato è stato condotto tenendo conto dei seguenti elementi:
+
+      - **natura dei dati** - esclusivamente tecnici e pseudonimi; nessun contenuto di viaggio, nota o allegato lascia il dispositivo per questa finalità;
+      - **minimizzazione** - sono trasmesse le sole righe registrate a livello `Info` o superiore e le sole anomalie effettivamente verificatesi;
+      - **assenza di identificazione** - l'identificativo di installazione è generato in modo casuale sul dispositivo e non è riconducibile a una persona determinata (cfr. sezione 8.3);
+      - **assenza di profilazione** - i dati non sono impiegati per analizzare il comportamento dell'utente, né per finalità commerciali o pubblicitarie, né sono comunicati a soggetti diversi dal fornitore indicato alla sezione 4.3;
+      - **aspettative ragionevoli** - la trasmissione è illustrata all'utente nella sezione introduttiva dell'applicazione, prima che abbia luogo, ed è descritta per esteso nella presente informativa.
+
+      **Diritto di opposizione.** L'utente può opporsi al trattamento in qualsiasi momento, ai sensi dell'art. 21 GDPR, disattivando la diagnostica in *Impostazioni → Diagnostica* oppure già al termine della sezione introduttiva. L'opposizione interrompe immediatamente ogni trasmissione, non è soggetta a scadenza né a rinnovo periodico e non comporta la perdita di alcuna funzionalità dell'applicazione, fatta salva l'impossibilità per il titolare di correggere anomalie non altrimenti segnalate.
+
+      Le richieste relative alle tessere della mappa (sezione 4.1) e al calcolo dei percorsi (sezione 4.2) sono trasmesse direttamente dal dispositivo dell'utente ai rispettivi fornitori terzi, sulla base delle azioni compiute dall'utente all'interno dell'applicazione. Tali trasmissioni non costituiscono trattamenti effettuati dal titolare, il quale non ne determina le finalità né vi ha accesso.
+
+  - id: sharing
+    title: 6. Comunicazione a terzi
+    body: |-
+      I dati personali dell'utente non sono oggetto di vendita né di comunicazione a fini pubblicitari.
+
+      I dati di viaggio non sono comunicati a terzi in alcuna circostanza.
+
+      Le categorie di dati che lasciano il dispositivo, e i relativi destinatari, sono indicate in modo esaustivo alla sezione 4.
+
+  - id: retention
+    title: 7. Periodi di conservazione
+    body: |-
+      - **Viaggi, giorni, luoghi, note e allegati** - conservati fino alla relativa cancellazione da parte dell'utente. La disinstallazione dell'applicazione comporta la rimozione del database e dei dati in esso contenuti.
+      - **File di log locali** - generati con cadenza giornaliera e conservati, per impostazione predefinita, per tre giorni. L'utente può impostare un periodo compreso tra uno e trenta giorni in *Impostazioni → Diagnostica*; i file eccedenti tale periodo sono cancellati automaticamente.
+      - **Preferenza relativa alla diagnostica** - conservata per la durata dell'installazione dell'applicazione; non è soggetta a scadenza né a rinnovo periodico e resta valida fino a che l'utente non la modifichi.
+      - **Identificativo di installazione** - conservato per la durata dell'installazione dell'applicazione ed eliminato con la disinstallazione, salvo che sia stato conservato da un backup di sistema indipendente dall'applicazione.
+      - **Dati diagnostici già trasmessi** - conservati da Kotzilla secondo le proprie regole di conservazione (cfr. sezione 4.3). La disattivazione della diagnostica comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione in questione.
+      - **Chiave API HERE** - conservata fino alla relativa cancellazione da parte dell'utente e soggetta, per la parte di competenza di HERE, alle regole di conservazione di HERE.
+
+  - id: rights
+    title: 8. Diritti dell'interessato
+    body: |-
+      Poiché la maggior parte dei dati risiede esclusivamente sul dispositivo dell'utente, il relativo esercizio dei diritti avviene, nella maggioranza dei casi, direttamente e senza necessità di richieste al titolare. Le modalità sono descritte nelle sottosezioni seguenti, unitamente ai casi in cui il titolare non è in grado di intervenire e ai soggetti competenti in tali ipotesi.
+    subsections:
+      - id: self
+        title: 8.1 Diritti esercitabili direttamente dall'utente
+        body: |-
+          - **Accesso ai dati** - i dati sono visualizzabili direttamente all'interno dell'applicazione.
+          - **Portabilità** - un viaggio può essere esportato come archivio `.ktravel` e aperto in un ambiente diverso.
+          - **Rettifica** - i contenuti inseriti dall'utente possono essere modificati in qualsiasi momento.
+          - **Cancellazione** - è possibile eliminare un singolo viaggio, oppure disinstallare l'applicazione, con conseguente rimozione di database, log, identificativo di installazione e chiave API HERE.
+          - **Opposizione al trattamento diagnostico** - la diagnostica può essere disattivata, e riattivata, in qualsiasi momento in *Impostazioni → Diagnostica*. La disattivazione interrompe immediatamente la trasmissione dei dati e comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione.
+          - **Consultazione del log** - l'utente può visionare le attività registrate dall'applicazione e decidere se allegarle a una segnalazione.
+      - id: gdpr
+        title: 8.2 Diritti previsti dal GDPR
+        body: |-
+          Nell'Unione europea e nello Spazio economico europeo, l'interessato ha diritto di accesso (art. 15), rettifica (art. 16), cancellazione (art. 17), limitazione del trattamento (art. 18), portabilità dei dati (art. 20) e opposizione (art. 21 GDPR).
+
+          Con riferimento ai dati conservati esclusivamente sul dispositivo, non sussiste alcun trattamento da parte del titolare nei cui confronti tali diritti possano essere esercitati, in quanto tali dati non pervengono in alcun caso al titolare. La sottosezione 8.1 indica le modalità pratiche con cui tali diritti trovano attuazione; la funzione di esportazione costituisce l'equivalente pratico del diritto alla portabilità in un formato leggibile da dispositivo automatico.
+
+          Con riferimento ai dati diagnostici - unico trattamento effettuato dal titolare, fondato sul legittimo interesse - l'interessato ha in particolare diritto di opporsi in qualsiasi momento ai sensi dell'art. 21 GDPR, e lo esercita disattivando la diagnostica all'interno dell'applicazione. Le richieste possono comunque essere indirizzate ai recapiti di cui alla sezione 11; la disattivazione all'interno dell'applicazione comporta già la richiesta di cancellazione dei dati corrispondenti, costituendo la modalità più rapida per ottenere tale risultato.
+
+          L'interessato ha altresì diritto di proporre reclamo a un'autorità di controllo (art. 77 GDPR). In Italia, l'autorità competente è il [Garante per la protezione dei dati personali](https://www.garanteprivacy.it); per gli interessati residenti in altro Stato membro del SEE, è competente l'autorità di controllo del proprio Paese di residenza.
+      - id: limits
+        title: 8.3 Limiti oggettivi all'intervento del titolare
+        body: |-
+          La presente sottosezione delimita l'ambito di intervento del titolare, al fine di evitare che l'informativa prospetti garanzie non effettivamente esigibili.
+
+          - **Dati conservati sul dispositivo** - eventuali richieste di accesso, rettifica o cancellazione relative a viaggi, note, allegati o log non possono essere soddisfatte dal titolare, in quanto tali dati non sono in alcun modo detenuti né accessibili al di fuori del dispositivo dell'utente. Tali diritti devono essere esercitati direttamente all'interno dell'applicazione.
+          - **Dati trattati da HERE** - la chiave API e il relativo account sono nell'esclusiva disponibilità dell'utente; il trattamento effettuato da HERE in relazione al calcolo dei percorsi è disciplinato dall'informativa privacy di HERE. I relativi diritti devono essere esercitati direttamente nei confronti di HERE; il titolare non può inoltrare alcuna richiesta per conto dell'utente, né dispone di accesso all'account HERE dell'utente o ai dati da questo registrati.
+          - **Dati diagnostici** - l'identificativo trasmesso con una segnalazione è un valore generato casualmente sul dispositivo e non consente, in alcun caso, di identificare l'utente. Il titolare non è pertanto in grado di ricondurre una segnalazione a una persona determinata e, ai sensi dell'art. 11 GDPR, non è tenuto a raccogliere ulteriori informazioni al solo scopo di rendere possibile tale identificazione. Per l'esercizio di un diritto relativo a dati diagnostici già trasmessi, l'utente è invitato a indicare l'identificativo di installazione, consultabile in *Impostazioni → Diagnostica*, unico elemento idoneo a ricollegare una segnalazione al dispositivo di provenienza. In alternativa, la disattivazione della diagnostica comporta la richiesta di cancellazione dei dati corrispondenti senza necessità di identificazione dell'utente.
+
+  - id: transfers
+    title: 9. Trasferimenti internazionali
+    body: |-
+      [Kotzilla](https://www.kotzilla.io) ([informativa privacy](https://kotzilla.io/privacy-policy)) esegue trasferimenti internazionali dei dati diagnostici verso gli Stati Uniti attraverso il Data Privacy Framework, vedere la sezione 4. Recipients di Kotzilla per ulteriori informazioni.
+  - id: changes
+    title: 10. Modifiche alla presente informativa
+    body: |-
+      La presente informativa reca un numero di versione, monitorato dall'applicazione.
+
+      In caso di modifica sostanziale del trattamento - introduzione di una nuova trasmissione di dati, aggiunta di un servizio terzo, modifica di una finalità o della base giuridica - il numero di versione è incrementato. Al successivo avvio, l'applicazione presenta nuovamente la pagina informativa e il passaggio relativo alla diagnostica, affinché l'utente possa prendere visione di quanto è cambiato e riconsiderare la propria scelta.
+
+      Le correzioni che non incidono sul trattamento dei dati - correzioni redazionali, chiarimenti linguistici, nuove traduzioni - non comportano l'incremento del numero di versione e non determinano l'interruzione dell'esperienza d'uso.
+
+  - id: contact
+    title: 11. Contatti
+    body: |-
+      KTravel è sviluppata da **Samuele Bruschi** (TakaoTech); il relativo codice sorgente è pubblico.
+
+      - **Richieste, domande sulla privacy e segnalazioni di anomalie** - [github.com/TakaoTech/KTravel/issues](https://github.com/TakaoTech/KTravel/issues). Le issue pubblicate su tale canale sono pubbliche: si raccomanda di non includervi informazioni che non si desideri rendere visibili a terzi.
+      - **Canale riservato** - indirizzo email indicato nel profilo GitHub del titolare, [github.com/samuele794](https://github.com/samuele794).
+      - **Codice sorgente** - [github.com/TakaoTech/KTravel](https://github.com/TakaoTech/KTravel).
+
+      Per le richieste relative a dati diagnostici già trasmessi, si invita l'utente a indicare l'identificativo di installazione consultabile in *Impostazioni → Diagnostica*: come indicato alla sezione 8.3, è l'unico elemento idoneo a ricollegare una segnalazione al dispositivo di provenienza.

@@ -12,6 +12,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -43,6 +44,7 @@ import ktravel.composeapp.generated.resources.settings_hide_api_key
 import ktravel.composeapp.generated.resources.settings_save
 import ktravel.composeapp.generated.resources.settings_show_api_key
 import ktravel.composeapp.generated.resources.settings_title
+import ktravel.composeapp.generated.resources.travel_settings_diagnostics
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -60,6 +62,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun TravelSettingsContent(
     uiState: TravelSettingsUiState,
     onNavigationBackClick: () -> Unit,
+    onDiagnosticsClick: () -> Unit,
     onHereApiKeyChange: (TextFieldValue) -> Unit,
     onApiKeyVisibilityToggle: () -> Unit,
     onNavigatorPreferenceChange: (NavigatorKind) -> Unit,
@@ -151,6 +154,15 @@ internal fun TravelSettingsContent(
                 onBaseUrlChange = onNavigatorBaseUrlChange,
                 onTestConnection = onTestConnectionClick,
             )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            OutlinedButton(
+                onClick = onDiagnosticsClick,
+                modifier = Modifier.fillMaxWidth().testTag(TravelSettingsTestTags.DIAGNOSTICS),
+            ) {
+                Text(stringResource(Res.string.travel_settings_diagnostics))
+            }
         }
     }
 }
@@ -164,6 +176,7 @@ private fun TravelSettingsPagePreview(
     TravelSettingsContent(
         uiState = uiState,
         onNavigationBackClick = {},
+        onDiagnosticsClick = {},
         onHereApiKeyChange = {},
         onApiKeyVisibilityToggle = {},
         onNavigatorPreferenceChange = {},

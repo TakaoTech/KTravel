@@ -23,8 +23,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
+import com.takaotech.ktravel.di.LocalAppGraph
 import com.takaotech.ktravel.domain.routing.model.TransitStep
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.transit_preview_agency_label
@@ -129,6 +129,9 @@ internal fun TransitRideRow(
 
                         if (step.agency != null) {
                             val uriHandler = LocalUriHandler.current
+                            // The application's logger, so a link that will not open is visible on
+                            // the diagnostics screen rather than only in the platform console.
+                            val logger = LocalAppGraph.current.appLogger
 
                             Text(
                                 text = buildAnnotatedString {
@@ -144,7 +147,7 @@ internal fun TransitRideRow(
                                                     try {
                                                         uriHandler.openUri(website)
                                                     } catch (illegalEx: IllegalArgumentException) {
-                                                        Logger.e(
+                                                        logger.e(
                                                             illegalEx,
                                                         ) { "Error open transit agency link $website" }
                                                     }
@@ -170,7 +173,7 @@ internal fun TransitRideRow(
                                                     try {
                                                         uriHandler.openUri(lineUrl)
                                                     } catch (illegalEx: IllegalArgumentException) {
-                                                        Logger.e(illegalEx) { "Error open transit line link $lineUrl" }
+                                                        logger.e(illegalEx) { "Error open transit line link $lineUrl" }
                                                     }
                                                 },
                                             ),

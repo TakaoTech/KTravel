@@ -2,6 +2,7 @@ package com.takaotech.ktravel.data.datasource
 
 import com.takaotech.ktravel.core.data.mime.MimeType
 import com.takaotech.ktravel.testutil.tempdir
+import com.takaotech.ktravel.testutil.testAppLogger
 import io.github.vinceglb.filekit.div
 import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.isDirectory
@@ -21,7 +22,7 @@ class AttachmentDataSourceImplTest :
 
         given("an attachment data source rooted in a temp directory") {
             val root = tempDir / "root"
-            val dataSource = AttachmentDataSourceImpl(root)
+            val dataSource = AttachmentDataSourceImpl(root, testAppLogger())
 
             val sourceBytes = byteArrayOf(1, 2, 3, 4, 5)
 

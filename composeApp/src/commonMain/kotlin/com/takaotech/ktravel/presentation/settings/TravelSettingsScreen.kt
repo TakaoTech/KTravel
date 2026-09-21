@@ -31,4 +31,7 @@ data class TravelSettingsNavState(val eventSink: (TravelSettingsEvent) -> Unit) 
 sealed interface TravelSettingsEvent : CircuitUiEvent {
     /** The user is done. */
     data object Back : TravelSettingsEvent
+
+    /** The user asked to read what this trip logged. */
+    data object OpenDiagnostics : TravelSettingsEvent
 }

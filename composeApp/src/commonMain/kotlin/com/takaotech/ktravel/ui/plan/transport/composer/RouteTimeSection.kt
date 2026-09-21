@@ -168,7 +168,7 @@ internal fun NowInfoTooltip(modifier: Modifier = Modifier) {
         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
             positioning = TooltipAnchorPosition.Above,
         ),
-        state = rememberTooltipState(isPersistent = true),
+        state = rememberTooltipState(isPersistent = false),
         tooltip = {
             PlainTooltip(modifier = Modifier.testTag(TransportPlanningTestTags.TIME_NOW_TOOLTIP)) {
                 Text(stringResource(Res.string.planning_transport_time_now_explanation))

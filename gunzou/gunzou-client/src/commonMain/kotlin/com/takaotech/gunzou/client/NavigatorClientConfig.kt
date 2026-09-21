@@ -66,8 +66,8 @@ data class NavigatorTarget(
  * There is no logging flag: every request and response is written through [logger] at
  * `Severity.Debug`, and what decides whether those lines exist is that logger's minimum severity —
  * one decision, taken where the logger is built, instead of a boolean each call site has to
- * remember. The bodies carry the caller's provider key, so a build that logs at debug is a build
- * that logs the key.
+ * remember. The provider key travels in a header and is redacted out of the dump before it is
+ * formatted, so a build that logs at debug is not a build that logs the key.
  *
  * @property baseUrl Where to send requests.
  * @property logger Where HTTP traffic is written. Null falls back to the Kermit singleton, which is

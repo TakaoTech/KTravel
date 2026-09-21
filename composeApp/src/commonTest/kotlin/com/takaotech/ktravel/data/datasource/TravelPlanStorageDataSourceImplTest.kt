@@ -3,6 +3,7 @@ package com.takaotech.ktravel.data.datasource
 import com.takaotech.ktravel.data.entity.TravelPlanEntity
 import com.takaotech.ktravel.data.storage.DatabaseProvider
 import com.takaotech.ktravel.testutil.tempdir
+import com.takaotech.ktravel.testutil.testAppLogger
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.createDirectories
 import io.github.vinceglb.filekit.div
@@ -48,7 +49,7 @@ class TravelPlanStorageDataSourceImplTest :
                 scope = testScope,
             )
             attachmentRoot = testDir / "attachments"
-            attachmentDataSource = AttachmentDataSourceImpl(attachmentRoot)
+            attachmentDataSource = AttachmentDataSourceImpl(attachmentRoot, testAppLogger())
             dataSource = TravelPlanStorageDataSourceImpl(provider, attachmentDataSource)
         }
 

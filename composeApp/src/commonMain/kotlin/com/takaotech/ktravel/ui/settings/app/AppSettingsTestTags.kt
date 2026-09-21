@@ -6,4 +6,5 @@ internal object AppSettingsTestTags {
     const val SAVE = "app_settings_save"
     const val REACHABILITY = "app_settings_reachability"
     const val LICENSES = "app_settings_licenses"
+    const val DIAGNOSTICS = "app_settings_diagnostics"
 }

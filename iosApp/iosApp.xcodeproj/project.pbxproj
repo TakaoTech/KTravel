@@ -80,6 +80,8 @@
 				B4CC3214545AA82E2C8A0096 /* Sources */,
 				43D4B46E7DE7B63A64D64D27 /* Frameworks */,
 				D591A44E0ECC8045F77435E7 /* Resources */,
+				974F29AB86784EE7B83EBDAD /* Kotzilla Dsym */,
+				52DFCE544556447F99E91AAE /* Kotzilla Info.plist Inject */,
 			);
 			buildRules = (
 			);
@@ -162,6 +164,42 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+		};
+		974F29AB86784EE7B83EBDAD /* Kotzilla Dsym */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Kotzilla Dsym";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# KOTZILLA_SCRIPT_VERSION=10\nset -e\nM=$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/kotzilla-debug\n[ \"$CONFIGURATION\" = Release ] && rm -f \"$M\" 2>/dev/null || touch \"$M\" 2>/dev/null\n[ -z \"$DWARF_DSYM_FOLDER_PATH\" ] && exit 0\ncd \"$SRCROOT/..\"\nif [ ! -x \"./gradlew\" ]; then\n  echo \"[Kotzilla] Expected executable gradlew at $(pwd)/gradlew. Re-run ./gradlew setupKotzillaXcode after moving the Xcode project.\"\n  exit 0\nfi\n./gradlew ':composeApp:uploadDsymFile' --dsymPath=\"$DWARF_DSYM_FOLDER_PATH\"\n";
+		};
+		52DFCE544556447F99E91AAE /* Kotzilla Info.plist Inject */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Kotzilla Info.plist Inject";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# KOTZILLA_INFO_PLIST_INJECT_VERSION=1\nset -e\nINFO_PLIST=\"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n[ -f \"$INFO_PLIST\" ] || exit 0\nset_bool_if_absent() {\n  /usr/libexec/PlistBuddy -c \"Print :$1\" \"$INFO_PLIST\" >/dev/null 2>&1 && return 0\n  /usr/libexec/PlistBuddy -c \"Add :$1 bool $2\" \"$INFO_PLIST\"\n}\n:\nset_bool_if_absent KotzillaConsentRequired true\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

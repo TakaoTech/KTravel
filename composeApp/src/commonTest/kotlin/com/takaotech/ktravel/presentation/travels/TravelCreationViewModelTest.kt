@@ -1,11 +1,12 @@
 package com.takaotech.ktravel.presentation.travels
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.takaotech.ktravel.presentation.field.FieldValidationState
 import com.takaotech.ktravel.di.PlanningGraph
 import com.takaotech.ktravel.di.PlanningGraphStore
 import com.takaotech.ktravel.domain.repository.TravelManagerRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
+import com.takaotech.ktravel.presentation.field.FieldValidationState
+import com.takaotech.ktravel.testutil.testAppLogger
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.answering.throws
@@ -40,7 +41,11 @@ class TravelCreationViewModelTest : BehaviorSpec() {
 
         val planningGraphStore = PlanningGraphStore(mockFactory)
 
-        fun createViewModel() = TravelCreationViewModel(mockTravelManagerRepository, planningGraphStore)
+        fun createViewModel() = TravelCreationViewModel(
+            mockTravelManagerRepository,
+            planningGraphStore,
+            testAppLogger(),
+        )
 
         given("a TravelCreationViewModel with initial state") {
             val viewModel = createViewModel()
@@ -314,6 +319,7 @@ class TravelCreationViewModelTest : BehaviorSpec() {
             val viewModel = TravelCreationViewModel(
                 mockTravelManagerRepository,
                 PlanningGraphStore(failingFactory),
+                testAppLogger(),
             )
             viewModel.onNameChange(TextFieldValue("Wonderful Summer Trip"))
             viewModel.onDateRangeChange(1704067200000L, 1709251200000L)

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "language": "en",
+  "steps": [
+    {
+      "type": "card",
+      "id": "welcome",
+      "media": {
+        "type": "lottie",
+        "path": "files/lottie_paper_airplane.json"
+      },
+      "title": "Organize a trip, day by day",
+      "body": "KTravel turns a trip into **days, stops, and places**, with the map and route alongside.\n\nAdd a place, put it on a day, and see what the actual route between two stops looks like."
+    },
+    {
+      "type": "card",
+      "id": "diagnostics",
+      "media": {
+        "type": "drawable",
+        "name": "description"
+      },
+      "title": "A log you can read",
+      "body": "While it works, the app writes a **local log**: what it did and what failed.\n\nYou can find it under *Settings → Diagnostics*, save it to a file, and attach it to a report. It is kept for three days, and you decide how many."
+    },
+    {
+      "type": "privacy",
+      "id": "privacy",
+      "title": "Where your trips are stored",
+      "body": "In short, in three points. Tap one to open the privacy policy exactly where it talks about it.",
+      "details": [
+        {
+          "id": "provided",
+          "title": "Your trips stay on this device",
+          "body": "Places, days, notes, and attachments are stored in a local database. No account, no servers of ours — and they only leave the device when you export them.\n\nSection **1.1**, in full.",
+          "policyRef": "collection.provided"
+        },
+        {
+          "id": "services",
+          "title": "Third parties involved in the app",
+          "body": "Map tiles, Routing calculation via HERE, crash reports — who is involved is described in this section",
+          "policyRef": "services"
+        },
+        {
+          "id": "automatic",
+          "title": "Diagnostics is on, and you can turn it off",
+          "body": "Crashes and technical logs reach the developer to keep the app stable. We are not asking for consent: it rests on a legitimate interest, and you can object whenever you like.",
+          "policyRef": "collection.automatic"
+        }
+      ]
+    },
+    {
+      "type": "decision",
+      "id": "decision",
+      "title": "Diagnostics is on",
+      "body": "**Crashes and technical logs** reach the developer, so errors can be fixed and the app stays stable. We are not asking for consent, but the choice stays yours: you can turn it off now, or at any time.",
+      "policyRef": "collection.automatic"
+    }
+  ]
+}

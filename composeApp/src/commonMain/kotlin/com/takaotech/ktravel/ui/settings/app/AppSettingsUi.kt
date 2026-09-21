@@ -17,6 +17,10 @@ fun AppSettingsUi(state: AppSettingsNavState, modifier: Modifier = Modifier) {
         viewModel = metroViewModel(),
         onNavigationBackClick = { state.eventSink(AppSettingsEvent.Back) },
         onLicensesClick = { state.eventSink(AppSettingsEvent.OpenLicenses) },
+        onPrivacyPolicyClick = {
+            state.eventSink(AppSettingsEvent.PrivacyPolicy)
+        },
+        onDiagnosticsClick = { state.eventSink(AppSettingsEvent.OpenDiagnostics) },
         modifier = modifier,
     )
 }

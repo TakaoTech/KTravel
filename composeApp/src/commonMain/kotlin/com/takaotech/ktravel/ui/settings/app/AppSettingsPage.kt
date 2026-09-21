@@ -2,6 +2,7 @@ package com.takaotech.ktravel.ui.settings.app
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +38,7 @@ import com.takaotech.ktravel.ui.settings.component.ReachabilityBadge
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.app_settings_about_section
+import ktravel.composeapp.generated.resources.app_settings_diagnostics
 import ktravel.composeapp.generated.resources.app_settings_licenses
 import ktravel.composeapp.generated.resources.app_settings_navigator_hint
 import ktravel.composeapp.generated.resources.app_settings_navigator_section
@@ -44,6 +46,7 @@ import ktravel.composeapp.generated.resources.app_settings_saved
 import ktravel.composeapp.generated.resources.app_settings_test_connection
 import ktravel.composeapp.generated.resources.app_settings_title
 import ktravel.composeapp.generated.resources.arrow_back
+import ktravel.composeapp.generated.resources.privacy_policy_label
 import ktravel.composeapp.generated.resources.settings_navigator_base_url
 import ktravel.composeapp.generated.resources.settings_save
 import org.jetbrains.compose.resources.painterResource
@@ -60,6 +63,8 @@ fun AppSettingsPage(
     viewModel: AppSettingsViewModel,
     onNavigationBackClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
+    onDiagnosticsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,6 +83,8 @@ fun AppSettingsPage(
         snackbarHostState = snackbarHostState,
         onNavigationBackClick = onNavigationBackClick,
         onLicensesClick = onLicensesClick,
+        onPrivacyPolicyClick = onPrivacyPolicyClick,
+        onDiagnosticsClick = onDiagnosticsClick,
         onBaseUrlChange = viewModel::onBaseUrlChanged,
         onTestConnection = viewModel::checkReachability,
         onSave = viewModel::save,
@@ -98,6 +105,8 @@ internal fun AppSettingsContent(
     snackbarHostState: SnackbarHostState,
     onNavigationBackClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onDiagnosticsClick: () -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
     onBaseUrlChange: (TextFieldValue) -> Unit,
     onTestConnection: () -> Unit,
     onSave: () -> Unit,
@@ -170,11 +179,28 @@ internal fun AppSettingsContent(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            OutlinedButton(
-                onClick = onLicensesClick,
-                modifier = Modifier.fillMaxWidth().testTag(AppSettingsTestTags.LICENSES),
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(stringResource(Res.string.app_settings_licenses))
+                OutlinedButton(
+                    onClick = onLicensesClick,
+                    modifier = Modifier.testTag(AppSettingsTestTags.LICENSES),
+                ) {
+                    Text(stringResource(Res.string.app_settings_licenses))
+                }
+
+                OutlinedButton(
+                    onClick = onDiagnosticsClick,
+                    modifier = Modifier.testTag(AppSettingsTestTags.DIAGNOSTICS),
+                ) {
+                    Text(stringResource(Res.string.app_settings_diagnostics))
+                }
+
+                OutlinedButton(onClick = onPrivacyPolicyClick) {
+                    Text(stringResource(Res.string.privacy_policy_label))
+                }
             }
         }
     }
@@ -192,6 +218,8 @@ private fun AppSettingsContentPreview(
         snackbarHostState = remember { SnackbarHostState() },
         onNavigationBackClick = {},
         onLicensesClick = {},
+        onPrivacyPolicyClick = {},
+        onDiagnosticsClick = {},
         onBaseUrlChange = {},
         onTestConnection = {},
         onSave = {},
