@@ -9,6 +9,7 @@ import androidx.compose.ui.text.intl.Locale
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.takaotech.ktravel.core.logging.AppLogger
+import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.data.staticflows.StaticContentRepository
 import com.takaotech.ktravel.di.AppScope
 import com.takaotech.ktravel.domain.repository.AppSettingsRepository
@@ -21,22 +22,22 @@ import com.takaotech.ktravel.presentation.privacy.PrivacyPolicyScreen
 import com.takaotech.ktravel.presentation.travels.TravelListScreen
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 
 /**
- * Reads the introduction and the policy in the device's language, and records the answer.
+ * Reads the introduction and the policy in the device's language, and records where diagnostics
+ * were left.
  *
- * The answer is written with both versions it was given to and the moment it was given, because all
- * three are what make it expire: a newer policy, or a year gone by, and the question comes back.
+ * It is written with both versions the user was shown, because a newer policy is what brings the
+ * privacy page back; the choice itself does not expire.
  *
- * Where answering leads depends on how the introduction was reached. As the first screen of the
+ * Where finishing leads depends on how the introduction was reached. As the first screen of the
  * application it has nothing behind it, so the back stack is reset onto the trip list; reopened from
  * somewhere else, it is popped like any other screen and the user is back where they were.
  *
  * @param screen Says how much is due, and which of the two cases it is.
- * @param navigator Where the application goes once the question is answered.
+ * @param navigator Where the application goes once the introduction is over.
  * @param staticContentRepository Reads the packaged introduction and policy.
- * @param appSettingsRepository Where the answer is kept.
+ * @param appSettingsRepository Where the choice is kept, and where its current value is read from.
  * @param appLogger Where a point that names a section nobody wrote is reported.
  */
 @CircuitInject(IntroFlowScreen::class, AppScope::class)
@@ -63,7 +64,17 @@ fun IntroPresenter(
         content?.flow?.steps.orEmpty().filter { it.isDueUnder(screen.requirement) }.toImmutableList()
     }
 
-    return IntroUiState(steps = steps) { event ->
+    // An objection already on record is what the switch opens on when the privacy page comes back;
+    // anything else — including an installation that has never been told — opens on diagnostics
+    // running, which is what the step states.
+    val storedConsent = appSettingsRepository.settings.value.telemetryConsent
+    val initialConsent = if (storedConsent == TelemetryConsent.Denied) {
+        TelemetryConsent.Denied
+    } else {
+        TelemetryConsent.Granted
+    }
+
+    return IntroUiState(steps = steps, initialConsent = initialConsent) { event ->
         when (event) {
             is IntroEvent.Answered -> {
                 val loaded = content ?: return@IntroUiState
@@ -73,7 +84,6 @@ fun IntroPresenter(
                         consent = event.consent,
                         introVersion = loaded.flow.version,
                         privacyVersion = loaded.policy.version,
-                        decidedAt = Clock.System.now(),
                     )
 
                     if (screen.fromStart) {

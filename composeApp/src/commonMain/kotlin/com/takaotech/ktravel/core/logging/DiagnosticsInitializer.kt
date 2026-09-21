@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.time.Clock
 
 /**
  * Everything about diagnostics that has to happen once, when the application starts.
@@ -23,12 +22,11 @@ import kotlin.time.Clock
  * Two jobs, both of which need a scope that outlives a screen:
  *
  * - draining the log queue onto disk, which is what makes the log survive the process;
- * - keeping the telemetry backend in step with the user's answer, including the day it expires.
+ * - keeping the telemetry backend in step with where the user left diagnostics.
  *
  * @param logFileSink The queue that writes the log files.
- * @param telemetry The backend the consent is applied to.
- * @param appSettingsRepository Where the answer and the retention are kept.
- * @param clock Used to tell whether the stored answer has expired.
+ * @param telemetry The backend the choice is applied to.
+ * @param appSettingsRepository Where the choice and the retention are kept.
  */
 @OptIn(ExperimentalAtomicApi::class)
 @SingleIn(AppScope::class)
@@ -37,7 +35,6 @@ class DiagnosticsInitializer(
     private val logFileSink: LogFileSink,
     private val telemetry: TelemetrySink,
     private val appSettingsRepository: AppSettingsRepository,
-    private val clock: Clock = Clock.System,
 ) {
 
     /**
@@ -58,7 +55,7 @@ class DiagnosticsInitializer(
 
         scope.launch {
             appSettingsRepository.settings
-                .map { it.effectiveConsent(clock.now()) }
+                .map { it.telemetryConsent }
                 .distinctUntilChanged()
                 .collect { consent ->
                     telemetry.applyConsent(consent)

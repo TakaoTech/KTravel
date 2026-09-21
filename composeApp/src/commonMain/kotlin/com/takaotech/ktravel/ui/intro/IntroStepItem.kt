@@ -46,7 +46,7 @@ private val STEP_VERTICAL_PADDING = 16.dp
 private val ILLUSTRATED_SPACING = 16.dp
 
 /**
- * One step of the introduction: a page to read, the privacy points, or the question.
+ * One step of the introduction: a page to read, the privacy points, or where diagnostics stand.
  *
  * The bodies are Markdown and not plain strings because they have to breathe — emphasis and bullet
  * lists — and because the renderer is already here, drawing the trip notes.
@@ -59,9 +59,9 @@ private val ILLUSTRATED_SPACING = 16.dp
  * @param isAcknowledged Whether the reader has ticked the privacy acknowledgement. Only the privacy
  *   step draws it; the others ignore it.
  * @param onAcknowledgedChange Called with the new value when that tick is toggled.
- * @param selectedConsent Which answer the question is currently resting on. Only the step that asks
- *   it draws this; the others ignore it.
- * @param onConsentChange Called with the answer the reader picked.
+ * @param selectedConsent Where the diagnostics switch currently is. Only the last step draws it;
+ *   the others ignore it.
+ * @param onConsentChange Called with the new value when that switch is thrown.
  * @param onPolicyOpen Called with the path of the policy section a privacy point asks to open,
  *   or with null when the document itself is asked for.
  * @param modifier The modifier applied to the step.

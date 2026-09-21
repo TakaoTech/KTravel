@@ -99,13 +99,16 @@ The log is written one file per day under `<filesDir>/logs`, kept for three days
 Telemetry is Kotzilla, and it is optional at build time: the SDK is configured by `composeApp/kotzilla.json`,
 which is gitignored. Without that file the Gradle plugin is disabled and `src/telemetryNoopMain` is
 compiled instead of `src/telemetryKotzillaMain`, so a clone without a key — CI included — builds and
-runs identically, minus the sending. Nothing is ever sent before the user answers the question the
-introduction ends on (`IntroFlowScreen`), the answer expires after a year (`CONSENT_VALIDITY`), and
-revoking it calls `forgetMe()`.
+runs identically, minus the sending. Diagnostics rest on the developer's legitimate interest
+(art. 6.1.f GDPR) rather than on consent: the step the introduction ends on (`IntroFlowScreen`)
+states that they are on and offers the switch that turns them off, so what is recorded is an
+objection rather than an answer, and it does not expire. Nothing is sent before that step has been
+reached, and turning diagnostics off calls `forgetMe()`.
 
 On iOS the Xcode side of Kotzilla is checked in rather than injected: `iosApp.xcodeproj` carries the
 `Kotzilla Dsym` build phase, which uploads the symbols, and `iosApp/iosApp/Info.plist` carries
-`KotzillaConsentRequired`, which is what holds a pre-main session back until the notice is answered.
+`KotzillaConsentRequired`, which is what holds a pre-main session back until the introduction has
+shown the notice.
 The injector that would rewrite both is disabled in `composeApp/build.gradle.kts`
 (`tasks.matching { it.name == "setupKotzillaXcode" }`), because with `consentRequired = true` the
 plugin adds a second phase of its own, `Kotzilla Info.plist Inject`, and then reads both as dSYM

@@ -6,8 +6,10 @@ import kotlinx.serialization.Serializable
 /**
  * Whether this installation may send diagnostics away from the device.
  *
- * Three states and not a boolean, because "has not decided yet" is not "has said no": under
- * [Unknown] the application has to ask, and nothing may leave the device in the meantime.
+ * Three states and not a boolean, because "has not been told yet" is not "has said no": diagnostics
+ * run on the developer's legitimate interest, which does not excuse sending them before the user has
+ * been shown what leaves. Under [Unknown] the introduction is still due and nothing may leave the
+ * device in the meantime; from there on the user opposes, or does not.
  *
  * Serializable, with the stored names spelled out: they are written into the settings document and
  * outlive any renaming of the entries. A value this build does not know falls back to [Unknown] —
@@ -16,15 +18,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class TelemetryConsent {
-    /** The user has not answered, or their answer has expired. Nothing is sent. */
+    /** The user has not been shown the privacy page yet. Nothing is sent. */
     @SerialName("unknown")
     Unknown,
 
-    /** The user agreed to send diagnostics. */
+    /** The user left diagnostics on, which is how the introduction leaves them. */
     @SerialName("granted")
     Granted,
 
-    /** The user refused. Diagnostics stay on the device, where the log screen still shows them. */
+    /** The user objected. Diagnostics stay on the device, where the log screen still shows them. */
     @SerialName("denied")
     Denied,
 }

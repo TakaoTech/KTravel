@@ -10,9 +10,9 @@ import io.kotest.matchers.shouldBe
  * How the settings document survives being read by a build that did not write it.
  *
  * Both directions matter here. A document written by an older build has none of the diagnostics
- * fields and has to read as the defaults; one written by a newer build may hold a consent this build
- * has never heard of, and the only safe reading of a decision it cannot understand is that there is
- * none — the privacy page is then shown again, and nothing is sent in the meantime.
+ * fields and has to read as the defaults; one written by a newer build may hold a value this build
+ * has never heard of, and the only safe reading of a value it cannot understand is that the user has
+ * not been told anything yet — the privacy page is then shown again, and nothing is sent meanwhile.
  */
 class AppSettingsEntitySerializationTest :
     BehaviorSpec({
@@ -27,7 +27,6 @@ class AppSettingsEntitySerializationTest :
                     entity.telemetry.consent shouldBe TelemetryConsent.Unknown
                     entity.telemetry.acknowledgedIntroVersion shouldBe 0
                     entity.telemetry.acknowledgedPrivacyVersion shouldBe 0
-                    entity.telemetry.consentDecidedAtEpochMillis shouldBe 0
                     entity.telemetry.logRetentionDays shouldBe DEFAULT_LOG_RETENTION_DAYS
                     entity.telemetry.installationId shouldBe ""
                 }
@@ -45,7 +44,7 @@ class AppSettingsEntitySerializationTest :
             }
         }
 
-        given("an answered consent") {
+        given("diagnostics left on") {
             `when`("it is written and read back") {
                 then("it survives, under the name the document has always used") {
                     val entity = AppSettingsEntity(

@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.domain.staticflows.IntroStep
 import com.takaotech.ktravel.presentation.intro.IntroEvent
 import com.takaotech.ktravel.presentation.intro.IntroUiState
@@ -60,7 +59,6 @@ import ktravel.composeapp.generated.resources.arrow_right_alt
 import ktravel.composeapp.generated.resources.flight
 import ktravel.composeapp.generated.resources.intro_back
 import ktravel.composeapp.generated.resources.intro_cd_loading
-import ktravel.composeapp.generated.resources.intro_decision_answer_hint
 import ktravel.composeapp.generated.resources.intro_finish
 import ktravel.composeapp.generated.resources.intro_next
 import ktravel.composeapp.generated.resources.intro_privacy_acknowledge_hint
@@ -97,8 +95,8 @@ private val ACTION_SPACING = 8.dp
  * The introduction: the steps, and the buttons the last of them carries.
  *
  * Everything it draws is an argument, so it can be previewed and tested without a graph behind it.
- * The user cannot leave without answering — there is no dismiss — which is the whole point of
- * showing it as the root screen. Back is a step backwards inside the introduction rather than a way
+ * The user cannot leave without going through it — there is no dismiss — which is the whole point
+ * of showing it as the root screen. Back is a step backwards inside the introduction rather than a way
  * out of it, and reading the policy comes back to the step it was left on.
  *
  * @param state What to draw, and where what the user does goes.
@@ -150,25 +148,19 @@ private fun IntroSteps(state: IntroUiState, modifier: Modifier = Modifier) {
     val goBack = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } }
     var isAcknowledged by rememberSaveable { mutableStateOf(false) }
 
-    // Telemetry initialized with Unknown because need explicit User consent
-    var selectedConsent by rememberSaveable { mutableStateOf(TelemetryConsent.Unknown) }
+    // Diagnostics open on where they already stand — on, unless this user had objected before. There
+    // is no third position to start from: the step states what is happening rather than asking.
+    var selectedConsent by rememberSaveable { mutableStateOf(state.initialConsent) }
 
     val currentStep = state.steps[pagerState.currentPage]
 
     // The privacy step is the one step that has to be answered before it is left. Both ways forward
     // are closed while it is: the button is disabled, and the swipe is turned off — which stops the
-    // gesture only, so the button and the system back still scroll the pager backwards. The
-    // question needs no such gesture gate: it is the last step, and there is nothing to swipe on to.
+    // gesture only, so the button and the system back still scroll the pager backwards. Nothing
+    // gates the last step: diagnostics are already where they should be when it opens.
     val isAwaitingAcknowledgement = currentStep is IntroStep.Privacy && !isAcknowledged
 
-    val pendingHint = when {
-        isAwaitingAcknowledgement -> Res.string.intro_privacy_acknowledge_hint
-
-        currentStep is IntroStep.Decision && selectedConsent == TelemetryConsent.Unknown ->
-            Res.string.intro_decision_answer_hint
-
-        else -> null
-    }
+    val pendingHint = if (isAwaitingAcknowledgement) Res.string.intro_privacy_acknowledge_hint else null
 
     NavigationBackHandler(
         state = rememberNavigationEventState(NavigationEventInfo.None),
@@ -318,18 +310,17 @@ private fun segmentColor(distance: Float, reached: Color, ahead: Color): Color {
 }
 
 /**
- * Going back, going on, or giving the answer: one row, whatever the step.
+ * Going back, going on, or finishing: one row, whatever the step.
  *
  * Back is the quietest thing on the bar and sits on the left; the way on is the filled button on
- * the right, with the arrow that names its direction. The step that asks the question keeps the
- * same shape and only changes what that button says and does — the answer itself is picked on the
- * page above, so the bar never has to hold two choices that must not read as one default and one
- * afterthought.
+ * the right, with the arrow that names its direction. The last step keeps the same
+ * shape and only changes what that button says and does — the diagnostics switch lives on the page
+ * above, so the bar never has to hold a choice that would read as a question.
  *
- * Two steps can owe something before they are left — the privacy step its tick, the question its
- * answer — and [pendingHint] is what they owe, or null when they owe nothing. It does both jobs at
- * once: it disables the button, and it is the line printed above it saying what is missing. A
- * button that does nothing when it is pressed teaches the reader nothing about why.
+ * One step can owe something before it is left — the privacy step its tick — and [pendingHint] is
+ * what it owes, or null when nothing is owed. It does both jobs at once: it disables the button, and
+ * it is the line printed above it saying what is missing. A button that does nothing when it is
+ * pressed teaches the reader nothing about why.
  */
 @Composable
 private fun IntroActions(

@@ -349,14 +349,19 @@
     <!-- region Intro, privacy policy and diagnostics -->
     <string name="intro_back">Indietro</string>
     <string name="intro_next">Avanti</string>
-    <string name="intro_allow_diagnostic">Invia la diagnostica</string>
-    <string name="intro_deny_diagnostic">Tieni tutto in locale</string>
     <string name="intro_decision_overline">Ultimo passo</string>
-    <string name="intro_allow_detail">Versione, piattaforma, righe di log e stack trace. I tuoi viaggi, le tue note e i tuoi allegati non vengono mai inviati.</string>
-    <string name="intro_deny_detail">Nessun invio automatico. Puoi sempre salvare il log e allegarlo a una segnalazione.</string>
-    <string name="intro_decision_answer_hint">Scegli una delle due risposte per continuare.</string>
+    <string name="intro_diagnostics_on_title">Diagnostica attiva</string>
+    <string name="intro_diagnostics_on_detail">Gli invii partono solo quando l'app registra un errore.</string>
+    <string name="intro_diagnostics_off_title">Diagnostica disattivata</string>
+    <string name="intro_diagnostics_off_detail">Nessun invio. Puoi salvare il log e allegarlo a una segnalazione quando vuoi.</string>
+    <string name="intro_diagnostics_sent_title">Cosa inviamo</string>
+    <string name="intro_diagnostics_sent_app">Versione dell'app, piattaforma e nome dispositivo</string>
+    <string name="intro_diagnostics_sent_crash">Stack trace dei crash</string>
+    <string name="intro_diagnostics_sent_logs">Righe di log tecniche</string>
+    <string name="intro_diagnostics_sent_installation">Un identificativo casuale dell'installazione, che non ti identifica</string>
+    <string name="intro_legal_basis_label">Base giuridica</string>
+    <string name="intro_legal_basis_detail">Legittimo interesse (art. 6.1.f GDPR): mantenere l'app sicura e stabile. Hai diritto di opporti, e lo fai disattivando la diagnostica qui sopra.</string>
     <string name="intro_decision_note_settings">Cambi idea quando vuoi, in Impostazioni → Diagnostica.</string>
-    <string name="intro_decision_note_renewal">Te lo richiediamo fra un anno.</string>
     <string name="intro_finish">Inizia a usare KTravel</string>
     <string name="intro_privacy_overline">Informativa privacy</string>
     <string name="intro_privacy_acknowledge">Ho letto e preso visione dell'informativa privacy.</string>
@@ -380,8 +385,6 @@
     <string name="diagnostics_level_all">Tutti i livelli</string>
     <string name="diagnostics_retention_label">Giorni di log conservati: %1$d</string>
     <string name="diagnostics_consent_label">Invia la diagnostica allo sviluppatore</string>
-    <string name="diagnostics_consent_decided">Risposta del %1$s, verrà richiesta il %2$s</string>
-    <string name="diagnostics_consent_never">Mai risposto</string>
     <string name="diagnostics_forget_me">Elimina la diagnostica già inviata</string>
     <string name="diagnostics_forget_me_title">Eliminare la diagnostica già inviata?</string>
     <string name="diagnostics_forget_me_message">Verrà chiesto allo sviluppatore di eliminare tutto quello che questa installazione ha inviato finora.\nIl log conservato su questo dispositivo non viene toccato e l'azione non può essere annullata.</string>

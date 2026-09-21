@@ -98,8 +98,7 @@ fun LogsPresenter(
         minLevel = minLevel,
         query = query,
         retentionDays = settings.logRetentionDays,
-        consent = settings.effectiveConsent(Clock.System.now()),
-        consentDecidedAt = settings.consentDecidedAt,
+        consent = settings.telemetryConsent,
         isLoading = persisted == null,
         pendingSave = pendingSave,
         pendingIssueUrl = pendingIssueUrl,
@@ -125,7 +124,6 @@ fun LogsPresenter(
                     consent = consent,
                     introVersion = settings.acknowledgedIntroVersion,
                     privacyVersion = settings.acknowledgedPrivacyVersion,
-                    decidedAt = Clock.System.now(),
                 )
 
                 // Told straight away rather than waiting for the settings flow to reach
@@ -147,7 +145,7 @@ fun LogsPresenter(
                 val report = IssueReportBuilder.build(
                     appVersion = KTravelBuildInfo.VERSION,
                     platform = getOperatingSystem().name,
-                    consent = settings.effectiveConsent(Clock.System.now()),
+                    consent = settings.telemetryConsent,
                     installationId = appSettingsRepository.installationId(),
                     logTail = log,
                 )

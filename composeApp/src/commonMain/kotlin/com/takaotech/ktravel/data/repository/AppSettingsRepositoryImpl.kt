@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -47,19 +46,14 @@ class AppSettingsRepositoryImpl(private val dataSource: AppSettingsStorageDataSo
         it.copy(navigatorRemoteBaseUrl = baseUrl.trim())
     }
 
-    override suspend fun updateTelemetryConsent(
-        consent: TelemetryConsent,
-        introVersion: Int,
-        privacyVersion: Int,
-        decidedAt: Instant,
-    ) = persist {
-        it.copy(
-            telemetryConsent = consent,
-            acknowledgedIntroVersion = introVersion,
-            acknowledgedPrivacyVersion = privacyVersion,
-            consentDecidedAt = decidedAt,
-        )
-    }
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, introVersion: Int, privacyVersion: Int) =
+        persist {
+            it.copy(
+                telemetryConsent = consent,
+                acknowledgedIntroVersion = introVersion,
+                acknowledgedPrivacyVersion = privacyVersion,
+            )
+        }
 
     override suspend fun updateLogRetentionDays(days: Int) = persist {
         it.copy(logRetentionDays = LogRetention.coerce(days))
@@ -87,8 +81,6 @@ private fun AppSettingsEntity.toDomain(): AppSettingsDomain = AppSettingsDomain(
     telemetryConsent = telemetry.consent,
     acknowledgedIntroVersion = telemetry.acknowledgedIntroVersion,
     acknowledgedPrivacyVersion = telemetry.acknowledgedPrivacyVersion,
-    consentDecidedAt = telemetry.consentDecidedAtEpochMillis.takeIf { it > 0 }
-        ?.let(Instant::fromEpochMilliseconds),
     logRetentionDays = LogRetention.coerce(telemetry.logRetentionDays),
     installationId = telemetry.installationId,
 )
@@ -99,7 +91,6 @@ private fun AppSettingsDomain.toEntity(): AppSettingsEntity = AppSettingsEntity(
         consent = telemetryConsent,
         acknowledgedIntroVersion = acknowledgedIntroVersion,
         acknowledgedPrivacyVersion = acknowledgedPrivacyVersion,
-        consentDecidedAtEpochMillis = consentDecidedAt?.toEpochMilliseconds() ?: 0,
         logRetentionDays = logRetentionDays,
         installationId = installationId,
     ),

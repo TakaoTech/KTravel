@@ -4,7 +4,6 @@ import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.domain.model.AppSettingsDomain
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.time.Instant
 
 /**
  * Preferences of this installation: the one place that reads and writes them.
@@ -31,23 +30,17 @@ interface AppSettingsRepository {
     suspend fun updateNavigatorRemote(baseUrl: String)
 
     /**
-     * Records what the user answered about sending diagnostics.
+     * Records where the user left diagnostics, and which documents they were shown when they did.
      *
-     * The moment is stored with the answer because the answer expires: see
-     * [com.takaotech.ktravel.domain.staticflows.CONSENT_VALIDITY]. It is written on every answer, even
-     * one that repeats the previous choice, so the year runs from the question that was just asked.
+     * The choice does not expire, so nothing but the versions is stored beside it: diagnostics rest
+     * on legitimate interest, and an objection stands until the user withdraws it. The versions are
+     * what bring the privacy page back when the policy is rewritten.
      *
-     * @param consent What they chose.
+     * @param consent Where they left it.
      * @param introVersion The version of the introduction they went through.
      * @param privacyVersion The version of the privacy policy they were shown.
-     * @param decidedAt When they answered.
      */
-    suspend fun updateTelemetryConsent(
-        consent: TelemetryConsent,
-        introVersion: Int,
-        privacyVersion: Int,
-        decidedAt: Instant,
-    )
+    suspend fun updateTelemetryConsent(consent: TelemetryConsent, introVersion: Int, privacyVersion: Int)
 
     /**
      * Sets how many days of log files are kept, within the allowed range.

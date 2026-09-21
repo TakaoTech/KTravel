@@ -3,8 +3,6 @@ package com.takaotech.ktravel.domain.model
 import com.takaotech.ktravel.core.logging.DEFAULT_LOG_RETENTION_DAYS
 import com.takaotech.ktravel.core.telemetry.TelemetryConsent
 import com.takaotech.ktravel.domain.staticflows.IntroRequirement
-import com.takaotech.ktravel.domain.staticflows.isConsentExpired
-import kotlin.time.Instant
 
 /**
  * Preferences of this installation, read and written through
@@ -15,10 +13,11 @@ import kotlin.time.Instant
  * overrides has to exist somewhere that outlives any single trip.
  *
  * @property navigatorRemoteBaseUrl Origin of the remote navigator, empty when none is configured.
- * @property telemetryConsent What the user answered about sending diagnostics away from the device.
+ * @property telemetryConsent Whether diagnostics may leave the device. Diagnostics run on the
+ *   developer's legitimate interest, so the user opposes rather than consents: the introduction
+ *   leaves it on unless they turn it off there.
  * @property acknowledgedIntroVersion The version of the introduction the user has been through.
- * @property acknowledgedPrivacyVersion The version of the privacy policy that answer was given to.
- * @property consentDecidedAt When it was given, null when it never was.
+ * @property acknowledgedPrivacyVersion The version of the privacy policy they were shown.
  * @property logRetentionDays How many days of log files are kept.
  * @property installationId Identifies this installation in a bug report, empty until it is generated.
  */
@@ -27,7 +26,6 @@ data class AppSettingsDomain(
     val telemetryConsent: TelemetryConsent = TelemetryConsent.Unknown,
     val acknowledgedIntroVersion: Int = 0,
     val acknowledgedPrivacyVersion: Int = 0,
-    val consentDecidedAt: Instant? = null,
     val logRetentionDays: Int = DEFAULT_LOG_RETENTION_DAYS,
     val installationId: String = "",
 ) {
@@ -40,34 +38,21 @@ data class AppSettingsDomain(
     val hasRemoteNavigator: Boolean get() = navigatorRemoteBaseUrl.isNotBlank()
 
     /**
-     * The consent as it stands at [now], which is not always the one that was stored.
-     *
-     * A decision older than [com.takaotech.ktravel.domain.staticflows.CONSENT_VALIDITY] is treated as
-     * absent: telemetry stops before the user is asked again, rather than after they answer.
-     *
-     * @param now The moment being judged against.
-     */
-    fun effectiveConsent(now: Instant): TelemetryConsent = when {
-        consentDecidedAt == null -> TelemetryConsent.Unknown
-        isConsentExpired(consentDecidedAt, now) -> TelemetryConsent.Unknown
-        else -> telemetryConsent
-    }
-
-    /**
      * How much of the introduction is due before the application can be used.
      *
      * An introduction that has never been seen brings the whole thing, privacy page included. Once it
-     * has, only the privacy half can come back — because the policy was rewritten, or because the
-     * answer given to it has expired — and the reading cards are not shown a second time.
+     * has, only the privacy half can come back, because the policy was rewritten, and the reading
+     * cards are not shown a second time. A stored value this build cannot read falls back to
+     * [TelemetryConsent.Unknown], which means nobody has been told what the application sends yet:
+     * the privacy half is due for that too.
      *
      * @param introVersion The version of the introduction this build carries.
      * @param policyVersion The version of the privacy policy this build carries.
-     * @param now The moment being judged against.
      */
-    fun introRequirement(introVersion: Int, policyVersion: Int, now: Instant): IntroRequirement = when {
+    fun introRequirement(introVersion: Int, policyVersion: Int): IntroRequirement = when {
         acknowledgedIntroVersion < introVersion -> IntroRequirement.Full
         acknowledgedPrivacyVersion < policyVersion -> IntroRequirement.PrivacyOnly
-        effectiveConsent(now) == TelemetryConsent.Unknown -> IntroRequirement.PrivacyOnly
+        telemetryConsent == TelemetryConsent.Unknown -> IntroRequirement.PrivacyOnly
         else -> IntroRequirement.None
     }
 }

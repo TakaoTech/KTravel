@@ -19,7 +19,6 @@ import com.takaotech.ktravel.domain.staticflows.PrivacyPolicy
 import com.takaotech.ktravel.navigation.interceptor.PlanningGraphInterceptor
 import com.takaotech.ktravel.presentation.intro.IntroFlowScreen
 import com.takaotech.ktravel.presentation.travels.TravelListScreen
-import kotlin.time.Clock
 
 /**
  * The back stack of the application, and the only place that knows how navigation is hosted.
@@ -57,7 +56,6 @@ internal fun KTravelNavigation(appGraph: AppGraph, onRootPop: () -> Unit, modifi
         appGraph.appSettingsRepository.settings.value.introRequirement(
             introVersion = introFlow.version,
             policyVersion = privacyPolicy.version,
-            now = Clock.System.now(),
         )
     }
 

@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
-import kotlin.time.Instant
 
 private const val EMBEDDED_URL = "http://127.0.0.1:54213"
 private const val API_KEY = "here-key"
@@ -77,12 +76,8 @@ private const val ONE_ROUTE = """
 private class FakeAppSettings(initial: AppSettingsDomain = AppSettingsDomain()) : AppSettingsRepository {
     override val settings: StateFlow<AppSettingsDomain> = MutableStateFlow(initial)
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
-    override suspend fun updateTelemetryConsent(
-        consent: TelemetryConsent,
-        introVersion: Int,
-        privacyVersion: Int,
-        decidedAt: Instant,
-    ) = error("Not written here")
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, introVersion: Int, privacyVersion: Int) =
+        error("Not written here")
 
     override suspend fun updateLogRetentionDays(days: Int) = error("Not written here")
 

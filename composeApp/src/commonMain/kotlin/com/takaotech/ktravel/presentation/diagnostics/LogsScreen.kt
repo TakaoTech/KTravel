@@ -12,7 +12,6 @@ import com.takaotech.ktravel.di.AppScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
-import kotlin.time.Instant
 
 /**
  * The log this installation has kept, and the settings that decide how much of it there is.
@@ -35,8 +34,7 @@ data class LogsScreen(val travelId: String? = null) : Screen
  * @property minLevel The quietest level shown.
  * @property query What the search box holds.
  * @property retentionDays How many days of log are kept.
- * @property consent What the user answered about sending diagnostics.
- * @property consentDecidedAt When they answered, null when they never did.
+ * @property consent Whether diagnostics may leave the device.
  * @property isLoading True while the files are being read.
  * @property pendingSave A file the user asked to save, waiting for the platform's save dialog.
  * @property pendingIssueUrl A GitHub issue to open, waiting for the browser.
@@ -51,7 +49,6 @@ data class LogsUiState(
     val query: String,
     val retentionDays: Int,
     val consent: TelemetryConsent,
-    val consentDecidedAt: Instant?,
     val isLoading: Boolean,
     val pendingSave: PendingLogSave?,
     val pendingIssueUrl: String?,

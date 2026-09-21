@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
  * much of it is due in [requirement].
  *
  * @property requirement How much of the introduction to show: everything on a first run, only the
- *   privacy page and the question when it is the policy that changed or the answer that expired.
+ *   privacy page and the diagnostics step when it is the policy that changed.
  * @property fromStart True when the introduction is the first screen of the application, which is
  *   what says where answering leads: onto the trip list, with nothing behind it. False when it was
  *   opened again from elsewhere, where answering goes back to where the user was.
@@ -33,17 +33,24 @@ data class IntroFlowScreen(val requirement: IntroRequirement = IntroRequirement.
  *
  * @property steps The steps to go through, in order; empty while the packaged files are still being
  *   read. Already filtered for [IntroFlowScreen.requirement].
+ * @property initialConsent Where diagnostics stand as the introduction opens, which is where the
+ *   switch on the last step starts. It matters when the privacy page comes back: a user who had
+ *   already objected must not find it switched back on.
  * @property eventSink Where what the user does goes.
  */
-data class IntroUiState(val steps: ImmutableList<IntroStep>, val eventSink: (IntroEvent) -> Unit) : CircuitUiState
+data class IntroUiState(
+    val steps: ImmutableList<IntroStep>,
+    val initialConsent: TelemetryConsent = TelemetryConsent.Granted,
+    val eventSink: (IntroEvent) -> Unit,
+) : CircuitUiState
 
 /** What the introduction can report. */
 sealed interface IntroEvent : CircuitUiEvent {
 
     /**
-     * The user answered the telemetry question.
+     * The user finished the introduction.
      *
-     * @property consent What they chose.
+     * @property consent Where they left the diagnostics switch.
      */
     data class Answered(val consent: TelemetryConsent) : IntroEvent
 
