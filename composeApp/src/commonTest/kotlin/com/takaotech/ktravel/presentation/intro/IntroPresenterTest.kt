@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 private const val INTRO_VERSION = 7
 
@@ -45,8 +44,8 @@ private const val POLICY_VERSION = 3
 class IntroPresenterTest :
     BehaviorSpec({
         given("the introduction shown as the first screen") {
-            `when`("the user allows diagnostics") {
-                then("the answer is stored with both versions and the trip list becomes the root") {
+            `when`("the user leaves diagnostics on") {
+                then("that is stored with both versions and the trip list becomes the root") {
                     val settings = FakeAppSettings()
                     val screen = IntroFlowScreen(requirement = IntroRequirement.Full, fromStart = true)
                     val navigator = FakeNavigator(screen)
@@ -58,7 +57,6 @@ class IntroPresenterTest :
                             settings.settings.value.telemetryConsent shouldBe TelemetryConsent.Granted
                             settings.settings.value.acknowledgedIntroVersion shouldBe INTRO_VERSION
                             settings.settings.value.acknowledgedPrivacyVersion shouldBe POLICY_VERSION
-                            (settings.settings.value.consentDecidedAt != null) shouldBe true
                         }
 
                         navigator.awaitResetRoot().newRoot shouldBe TravelListScreen
@@ -140,9 +138,26 @@ class IntroPresenterTest :
             }
         }
 
+        given("an installation that had already objected") {
+            `when`("the privacy page comes back") {
+                then("the switch opens where they left it, not back on") {
+                    val settings = FakeAppSettings(
+                        AppSettingsDomain(telemetryConsent = TelemetryConsent.Denied),
+                    )
+                    val screen = IntroFlowScreen(requirement = IntroRequirement.PrivacyOnly, fromStart = false)
+                    val navigator = FakeNavigator(screen)
+
+                    presenterTestOf({ presenter(screen, navigator, settings) }) {
+                        awaitLoaded().initialConsent shouldBe TelemetryConsent.Denied
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+        }
+
         given("the introduction reopened from somewhere else") {
-            `when`("the user refuses") {
-                then("the refusal is stored and the screen is popped, not the whole stack reset") {
+            `when`("the user turns diagnostics off") {
+                then("the objection is stored and the screen is popped, not the whole stack reset") {
                     val settings = FakeAppSettings()
                     val screen = IntroFlowScreen(requirement = IntroRequirement.PrivacyOnly, fromStart = false)
                     val navigator = FakeNavigator(screen)
@@ -202,7 +217,7 @@ private val TEST_FLOW = IntroFlow(
                 ),
             ),
         ),
-        IntroStep.Decision(id = "decision", title = "Send diagnostics?", body = "Your call."),
+        IntroStep.Decision(id = "decision", title = "Diagnostics is on", body = "Your call."),
     ),
 )
 
@@ -226,25 +241,19 @@ private val TEST_POLICY = PrivacyPolicy(
 )
 
 /** The preferences, in memory, with the one write this test observes. */
-private class FakeAppSettings : AppSettingsRepository {
+private class FakeAppSettings(initial: AppSettingsDomain = AppSettingsDomain()) : AppSettingsRepository {
 
-    private val state = MutableStateFlow(AppSettingsDomain())
+    private val state = MutableStateFlow(initial)
 
     override val settings: StateFlow<AppSettingsDomain> = state
 
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
 
-    override suspend fun updateTelemetryConsent(
-        consent: TelemetryConsent,
-        introVersion: Int,
-        privacyVersion: Int,
-        decidedAt: Instant,
-    ) {
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, introVersion: Int, privacyVersion: Int) {
         state.value = state.value.copy(
             telemetryConsent = consent,
             acknowledgedIntroVersion = introVersion,
             acknowledgedPrivacyVersion = privacyVersion,
-            consentDecidedAt = decidedAt,
         )
     }
 

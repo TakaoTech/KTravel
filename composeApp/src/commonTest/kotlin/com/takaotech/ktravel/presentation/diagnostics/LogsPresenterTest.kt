@@ -107,15 +107,14 @@ class LogsPresenterTest :
             }
         }
 
-        given("an installation that had consented") {
-            `when`("the consent is revoked from the diagnostics screen") {
-                then("the refusal is stored and handed to the backend, which is not asked to forget") {
+        given("an installation with diagnostics on") {
+            `when`("they are turned off from the diagnostics screen") {
+                then("the objection is stored and handed to the backend, which is not asked to forget") {
                     val settings = FakeAppSettings(
                         AppSettingsDomain(
                             telemetryConsent = TelemetryConsent.Granted,
                             acknowledgedIntroVersion = 1,
                             acknowledgedPrivacyVersion = 1,
-                            consentDecidedAt = NOW,
                         ),
                     )
                     val sink = RecordingSink()
@@ -136,13 +135,12 @@ class LogsPresenterTest :
             }
 
             `when`("the deletion of what was already sent is asked for") {
-                then("the backend is asked to forget the installation, and the consent is left alone") {
+                then("the backend is asked to forget the installation, and the switch is left alone") {
                     val settings = FakeAppSettings(
                         AppSettingsDomain(
                             telemetryConsent = TelemetryConsent.Granted,
                             acknowledgedIntroVersion = 1,
                             acknowledgedPrivacyVersion = 1,
-                            consentDecidedAt = NOW,
                         ),
                     )
                     val sink = RecordingSink()
@@ -241,17 +239,11 @@ private class FakeAppSettings(initial: AppSettingsDomain) : AppSettingsRepositor
 
     override suspend fun updateNavigatorRemote(baseUrl: String) = error("Not written here")
 
-    override suspend fun updateTelemetryConsent(
-        consent: TelemetryConsent,
-        introVersion: Int,
-        privacyVersion: Int,
-        decidedAt: Instant,
-    ) {
+    override suspend fun updateTelemetryConsent(consent: TelemetryConsent, introVersion: Int, privacyVersion: Int) {
         state.value = state.value.copy(
             telemetryConsent = consent,
             acknowledgedIntroVersion = introVersion,
             acknowledgedPrivacyVersion = privacyVersion,
-            consentDecidedAt = decidedAt,
         )
     }
 

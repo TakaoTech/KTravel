@@ -41,7 +41,6 @@ import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.div
 import io.github.vinceglb.filekit.filesDir
 import io.github.vinceglb.filekit.toKotlinxIoPath
-import kotlin.time.Clock
 
 @DependencyGraph(AppScope::class)
 interface AppGraph : ViewModelGraph {
@@ -107,7 +106,7 @@ interface AppGraph : ViewModelGraph {
             extraWriters = listOf(
                 LogBufferWriter(store = logStore, sink = logFileSink, scope = logScope),
                 TelemetryLogWriter(sink = telemetrySink) {
-                    appSettingsRepository.settings.value.effectiveConsent(Clock.System.now())
+                    appSettingsRepository.settings.value.telemetryConsent
                 },
             ),
         ).also {

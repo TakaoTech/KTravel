@@ -42,8 +42,8 @@
         },
         {
           "id": "automatic",
-          "title": "La diagnostica parte solo se lo dici tu",
-          "body": "Non viene inviato nulla automaticamente prima che tu risponda alla prossima domanda, e puoi cambiare idea quando vuoi.",
+          "title": "La diagnostica è attiva, e puoi spegnerla",
+          "body": "Crash e log tecnici arrivano allo sviluppatore per tenere l'app stabile. Non ti chiediamo un consenso: è un legittimo interesse, e puoi opporti quando vuoi.",
           "policyRef": "collection.automatic"
         }
       ]
@@ -51,8 +51,8 @@
     {
       "type": "decision",
       "id": "decision",
-      "title": "Inviare la diagnostica?",
-      "body": "Puoi permettere all'app di inviare **crash e log diagnostici** allo sviluppatore, così un errore si vede senza che tu debba raccontarlo.",
+      "title": "La diagnostica è attiva",
+      "body": "**Crash e log tecnici** arrivano allo sviluppatore per correggere gli errori e tenere l'app stabile. Non ti chiediamo un consenso, ma la scelta resta tua: puoi disattivarla adesso o in qualsiasi momento.",
       "policyRef": "collection.automatic"
     }
   ]

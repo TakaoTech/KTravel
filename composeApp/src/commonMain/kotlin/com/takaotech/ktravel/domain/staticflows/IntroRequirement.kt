@@ -15,10 +15,9 @@ enum class IntroRequirement {
     Full,
 
     /**
-     * Only the privacy page and the question.
+     * Only the privacy page and the diagnostics step.
      *
-     * The user has already been introduced to the application; what changed is the policy, or the
-     * year their answer was good for has run out.
+     * The user has already been introduced to the application; what changed is the policy.
      */
     PrivacyOnly,
 }

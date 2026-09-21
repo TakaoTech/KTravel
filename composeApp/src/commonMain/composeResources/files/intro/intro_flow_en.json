@@ -42,8 +42,8 @@
         },
         {
           "id": "automatic",
-          "title": "Diagnostics only starts if you say so",
-          "body": "Nothing is sent automatically before you answer the next question, and you can change your mind at any time.",
+          "title": "Diagnostics is on, and you can turn it off",
+          "body": "Crashes and technical logs reach the developer to keep the app stable. We are not asking for consent: it rests on a legitimate interest, and you can object whenever you like.",
           "policyRef": "collection.automatic"
         }
       ]
@@ -51,8 +51,8 @@
     {
       "type": "decision",
       "id": "decision",
-      "title": "Send diagnostics?",
-      "body": "You can allow the app to send **crash reports and diagnostic logs** to the developer, so an error can be seen without you having to describe it.",
+      "title": "Diagnostics is on",
+      "body": "**Crashes and technical logs** reach the developer, so errors can be fixed and the app stays stable. We are not asking for consent, but the choice stays yours: you can turn it off now, or at any time.",
       "policyRef": "collection.automatic"
     }
   ]

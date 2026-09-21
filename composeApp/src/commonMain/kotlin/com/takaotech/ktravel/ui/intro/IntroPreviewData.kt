@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.persistentListOf
 
 /**
  * The four states the introduction can be drawn in: still loading, on a reading card, on the privacy
- * page, and on the step that asks the question.
+ * page, and on the step that states where diagnostics stand.
  */
 internal class IntroContentPreviewParams : PreviewParameterProvider<IntroUiState> {
 
@@ -44,8 +44,8 @@ internal val previewPrivacyStep = IntroStep.Privacy(
         ),
         PrivacyDetail(
             id = "automatic",
-            title = "Diagnostics are sent only if you say so",
-            body = "And you can change your mind at any time.",
+            title = "Diagnostics is on, and you can turn it off",
+            body = "It rests on a legitimate interest, and you can object at any time.",
             policyRef = "collection.automatic",
         ),
     ),
@@ -53,8 +53,8 @@ internal val previewPrivacyStep = IntroStep.Privacy(
 
 internal val previewDecisionStep = IntroStep.Decision(
     id = "decision",
-    title = "Send diagnostics?",
-    body = "Crashes and diagnostic logs only. **Your trips are never sent.**",
+    title = "Diagnostics is on",
+    body = "Crashes and technical logs only. **Your trips are never sent.**",
     media = IntroMedia.Static(name = "info"),
     policyRef = "collection.automatic",
 )

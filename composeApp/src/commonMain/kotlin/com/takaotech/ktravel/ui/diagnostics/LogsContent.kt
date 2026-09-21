@@ -44,16 +44,12 @@ import com.takaotech.ktravel.core.logging.LogLevel
 import com.takaotech.ktravel.core.logging.MAX_LOG_RETENTION_DAYS
 import com.takaotech.ktravel.core.logging.MIN_LOG_RETENTION_DAYS
 import com.takaotech.ktravel.core.telemetry.TelemetryConsent
-import com.takaotech.ktravel.core.toLocalDate
-import com.takaotech.ktravel.domain.staticflows.CONSENT_VALIDITY
 import com.takaotech.ktravel.presentation.diagnostics.LogsEvent
 import com.takaotech.ktravel.presentation.diagnostics.LogsUiState
 import com.takaotech.ktravel.ui.shared.dialog.DisruptiveOperationDialog
-import com.takaotech.ktravel.ui.shared.format.formatDayMonthYear
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.arrow_back
 import ktravel.composeapp.generated.resources.delete
@@ -61,9 +57,7 @@ import ktravel.composeapp.generated.resources.description
 import ktravel.composeapp.generated.resources.diagnostics_cd_clear
 import ktravel.composeapp.generated.resources.diagnostics_cd_report
 import ktravel.composeapp.generated.resources.diagnostics_cd_save
-import ktravel.composeapp.generated.resources.diagnostics_consent_decided
 import ktravel.composeapp.generated.resources.diagnostics_consent_label
-import ktravel.composeapp.generated.resources.diagnostics_consent_never
 import ktravel.composeapp.generated.resources.diagnostics_day_all
 import ktravel.composeapp.generated.resources.diagnostics_empty
 import ktravel.composeapp.generated.resources.diagnostics_forget_me
@@ -78,7 +72,6 @@ import ktravel.composeapp.generated.resources.diagnostics_title
 import ktravel.composeapp.generated.resources.file_export
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.time.Instant
 
 /**
  * The log, the filters over it, and the two settings that decide how much of it exists.
@@ -219,8 +212,6 @@ private fun DiagnosticsSettings(
                 )
             }
 
-            ConsentDecisionLine(decidedAt = state.consentDecidedAt)
-
             TextButton(
                 onClick = { confirmingForgetMe = true },
                 modifier = Modifier.align(Alignment.End).testTag(LogsTestTags.FORGET_ME),
@@ -261,28 +252,6 @@ private fun DiagnosticsSettings(
             }
         }
     }
-}
-
-/** When the user answered about diagnostics, and when the answer runs out. */
-@Composable
-private fun ConsentDecisionLine(decidedAt: Instant?, modifier: Modifier = Modifier) {
-    val zone = TimeZone.currentSystemDefault()
-    val text = if (decidedAt == null) {
-        stringResource(Res.string.diagnostics_consent_never)
-    } else {
-        stringResource(
-            Res.string.diagnostics_consent_decided,
-            decidedAt.toLocalDate(zone).formatDayMonthYear(),
-            (decidedAt + CONSENT_VALIDITY).toLocalDate(zone).formatDayMonthYear(),
-        )
-    }
-
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
-    )
 }
 
 /** Which day, how loud, and what the line has to say. */

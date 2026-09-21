@@ -57,7 +57,6 @@ private val previewState = LogsUiState(
     query = "",
     retentionDays = DEFAULT_LOG_RETENTION_DAYS,
     consent = TelemetryConsent.Denied,
-    consentDecidedAt = previewInstant,
     isLoading = false,
     pendingSave = null,
     pendingIssueUrl = null,

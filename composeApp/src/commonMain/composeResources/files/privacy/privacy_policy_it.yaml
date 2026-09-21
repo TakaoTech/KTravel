@@ -9,7 +9,7 @@ sections:
 
       L'applicazione è distribuita in modalità open source tramite le release pubblicate su [GitHub](https://github.com/TakaoTech/KTravel/releases) e non richiede la creazione di alcun account.
 
-      La quasi totalità dei dati gestiti da KTravel rimane memorizzata esclusivamente sul dispositivo dell'utente: tali dati non sono trasmessi al titolare, che non è pertanto in grado di consultarli, copiarli o cancellarli per conto dell'utente. L'unica eccezione è costituita dai dati diagnostici di cui alla sezione 2.2, trasmessi esclusivamente previo consenso dell'utente.
+      La quasi totalità dei dati gestiti da KTravel rimane memorizzata esclusivamente sul dispositivo dell'utente: tali dati non sono trasmessi al titolare, che non è pertanto in grado di consultarli, copiarli o cancellarli per conto dell'utente. L'unica eccezione è costituita dai dati diagnostici di cui alla sezione 2.2, trasmessi sulla base del legittimo interesse del titolare e fino a che l'utente non vi si opponga.
 
       Le ipotesi in cui i dati lasciano il dispositivo sono indicate in modo esaustivo alla sezione 4, unitamente al relativo destinatario e al contenuto trasmesso.
 
@@ -21,7 +21,7 @@ sections:
       La presente sezione descrive:
 
       - i dati conservati sulla base delle informazioni inserite dall'utente;
-      - i dati trasmessi previo consenso dell'utente;
+      - i dati diagnostici trasmessi al titolare;
       - i dati diagnostici relativi al funzionamento dell'applicazione.
     subsections:
       - id: provided
@@ -31,11 +31,11 @@ sections:
 
           Tali dati non sono caricati su alcun server, né conservati o consultati dal titolare. Essi lasciano il dispositivo esclusivamente per effetto di un'azione volontaria dell'utente: l'esportazione di un viaggio genera un archivio in formato `.ktravel`, la cui destinazione e il cui successivo utilizzo sono determinati unicamente dall'utente, indipendentemente dall'applicazione.
       - id: automatic
-        title: 2.2 Dati trasmessi previo consenso (diagnostica)
+        title: 2.2 Dati diagnostici trasmessi al titolare
         body: |-
-          Nessun dato è trasmesso prima che l'utente abbia risposto alla richiesta di consenso relativa alla diagnostica, né in caso di risposta negativa o di consenso scaduto.
+          La diagnostica è attiva per impostazione predefinita, sulla base del legittimo interesse del titolare descritto alla sezione 5. Nessun dato è trasmesso prima che la sezione introduttiva abbia presentato all'utente la presente informativa, né dopo che l'utente si sia opposto disattivando la diagnostica in *Impostazioni → Diagnostica*.
 
-          A seguito del consenso, l'applicazione trasmette al titolare le seguenti categorie di dati tecnici, in caso di anomalie di funzionamento e tramite le righe di log diagnostico:
+          Quando la diagnostica è attiva, l'applicazione trasmette al titolare le seguenti categorie di dati tecnici, in caso di anomalie di funzionamento e tramite le righe di log diagnostico:
 
           - **informazioni sull'applicazione** - versione di KTravel;
           - **informazioni sulla piattaforma** - sistema operativo (Android, iOS o desktop), relativa versione, modello del dispositivo e nome del dispositivo;
@@ -65,7 +65,7 @@ sections:
       - **visualizzazione della mappa** - download delle tessere relative all'area visualizzata;
       - **calcolo dei percorsi** - interrogazione del motore di routing selezionato per il collegamento tra due soste;
       - **verifica del funzionamento dell'applicazione** - tenuta del log locale, consultabile dall'utente e allegabile, a sua discrezione, a una segnalazione;
-      - **correzione di anomalie di funzionamento** - analisi di crash e log diagnostici, esclusivamente in presenza di consenso.
+      - **correzione di anomalie di funzionamento** - analisi di crash e log diagnostici, salvo opposizione dell'utente.
 
       Nessun dato è trattato per finalità di profilazione o di marketing.
 
@@ -96,15 +96,25 @@ sections:
         body: |-
           I dati diagnostici sono ricevuti, per conto del titolare, da [Kotzilla](https://www.kotzilla.io) ([informativa privacy](https://kotzilla.io/privacy-policy)), fornitore dell'SDK utilizzato per la trasmissione. Kotzilla agisce in qualità di **responsabile del trattamento** ai sensi dell'art. 28 GDPR.
 
-          Kotzilla riceve esclusivamente le categorie di dati indicate alla sezione 2.2, trasmesse via HTTPS e limitatamente al periodo di validità del consenso.
+          Kotzilla riceve esclusivamente le categorie di dati indicate alla sezione 2.2, trasmesse via HTTPS e limitatamente al periodo in cui la diagnostica è attiva.
 
           Le build compilate senza una chiave Kotzilla non includono il relativo SDK e non effettuano alcuna trasmissione diagnostica.
   - id: legalbasis
     title: 5. Basi giuridiche del trattamento
     body: |-
-      L'unico trattamento effettuato direttamente dal titolare è quello relativo ai dati diagnostici di cui alla sezione 2.2, la cui base giuridica è il **consenso** dell'utente ai sensi dell'art. 6, par. 1, lett. a), GDPR. Il consenso è richiesto esplicitamente al termine della sezione introduttiva dell'applicazione; in assenza di risposta si considera negato; può essere revocato in qualsiasi momento in *Impostazioni → Diagnostica*, senza che ciò comporti la perdita di alcuna funzionalità dell'applicazione, fatta salva l'impossibilità per il titolare di correggere anomalie non altrimenti segnalate.
+      L'unico trattamento effettuato direttamente dal titolare è quello relativo ai dati diagnostici di cui alla sezione 2.2, la cui base giuridica è il **legittimo interesse** del titolare ai sensi dell'art. 6, par. 1, lett. f), GDPR. All'utente non è pertanto richiesto alcun consenso.
 
-      Il consenso ha validità di un (1) anno dal rilascio. Alla scadenza, la pagina informativa e la relativa richiesta sono nuovamente proposte all'utente e, nel frattempo, nessun dato è trasmesso. Un consenso scaduto equivale a un consenso non prestato.
+      L'interesse perseguito consiste nel mantenere l'applicazione sicura, stabile e funzionante: senza la ricezione automatica delle anomalie e delle righe di log tecniche, un malfunzionamento che l'utente non segnali spontaneamente resta invisibile al titolare e non viene corretto.
+
+      Il bilanciamento tra tale interesse e i diritti e le libertà dell'interessato è stato condotto tenendo conto dei seguenti elementi:
+
+      - **natura dei dati** - esclusivamente tecnici e pseudonimi; nessun contenuto di viaggio, nota o allegato lascia il dispositivo per questa finalità;
+      - **minimizzazione** - sono trasmesse le sole righe registrate a livello `Info` o superiore e le sole anomalie effettivamente verificatesi;
+      - **assenza di identificazione** - l'identificativo di installazione è generato in modo casuale sul dispositivo e non è riconducibile a una persona determinata (cfr. sezione 8.3);
+      - **assenza di profilazione** - i dati non sono impiegati per analizzare il comportamento dell'utente, né per finalità commerciali o pubblicitarie, né sono comunicati a soggetti diversi dal fornitore indicato alla sezione 4.3;
+      - **aspettative ragionevoli** - la trasmissione è illustrata all'utente nella sezione introduttiva dell'applicazione, prima che abbia luogo, ed è descritta per esteso nella presente informativa.
+
+      **Diritto di opposizione.** L'utente può opporsi al trattamento in qualsiasi momento, ai sensi dell'art. 21 GDPR, disattivando la diagnostica in *Impostazioni → Diagnostica* oppure già al termine della sezione introduttiva. L'opposizione interrompe immediatamente ogni trasmissione, non è soggetta a scadenza né a rinnovo periodico e non comporta la perdita di alcuna funzionalità dell'applicazione, fatta salva l'impossibilità per il titolare di correggere anomalie non altrimenti segnalate.
 
       Le richieste relative alle tessere della mappa (sezione 4.1) e al calcolo dei percorsi (sezione 4.2) sono trasmesse direttamente dal dispositivo dell'utente ai rispettivi fornitori terzi, sulla base delle azioni compiute dall'utente all'interno dell'applicazione. Tali trasmissioni non costituiscono trattamenti effettuati dal titolare, il quale non ne determina le finalità né vi ha accesso.
 
@@ -122,9 +132,9 @@ sections:
     body: |-
       - **Viaggi, giorni, luoghi, note e allegati** - conservati fino alla relativa cancellazione da parte dell'utente. La disinstallazione dell'applicazione comporta la rimozione del database e dei dati in esso contenuti.
       - **File di log locali** - generati con cadenza giornaliera e conservati, per impostazione predefinita, per tre giorni. L'utente può impostare un periodo compreso tra uno e trenta giorni in *Impostazioni → Diagnostica*; i file eccedenti tale periodo sono cancellati automaticamente.
-      - **Consenso relativo alla diagnostica** - valido per un anno dalla data di rilascio, decorso il quale l'applicazione richiede nuovamente il consenso e non trasmette alcun dato fino a nuova risposta.
+      - **Preferenza relativa alla diagnostica** - conservata per la durata dell'installazione dell'applicazione; non è soggetta a scadenza né a rinnovo periodico e resta valida fino a che l'utente non la modifichi.
       - **Identificativo di installazione** - conservato per la durata dell'installazione dell'applicazione ed eliminato con la disinstallazione, salvo che sia stato conservato da un backup di sistema indipendente dall'applicazione.
-      - **Dati diagnostici già trasmessi** - conservati da Kotzilla secondo le proprie regole di conservazione (cfr. sezione 4.3). La revoca del consenso comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione in questione.
+      - **Dati diagnostici già trasmessi** - conservati da Kotzilla secondo le proprie regole di conservazione (cfr. sezione 4.3). La disattivazione della diagnostica comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione in questione.
       - **Chiave API HERE** - conservata fino alla relativa cancellazione da parte dell'utente e soggetta, per la parte di competenza di HERE, alle regole di conservazione di HERE.
 
   - id: rights
@@ -139,16 +149,16 @@ sections:
           - **Portabilità** - un viaggio può essere esportato come archivio `.ktravel` e aperto in un ambiente diverso.
           - **Rettifica** - i contenuti inseriti dall'utente possono essere modificati in qualsiasi momento.
           - **Cancellazione** - è possibile eliminare un singolo viaggio, oppure disinstallare l'applicazione, con conseguente rimozione di database, log, identificativo di installazione e chiave API HERE.
-          - **Revoca del consenso alla diagnostica** - può essere concessa o revocata in qualsiasi momento in *Impostazioni → Diagnostica*. La revoca interrompe immediatamente la trasmissione dei dati e comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione.
+          - **Opposizione al trattamento diagnostico** - la diagnostica può essere disattivata, e riattivata, in qualsiasi momento in *Impostazioni → Diagnostica*. La disattivazione interrompe immediatamente la trasmissione dei dati e comporta la richiesta a Kotzilla di cancellazione dei dati già ricevuti relativi all'installazione.
           - **Consultazione del log** - l'utente può visionare le attività registrate dall'applicazione e decidere se allegarle a una segnalazione.
       - id: gdpr
         title: 8.2 Diritti previsti dal GDPR
         body: |-
-          Nell'Unione europea e nello Spazio economico europeo, l'interessato ha diritto di accesso (art. 15), rettifica (art. 16), cancellazione (art. 17), limitazione del trattamento (art. 18), portabilità dei dati (art. 20), opposizione (art. 21) e revoca del consenso (art. 7, par. 3, GDPR).
+          Nell'Unione europea e nello Spazio economico europeo, l'interessato ha diritto di accesso (art. 15), rettifica (art. 16), cancellazione (art. 17), limitazione del trattamento (art. 18), portabilità dei dati (art. 20) e opposizione (art. 21 GDPR).
 
           Con riferimento ai dati conservati esclusivamente sul dispositivo, non sussiste alcun trattamento da parte del titolare nei cui confronti tali diritti possano essere esercitati, in quanto tali dati non pervengono in alcun caso al titolare. La sottosezione 8.1 indica le modalità pratiche con cui tali diritti trovano attuazione; la funzione di esportazione costituisce l'equivalente pratico del diritto alla portabilità in un formato leggibile da dispositivo automatico.
 
-          Con riferimento ai dati diagnostici - unico trattamento effettuato dal titolare - le richieste possono essere indirizzate ai recapiti di cui alla sezione 11. La revoca del consenso all'interno dell'applicazione comporta già la richiesta di cancellazione dei dati corrispondenti, costituendo la modalità più rapida per ottenere tale risultato.
+          Con riferimento ai dati diagnostici - unico trattamento effettuato dal titolare, fondato sul legittimo interesse - l'interessato ha in particolare diritto di opporsi in qualsiasi momento ai sensi dell'art. 21 GDPR, e lo esercita disattivando la diagnostica all'interno dell'applicazione. Le richieste possono comunque essere indirizzate ai recapiti di cui alla sezione 11; la disattivazione all'interno dell'applicazione comporta già la richiesta di cancellazione dei dati corrispondenti, costituendo la modalità più rapida per ottenere tale risultato.
 
           L'interessato ha altresì diritto di proporre reclamo a un'autorità di controllo (art. 77 GDPR). In Italia, l'autorità competente è il [Garante per la protezione dei dati personali](https://www.garanteprivacy.it); per gli interessati residenti in altro Stato membro del SEE, è competente l'autorità di controllo del proprio Paese di residenza.
       - id: limits
@@ -158,7 +168,7 @@ sections:
 
           - **Dati conservati sul dispositivo** - eventuali richieste di accesso, rettifica o cancellazione relative a viaggi, note, allegati o log non possono essere soddisfatte dal titolare, in quanto tali dati non sono in alcun modo detenuti né accessibili al di fuori del dispositivo dell'utente. Tali diritti devono essere esercitati direttamente all'interno dell'applicazione.
           - **Dati trattati da HERE** - la chiave API e il relativo account sono nell'esclusiva disponibilità dell'utente; il trattamento effettuato da HERE in relazione al calcolo dei percorsi è disciplinato dall'informativa privacy di HERE. I relativi diritti devono essere esercitati direttamente nei confronti di HERE; il titolare non può inoltrare alcuna richiesta per conto dell'utente, né dispone di accesso all'account HERE dell'utente o ai dati da questo registrati.
-          - **Dati diagnostici** - l'identificativo trasmesso con una segnalazione è un valore generato casualmente sul dispositivo e non consente, in alcun caso, di identificare l'utente. Il titolare non è pertanto in grado di ricondurre una segnalazione a una persona determinata e, ai sensi dell'art. 11 GDPR, non è tenuto a raccogliere ulteriori informazioni al solo scopo di rendere possibile tale identificazione. Per l'esercizio di un diritto relativo a dati diagnostici già trasmessi, l'utente è invitato a indicare l'identificativo di installazione, consultabile in *Impostazioni → Diagnostica*, unico elemento idoneo a ricollegare una segnalazione al dispositivo di provenienza. In alternativa, la revoca del consenso comporta la richiesta di cancellazione dei dati corrispondenti senza necessità di identificazione dell'utente.
+          - **Dati diagnostici** - l'identificativo trasmesso con una segnalazione è un valore generato casualmente sul dispositivo e non consente, in alcun caso, di identificare l'utente. Il titolare non è pertanto in grado di ricondurre una segnalazione a una persona determinata e, ai sensi dell'art. 11 GDPR, non è tenuto a raccogliere ulteriori informazioni al solo scopo di rendere possibile tale identificazione. Per l'esercizio di un diritto relativo a dati diagnostici già trasmessi, l'utente è invitato a indicare l'identificativo di installazione, consultabile in *Impostazioni → Diagnostica*, unico elemento idoneo a ricollegare una segnalazione al dispositivo di provenienza. In alternativa, la disattivazione della diagnostica comporta la richiesta di cancellazione dei dati corrispondenti senza necessità di identificazione dell'utente.
 
   - id: transfers
     title: 9. Trasferimenti internazionali
@@ -169,7 +179,7 @@ sections:
     body: |-
       La presente informativa reca un numero di versione, monitorato dall'applicazione.
 
-      In caso di modifica sostanziale del trattamento - introduzione di una nuova trasmissione di dati, aggiunta di un servizio terzo, modifica di una finalità - il numero di versione è incrementato. Al successivo avvio, l'applicazione presenta nuovamente la pagina informativa e la richiesta di consenso alla diagnostica, in quanto il consenso prestato si riferisce alla specifica versione dell'informativa a cui è stato rilasciato, e non all'applicazione considerata nel suo complesso.
+      In caso di modifica sostanziale del trattamento - introduzione di una nuova trasmissione di dati, aggiunta di un servizio terzo, modifica di una finalità o della base giuridica - il numero di versione è incrementato. Al successivo avvio, l'applicazione presenta nuovamente la pagina informativa e il passaggio relativo alla diagnostica, affinché l'utente possa prendere visione di quanto è cambiato e riconsiderare la propria scelta.
 
       Le correzioni che non incidono sul trattamento dei dati - correzioni redazionali, chiarimenti linguistici, nuove traduzioni - non comportano l'incremento del numero di versione e non determinano l'interruzione dell'esperienza d'uso.
 
