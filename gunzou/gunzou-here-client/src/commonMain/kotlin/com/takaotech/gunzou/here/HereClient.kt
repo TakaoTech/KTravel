@@ -9,6 +9,7 @@ import com.takaotech.gunzou.here.routing.client.HereRoutingApi
 import com.takaotech.gunzou.here.search.autocomplete.client.HereAutocompleteApi
 import com.takaotech.gunzou.here.search.autosuggest.client.HereAutosuggestApi
 import com.takaotech.gunzou.here.search.browser.client.HereBrowseApi
+import com.takaotech.gunzou.here.search.revgeocode.client.HereRevgeocodeApi
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 
@@ -26,6 +27,7 @@ import io.ktor.client.engine.HttpClientEngine
  * here.browse.browse(browseRequest)
  * here.autocomplete.autocomplete(autocompleteRequest)
  * here.autosuggest.autosuggest(autosuggestRequest)
+ * here.revgeocode.revgeocode(revgeocodeRequest)
  * here.close()
  * ```
  *
@@ -63,6 +65,11 @@ class HereClient private constructor(private val httpClient: HttpClient, val con
     /** HERE Geocoding and Search API v7, Autosuggest endpoint. */
     val autosuggest: HereAutosuggestApi by lazy {
         HereAutosuggestApi(httpClient, config.autosuggestBaseUrl)
+    }
+
+    /** HERE Geocoding and Search API v7, Reverse Geocode endpoint. */
+    val revgeocode: HereRevgeocodeApi by lazy {
+        HereRevgeocodeApi(httpClient, config.revgeocodeBaseUrl)
     }
 
     /**
