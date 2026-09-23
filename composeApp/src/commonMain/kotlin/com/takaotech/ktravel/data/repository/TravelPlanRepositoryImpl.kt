@@ -140,6 +140,10 @@ class TravelPlanRepositoryImpl(
 
     override suspend fun savePlace(place: PlaceDomain, dayId: String?) = mutate { it.savePlace(place, dayId) }
 
+    override suspend fun savePlaces(places: List<PlaceDomain>, dayId: String?) = mutate { plan ->
+        places.fold(plan) { current, place -> current.savePlace(place, dayId) }
+    }
+
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = mutate { it.movePlaceToDay(placeId, dayId) }
 
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) =

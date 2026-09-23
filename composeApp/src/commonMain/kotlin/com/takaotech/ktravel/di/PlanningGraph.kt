@@ -4,6 +4,8 @@ import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
 import com.takaotech.ktravel.domain.repository.SettingsRepository
 import com.takaotech.ktravel.domain.repository.TravelPlanRepository
 import com.takaotech.ktravel.domain.routing.RoutingService
+import com.takaotech.ktravel.domain.search.NearbyPlacesService
+import com.takaotech.ktravel.domain.search.PlaceSearchService
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import com.takaotech.ktravel.domain.usecase.SaveTransportStepUseCase
 import com.takaotech.ktravel.presentation.plan.transport.RouteAnswerDraft
@@ -29,6 +31,12 @@ interface PlanningGraph {
 
     /** Which navigator this plan starts on, and whether the remote one can be offered at all. */
     val navigatorTargetResolver: NavigatorTargetResolver
+
+    /** Place search, through this plan's API key and this plan's choice of navigator. */
+    val placeSearchService: PlaceSearchService
+
+    /** The places inside the area the traveller frames on the map. */
+    val nearbyPlacesService: NearbyPlacesService
 
     /**
      * The route request the transport screen is assembling.

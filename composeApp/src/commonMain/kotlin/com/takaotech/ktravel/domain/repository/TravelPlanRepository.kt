@@ -118,7 +118,16 @@ interface TravelPlanRepository {
      * @param place the Place to save
      * @param dayId when set, adds the Place straight to the TravelDay with this id
      */
+
+    // TODO Deprecated this method for savePlaces?
     suspend fun savePlace(place: PlaceDomain, dayId: String? = null)
+
+    /**
+     * Saves several new Places in one change, in the given order
+     * @param places the Places to save
+     * @param dayId when set, adds the Places straight to the TravelDay with this id
+     */
+    suspend fun savePlaces(places: List<PlaceDomain>, dayId: String? = null)
 
     /**
      * Files a transport in the position right after another step, replacing the transport already

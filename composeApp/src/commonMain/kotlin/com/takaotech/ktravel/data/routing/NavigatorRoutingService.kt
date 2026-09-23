@@ -4,8 +4,9 @@ import com.takaotech.gunzou.api.catalog.NavigatorProfile
 import com.takaotech.gunzou.api.error.ErrorCode
 import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.gunzou.client.NavigatorResult
-import com.takaotech.gunzou.client.NavigatorTarget
 import com.takaotech.ktravel.data.navigator.NavigatorTargetResolver
+import com.takaotech.ktravel.data.navigator.callWithRecovery
+import com.takaotech.ktravel.data.navigator.reachabilityMessage
 import com.takaotech.ktravel.di.PlanningGraphScope
 import com.takaotech.ktravel.domain.navigator.NavigatorKind
 import com.takaotech.ktravel.domain.repository.SettingsRepository
@@ -113,7 +114,7 @@ class NavigatorRoutingService(
         // own result variant is built from, and neither type fits the other.
         when (selection) {
             is RouteSelection.Routing -> RouteResult.Routing(
-                callWithRecovery(kind) { target ->
+                targets.callWithRecovery(kind) { target ->
                     client.hereRouting(
                         selection.mode.toHereTransportMode(),
                         selection.toRoutingRequest(from, to, routeTime),
@@ -124,7 +125,7 @@ class NavigatorRoutingService(
             )
 
             is RouteSelection.Transit -> RouteResult.Transit(
-                callWithRecovery(kind) { target ->
+                targets.callWithRecovery(kind) { target ->
                     client.hereTransit(
                         selection.toTransitRouteRequest(from, to, routeTime),
                         apiKey,
@@ -133,25 +134,6 @@ class NavigatorRoutingService(
                 }.orThrow().toDomain(),
             )
         }
-    }
-
-    /**
-     * Runs a call, and gives an embedded server exactly one second chance.
-     *
-     * The embedded server does not survive the app being suspended: on iOS the socket is gone when
-     * the app returns to the foreground, and the only symptom is a connection refused. Restarting it
-     * and asking again turns that into nothing the traveller ever sees. A remote navigator gets no
-     * such retry — it did not answer, and asking the same host again in the same breath is a second
-     * failure rather than a recovery.
-     */
-    private suspend fun <T : Any> callWithRecovery(
-        kind: NavigatorKind,
-        call: suspend (NavigatorTarget) -> NavigatorResult<T>,
-    ): NavigatorResult<T> {
-        val first = call(targets.resolve(kind))
-        if (first !is NavigatorResult.TransportError || kind != NavigatorKind.EMBEDDED) return first
-
-        return call(targets.recover(kind))
     }
 
     /**
@@ -173,9 +155,6 @@ class NavigatorRoutingService(
 
 /** The version string to show for a navigator that answered without naming itself. */
 private const val UNNAMED_VERSION = "unknown"
-
-/** A transport failure, said in a way that describes the situation rather than the exception class. */
-private fun Throwable.reachabilityMessage(): String = message?.takeIf { it.isNotBlank() } ?: "No answer"
 
 /**
  * The routes, or the reason there are none.

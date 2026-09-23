@@ -1,13 +1,54 @@
 <resources>
 
-    <string name="place_insert_latlng_label">Lat - Lng</string>
-    <string name="place_insert_search_label">Search</string>
+    <string name="place_insert_title">Add stop</string>
+    <string name="place_insert_cd_close">Close</string>
+    <string name="place_insert_cd_confirm">Add the selected places</string>
+    <string name="place_insert_cd_inventory">Selected places</string>
 
-    <string name="place_insert_error_name_empty">Name cannot be empty</string>
-    <string name="place_insert_error_lat_empty">Latitude cannot be empty</string>
-    <string name="place_insert_error_lng_empty">Longitude cannot be empty</string>
-    <string name="place_insert_error_lat_invalid_format">Invalid latitude format</string>
-    <string name="place_insert_error_lng_invalid_format">Invalid longitude format</string>
+    <string name="place_insert_search_placeholder">Search a place or lat, lng</string>
+    <string name="place_insert_cd_clear_search">Clear the search</string>
+    <string name="place_insert_use_coordinates">Use these coordinates</string>
+    <string name="place_insert_results_from">Results from %1$s</string>
+
+    <string name="place_insert_provider_header">Search service</string>
+    <string name="place_insert_cd_provider">Search service: %1$s</string>
+    <string name="place_insert_provider_missing_api_key">API key missing</string>
+    <string name="place_insert_provider_not_served">Not served by the navigator</string>
+    <string name="place_insert_provider_unreachable">Navigator unreachable</string>
+
+    <string name="place_insert_filter_header">Category</string>
+    <string name="place_insert_cd_filter">Filter the places</string>
+    <string name="place_insert_category_all">All places</string>
+    <string name="place_insert_category_sights_and_museums">Sights and museums</string>
+    <string name="place_insert_category_nature">Nature</string>
+    <string name="place_insert_category_eat_and_drink">Eat and drink</string>
+    <string name="place_insert_category_accommodation">Stay</string>
+
+    <string name="place_insert_nearby_header">In the framed area</string>
+    <string name="place_insert_results_header">Search results</string>
+    <string name="place_insert_inventory_header">Selected places</string>
+    <string name="place_insert_nearby_empty">No places in this area.\nMove the map or search an address.</string>
+    <string name="place_insert_nearby_empty_filtered">No places of this category here.\nRemove the filter or move the map.</string>
+    <string name="place_insert_show_all">Show all</string>
+    <string name="place_insert_results_empty">No places match this search.</string>
+    <string name="place_insert_inventory_empty">No place selected yet.\nAdd places from the search or the map.</string>
+
+    <string name="place_insert_problem_missing_api_key">Searching needs the HERE API key of this trip: add it in the trip settings.</string>
+    <string name="place_insert_problem_navigator_unreachable">The navigator could not be reached.</string>
+    <string name="place_insert_problem_not_authenticated">The navigator refused the app.</string>
+    <string name="place_insert_problem_rate_limited">Too many searches: try again in a moment.</string>
+    <string name="place_insert_problem_provider_unavailable">The search service is not available right now.</string>
+    <string name="place_insert_problem_unexpected">The search did not work.</string>
+
+    <string name="place_insert_cd_details">Details of %1$s</string>
+    <string name="place_insert_cd_add">Add %1$s</string>
+    <string name="place_insert_cd_remove">Remove %1$s</string>
+    <string name="place_insert_center">Center</string>
+    <string name="place_insert_add">Add</string>
+    <string name="place_insert_remove">Remove</string>
+    <string name="place_insert_coordinates">Coordinates</string>
+    <string name="place_insert_distance_meters">%1$d m</string>
+    <string name="place_insert_distance_kilometers">%1$d.%2$d km</string>
 
     <string name="planning_page_trip_name_label">Trip name</string>
 

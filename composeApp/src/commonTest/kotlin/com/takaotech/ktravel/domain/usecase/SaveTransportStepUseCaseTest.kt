@@ -319,6 +319,7 @@ private class FakeTravelPlanRepositoryForTransport : TravelPlanRepository {
     override suspend fun updateSettings(settings: com.takaotech.ktravel.domain.model.TravelSettingsDomain) = Unit
 
     override suspend fun savePlace(place: com.takaotech.ktravel.domain.model.PlaceDomain, dayId: String?) = Unit
+    override suspend fun savePlaces(places: List<com.takaotech.ktravel.domain.model.PlaceDomain>, dayId: String?) = Unit
     override suspend fun movePlaceToDay(placeId: String, dayId: String) = Unit
     override suspend fun movePlaceToGeneral(placeId: String, dayId: String) = Unit
     override suspend fun movePlaceToStep(placeId: String, dayId: String) = Unit

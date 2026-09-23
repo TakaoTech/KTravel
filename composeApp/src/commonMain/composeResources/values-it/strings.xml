@@ -1,13 +1,54 @@
 <resources>
 
-    <string name="place_insert_latlng_label">Lat - Lng</string>
-    <string name="place_insert_search_label">Cerca</string>
+    <string name="place_insert_title">Aggiungi tappa</string>
+    <string name="place_insert_cd_close">Chiudi</string>
+    <string name="place_insert_cd_confirm">Aggiungi i luoghi selezionati</string>
+    <string name="place_insert_cd_inventory">Luoghi selezionati</string>
 
-    <string name="place_insert_error_name_empty">Il nome non può essere vuoto</string>
-    <string name="place_insert_error_lat_empty">La latitudine non può essere vuota</string>
-    <string name="place_insert_error_lng_empty">La longitudine non può essere vuota</string>
-    <string name="place_insert_error_lat_invalid_format">Formato latitudine non valido</string>
-    <string name="place_insert_error_lng_invalid_format">Formato longitudine non valido</string>
+    <string name="place_insert_search_placeholder">Cerca un luogo o lat, lng</string>
+    <string name="place_insert_cd_clear_search">Cancella la ricerca</string>
+    <string name="place_insert_use_coordinates">Usa queste coordinate</string>
+    <string name="place_insert_results_from">Risultati da %1$s</string>
+
+    <string name="place_insert_provider_header">Servizio di ricerca</string>
+    <string name="place_insert_cd_provider">Servizio di ricerca: %1$s</string>
+    <string name="place_insert_provider_missing_api_key">API key mancante</string>
+    <string name="place_insert_provider_not_served">Non servito dal navigator</string>
+    <string name="place_insert_provider_unreachable">Navigator non raggiungibile</string>
+
+    <string name="place_insert_filter_header">Categoria</string>
+    <string name="place_insert_cd_filter">Filtra i luoghi</string>
+    <string name="place_insert_category_all">Tutti i luoghi</string>
+    <string name="place_insert_category_sights_and_museums">Da vedere e musei</string>
+    <string name="place_insert_category_nature">Natura</string>
+    <string name="place_insert_category_eat_and_drink">Mangiare e bere</string>
+    <string name="place_insert_category_accommodation">Dormire</string>
+
+    <string name="place_insert_nearby_header">Nella zona inquadrata</string>
+    <string name="place_insert_results_header">Risultati della ricerca</string>
+    <string name="place_insert_inventory_header">Luoghi selezionati</string>
+    <string name="place_insert_nearby_empty">Nessun luogo in questa zona.\nSposta la mappa o cerca un indirizzo.</string>
+    <string name="place_insert_nearby_empty_filtered">Nessun luogo di questa categoria qui.\nTogli il filtro o sposta la mappa.</string>
+    <string name="place_insert_show_all">Mostra tutti</string>
+    <string name="place_insert_results_empty">Nessun luogo corrisponde a questa ricerca.</string>
+    <string name="place_insert_inventory_empty">Nessun luogo selezionato.\nAggiungi luoghi dalla ricerca o dalla mappa.</string>
+
+    <string name="place_insert_problem_missing_api_key">Per cercare serve la API key HERE del viaggio: aggiungila nelle impostazioni del viaggio.</string>
+    <string name="place_insert_problem_navigator_unreachable">Il navigator non è raggiungibile.</string>
+    <string name="place_insert_problem_not_authenticated">Il navigator ha rifiutato l'app.</string>
+    <string name="place_insert_problem_rate_limited">Troppe ricerche: riprova tra poco.</string>
+    <string name="place_insert_problem_provider_unavailable">Il servizio di ricerca non è disponibile al momento.</string>
+    <string name="place_insert_problem_unexpected">La ricerca non è riuscita.</string>
+
+    <string name="place_insert_cd_details">Dettagli di %1$s</string>
+    <string name="place_insert_cd_add">Aggiungi %1$s</string>
+    <string name="place_insert_cd_remove">Rimuovi %1$s</string>
+    <string name="place_insert_center">Centra</string>
+    <string name="place_insert_add">Aggiungi</string>
+    <string name="place_insert_remove">Rimuovi</string>
+    <string name="place_insert_coordinates">Coordinate</string>
+    <string name="place_insert_distance_meters">%1$d m</string>
+    <string name="place_insert_distance_kilometers">%1$d,%2$d km</string>
 
     <string name="planning_page_trip_name_label">Nome del viaggio</string>
 

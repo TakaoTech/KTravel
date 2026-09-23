@@ -297,6 +297,28 @@ class TravelPlanRepositoryImplTest :
                 }
             }
 
+            `when`("savePlaces saves several places to a day at once") {
+                val (repo, _, dayIds) = ctxWith3Days()
+                repo.savePlaces(listOf(COLOSSEO, TREVI), dayIds[1])
+
+                then("should add them all to the day, in the given order") {
+                    repo.planningState.value.days[1].places shouldBe listOf(COLOSSEO, TREVI)
+                }
+
+                then("should not add any place to the general list") {
+                    repo.planningState.value.places.shouldBeEmpty()
+                }
+            }
+
+            `when`("savePlaces saves several places with a null dayId") {
+                val (repo, _, _) = ctxWith3Days()
+                repo.savePlaces(listOf(COLOSSEO, PANTHEON), null)
+
+                then("should add them all to the general list, in the given order") {
+                    repo.planningState.value.places shouldBe listOf(COLOSSEO, PANTHEON)
+                }
+            }
+
             `when`("saving places to both the general list and a specific day") {
                 val (repo, _, dayIds) = ctxWith3Days()
                 repo.savePlace(COLOSSEO, null)
