@@ -22,6 +22,9 @@ object HereEndpointUrls {
     /** Base URL of the Reverse Geocode endpoint of the Geocoding and Search API */
     const val REVGEOCODE = "https://revgeocode.search.hereapi.com/v1/"
 
+    /** Base URL of the Lookup endpoint of the Geocoding and Search API */
+    const val LOOKUP = "https://lookup.search.hereapi.com/v1/"
+
     /** Query parameter carrying the API key. */
     const val API_KEY_PARAM = "apiKey"
 }

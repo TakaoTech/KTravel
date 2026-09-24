@@ -9,6 +9,7 @@ import com.takaotech.gunzou.here.routing.client.HereRoutingApi
 import com.takaotech.gunzou.here.search.autocomplete.client.HereAutocompleteApi
 import com.takaotech.gunzou.here.search.autosuggest.client.HereAutosuggestApi
 import com.takaotech.gunzou.here.search.browser.client.HereBrowseApi
+import com.takaotech.gunzou.here.search.lookup.client.HereLookupApi
 import com.takaotech.gunzou.here.search.revgeocode.client.HereRevgeocodeApi
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
@@ -28,6 +29,7 @@ import io.ktor.client.engine.HttpClientEngine
  * here.autocomplete.autocomplete(autocompleteRequest)
  * here.autosuggest.autosuggest(autosuggestRequest)
  * here.revgeocode.revgeocode(revgeocodeRequest)
+ * here.lookup.lookup(lookupRequest)
  * here.close()
  * ```
  *
@@ -71,6 +73,9 @@ class HereClient private constructor(private val httpClient: HttpClient, val con
     val revgeocode: HereRevgeocodeApi by lazy {
         HereRevgeocodeApi(httpClient, config.revgeocodeBaseUrl)
     }
+
+    /** HERE Geocoding and Search API v7, Lookup endpoint. */
+    val lookup: HereLookupApi by lazy { HereLookupApi(httpClient, config.lookupBaseUrl) }
 
     /**
      * Closes the underlying HTTP client. An engine passed to [withEngine] outlives it, as its owner

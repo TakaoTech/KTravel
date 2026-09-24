@@ -24,6 +24,8 @@ import co.touchlab.kermit.Logger
  *   API, overridable for tests
  * @property revgeocodeBaseUrl Base URL of the Reverse Geocode endpoint of the Geocoding and Search
  *   API, overridable for tests
+ * @property lookupBaseUrl Base URL of the Lookup endpoint of the Geocoding and Search API,
+ *   overridable for tests
  */
 data class HereClientConfig(
     val apiKey: String,
@@ -34,4 +36,5 @@ data class HereClientConfig(
     val autocompleteBaseUrl: String = HereEndpointUrls.AUTOCOMPLETE,
     val autosuggestBaseUrl: String = HereEndpointUrls.AUTOSUGGEST,
     val revgeocodeBaseUrl: String = HereEndpointUrls.REVGEOCODE,
+    val lookupBaseUrl: String = HereEndpointUrls.LOOKUP,
 )
