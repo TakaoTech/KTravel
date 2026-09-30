@@ -39,6 +39,23 @@ sealed class SearchProfile {
         )
     }
 
+    /**
+     * The details of one place through HERE Geocoding and Search v7 Lookup.
+     *
+     * It reads one place by its identifier, so it answers exactly one result and takes no area and
+     * no location: the descriptor says so with a limit of one and the conservative defaults.
+     */
+    data object HerePlaceLookup : SearchProfile() {
+        override val descriptor: SearchProfileDescriptor = SearchProfileDescriptor(
+            provider = SearchProviderId.Here,
+            service = SearchService.ID,
+            path = NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE,
+            displayName = "HERE place details",
+            maxResults = 1,
+            requiresApiKey = true,
+        )
+    }
+
     /** The whole list of services, and the lookups over it. */
     companion object {
 
@@ -49,7 +66,7 @@ sealed class SearchProfile {
          * [com.takaotech.gunzou.api.catalog.NavigatorProfile.ALL]: built eagerly, it would capture
          * the nested objects before their own initializers ran.
          */
-        val ALL: List<SearchProfile> by lazy { listOf(HereAutocomplete) }
+        val ALL: List<SearchProfile> by lazy { listOf(HereAutocomplete, HerePlaceLookup) }
 
         /** The service with this identity, or `null` when the caller knows one this version does not. */
         fun find(provider: SearchProviderId, service: SearchService): SearchProfile? =

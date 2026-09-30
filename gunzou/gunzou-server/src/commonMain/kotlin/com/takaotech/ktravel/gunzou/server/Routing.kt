@@ -18,8 +18,11 @@ import com.takaotech.ktravel.gunzou.server.endpoint.here.HereRoutingCall
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereRoutingEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.HereTransitEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HerePlaceLookupEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.search.PlaceLookupCall
 import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchCatalog
 import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchEndpoint
+import com.vanniktech.locale.Locale
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.request.ApplicationRequest
@@ -68,6 +71,7 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
     val hereTransit: HereTransitEndpoint by inject()
     val searchCatalog: SearchCatalog by inject()
     val hereAutocomplete: HereAutocompleteEndpoint by inject()
+    val herePlaceLookup: HerePlaceLookupEndpoint by inject()
 
     routing {
         get(NavigatorApi.HEALTH) {
@@ -107,6 +111,11 @@ fun Application.configureRouting(config: NavigatorServerConfig) {
                 // AUTH DISABLED: requireCaller(config)
                 respondWithSearch(hereAutocomplete, call.receive<AutocompleteRequest>(), config)
             }.describe(HereAutocompleteOperation)
+
+            get(NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE) {
+                // AUTH DISABLED: requireCaller(config)
+                respondWithSearch(herePlaceLookup, placeLookupCall(), config)
+            }.describe(HerePlaceLookupOperation)
         }
         // }
     }
@@ -131,6 +140,40 @@ private fun RoutingContext.transportMode(): HereTransportMode {
             message = "'$segment' is not a mode this navigator routes on roads; it serves " +
                 HereTransportMode.entries.joinToString { it.pathSegment },
         )
+}
+
+/**
+ * The place this call asks for, read from the path, and the language, read from the query string.
+ *
+ * Checked here rather than by the request validation plugin, which only sees received bodies: a
+ * `GET` has none, and without this a missing language would reach HERE and be answered in one the
+ * caller never asked for.
+ *
+ * @throws NavigatorException [ErrorCode.INVALID_REQUEST] for a blank identifier, or a language that
+ *   is missing or is not an IETF BCP 47 tag.
+ */
+private fun RoutingContext.placeLookupCall(): PlaceLookupCall {
+    val id = call.parameters[NavigatorApi.HERE_SEARCH_PLACE_ID_PARAMETER].orEmpty()
+    val language = call.request.queryParameters[NavigatorApi.SEARCH_LANGUAGE_PARAMETER]
+
+    val reasons = buildList {
+        if (id.isBlank()) {
+            add("id cannot be blank")
+        }
+        when {
+            language.isNullOrBlank() ->
+                add("${NavigatorApi.SEARCH_LANGUAGE_PARAMETER} is required, such as it-IT")
+
+            Locale.fromOrNull(language) == null ->
+                add("${NavigatorApi.SEARCH_LANGUAGE_PARAMETER}: '$language' is not an IETF BCP 47 tag, such as it-IT")
+        }
+    }
+
+    if (reasons.isNotEmpty()) {
+        throw NavigatorException(code = ErrorCode.INVALID_REQUEST, message = reasons.joinToString("; "))
+    }
+
+    return PlaceLookupCall(id = id, language = language.orEmpty())
 }
 
 // AUTH DISABLED: what refused a caller this server did not know. It threw

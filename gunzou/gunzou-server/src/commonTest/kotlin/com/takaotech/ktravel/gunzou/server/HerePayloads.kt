@@ -329,6 +329,96 @@ object HerePayloads {
         }
     """.trimIndent()
 
+    /**
+     * A Lookup answer for a restaurant: contacts of every kind, opening hours with a closed day, a
+     * rule without `BYDAY` and one HERE's own dialect of iCalendar cannot express, a time zone, and
+     * a suspected permanent closure.
+     */
+    val LOOKUP = """
+        {
+          "title": "Trattoria Da Enzo",
+          "id": "here:pds:place:380sr2yk-0f0d8a4b5e0b4b1f9f",
+          "resultType": "place",
+          "closedPermanently": "maybe",
+          "address": {
+            "label": "Trattoria Da Enzo, Via dei Vascellari 29, 00153 Roma RM, Italia",
+            "countryCode": "ITA",
+            "countryName": "Italia",
+            "state": "Lazio",
+            "county": "Roma",
+            "city": "Roma",
+            "district": "Trastevere",
+            "street": "Via dei Vascellari",
+            "postalCode": "00153",
+            "houseNumber": "29"
+          },
+          "position": { "lat": 41.88845, "lng": 12.47697 },
+          "access": [ { "lat": 41.88841, "lng": 12.47701 } ],
+          "categories": [
+            { "id": "100-1000-0001", "name": "Ristorante informale", "primary": true },
+            { "id": "100-1100-0010", "name": "Bar o pub" }
+          ],
+          "contacts": [
+            {
+              "phone": [ { "value": "+39 06 581 2260" } ],
+              "mobile": [ { "value": "+39 333 000 0000", "label": "Prenotazioni" } ],
+              "fax": [ { "value": "+39 06 581 0000" } ],
+              "www": [ { "value": "https://www.daenzoal29.com" } ],
+              "email": [ { "value": "info@daenzoal29.com" } ]
+            }
+          ],
+          "openingHours": [
+            {
+              "text": [ "lun-sab: 12:30 - 15:00, 19:30 - 23:00", "dom: chiuso" ],
+              "isOpen": false,
+              "structured": [
+                { "start": "T123000", "duration": "PT02H30M", "recurrence": "FREQ:DAILY;BYDAY:MO,TU,WE,TH,FR,SA" },
+                { "start": "T193000", "duration": "PT03H30M", "recurrence": "FREQ:DAILY;BYDAY:MO,TU,WE,TH,FR,SA" },
+                { "start": "T000000", "duration": "PT00:00M", "recurrence": "FREQ:DAILY;BYDAY:SU" },
+                { "start": "T080000", "duration": "PT01H", "recurrence": "FREQ:DAILY" },
+                { "start": "T090000", "duration": "PT01H00M", "recurrence": "FREQ:MONTHLY;BYMONTHDAY:1" }
+              ]
+            },
+            {
+              "categories": [ { "id": "100-1100-0010" } ],
+              "text": [ "lun-dom: 08:00 - 02:00" ],
+              "structured": [
+                { "start": "T080000", "duration": "PT18H00M", "recurrence": "FREQ:DAILY;BYDAY:MO,TU,WE,TH,FR,SA,SU" }
+              ]
+            }
+          ],
+          "timeZone": { "name": "Europe/Rome", "utcOffset": "+02:00" }
+        }
+    """.trimIndent()
+
+    /** A Lookup answer for a street: no contacts, no hours, an extent and nothing else. */
+    val LOOKUP_STREET = """
+        {
+          "title": "Via del Corso, Roma, Italia",
+          "id": "here:af:street:1",
+          "resultType": "street",
+          "address": { "label": "Via del Corso, Roma, Italia", "countryCode": "ITA", "street": "Via del Corso" },
+          "position": { "lat": 41.90259, "lng": 12.48043 },
+          "mapView": { "west": 12.47666, "south": 41.89726, "east": 12.48218, "north": 41.9107 }
+        }
+    """.trimIndent()
+
+    /** A Lookup answer HERE sent without a position. */
+    val LOOKUP_WITHOUT_POSITION = """
+        { "title": "Somewhere", "id": "here:pds:place:nowhere", "resultType": "place", "address": {} }
+    """.trimIndent()
+
+    /** What HERE Lookup answers for an identifier it does not know. */
+    val LOOKUP_NOT_FOUND = """
+        {
+          "status": 404,
+          "title": "Not found",
+          "correlationId": "4199533b-6290-41db-8d79-edf4f4019a74",
+          "requestId": "REQ-1",
+          "cause": "The requested resource was not found"
+        }
+    """.trimIndent()
+
     /** An Autosuggest answer with nothing in it, which is an ordinary moment of typing. */
     const val NO_SUGGESTIONS = """{ "items": [], "queryTerms": [] }"""
 

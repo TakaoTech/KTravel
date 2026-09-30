@@ -75,6 +75,15 @@ enum class ErrorCode {
     @SerialName("NO_ROUTE_FOUND")
     NO_ROUTE_FOUND,
 
+    /**
+     * The provider knows no place with the identifier asked for, or none it can put on a map.
+     *
+     * The identifier is the provider's own and it may expire: the remedy is a new search, not a
+     * retry.
+     */
+    @SerialName("PLACE_NOT_FOUND")
+    PLACE_NOT_FOUND,
+
     /** The server failed on its own account. */
     @SerialName("INTERNAL")
     INTERNAL,

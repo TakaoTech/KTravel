@@ -185,6 +185,7 @@ private fun <T : Any> NavigatorResult<T>.orThrow(): T = when (this) {
             error.message,
         )
 
-        ErrorCode.INTERNAL -> RoutingFailure.Unexpected(error.message)
+        // PLACE_NOT_FOUND belongs to the search paths, and no routing path answers it.
+        ErrorCode.INTERNAL, ErrorCode.PLACE_NOT_FOUND -> RoutingFailure.Unexpected(error.message)
     }
 }

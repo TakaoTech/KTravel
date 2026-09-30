@@ -5,7 +5,8 @@ import kotlin.jvm.JvmInline
 
 /**
  * Identifies one search service, that is the last segment of a `/{provider}/search/{service}` path:
- * autocomplete is one, a future lookup or a browse by category would be others.
+ * autocomplete is one, the details of a place by its identifier another, a browse by category
+ * would be a third.
  *
  * A string and not an enum for the same forward compatibility reason as
  * [com.takaotech.gunzou.api.common.ProviderId]: a server that gains a service must not break the
@@ -22,5 +23,11 @@ value class SearchService(val value: String) {
     companion object {
         /** Suggestions for the text a user is typing, one keystroke at a time. */
         val AUTOCOMPLETE = SearchService("autocomplete")
+
+        /**
+         * The details of one place, read by the identifier another search of the same provider
+         * returned. Served at `/{provider}/search/id/{id}`.
+         */
+        val ID = SearchService("id")
     }
 }

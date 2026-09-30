@@ -9,7 +9,9 @@ import com.takaotech.ktravel.gunzou.server.endpoint.here.HereTransitEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.LiveHereRoutingEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.LiveHereTransitEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.HerePlaceLookupEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.here.search.LiveHereAutocompleteEndpoint
+import com.takaotech.ktravel.gunzou.server.endpoint.here.search.LiveHerePlaceLookupEndpoint
 import com.takaotech.ktravel.gunzou.server.endpoint.search.SearchCatalog
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -52,8 +54,8 @@ internal fun Application.configureKoin(overrides: Module?) {
 }
 
 /**
- * The real wiring: HERE behind both routing profiles and the autocomplete, sharing one pool of
- * clients.
+ * The real wiring: HERE behind both routing profiles, the autocomplete and the place lookup,
+ * sharing one pool of clients.
  *
  * @param logger What the server writes through, passed on to the HTTP clients so their request and
  *   response dumps end up beside everything else rather than in a channel of their own.
@@ -84,6 +86,12 @@ private fun navigatorModule(logger: Logger): Module = module {
         )
     }
 
+    single<HerePlaceLookupEndpoint> {
+        LiveHerePlaceLookupEndpoint(
+            get(),
+        )
+    }
+
     // Assembled from the endpoints that exist, so `GET /v1/profiles` cannot advertise a profile no
     // route serves.
     single {
@@ -100,6 +108,7 @@ private fun navigatorModule(logger: Logger): Module = module {
         SearchCatalog(
             listOf(
                 get<HereAutocompleteEndpoint>(),
+                get<HerePlaceLookupEndpoint>(),
             ),
         )
     }

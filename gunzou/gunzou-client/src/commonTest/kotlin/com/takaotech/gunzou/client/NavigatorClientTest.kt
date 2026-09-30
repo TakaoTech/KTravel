@@ -23,6 +23,9 @@ import com.takaotech.gunzou.api.search.SearchResultType
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion
+import com.takaotech.gunzou.api.search.place.ContactKind
+import com.takaotech.gunzou.api.search.place.PlaceContact
+import com.takaotech.gunzou.api.search.place.PlaceDetails
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
@@ -263,6 +266,60 @@ class NavigatorClientTest {
         val suggestions = assertIs<NavigatorResult.Success<AutocompleteResponse>>(result).value.suggestions
         assertEquals("Colosseo", assertIs<AutocompleteSuggestion.Place>(suggestions.single()).title)
     }
+
+    @Test
+    fun `Given a place id When its details are asked for Then it is a GET on the HERE place path with the language`() =
+        clientTest {
+            client().use { it.herePlace("here:pds:place:276u0vhj-b0bace6448ae4b0f", "it-IT", apiKey = "user-key") }
+
+            val sent = recorded.single()
+            assertEquals(HttpMethod.Get, sent.method)
+            assertEquals("/v1/here/search/id/here:pds:place:276u0vhj-b0bace6448ae4b0f", sent.url.encodedPath)
+            assertEquals("it-IT", sent.url.parameters[NavigatorApi.SEARCH_LANGUAGE_PARAMETER])
+            assertEquals("user-key", sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+        }
+
+    @Test
+    fun `Given a place id with a slash When its details are asked for Then it stays a single path segment`() =
+        clientTest {
+            client().use { it.herePlace("a/b c", "it-IT") }
+
+            val sent = recorded.single()
+            assertEquals("/v1/here/search/id/a%2Fb%20c", sent.url.encodedPath)
+            assertNull(sent.headers[NavigatorApi.PROVIDER_KEY_HEADER])
+        }
+
+    @Test
+    fun `Given the navigator answers place details When they are read Then the contract type comes back`() =
+        clientTest {
+            val details = PlaceDetails(
+                id = "here:pds:place:1",
+                title = "Colosseo",
+                resultType = SearchResultType.PLACE,
+                position = GeoPoint(lat = 41.8902, lng = 12.4922),
+                contacts = listOf(PlaceContact(kind = ContactKind.WEBSITE, value = "https://colosseo.it")),
+            )
+            val body = NavigatorJson.encodeToString(PlaceDetails.serializer(), details)
+
+            val result = client(body = body).use { it.herePlace("here:pds:place:1", "it-IT") }
+
+            assertEquals(details, assertIs<NavigatorResult.Success<PlaceDetails>>(result).value)
+        }
+
+    @Test
+    fun `Given the navigator does not know the place When it is read Then the failure says PLACE_NOT_FOUND`() =
+        clientTest {
+            val error = ErrorResponse(code = ErrorCode.PLACE_NOT_FOUND, message = "Not found")
+
+            val result = client(
+                status = HttpStatusCode.NotFound,
+                body = NavigatorJson.encodeToString(ErrorResponse.serializer(), error),
+            ).use { it.herePlace("here:pds:place:unknown", "it-IT") }
+
+            val failure = assertIs<NavigatorResult.ServerError>(result)
+            assertEquals(404, failure.status)
+            assertEquals(ErrorCode.PLACE_NOT_FOUND, failure.error.code)
+        }
 
     @Test
     fun `Given the navigator publishes its search catalog When it is read Then it goes to the search profiles path`() =

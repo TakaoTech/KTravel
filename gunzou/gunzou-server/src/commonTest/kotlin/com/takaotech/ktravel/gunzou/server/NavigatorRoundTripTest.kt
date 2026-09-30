@@ -18,6 +18,7 @@ import com.takaotech.gunzou.client.NavigatorClient
 import com.takaotech.gunzou.client.NavigatorClientConfig
 import com.takaotech.gunzou.client.NavigatorResult
 import com.takaotech.gunzou.client.getOrThrow
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -120,11 +121,11 @@ class NavigatorRoundTripTest {
         }
 
     @Test
-    fun `Given a running navigator When the search catalog is fetched Then the autocomplete arrives typed`() =
+    fun `Given a running navigator When the search catalog is fetched Then every search service arrives typed`() =
         roundTrip { client ->
             val profiles = client.searchProfiles().getOrThrow().profiles
 
-            assertEquals(listOf(SearchService.AUTOCOMPLETE), profiles.map { it.service })
+            assertEquals(listOf(SearchService.AUTOCOMPLETE, SearchService.ID), profiles.map { it.service })
             assertTrue(profiles.all { it.provider == SearchProviderId.Here })
         }
 
@@ -142,6 +143,27 @@ class NavigatorRoundTripTest {
             val place = assertIs<AutocompleteSuggestion.Place>(suggestions.first())
             assertEquals("Colosseo", place.title)
             assertIs<AutocompleteSuggestion.Query>(suggestions.last())
+        }
+
+    @Test
+    fun `Given place details are asked for over HTTP When they come back Then the id survived the path`() =
+        roundTrip(HereMockServer(HerePayloads.LOOKUP)) { client ->
+            val id = "here:pds:place:380sr2yk-0f0d8a4b5e0b4b1f9f"
+
+            val details = client.herePlace(id, language = "it-IT", apiKey = "round-trip-key").getOrThrow()
+
+            assertEquals(id, details.id)
+            assertEquals("Trattoria Da Enzo", details.title)
+        }
+
+    @Test
+    fun `Given an unknown place When its details are asked for over HTTP Then the refusal names it`() =
+        roundTrip(HereMockServer(HerePayloads.LOOKUP_NOT_FOUND, HttpStatusCode.NotFound)) { client ->
+            val result = client.herePlace("here:pds:place:unknown", language = "it-IT", apiKey = "round-trip-key")
+
+            val failure = assertIs<NavigatorResult.ServerError>(result)
+            assertEquals(404, failure.status)
+            assertEquals(ErrorCode.PLACE_NOT_FOUND, failure.error.code)
         }
 
     @Test

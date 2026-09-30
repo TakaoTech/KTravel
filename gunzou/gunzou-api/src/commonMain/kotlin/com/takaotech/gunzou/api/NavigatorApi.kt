@@ -1,7 +1,9 @@
 package com.takaotech.gunzou.api
 
 import com.takaotech.gunzou.api.NavigatorApi.HERE_ROUTING_TEMPLATE
+import com.takaotech.gunzou.api.NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE
 import com.takaotech.gunzou.api.NavigatorApi.PROFILES
+import com.takaotech.gunzou.api.NavigatorApi.SEARCH_LANGUAGE_PARAMETER
 import com.takaotech.gunzou.api.NavigatorApi.hereRouting
 import com.takaotech.gunzou.api.here.HereTransportMode
 import kotlinx.serialization.json.Json
@@ -51,6 +53,29 @@ object NavigatorApi {
      * of the same service is a new path taking the same body, not a new body.
      */
     const val HERE_SEARCH_AUTOCOMPLETE: String = "/$VERSION/here/search/autocomplete"
+
+    /** The path segment of [HERE_SEARCH_PLACE_TEMPLATE] that carries the place identifier. */
+    const val HERE_SEARCH_PLACE_ID_PARAMETER: String = "id"
+
+    /**
+     * The details of one place through HERE, as a template, answered in the provider neutral
+     * [com.takaotech.gunzou.api.search.place.PlaceDetails].
+     *
+     * A `GET`, unlike the other search paths: it reads one resource by its identifier, which is the
+     * `id` a search of the same provider returned. That identifier is opaque and may contain
+     * characters such as `:`, so a caller writes it as an encoded path segment.
+     *
+     * The language to answer in is the [SEARCH_LANGUAGE_PARAMETER] query parameter, and it is
+     * required.
+     */
+    const val HERE_SEARCH_PLACE_TEMPLATE: String =
+        "/$VERSION/here/search/id/{$HERE_SEARCH_PLACE_ID_PARAMETER}"
+
+    /**
+     * The query parameter naming the language a `GET` search path answers in: an IETF BCP 47 tag,
+     * such as `it-IT`.
+     */
+    const val SEARCH_LANGUAGE_PARAMETER: String = "language"
 
     /** What this server can route with. */
     const val PROFILES: String = "/$VERSION/profiles"

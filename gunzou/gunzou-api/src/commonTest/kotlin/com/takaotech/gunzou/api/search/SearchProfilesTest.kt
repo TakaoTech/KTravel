@@ -20,6 +20,17 @@ class SearchProfilesTest {
     }
 
     @Test
+    fun `Given the HERE place lookup When its descriptor is read Then it is served at the HERE place path`() {
+        val descriptor = SearchProfile.HerePlaceLookup.descriptor
+
+        assertEquals(NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE, descriptor.path)
+        assertEquals(SearchProviderId.Here, descriptor.provider)
+        assertEquals(SearchService.ID, descriptor.service)
+        assertEquals(1, descriptor.maxResults)
+        assertEquals(true, descriptor.requiresApiKey)
+    }
+
+    @Test
     fun `Given every declared search service When it is looked up by identity Then it is found`() {
         SearchProfile.ALL.forEach { profile ->
             assertSame(profile, SearchProfile.find(profile.descriptor))

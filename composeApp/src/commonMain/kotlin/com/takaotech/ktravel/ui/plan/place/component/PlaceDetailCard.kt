@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -22,8 +25,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
 import com.takaotech.ktravel.presentation.place.CoordinateParser
 import com.takaotech.ktravel.ui.plan.place.previewTorrazzo
+import com.takaotech.ktravel.ui.plan.place.previewTorrazzoDetails
 import com.takaotech.ktravel.ui.theme.KTravelTheme
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.add
@@ -40,13 +45,21 @@ import org.jetbrains.compose.resources.stringResource
 /** Side of the tile at the top of the card. */
 private val CARD_TILE_SIZE = 56.dp
 
+/** The tallest the contacts and opening hours grow before they scroll, so the map stays in sight. */
+private val DETAIL_SECTIONS_MAX_HEIGHT = 220.dp
+
 /**
  * The card of one place, floating over the bottom of the map: what it is, where it is, and the
  * buttons to centre the map on it and to add it to the selection or take it out.
+ *
+ * @param details What else is known about [candidate]: its contacts and opening hours are listed
+ *   under the address once a provider answered, and nothing is added while they are empty.
  */
+// TODO Change this design, completely wrong
 @Composable
 internal fun PlaceDetailCard(
     candidate: PlaceCandidate,
+    details: PlaceDetails?,
     isSelected: Boolean,
     onDismiss: () -> Unit,
     onCenterClick: () -> Unit,
@@ -100,7 +113,26 @@ internal fun PlaceDetailCard(
                 style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            details?.let { DetailSections(details = it) }
             DetailActions(isSelected = isSelected, onCenterClick = onCenterClick, onToggleSelection = onToggleSelection)
+        }
+    }
+}
+
+/** The contacts and the opening hours, each only when the provider knows any. */
+@Composable
+private fun DetailSections(details: PlaceDetails) {
+    if (details.contacts.isNotEmpty() && details.openingHours.isNotEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = DETAIL_SECTIONS_MAX_HEIGHT)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (details.contacts.isNotEmpty()) PlaceContactsSection(contacts = details.contacts)
+            if (details.openingHours.isNotEmpty()) PlaceOpeningHoursSection(openingHours = details.openingHours)
         }
     }
 }
@@ -144,9 +176,11 @@ private fun DetailActions(isSelected: Boolean, onCenterClick: () -> Unit, onTogg
 private fun PlaceDetailCardPreview() = KTravelTheme {
     Surface {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            listOf(false, true).forEach { selected ->
+            // Before the provider answered, and after, selected.
+            listOf(null to false, previewTorrazzoDetails to true).forEach { (details, selected) ->
                 PlaceDetailCard(
                     candidate = previewTorrazzo,
+                    details = details,
                     isSelected = selected,
                     onDismiss = {},
                     onCenterClick = {},

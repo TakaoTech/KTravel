@@ -18,12 +18,15 @@ private const val HTTP_SERVER_ERROR_FLOOR = 500
  * "HERE is down" from "there is no route" without knowing that HERE exists, let alone which of its
  * status codes means what. The upstream's own status and message are carried along unchanged, so the
  * information is available to whoever is debugging without being what the client branches on.
+ *
+ * A `404` means something different to each HERE API — no route between two points, no place with
+ * an identifier — so the caller names what it means for the call it made in [notFound].
  */
-fun <T> HereApiResult<T>.orThrowNavigatorException(): T = when (this) {
+fun <T> HereApiResult<T>.orThrowNavigatorException(notFound: ErrorCode = ErrorCode.NO_ROUTE_FOUND): T = when (this) {
     is HereApiResult.Success -> data
 
     is HereApiResult.Error -> throw NavigatorException(
-        code = httpStatusCode.toErrorCode(),
+        code = httpStatusCode.toErrorCode(notFound),
         message = errorResponse?.title ?: "The HERE API call failed",
         // Zero is what the client reports when the call never reached HERE, and it is not an HTTP
         // status: sending it on would be inventing one.
@@ -40,14 +43,14 @@ fun <T> HereApiResult<T>.orThrowNavigatorException(): T = when (this) {
  * validation: it means the query built from it was not one HERE accepts, which is a combination the
  * caller chose. The message carries HERE's explanation of which part.
  */
-private fun Int.toErrorCode(): ErrorCode = when {
+private fun Int.toErrorCode(notFound: ErrorCode): ErrorCode = when {
     this == HTTP_UNAUTHORIZED || this == HTTP_FORBIDDEN -> ErrorCode.PROVIDER_UNAUTHORIZED
 
     this == HTTP_TOO_MANY_REQUESTS -> ErrorCode.PROVIDER_RATE_LIMITED
 
     this == HTTP_BAD_REQUEST -> ErrorCode.INVALID_REQUEST
 
-    this == HTTP_NOT_FOUND -> ErrorCode.NO_ROUTE_FOUND
+    this == HTTP_NOT_FOUND -> notFound
 
     this >= HTTP_SERVER_ERROR_FLOOR -> ErrorCode.PROVIDER_UNAVAILABLE
 

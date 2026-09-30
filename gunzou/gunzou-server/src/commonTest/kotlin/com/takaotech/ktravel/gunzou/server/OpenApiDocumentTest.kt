@@ -67,6 +67,7 @@ class OpenApiDocumentTest {
                     NavigatorApi.HERE_TRANSIT,
                     NavigatorApi.SEARCH_PROFILES,
                     NavigatorApi.HERE_SEARCH_AUTOCOMPLETE,
+                    NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE,
                 ),
                 paths,
             )
@@ -112,6 +113,31 @@ class OpenApiDocumentTest {
                 unauthorized.description.contains("MISSING_CREDENTIALS"),
                 "the 401 is described as '${unauthorized.description}' rather than in the contract's terms",
             )
+        }
+
+    @Test
+    fun `Given the place lookup path When its operation is read Then it takes the id and language and can answer 404`() =
+        testApplication {
+            val operation = generateDocument().operationAt(NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE)
+
+            val parameters = operation.parameters.orEmpty().mapNotNull { (it as? ReferenceOr.Value)?.value?.name }
+            assertTrue(
+                parameters.containsAll(
+                    listOf(
+                        NavigatorApi.HERE_SEARCH_PLACE_ID_PARAMETER,
+                        NavigatorApi.SEARCH_LANGUAGE_PARAMETER,
+                        NavigatorApi.PROVIDER_KEY_HEADER,
+                    ),
+                ),
+                "the lookup parameters are missing from the document: $parameters",
+            )
+
+            val notFound = operation.responses
+                ?.responses
+                ?.get(HttpStatusCode.NotFound.value)
+                .let { assertNotNull(it, "an unknown identifier is a documented 404") as ReferenceOr.Value }
+                .value
+            assertTrue(notFound.description.contains("PLACE_NOT_FOUND"))
         }
 
     // AUTH DISABLED: what the document said while the routes sat under an `authenticate` block. It

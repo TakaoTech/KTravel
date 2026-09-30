@@ -9,6 +9,7 @@ import com.takaotech.ktravel.domain.search.model.GeoArea
 import com.takaotech.ktravel.domain.search.model.GeoCoordinate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
 import com.takaotech.ktravel.domain.search.model.PlaceCategory
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -26,6 +27,8 @@ import kotlinx.collections.immutable.persistentListOf
  * @property selected The places that will be added on confirm, in the order they were picked.
  * @property isInventoryOpen Whether the list area shows [selected] instead of a list of places.
  * @property detail The place whose card is open over the map.
+ * @property detailInfo What the card of [detail] shows: first what the candidate itself carries, then
+ *   what the provider that found it answered, once it has.
  * @property initialCamera Where the map opens.
  * @property cameraRequest The latest place the map was asked to move to; a new value means a new move.
  * @property isSaving Whether the selection is being written to the trip.
@@ -44,6 +47,7 @@ data class PlaceInsertUiState(
     val selected: ImmutableList<PlaceCandidate> = persistentListOf(),
     val isInventoryOpen: Boolean = false,
     val detail: PlaceCandidate? = null,
+    val detailInfo: PlaceDetails? = null,
     val initialCamera: MapCamera = MapCamera.DEFAULT,
     val cameraRequest: MapCamera? = null,
     val isSaving: Boolean = false,

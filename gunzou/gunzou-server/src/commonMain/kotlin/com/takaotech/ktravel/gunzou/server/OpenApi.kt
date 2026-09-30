@@ -12,6 +12,7 @@ import com.takaotech.gunzou.api.response.TransitJourneyResponse
 import com.takaotech.gunzou.api.search.SearchCatalogResponse
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
+import com.takaotech.gunzou.api.search.place.PlaceDetails
 import io.ktor.http.HttpStatusCode
 import io.ktor.openapi.JsonSchema
 import io.ktor.openapi.OpenApiDoc
@@ -203,6 +204,37 @@ internal val HereAutocompleteOperation: RouteOperationFunction = {
     routeResponses(jsonSchema<AutocompleteResponse>(), "The suggestions, most relevant first")
 }
 
+/** `GET /v1/here/search/id/{id}`. */
+internal val HerePlaceLookupOperation: RouteOperationFunction = {
+    tag(TAG_SEARCH)
+    summary = "The details of one place"
+    description = """
+        Served by HERE Lookup, answered in the provider neutral `PlaceDetails`. The identifier is the
+        `id` of a place a HERE search returned, written as an encoded path segment.
+
+        Besides what an autocomplete place carries, the answer has the contacts, the opening hours as
+        recurring periods in the place's own time zone, and whether the place has closed for good.
+        An identifier HERE does not know is a `404` with `PLACE_NOT_FOUND` in the body.
+    """.trimIndent()
+
+    parameters {
+        path(NavigatorApi.HERE_SEARCH_PLACE_ID_PARAMETER) {
+            required = true
+            description = "The HERE identifier of the place, such as `here:pds:place:276u0vhj-b0bace6448ae4b0f`."
+        }
+        query(NavigatorApi.SEARCH_LANGUAGE_PARAMETER) {
+            required = true
+            description = "IETF BCP 47 tag of the language to answer in, such as `it-IT`."
+        }
+    }
+    providerKeyHeader()
+    routeResponses(
+        jsonSchema<PlaceDetails>(),
+        "The place",
+        HttpStatusCode.NotFound to "PLACE_NOT_FOUND: HERE knows no place with this identifier; search again",
+    )
+}
+
 /** `POST /v1/here/routing/{transportMode}`. */
 internal val HereRoutingOperation: RouteOperationFunction = {
     tag(TAG_ROUTING)
@@ -274,7 +306,9 @@ private fun Operation.Builder.providerKeyHeader() {
  * What a routing endpoint can answer, in every case.
  *
  * The success schema is a parameter because the two profiles no longer answer in one type; the
- * failures are what they still share, and listing them once is the point of this function.
+ * failures are what they still share, and listing them once is the point of this function. An
+ * endpoint that can fail in a way the others cannot, such as a lookup of an unknown place, adds it
+ * in [extraFailures].
  *
  * The failures are listed one by one rather than folded into a `default` response because the status
  * is half of what a client branches on, and a document that only promises "some error" is one a
@@ -282,14 +316,18 @@ private fun Operation.Builder.providerKeyHeader() {
  * [configureStatusPages] is what makes it true of the responses this server has not thought about
  * either.
  */
-private fun Operation.Builder.routeResponses(success: JsonSchema, meaning: String) {
+private fun Operation.Builder.routeResponses(
+    success: JsonSchema,
+    meaning: String,
+    vararg extraFailures: Pair<HttpStatusCode, String>,
+) {
     responses {
         response(HttpStatusCode.OK.value) {
             description = meaning
             schema = success
         }
 
-        for ((status, meaning) in ROUTING_FAILURES) {
+        for ((status, meaning) in ROUTING_FAILURES + extraFailures) {
             response(status.value) {
                 description = meaning
                 schema = jsonSchema<ErrorResponse>()

@@ -16,6 +16,9 @@ package com.takaotech.ktravel.domain.search.model
  * @property addressLabel The full address as the provider writes it.
  * @property category The kind of place, when the source knows it and it is one the trip filters by.
  * @property distanceMeters From the point the search was made around, when the source measured it.
+ * @property reference The provider and identifier its details are read by, when the candidate came
+ *   from a provider. Unlike [id], which only has to be unique on screen, it is what the provider
+ *   itself knows the place as.
  */
 data class PlaceCandidate(
     val id: String,
@@ -26,6 +29,8 @@ data class PlaceCandidate(
     val addressLabel: String? = null,
     val category: PlaceCategory? = null,
     val distanceMeters: Long? = null,
+    // TODO Check what server respond to this
+    val reference: PlaceReference? = null,
 )
 
 /** Where a [PlaceCandidate] came from. */

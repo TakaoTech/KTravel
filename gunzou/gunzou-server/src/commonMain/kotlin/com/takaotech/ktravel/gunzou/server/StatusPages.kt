@@ -116,5 +116,9 @@ private fun ErrorCode.toHttpStatus(): HttpStatusCode = when (this) {
 
     ErrorCode.NO_ROUTE_FOUND -> HttpStatusCode.UnprocessableEntity
 
+    // Unlike NO_ROUTE_FOUND this is a 404: the path names one resource by its identifier, and that
+    // resource does not exist. The code in the body still tells it from a path nobody serves.
+    ErrorCode.PLACE_NOT_FOUND -> HttpStatusCode.NotFound
+
     ErrorCode.INTERNAL -> HttpStatusCode.InternalServerError
 }

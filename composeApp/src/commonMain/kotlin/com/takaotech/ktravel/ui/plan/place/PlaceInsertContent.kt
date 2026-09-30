@@ -102,6 +102,7 @@ fun PlaceInsertContent(state: PlaceInsertUiState, modifier: Modifier = Modifier)
         state.detail?.let { detail ->
             PlaceDetailCard(
                 candidate = detail,
+                details = state.detailInfo,
                 isSelected = state.isSelected(detail.id),
                 onDismiss = { sink(PlaceInsertEvent.DetailDismissed) },
                 onCenterClick = { sink(PlaceInsertEvent.CenterOn(detail)) },

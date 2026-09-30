@@ -4,6 +4,8 @@ import com.takaotech.ktravel.core.annotation.OpenForMokkery
 import com.takaotech.ktravel.domain.routing.ProfileAvailability
 import com.takaotech.ktravel.domain.search.model.GeoCoordinate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
+import com.takaotech.ktravel.domain.search.model.PlaceReference
 
 /**
  * Finding places by name, without knowing who answers.
@@ -33,6 +35,18 @@ interface PlaceSearchService {
      * @throws PlaceSearchFailure when the provider could not be asked or refused to answer.
      */
     suspend fun autocomplete(provider: PlaceSearchProvider, query: PlaceSearchQuery): List<PlaceCandidate>
+
+    /**
+     * What the provider named by [reference] knows about the place: its contacts, its opening hours.
+     *
+     * The provider asked is the one that found the place, as [PlaceCandidate.reference] records it,
+     * since only that provider can read its identifier.
+     *
+     * @param language An IETF BCP 47 tag, such as `it-IT`, the answer is written in.
+     * @throws PlaceSearchFailure when the provider could not be asked or refused to answer, and
+     *   [PlaceSearchFailure.PlaceNotFound] when it no longer knows the place.
+     */
+    suspend fun details(reference: PlaceReference, language: String): PlaceDetails
 }
 
 /**
@@ -111,6 +125,12 @@ sealed class PlaceSearchFailure(message: String, cause: Throwable? = null) : Exc
 
     /** This build has no way to call the chosen provider. */
     class UnsupportedProvider(providerId: String) : PlaceSearchFailure("No search is wired for provider '$providerId'")
+
+    /**
+     * The provider does not know the place asked for: the identifier expired, or it came from
+     * another provider. A new search is the remedy, not a retry.
+     */
+    class PlaceNotFound(message: String) : PlaceSearchFailure(message)
 
     /** The request was not one the navigator accepts, which is a bug in the app. */
     class InvalidRequest(message: String) : PlaceSearchFailure(message)

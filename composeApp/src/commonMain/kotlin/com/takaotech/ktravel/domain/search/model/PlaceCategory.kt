@@ -8,6 +8,7 @@ package com.takaotech.ktravel.domain.search.model
  * museums are one entry because the contract groups them together, and splitting them here would
  * promise a distinction no provider answers.
  */
+// TODO Add None Category
 enum class PlaceCategory {
     /** Monuments, landmarks, museums and galleries. */
     SIGHTS_AND_MUSEUMS,

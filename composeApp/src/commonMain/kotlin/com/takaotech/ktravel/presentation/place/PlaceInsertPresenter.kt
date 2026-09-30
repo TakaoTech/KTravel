@@ -24,11 +24,13 @@ import com.takaotech.ktravel.domain.search.PlaceSearchFailure
 import com.takaotech.ktravel.domain.search.PlaceSearchProviderOption
 import com.takaotech.ktravel.domain.search.PlaceSearchQuery
 import com.takaotech.ktravel.domain.search.PlaceSearchService
+import com.takaotech.ktravel.domain.search.adapter.PlaceCandidateDetailsAdapter
 import com.takaotech.ktravel.domain.search.model.GeoArea
 import com.takaotech.ktravel.domain.search.model.GeoCoordinate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidateSource
 import com.takaotech.ktravel.domain.search.model.PlaceCategory
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
 import com.takaotech.ktravel.presentation.plan.day.AddPlaceScreen
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -92,6 +94,7 @@ fun PlaceInsertPresenter(
         center = center,
     )
     val nearby = rememberNearbyPlaces(graph.nearbyPlacesService, viewport.value, category.value)
+    val detailInfo = rememberPlaceDetails(graph.placeSearchService, detail.value)
 
     return PlaceInsertUiState(
         query = query.value,
@@ -105,6 +108,7 @@ fun PlaceInsertPresenter(
         selected = selection.value,
         isInventoryOpen = isInventoryOpen.value,
         detail = detail.value,
+        detailInfo = detailInfo,
         initialCamera = initialCamera,
         cameraRequest = camera.latest,
         isSaving = isSaving,
@@ -216,6 +220,38 @@ private fun rememberSearchResults(
     return results
 }
 
+/**
+ * The details of [candidate], for its card.
+ *
+ * The card opens at once on what the candidate carries. When a provider found the place, the
+ * provider is then asked for the rest — contacts, opening hours — and its answer takes over; a
+ * failure leaves the card as it opened, since everything it needs to add the place is already there.
+ * Closing the card, or opening another, cancels a request still running.
+ */
+@Composable
+private fun rememberPlaceDetails(service: PlaceSearchService, candidate: PlaceCandidate?): PlaceDetails? {
+    val language = remember { Locale.current.toLanguageTag() }
+    var details by rememberRetained(candidate) {
+        mutableStateOf(candidate?.let(PlaceCandidateDetailsAdapter::adapt))
+    }
+    // Retained with the details, so a card the provider already answered is not asked for again
+    // when the screen comes back from the background.
+    var isAnswered by rememberRetained(candidate) { mutableStateOf(false) }
+
+    LaunchedEffect(candidate) {
+        val reference = candidate?.reference
+        if (reference == null || isAnswered) return@LaunchedEffect
+
+        try {
+            details = service.details(reference, language)
+            isAnswered = true
+        } catch (_: PlaceSearchFailure) {
+            // The card stays on what the candidate carries.
+        }
+    }
+    return details
+}
+
 /** The places inside [area], of [category], fetched once the map settles. */
 @Composable
 private fun rememberNearbyPlaces(
@@ -283,5 +319,7 @@ private fun PlaceSearchFailure.toProblem(): PlaceSearchProblem = when (this) {
     is PlaceSearchFailure.ProviderUnavailable, is PlaceSearchFailure.UnsupportedProvider ->
         PlaceSearchProblem.PROVIDER_UNAVAILABLE
 
-    is PlaceSearchFailure.InvalidRequest, is PlaceSearchFailure.Unexpected -> PlaceSearchProblem.UNEXPECTED
+    // An autocomplete never reads a place by its identifier, so it cannot fail to find one.
+    is PlaceSearchFailure.InvalidRequest, is PlaceSearchFailure.PlaceNotFound, is PlaceSearchFailure.Unexpected ->
+        PlaceSearchProblem.UNEXPECTED
 }

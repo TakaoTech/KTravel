@@ -5,14 +5,24 @@ import com.takaotech.ktravel.domain.routing.ProfileAvailability
 import com.takaotech.ktravel.domain.search.PlaceSearchProvider
 import com.takaotech.ktravel.domain.search.PlaceSearchProviderOption
 import com.takaotech.ktravel.domain.search.model.GeoCoordinate
+import com.takaotech.ktravel.domain.search.model.OpeningPeriod
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidateSource
 import com.takaotech.ktravel.domain.search.model.PlaceCategory
+import com.takaotech.ktravel.domain.search.model.PlaceContact
+import com.takaotech.ktravel.domain.search.model.PlaceContactKind
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
+import com.takaotech.ktravel.domain.search.model.PlaceReference
 import com.takaotech.ktravel.presentation.place.CoordinateParser
 import com.takaotech.ktravel.presentation.place.PlaceInsertUiState
 import com.takaotech.ktravel.presentation.place.PlaceListState
 import com.takaotech.ktravel.presentation.place.PlaceSearchProblem
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalTime
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 internal val previewHere = PlaceSearchProvider(id = "here", name = "HERE")
 
@@ -31,6 +41,43 @@ internal val previewTorrazzo = PlaceCandidate(
     addressLabel = "Piazza del Comune, 26100 Cremona CR, Italia",
     category = PlaceCategory.SIGHTS_AND_MUSEUMS,
     distanceMeters = 420,
+)
+
+/**
+ * What HERE would answer about [previewTorrazzo]: a contact of every kind, a split day, a period past
+ * midnight, and Monday left out, so the card shows a closed day.
+ */
+internal val previewTorrazzoDetails = PlaceDetails(
+    title = previewTorrazzo.title,
+    coordinate = previewTorrazzo.coordinate,
+    addressLabel = previewTorrazzo.addressLabel,
+    locality = previewTorrazzo.locality,
+    category = previewTorrazzo.category,
+    contacts = persistentListOf(
+        PlaceContact(kind = PlaceContactKind.PHONE, value = "+39 0372 495029"),
+        PlaceContact(kind = PlaceContactKind.MOBILE, value = "+39 333 000 0000", label = "Guided tours"),
+        PlaceContact(kind = PlaceContactKind.WEBSITE, value = "https://www.torrazzocremona.it"),
+        PlaceContact(kind = PlaceContactKind.EMAIL, value = "info@torrazzocremona.it"),
+    ),
+    openingHours = persistentListOf(
+        OpeningPeriod(
+            days = persistentSetOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            opensAt = LocalTime(hour = 10, minute = 0),
+            duration = 3.hours,
+        ),
+        OpeningPeriod(
+            days = persistentSetOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY),
+            opensAt = LocalTime(hour = 14, minute = 30),
+            duration = 3.hours + 30.minutes,
+        ),
+        OpeningPeriod(
+            days = persistentSetOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+            opensAt = LocalTime(hour = 20, minute = 0),
+            duration = 6.hours,
+        ),
+    ),
+    timeZoneId = "Europe/Rome",
+    reference = PlaceReference(providerId = "here", placeId = "here:pds:place:torrazzo"),
 )
 
 internal val previewTrattoria = PlaceCandidate(
@@ -81,6 +128,7 @@ internal class PlaceInsertPreviewParams : PreviewParameterProvider<PlaceInsertUi
             selected = persistentListOf(previewTorrazzo, previewCoordinates),
             isInventoryOpen = true,
             detail = previewTorrazzo,
+            detailInfo = previewTorrazzoDetails,
         ),
     )
 }

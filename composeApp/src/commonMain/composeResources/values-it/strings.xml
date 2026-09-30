@@ -50,6 +50,21 @@
     <string name="place_insert_distance_meters">%1$d m</string>
     <string name="place_insert_distance_kilometers">%1$d,%2$d km</string>
 
+    <string name="place_detail_contacts">Contatti</string>
+    <string name="place_detail_contact_phone">Telefono</string>
+    <string name="place_detail_contact_mobile">Cellulare</string>
+    <string name="place_detail_contact_website">Sito web</string>
+    <string name="place_detail_contact_email">Email</string>
+    <string name="place_detail_opening_hours">Orari di apertura</string>
+    <string name="place_detail_closed">Chiuso</string>
+    <string name="place_detail_day_monday">Lun</string>
+    <string name="place_detail_day_tuesday">Mar</string>
+    <string name="place_detail_day_wednesday">Mer</string>
+    <string name="place_detail_day_thursday">Gio</string>
+    <string name="place_detail_day_friday">Ven</string>
+    <string name="place_detail_day_saturday">Sab</string>
+    <string name="place_detail_day_sunday">Dom</string>
+
     <string name="planning_page_trip_name_label">Nome del viaggio</string>
 
     <string name="place_delete">Elimina</string>

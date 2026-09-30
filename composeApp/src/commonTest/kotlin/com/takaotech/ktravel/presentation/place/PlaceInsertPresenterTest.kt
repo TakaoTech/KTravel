@@ -22,6 +22,10 @@ import com.takaotech.ktravel.domain.search.model.GeoCoordinate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
 import com.takaotech.ktravel.domain.search.model.PlaceCandidateSource
 import com.takaotech.ktravel.domain.search.model.PlaceCategory
+import com.takaotech.ktravel.domain.search.model.PlaceContact
+import com.takaotech.ktravel.domain.search.model.PlaceContactKind
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
+import com.takaotech.ktravel.domain.search.model.PlaceReference
 import com.takaotech.ktravel.domain.usecase.SavePlaceUseCase
 import com.takaotech.ktravel.presentation.plan.day.AddPlaceScreen
 import dev.mokkery.MockMode
@@ -37,6 +41,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.LocalDate
@@ -60,8 +65,10 @@ private class FakePlaceSearchService(
         listOf(PlaceSearchProviderOption(HERE, ProfileAvailability.Available)),
     ),
     private val answer: (PlaceSearchQuery) -> List<PlaceCandidate> = { emptyList() },
+    private val detailsAnswer: (PlaceReference) -> PlaceDetails = { error("No details were expected") },
 ) : PlaceSearchService {
     val queries = mutableListOf<PlaceSearchQuery>()
+    val detailRequests = mutableListOf<PlaceReference>()
 
     override suspend fun catalog(): PlaceSearchCatalog = catalog
 
@@ -69,7 +76,24 @@ private class FakePlaceSearchService(
         queries += query
         return answer(query)
     }
+
+    override suspend fun details(reference: PlaceReference, language: String): PlaceDetails {
+        detailRequests += reference
+        return detailsAnswer(reference)
+    }
 }
+
+private val REFERENCE = PlaceReference(providerId = "here", placeId = "here:pds:place:1")
+
+/** A search result HERE found, which its details can be asked for. */
+private val HERE_RESULT = candidate(1).copy(reference = REFERENCE)
+
+private val HERE_DETAILS = PlaceDetails(
+    title = "Place 1",
+    coordinate = HERE_RESULT.coordinate,
+    contacts = persistentListOf(PlaceContact(kind = PlaceContactKind.PHONE, value = "+39 06 1234")),
+    reference = REFERENCE,
+)
 
 private class FakeNearbyPlacesService : NearbyPlacesService {
     val requests = mutableListOf<Pair<GeoArea, PlaceCategory?>>()
@@ -266,6 +290,63 @@ class PlaceInsertPresenterTest : BehaviorSpec() {
 
                         val state = awaitUntil { it.search.problem != null }
                         state.search.problem shouldBe PlaceSearchProblem.MISSING_API_KEY
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+        }
+
+        given("a search result HERE found") {
+            `when`("its card is opened") {
+                then("HERE is asked for its details by the result's reference and the card shows them") {
+                    val setup = Setup(search = FakePlaceSearchService(detailsAnswer = { HERE_DETAILS }))
+                    presenterTestOf({ PlaceInsertPresenter(setup.screen, setup.navigator, setup.store) }) {
+                        awaitReady().eventSink(PlaceInsertEvent.DetailOpened(HERE_RESULT))
+
+                        val state = awaitUntil { it.detailInfo?.contacts?.isNotEmpty() == true }
+
+                        setup.search.detailRequests shouldBe listOf(REFERENCE)
+                        state.detail shouldBe HERE_RESULT
+                        state.detailInfo shouldBe HERE_DETAILS
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+
+            `when`("its card is opened and HERE no longer knows the place") {
+                then("the card keeps what the result itself carries") {
+                    val search = FakePlaceSearchService(
+                        detailsAnswer = { throw PlaceSearchFailure.PlaceNotFound("Not found") },
+                    )
+                    val setup = Setup(search = search)
+                    presenterTestOf({ PlaceInsertPresenter(setup.screen, setup.navigator, setup.store) }) {
+                        awaitReady().eventSink(PlaceInsertEvent.DetailOpened(HERE_RESULT))
+
+                        val state = awaitUntil { it.detail != null }
+                        eventually(2.seconds) { setup.search.detailRequests shouldBe listOf(REFERENCE) }
+
+                        state.detailInfo?.title shouldBe HERE_RESULT.title
+                        state.detailInfo?.reference shouldBe REFERENCE
+                        state.detailInfo?.contacts?.shouldBeEmpty()
+                        cancelAndIgnoreRemainingEvents()
+                    }
+                }
+            }
+        }
+
+        given("a place no provider knows") {
+            `when`("its card is opened") {
+                then("nothing is asked and the card shows what the place carries") {
+                    val setup = Setup()
+                    val point = candidate(2).copy(source = PlaceCandidateSource.COORDINATES)
+                    presenterTestOf({ PlaceInsertPresenter(setup.screen, setup.navigator, setup.store) }) {
+                        awaitReady().eventSink(PlaceInsertEvent.DetailOpened(point))
+
+                        val state = awaitUntil { it.detail != null }
+
+                        state.detailInfo?.title shouldBe point.title
+                        state.detailInfo?.coordinate shouldBe point.coordinate
+                        setup.search.detailRequests.shouldBeEmpty()
                         cancelAndIgnoreRemainingEvents()
                     }
                 }

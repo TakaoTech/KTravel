@@ -24,6 +24,8 @@ import com.takaotech.ktravel.domain.search.PlaceSearchProviderOption
 import com.takaotech.ktravel.domain.search.PlaceSearchQuery
 import com.takaotech.ktravel.domain.search.PlaceSearchService
 import com.takaotech.ktravel.domain.search.model.PlaceCandidate
+import com.takaotech.ktravel.domain.search.model.PlaceDetails
+import com.takaotech.ktravel.domain.search.model.PlaceReference
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
@@ -93,7 +95,8 @@ class NavigatorPlaceSearchService(
                 limit = query.limit,
             )
 
-            val response = when (SearchProviderId.from(provider.id)) {
+            val providerId = SearchProviderId.from(provider.id)
+            val response = when (providerId) {
                 SearchProviderId.Here -> targets.callWithRecovery(navigatorKind()) { target ->
                     client.hereAutocomplete(request, apiKey, target)
                 }
@@ -106,7 +109,24 @@ class NavigatorPlaceSearchService(
                 // TODO category and chain suggestions need a follow-up search the contract does not
                 //  expose yet; until then only places can be offered.
                 .filterIsInstance<AutocompleteSuggestion.Place>()
-                .map { it.toCandidate() }
+                .map { it.toCandidate(providerId) }
+        }
+
+    override suspend fun details(reference: PlaceReference, language: String): PlaceDetails =
+        withContext(Dispatchers.Default) {
+            val apiKey = settingsRepository.settings.hereApiKey.takeIf { it.isNotBlank() }
+
+            // Asked of the provider that found the place: its identifier means nothing to another.
+            when (val provider = SearchProviderId.from(reference.providerId)) {
+                SearchProviderId.Here -> {
+                    val response = targets.callWithRecovery(navigatorKind()) { target ->
+                        client.herePlace(id = reference.placeId, language = language, apiKey = apiKey, target = target)
+                    }
+                    NavigatorPlaceDetailsAdapter(provider).adapt(response.orThrow())
+                }
+
+                else -> throw PlaceSearchFailure.UnsupportedProvider(reference.providerId)
+            }
         }
 
     /**
@@ -153,6 +173,8 @@ private fun <T : Any> NavigatorResult<T>.orThrow(): T = when (this) {
         ErrorCode.PROVIDER_UNAVAILABLE -> PlaceSearchFailure.ProviderUnavailable(error.message)
 
         ErrorCode.INVALID_REQUEST, ErrorCode.UNSUPPORTED_OPTION -> PlaceSearchFailure.InvalidRequest(error.message)
+
+        ErrorCode.PLACE_NOT_FOUND -> PlaceSearchFailure.PlaceNotFound(error.message)
 
         ErrorCode.NO_ROUTE_FOUND, ErrorCode.INTERNAL -> PlaceSearchFailure.Unexpected(error.message)
     }

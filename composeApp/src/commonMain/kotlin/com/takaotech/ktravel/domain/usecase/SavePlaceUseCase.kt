@@ -26,6 +26,7 @@ class SavePlaceUseCase(private val repository: TravelPlanRepository) {
         if (candidates.isEmpty()) return
 
         val places = candidates.map {
+            // TODO Expand place domain for allow save more information
             PlaceDomain(name = it.title, lat = it.coordinate.lat, lng = it.coordinate.lng)
         }
         repository.savePlaces(places, dayId)

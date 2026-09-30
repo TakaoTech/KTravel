@@ -350,14 +350,17 @@ class HereAutocompleteTest {
     // ---- the catalog -------------------------------------------------------------------------
 
     @Test
-    fun `Given the embedded server When the search catalog is fetched Then HERE autocomplete is listed`() =
+    fun `Given the embedded server When the search catalog is fetched Then every HERE search service is listed`() =
         testApplication {
             application { module(HereMockServer().asKoinModule()) }
 
             val body = client.get(NavigatorApi.SEARCH_PROFILES).bodyAsText()
             val catalog = NavigatorJson.decodeFromString(SearchCatalogResponse.serializer(), body)
 
-            assertEquals(listOf(SearchProfile.HereAutocomplete.descriptor), catalog.profiles)
-            assertEquals(SearchProviderId.Here, catalog.profiles.single().provider)
+            assertEquals(
+                listOf(SearchProfile.HereAutocomplete.descriptor, SearchProfile.HerePlaceLookup.descriptor),
+                catalog.profiles,
+            )
+            assertTrue(catalog.profiles.all { it.provider == SearchProviderId.Here })
         }
 }

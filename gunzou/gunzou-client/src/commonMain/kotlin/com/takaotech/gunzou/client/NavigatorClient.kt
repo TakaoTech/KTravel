@@ -14,18 +14,21 @@ import com.takaotech.gunzou.api.response.TransitJourneyResponse
 import com.takaotech.gunzou.api.search.SearchCatalogResponse
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteRequest
 import com.takaotech.gunzou.api.search.autocomplete.AutocompleteResponse
+import com.takaotech.gunzou.api.search.place.PlaceDetails
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 // AUTH DISABLED: import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 // AUTH DISABLED: import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLPathPart
 import io.ktor.http.isSuccess
 import io.ktor.serialization.ContentConvertException
 import kotlinx.serialization.SerializationException
@@ -46,6 +49,9 @@ import kotlin.coroutines.cancellation.CancellationException
  * Build one and keep it — it owns an HTTP client, a connection pool and threads — and [close] it when
  * the thing that owns it goes away.
  */
+// One method per path is the design, so the count grows with the contract rather than with the
+// responsibilities of the class.
+@Suppress("TooManyFunctions")
 class NavigatorClient private constructor(
     private val httpClient: HttpClient,
     private val config: NavigatorClientConfig,
@@ -110,6 +116,37 @@ class NavigatorClient private constructor(
         post(NavigatorApi.HERE_SEARCH_AUTOCOMPLETE, AutocompleteRequest.serializer(), request, apiKey, target)
 
     /**
+     * Reads the details of one place through HERE: its contacts, its opening hours, its time zone.
+     *
+     * The answer is the one every provider of the service shares, and it carries everything an
+     * autocomplete place does, so a suggestion can be replaced by its details without reconciling
+     * two shapes.
+     *
+     * @param id The HERE identifier of the place, as [hereAutocomplete] returned it in
+     *   [com.takaotech.gunzou.api.search.autocomplete.AutocompleteSuggestion.Place.id]. Opaque: it is
+     *   encoded into the path here, so pass it exactly as received.
+     * @param language IETF BCP 47 tag of the language to answer in, such as `it-IT`.
+     * @param apiKey The caller's HERE key, unless the navigator holds one of its own.
+     * @param target Which navigator to ask, when it is not the configured one.
+     * @return The details, or the failure. An identifier HERE does not know is a
+     *   [NavigatorResult.ServerError] carrying [com.takaotech.gunzou.api.error.ErrorCode.PLACE_NOT_FOUND].
+     */
+    suspend fun herePlace(
+        id: String,
+        language: String,
+        apiKey: String? = null,
+        target: NavigatorTarget? = null,
+    ): NavigatorResult<PlaceDetails> = get(
+        path = NavigatorApi.HERE_SEARCH_PLACE_TEMPLATE.replace(
+            "{${NavigatorApi.HERE_SEARCH_PLACE_ID_PARAMETER}}",
+            id.encodeURLPathPart(),
+        ),
+        target = target,
+        apiKey = apiKey,
+        query = mapOf(NavigatorApi.SEARCH_LANGUAGE_PARAMETER to language),
+    )
+
+    /**
      * What the navigator can search with.
      *
      * The search counterpart of [profiles]: which search services this deployment mounts, and what
@@ -145,9 +182,17 @@ class NavigatorClient private constructor(
         httpClient.close()
     }
 
-    private suspend inline fun <reified T> get(path: String, target: NavigatorTarget?): NavigatorResult<T> = call {
-        // AUTH DISABLED: httpClient.get(origin(target) + path) { presentAccessToken(target) }
-        httpClient.get(origin(target) + path)
+    private suspend inline fun <reified T> get(
+        path: String,
+        target: NavigatorTarget?,
+        apiKey: String? = null,
+        query: Map<String, String> = emptyMap(),
+    ): NavigatorResult<T> = call {
+        httpClient.get(origin(target) + path) {
+            // AUTH DISABLED: presentAccessToken(target)
+            apiKey?.let { header(NavigatorApi.PROVIDER_KEY_HEADER, it) }
+            query.forEach { (name, value) -> parameter(name, value) }
+        }
     }
 
     private suspend inline fun <REQ, reified T> post(
