@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.takaotech.ktravel.core.KTravelPlatform
+import com.takaotech.ktravel.core.logging.LocalAppLogger
 import com.takaotech.ktravel.di.createAppGraph
 import com.takaotech.ktravel.navigation.KTravelNavigation
 import com.takaotech.ktravel.ui.theme.KTravelTheme
@@ -31,7 +32,10 @@ fun App(onRootPop: () -> Unit = {}) {
 
     KTravelPlatform {
         KTravelTheme {
-            CompositionLocalProvider(LocalMetroViewModelFactory provides appGraph.metroViewModelFactory) {
+            CompositionLocalProvider(
+                LocalMetroViewModelFactory provides appGraph.metroViewModelFactory,
+                LocalAppLogger provides appGraph.appLogger,
+            ) {
                 CircuitCompositionLocals(appGraph.circuit) {
                     KTravelNavigation(appGraph = appGraph, onRootPop = onRootPop)
                 }

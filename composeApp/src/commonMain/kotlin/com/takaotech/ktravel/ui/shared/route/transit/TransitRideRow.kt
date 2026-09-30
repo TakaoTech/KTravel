@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import com.takaotech.gunzou.api.geometry.PolylineEncoderDecoder
-import com.takaotech.ktravel.di.LocalAppGraph
+import com.takaotech.ktravel.core.logging.LocalAppLogger
 import com.takaotech.ktravel.domain.routing.model.TransitStep
 import ktravel.composeapp.generated.resources.Res
 import ktravel.composeapp.generated.resources.transit_preview_agency_label
@@ -131,7 +131,7 @@ internal fun TransitRideRow(
                             val uriHandler = LocalUriHandler.current
                             // The application's logger, so a link that will not open is visible on
                             // the diagnostics screen rather than only in the platform console.
-                            val logger = LocalAppGraph.current.appLogger
+                            val logger = LocalAppLogger.current
 
                             Text(
                                 text = buildAnnotatedString {
