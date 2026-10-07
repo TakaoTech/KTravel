@@ -48,7 +48,7 @@ sonarqube = "7.4.0.8496"
 dokka = "2.2.0"
 compottie = "2.3.0"
 
-hyphen = "0.7.1-alpha01"
+hyphen = "0.7.1-alpha02"
 markdown-renderer = "0.45.0"
 
 aboutLibraries = "15.2.0"
